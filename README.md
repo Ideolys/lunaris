@@ -1,9 +1,9 @@
 # Projet Lunaris
 
 « Il faut toujours viser la lune, car même en cas d’échec, on atterrit dans les étoiles »
+-- Oscar WILDE
 
--- [Oscar WILDE]
-
+Lunaris est la traduction de lunaire en latin. 
 
 
 # Humour Question / Réponses
