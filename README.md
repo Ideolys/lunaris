@@ -16,3 +16,7 @@ Lunaris est la traduction de lunaire en latin.
 - Il va falloir décrocher la lune car le projet parait impossible
 - Faudra pas non plus demander la lune, aucune solution n'est parfaite
 - La lune, ça parait loin, et pourtant c'est tout proche
+
+# Lecture conseillée
+
+![alt text](images/lecture.jpg)
