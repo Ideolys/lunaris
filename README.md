@@ -19,4 +19,6 @@ Lunaris est la traduction de lunaire en latin.
 
 # Lecture conseillée
 
+Toute l'équipe, en avant  !
+
 ![alt text](images/lecture.jpg)
