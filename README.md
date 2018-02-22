@@ -20,7 +20,7 @@ Lunaris est la traduction de lunaire en latin.
 # Recherches
 
 - ![Comparatif : Vuejs, React, Angular](https://docs.zoho.com/file/5j7aqe18432a5e6a9410da9968cd88667ef92)
-- ![Réponses questionnaires](https://docs.zoho.com/sheet/open/5mzbl8e23756df50b499cbf4fcc73f968988b/sheets/Feuille1/ranges/C3)
+- ![Réponses questionnaires](https://docs.zoho.com/file/5mzbl8e23756df50b499cbf4fcc73f968988b)
 
 # Lecture conseillée
 
