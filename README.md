@@ -22,6 +22,22 @@ Lunaris est la traduction de lunaire en latin.
 - [Comparatif : Vuejs, React, Angular](https://docs.zoho.com/file/5j7aqe18432a5e6a9410da9968cd88667ef92)
 - [Réponses questionnaires](https://docs.zoho.com/file/5mzbl8e23756df50b499cbf4fcc73f968988b)
 
+# Comment communiquer entre le serveur (model) et les objet vueUS
+
+Si on a notre propre système de base de données coté client, comment pousser les data à VueJS :
+ - via les props : binding model -> vue à priori possible. Quid du binding vue -> model ? 
+ - via un require + une fonction dans data {} : binding model -> vue à priori possible. Quid du binding vue -> model ? 
+ - via un plugin (un peu comme VueX this.$store.state.todos...) et les computed : le binding model -> vue  serait à priori ok. VueJS résoud les dépendances et ne recalcul 
+   pas si la dépendance n'a pas changé. Par contre, comment VueJS est au courant d'une mise à jour ? Par contre le binding vue -> model doit être fait la main.
+
+
+Utiliser Vuex : 
+ - malgré tout : beaucoup de chose fait main (validation formulaire, aggrégat). Le model doit être définit 2 fois (dans data et dans le store VueX). Car toute modif dans le store VueX doit être fait 
+   par une fonction de mutation, du coup vue ne peut pas mettre à jour directement le store.
+
+Formulaire (comment retourner l'erreur en live ) 
+
+
 # Lecture conseillée
 
 Toute l'équipe, en avant  !
