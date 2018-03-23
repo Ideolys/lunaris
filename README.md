@@ -79,6 +79,11 @@ Si on a notre propre système de base de données coté client, comment pousser 
     </script>
 ```
 
+- pour le cas des inventaire, comment lunaris est au courant de la mise à jour de l'input directement sur la collection ?
+  - on peut faire une method '@onBlur' , qui passe l'id de l'objet... Et dans le model vue, on peut appeler lunaris et lui dire de faire la mutation.
+  - par contre, cela veut la liste des porduit de l'invetaire ne peut pas être dans Vue.data car Vue le mettrait à jour en direct.
+
+
 Utiliser Vuex : 
  - malgré tout : beaucoup de chose fait main (validation formulaire, aggrégat). Le model doit être définit 2 fois (dans data et dans le store VueX). Car toute modif dans le store VueX doit être fait 
    par une fonction de mutation, du coup vue ne peut pas mettre à jour directement le store.
