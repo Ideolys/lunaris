@@ -32,7 +32,52 @@ Si on a notre propre système de base de données coté client, comment pousser 
    Comment VueJS est au courant d'une mise à jour ? A priori, il instrumente le this par des getters/setter ? Mystère...
    Le binding vue -> model doit être fait la main via les mutations.
    
+```html
+    <div id="app1">
+      {{ test2 }}
 
+      <button @click="update">+</button>
+    </div>
+    <div id="app2"></div>
+    <script>
+
+      var _vm = new Vue({
+        data : {
+          $$state : {
+            test : 1
+          }
+        }
+      })
+
+      var vm2 = {};
+
+      function vuexInit () {
+        this.$vm2 = {
+          get state () {
+            return _vm.$data.$$state;
+          }
+        }
+      }
+      Vue.mixin({ beforeCreate: vuexInit });
+
+      var vm = new Vue({
+        el : '#app1',
+        data : {
+          test : 1
+        },
+        computed : {
+          test2 : function () {
+            return this.$vm2.state.test;
+          }
+        },
+        methods : {
+          update : function () {
+            this.$vm2.state.test++;
+          }
+        }
+      });
+    </script>
+```
 
 Utiliser Vuex : 
  - malgré tout : beaucoup de chose fait main (validation formulaire, aggrégat). Le model doit être définit 2 fois (dans data et dans le store VueX). Car toute modif dans le store VueX doit être fait 
