@@ -39,6 +39,26 @@ Validation des dormulaire (comment retourner l'erreur en live ) :
  - dans vue par défaut, il faut faire à la main
  - https://monterail.github.io/vuelidate/#getting-started Vuelidate appporte un peu de souplesse mais il faut définir les phrase d'erreur dans l'HTML
  - http://vee-validate.logaretm.com/ est un peu mieux mais les règle des validation (required, ...) sont directement dans l'HTML
+ - pour éviter de répeter dans l'html le label, input, error... Peut-être pouvons passer par des `slot`  ou des composants.
+
+
+COmment gérer les erreurs asynchonre ?
+
+ Imaginons, l'utilisateur est déconnecté du réseau, il créé une famille de produit, puis un produit, puis l'ajoute dans son inventaire. 
+  il quitte l'écran des inventaire. Au retour du réseau, on lui informe que le serveur n'a pas pu enregistrer la famille de produit pour 
+  une raison technique, du coup, tout le reste ne peut pas être enregistré.. QUe faire ?
+  
+ Si nos models clients-serveur sont bine synchronisé,  à priori, cela doit être rare.
+ Dnas tous les cas, le client ne doit pas perdre son inventaire.
+ Il est informé via des message clair (global à l'application) que la famille X n'a pas pu être enregistré, donc le produit Y n'a pas pu être créé, donc l'inventire Y n'a pas pu être enregistré.
+ Le support n1 peut accéder à ces logs.
+ L'utilisateur peut lui-même revenir dans l'écran des inventaire ou des produit et corriger ou appeler le support pour se faire aider.
+ 
+ Conséquence technique  : 
+  - il faut dans le model définir dans les objet les champs pertinent à afficher en cas d'erreur pour que l'utilisateur puisse revenir dessus (par exemple, le label et l'id du produit)
+  - il faut traduire le nom des tables pour parler en français...
+ 
+  
 
 
 # Lecture conseillée
