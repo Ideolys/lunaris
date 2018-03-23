@@ -22,7 +22,7 @@ Lunaris est la traduction de lunaire en latin.
 - [Comparatif : Vuejs, React, Angular](https://docs.zoho.com/file/5j7aqe18432a5e6a9410da9968cd88667ef92)
 - [Réponses questionnaires](https://docs.zoho.com/file/5mzbl8e23756df50b499cbf4fcc73f968988b)
 
-# Comment communiquer entre le serveur (model) et les objet vueUS
+#### Comment communiquer entre le serveur (model) et les objet vueUS
 
 Si on a notre propre système de base de données coté client, comment pousser les data à VueJS :
  - via les props : binding model -> vue à priori possible. Quid du binding vue -> model ? 
@@ -35,14 +35,17 @@ Utiliser Vuex :
  - malgré tout : beaucoup de chose fait main (validation formulaire, aggrégat). Le model doit être définit 2 fois (dans data et dans le store VueX). Car toute modif dans le store VueX doit être fait 
    par une fonction de mutation, du coup vue ne peut pas mettre à jour directement le store.
 
-Validation des dormulaire (comment retourner l'erreur en live ) :
+
+
+
+#### Validation des Formulaire (comment retourner l'erreur en live ) :
  - dans vue par défaut, il faut faire à la main
  - https://monterail.github.io/vuelidate/#getting-started Vuelidate appporte un peu de souplesse mais il faut définir les phrase d'erreur dans l'HTML
  - http://vee-validate.logaretm.com/ est un peu mieux mais les règle des validation (required, ...) sont directement dans l'HTML
  - pour éviter de répeter dans l'html le label, input, error... Peut-être pouvons passer par des `slot`  ou des composants.
 
 
-COmment gérer les erreurs asynchonre ?
+Comment gérer les erreurs asynchrore ?
 
  Imaginons, l'utilisateur est déconnecté du réseau, il créé une famille de produit, puis un produit, puis l'ajoute dans son inventaire. 
   il quitte l'écran des inventaire. Au retour du réseau, on lui informe que le serveur n'a pas pu enregistrer la famille de produit pour 
@@ -54,11 +57,29 @@ COmment gérer les erreurs asynchonre ?
  Le support n1 peut accéder à ces logs.
  L'utilisateur peut lui-même revenir dans l'écran des inventaire ou des produit et corriger ou appeler le support pour se faire aider.
  
- Conséquence technique  : 
+Conséquence technique  : 
   - il faut dans le model définir dans les objet les champs pertinent à afficher en cas d'erreur pour que l'utilisateur puisse revenir dessus (par exemple, le label et l'id du produit)
   - il faut traduire le nom des tables pour parler en français...
   - on pourrait désigner une URL pour retourner directement vers le formulaire
-  
+ 
+Concrêtement, pour que l'errreur s'affiche automatiqement à coté de l'input dans le formulaire, il y a 2 technique possibles: 
+
+ - soit le model Lunaris contient un champ erreur pour chaque champ défini. Cela permet à VueJS de binder ce champ et de l'afficher si il change après validation 
+   du model par Lunaris
+
+```
+{
+    id : 1
+    id_error : ''
+    label : 'sdqs' 
+    label_error : ''
+}
+```
+  - Soit il y a un système d'erreur global avec une URL pour décrire quel champ est en erreur 'MyProductList[id=1].family.label`. Cette clé peut être utilisée comme 
+    identifiant à la fois coté HTML et coté validation pour afficher ou non l'erreur. Problème  : pas facile à générer coté VueJS
+
+
+
 
 
 # Lecture conseillée
