@@ -27,8 +27,11 @@ Lunaris est la traduction de lunaire en latin.
 Si on a notre propre système de base de données coté client, comment pousser les data à VueJS :
  - via les props : binding model -> vue à priori possible. Quid du binding vue -> model ? 
  - via un require + une fonction dans data {} : binding model -> vue à priori possible. Quid du binding vue -> model ? 
- - via un plugin (un peu comme VueX this.$store.state.todos...) et les computed : le binding model -> vue  serait à priori ok. VueJS résoud les dépendances et ne recalcul 
-   pas si la dépendance n'a pas changé. Par contre, comment VueJS est au courant d'une mise à jour ? Par contre le binding vue -> model doit être fait la main.
+ - via un plugin (un peu comme VueX this.$store.state.todos...) et les computed : le binding model -> vue  serait à priori ok. il faut cependant définir toutes les 
+   `computed` pour chaque champ du formulaire. VueJS résoud les dépendances et ne recalcul pas si la dépendance n'a pas changé. 
+   Comment VueJS est au courant d'une mise à jour ? A priori, il instrumente le this par des getters/setter ? Mystère...
+   Le binding vue -> model doit être fait la main via les mutations.
+   
 
 
 Utiliser Vuex : 
@@ -49,7 +52,7 @@ Comment gérer les erreurs asynchrore ?
 
  Imaginons, l'utilisateur est déconnecté du réseau, il créé une famille de produit, puis un produit, puis l'ajoute dans son inventaire. 
   il quitte l'écran des inventaire. Au retour du réseau, on lui informe que le serveur n'a pas pu enregistrer la famille de produit pour 
-  une raison technique, du coup, tout le reste ne peut pas être enregistré.. QUe faire ?
+  une raison technique, du coup, tout le reste ne peut pas être enregistré.. Que faire ?
   
  Si nos models clients-serveur sont bine synchronisé,  à priori, cela doit être rare.
  Dnas tous les cas, le client ne doit pas perdre son inventaire.
