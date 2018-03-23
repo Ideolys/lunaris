@@ -35,7 +35,10 @@ Utiliser Vuex :
  - malgré tout : beaucoup de chose fait main (validation formulaire, aggrégat). Le model doit être définit 2 fois (dans data et dans le store VueX). Car toute modif dans le store VueX doit être fait 
    par une fonction de mutation, du coup vue ne peut pas mettre à jour directement le store.
 
-Formulaire (comment retourner l'erreur en live ) 
+Validation des dormulaire (comment retourner l'erreur en live ) :
+ - dans vue par défaut, il faut faire à la main
+ - https://monterail.github.io/vuelidate/#getting-started Vuelidate appporte un peu de souplesse mais il faut définir les phrase d'erreur dans l'HTML
+ - http://vee-validate.logaretm.com/ est un peu mieux mais les règle des validation (required, ...) sont directement dans l'HTML
 
 
 # Lecture conseillée
