@@ -57,7 +57,7 @@ COmment gérer les erreurs asynchonre ?
  Conséquence technique  : 
   - il faut dans le model définir dans les objet les champs pertinent à afficher en cas d'erreur pour que l'utilisateur puisse revenir dessus (par exemple, le label et l'id du produit)
   - il faut traduire le nom des tables pour parler en français...
- 
+  - on pourrait désigner une URL pour retourner directement vers le formulaire
   
 
 
