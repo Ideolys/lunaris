@@ -40,25 +40,28 @@ Si on a notre propre système de base de données coté client, comment pousser 
     </div>
     <div id="app2"></div>
     <script>
-
-      var _vm = new Vue({
-        data : {
-          $$state : {
-            test : 1
+        var store = {
+        _vm : new Vue({
+          data : {
+            $$state : {
+              test : 1
+            }
           }
+        }),
+        install : function (Vue, options) {
+          Vue.mixin({ 
+            beforeCreate: function () {
+              this.$store = {
+                get state () {
+                  return store._vm.$data.$$state;
+                }
+              }
+            } 
+          });
         }
-      })
+      };
 
-      var vm2 = {};
-
-      function vuexInit () {
-        this.$vm2 = {
-          get state () {
-            return _vm.$data.$$state;
-          }
-        }
-      }
-      Vue.mixin({ beforeCreate: vuexInit });
+      Vue.use(store);
 
       var vm = new Vue({
         el : '#app1',
@@ -67,12 +70,12 @@ Si on a notre propre système de base de données coté client, comment pousser 
         },
         computed : {
           test2 : function () {
-            return this.$vm2.state.test;
+            return this.$store.state.test;
           }
         },
         methods : {
           update : function () {
-            this.$vm2.state.test++;
+            this.$store.state.test++;
           }
         }
       });
