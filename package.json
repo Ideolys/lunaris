@@ -1,0 +1,25 @@
+{
+  "name": "lunaris",
+  "version": "1.0.0",
+  "description": "« Il faut toujours viser la lune, car même en cas d’échec, on atterrit dans les étoiles » -- Oscar WILDE",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib"
+  },
+  "dependencies": {
+    "rollup": "^0.60.0",
+    "vue": "^2.5.16",
+    "vue-router": "^3.0.1",
+    "vue-template-compiler": "^2.5.16"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@git.ideolys.com:ideolys/projet-lunaris.git"
+  },
+  "author": "",
+  "license": "ISC"
+}
