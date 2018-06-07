@@ -1,3 +1,4 @@
 module.exports = {
-  build : require('./lib/builder')
-}
+  build     : require('./lib/builder'),
+  translate : require('./lib/generateLang')
+};
