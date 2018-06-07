@@ -1,5 +1,5 @@
 const should      = require('should');
-const compiler    = require('../lib/vue/compiler').test;
+const compiler    = require('../lib/_builder/compiler').test;
 const vueCompiler = require('vue-template-compiler');
 const transpile   = require('vue-template-es2015-compiler');
 const path        = require('path');
