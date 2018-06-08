@@ -148,6 +148,8 @@ Un exemple :
 
 https://akryum.github.io/vue-virtual-scroller/
 
+Notre version :  https://git.ideolys.com/ideolys/vuejs-nickel/tree/master/CIR/scroll
+
 
 # Lecture conseillée
 
