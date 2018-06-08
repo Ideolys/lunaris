@@ -7,8 +7,12 @@
     "lib": "lib"
   },
   "dependencies": {
+    "buefy": "^0.6.6",
+    "echarts": "^4.1.0",
+    "moment": "^2.22.2",
     "rollup": "^0.60.0",
     "vue": "^2.5.16",
+    "vue-gesture": "^2.0.0",
     "vue-router": "^3.0.1",
     "vue-template-compiler": "^2.5.16",
     "vue-template-es2015-compiler": "^1.6.0"

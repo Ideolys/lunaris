@@ -187,7 +187,7 @@ describe('Test vue compilation', () => {
     it('should replace template by render and staticRenderFns : \'', () => {
       var _vueFile = `
         exports.default = {
-          template : '<ul class="bla bloop"><li v-for="item in items">{{ item.id }}</li></ul>',
+          template : './template_simple.js',
           props : ['items']
         }
       `;
@@ -202,7 +202,7 @@ describe('Test vue compilation', () => {
     it('should replace template by render and staticRenderFns : "', () => {
       var _vueFile = `
         exports.default = {
-          template : "<ul class="bla bloop"><li v-for="item in items">{{ item.id }}</li></ul>",
+          template : "./template_simple.js",
           props : ['items']
         }
       `;
@@ -217,7 +217,7 @@ describe('Test vue compilation', () => {
     it('should replace template by render and staticRenderFns : \`', () => {
       var _vueFile = `
         exports.default = {
-          template : \`<ul class="bla bloop"><li v-for="item in items">{{ item.id }}</li></ul>\`,
+          template : \`./template_simple.js\`,
           props : ['items']
         }
       `;
@@ -232,7 +232,7 @@ describe('Test vue compilation', () => {
     it('should generate render function', () => {
       var _vueFile = `
         exports.default = {
-          template : '<ul class="bla bloop"><li v-for="item in items">{{ item.id }}</li></ul>',
+          template : './template_simple.js',
           props : ['items']
         }
       `;
@@ -318,7 +318,11 @@ describe('Test vue compilation', () => {
         }
         `;
 
-        var _template = '<ul class="bla bloop"><li v-for="item in items">{{ item.id ? \'1\' : \'2\' }}</li></ul>';
+        var _template = `
+          <ul class="bla bloop">
+            <li v-for="item in items">{{ item.id ? \'1\' : \'2\' }}</li>
+          </ul>
+        `;
         var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : true });
 
         should(/template/.test(_compiled)).eql(false);
@@ -336,11 +340,7 @@ describe('Test vue compilation', () => {
       it('should compile file : template with \\n', () => {
         var _file = `
           Vue.component('list-cars', {
-            template : '
-              <ul class="bla bloop">
-                <li v-for="item in items">{{ item.id }}</li>
-              </ul>
-            ',
+            template : './template.html',
             data     : function () {
               return {
                 cars : [
@@ -352,7 +352,11 @@ describe('Test vue compilation', () => {
           });
         `;
 
-        var _template = '<ul class="bla bloop"><li v-for="item in items">{{ item.id }}</li></ul>';
+        var _template = `
+          <ul class="bla bloop">
+            <li v-for="item in items">{{ item.id ? \'1\' : \'2\' }}</li>
+          </ul>
+        `;
         var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : true });
 
         should(/template/.test(_compiled)).eql(false);
@@ -371,11 +375,7 @@ describe('Test vue compilation', () => {
       it('should compile file : static HTML', () => {
         var _file = `
           Vue.component('list-cars', {
-            template : '
-              <ul class="bla bloop">
-                <li>option</li>
-              </ul>
-            ',
+            template : 'template_static.html',
             data     : function () {
               return {
                 cars : [
