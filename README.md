@@ -150,6 +150,10 @@ https://akryum.github.io/vue-virtual-scroller/
 
 Notre version :  https://git.ideolys.com/ideolys/vuejs-nickel/tree/master/CIR/scroll
 
+# Pourquoi on utilise pas un truc à la Babel ?
+
+Parce qu'on a trouvé plus performant (bublé) : https://buble.surge.sh/guide/#faqs
+
 
 # Lecture conseillée
 
