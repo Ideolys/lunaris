@@ -55,7 +55,7 @@ describe('Test vue compilation', () => {
       `;
 
       var _compiled = compiler.compileVueFile(_vueFile);
-      var _template = /template\s*:\s*`(.*)`/.exec(_compiled);
+      var _template = /template\s*:\s*`(.*)`,/.exec(_compiled);
       should(_template.length).eql(2);
       should(_template[1]).eql('<div></div>');
     });
@@ -78,7 +78,7 @@ describe('Test vue compilation', () => {
       `;
 
       var _compiled = compiler.compileVueFile(_vueFile);
-      var _template = /template\s*:\s*`(.*)`/.exec(_compiled);
+      var _template = /template\s*:\s*`(.*)`,/.exec(_compiled);
       should(_template.length).eql(2);
       should(_template[1]).eql('<div></div>');
     });
@@ -97,7 +97,7 @@ describe('Test vue compilation', () => {
       `;
 
       var _compiled = compiler.compileVueFile(_vueFile);
-      var _template = /template\s*:\s*`(.*)`/.exec(_compiled);
+      var _template = /template\s*:\s*`(.*)`,/.exec(_compiled);
       should(_template.length).eql(2);
       should(_template[1]).eql('<div></div>');
     });
@@ -120,7 +120,7 @@ describe('Test vue compilation', () => {
       `;
 
       var _compiled = compiler.compileVueFile(_vueFile);
-      var _template = /template\s*:\s*`(.*)`/.exec(_compiled);
+      var _template = /template\s*:\s*`(.*)`,/.exec(_compiled);
       should(_template.length).eql(2);
       should(_template[1]).eql('<div></div>');
     });
@@ -154,7 +154,7 @@ describe('Test vue compilation', () => {
       `;
 
       var _compiled = compiler.compileVueFile(_vueFile);
-      var _template = /template\s*:\s*`(.*)`/.exec(_compiled);
+      var _template = /template\s*:\s*`(.*)`,/.exec(_compiled);
       should(_template.length).eql(2);
       should(_template[1]).eql('<div></div>');
     });
@@ -175,7 +175,7 @@ describe('Test vue compilation', () => {
       `;
 
       var _compiled = compiler.compileVueFile(_vueFile);
-      var _template = /template\s*:\s*`(.*)`/.exec(_compiled);
+      var _template = /template\s*:\s*`(.*)`,/.exec(_compiled);
       should(_template.length).eql(2);
       should(_template[1]).eql('<ul class="bla bloop"><li v-for="item in items">{{ item.id }}</li></ul>');
     });
@@ -263,7 +263,7 @@ describe('Test vue compilation', () => {
       `;
 
       var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file);
-      var _template = /template\s*:\s*'(.*)'/.exec(_compiled);
+      var _template = /template\s*:\s*'(.*)',/.exec(_compiled);
       should(_template.length).eql(2);
       should(_template[1]).eql('<ul class="bla bloop"><li v-for="item in items">{{ item.id ? \\\'1\\\' : \\\'2\\\'}}</li></ul>');
     });
@@ -279,7 +279,7 @@ describe('Test vue compilation', () => {
       `;
 
       var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file);
-      var _template = /template\s*:\s*'(.*)'/.exec(_compiled);
+      var _template = /template\s*:\s*'(.*)',/.exec(_compiled);
       should(_template.length).eql(2);
       should(_template[1]).eql('<div></div>');
     });
@@ -300,7 +300,7 @@ describe('Test vue compilation', () => {
       `;
 
       var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.vue'), _file);
-      var _template = /template\s*:\s*`(.*)`/.exec(_compiled);
+      var _template = /template\s*:\s*`(.*)`,/.exec(_compiled);
       should(_template.length).eql(2);
       should(_template[1]).eql('<ul class="bla bloop"><li v-for="item in items">{{ item.id ? \\\'1\\\' : \\\'2\\\'}}</li></ul>');
     });
