@@ -136,6 +136,17 @@ Concrêtement, pour que l'errreur s'affiche automatiqement à coté de l'input d
 
 
 
+#### Scroll infini
+
+
+Aucune solution trouvée ne gère parfaitement ces 3 points à la fois:
+- scroll infini d'élement dont la hauteur a une taille variable
+- maintient d'un DOM légé (retrait des élements du DOM supérieur)
+- performance (pas lecture de la hauteur des item par exemple)
+
+Un exemple : 
+
+https://akryum.github.io/vue-virtual-scroller/
 
 
 # Lecture conseillée
