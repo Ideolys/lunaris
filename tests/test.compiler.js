@@ -4,6 +4,8 @@ const vueCompiler = require('vue-template-compiler');
 const transpile   = require('vue-template-es2015-compiler');
 const path        = require('path');
 
+// Pay attention, vue templates are compiled by default. The skipped tests are for non compilated templates.
+
 describe('Test vue compilation', () => {
 
   describe('Test compile vue file', () => {
@@ -39,7 +41,7 @@ describe('Test vue compilation', () => {
       })).throw('Cannot compile vue file!');
     });
 
-    it('should insert the template into the vue object : data', () => {
+    it.skip('should insert the template into the vue object : data', () => {
       const _vueFile = `
         <template>
           <div></div>
@@ -60,7 +62,7 @@ describe('Test vue compilation', () => {
       should(_template[1]).eql('<div></div>');
     });
 
-    it('should insert the template into the vue object : computed', () => {
+    it.skip('should insert the template into the vue object : computed', () => {
       const _vueFile = `
         <template>
           <div></div>
@@ -83,7 +85,7 @@ describe('Test vue compilation', () => {
       should(_template[1]).eql('<div></div>');
     });
 
-    it('should insert the template into the vue object : props', () => {
+    it.skip('should insert the template into the vue object : props', () => {
       const _vueFile = `
         <template>
           <div></div>
@@ -102,7 +104,7 @@ describe('Test vue compilation', () => {
       should(_template[1]).eql('<div></div>');
     });
 
-    it('should insert the template into the vue object : methods', () => {
+    it.skip('should insert the template into the vue object : methods', () => {
       const _vueFile = `
         <template>
           <div></div>
@@ -125,7 +127,7 @@ describe('Test vue compilation', () => {
       should(_template[1]).eql('<div></div>');
     });
 
-    it('should insert the template into the vue object : *', () => {
+    it.skip('should insert the template into the vue object : *', () => {
       const _vueFile = `
         <template>
           <div></div>
@@ -159,7 +161,7 @@ describe('Test vue compilation', () => {
       should(_template[1]).eql('<div></div>');
     });
 
-    it('should remove uneccessary spaces', () => {
+    it.skip('should remove uneccessary spaces', () => {
       const _vueFile = `
         <template>
           <ul class="bla bloop">
@@ -251,7 +253,7 @@ describe('Test vue compilation', () => {
 
   describe('Test compileVuejsTemplates', () => {
 
-    it('should compile sub template if a path is provided', () => {
+    it.skip('should compile sub template if a path is provided', () => {
       var _file = `
         exports.default = {
           template : './template.html',
@@ -268,7 +270,7 @@ describe('Test vue compilation', () => {
       should(_template[1]).eql('<ul class="bla bloop"><li v-for="item in items">{{ item.id ? \\\'1\\\' : \\\'2\\\'}}</li></ul>');
     });
 
-    it('should compile template : dash in filename', () => {
+    it.skip('should compile template : dash in filename', () => {
       var _file = `
         exports.default = {
           template : './require-with-dashs.html',
@@ -284,7 +286,7 @@ describe('Test vue compilation', () => {
       should(_template[1]).eql('<div></div>');
     });
 
-    it('should compile vue file', () => {
+    it.skip('should compile vue file', () => {
       var _file = `
         <template>
           <ul class="bla bloop">
@@ -427,7 +429,7 @@ describe('Test vue compilation', () => {
         `;
 
         var _template = '<ul class="bla bloop"><li v-for="item in items">{{ item.id }}</li></ul>';
-        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.vue'), _file, { isProduction : true });
+        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.vue'), _file);
 
         should(/template/.test(_compiled)).eql(false);
         should(/render/.test(_compiled)).eql(true);
