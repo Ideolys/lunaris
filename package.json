@@ -9,6 +9,7 @@
   "dependencies": {
     "buefy": "^0.6.6",
     "echarts": "^4.1.0",
+    "graphlib": "^2.1.5",
     "moment": "^2.22.2",
     "rollup": "^0.60.0",
     "vue": "^2.5.16",
