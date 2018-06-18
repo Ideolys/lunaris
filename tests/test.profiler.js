@@ -17,24 +17,24 @@ describe('Profiler', () => {
         var _something = require('./test.js');
       `;
       var _res = profiler('file-1', _code);
-      should(/_file_1_import_0/.test(_res.code)).eql(true);
-      should(_res.imports['_file_1_import_0']).eql('./test.js');
+      should(/imports\[0\]/.test(_res.code)).eql(true);
+      should(_res.imports[0]).eql('test.js');
     });
 
     it('should extract the simple imports', () => {
       var _code = `
-        var something  require('./test.js');
-        var something1 require('./test1.js');
-        var something2 require('./test2.js');
+        var something  = require('./test.js');
+        var something1 = require('./test1.js');
+        var something2 = require('./test2.js');
       `;
 
       var _res = profiler('file-1', _code);
-      should(/_file_1_import_0/.test(_res.code)).eql(true);
-      should(/_file_1_import_1/.test(_res.code)).eql(true);
-      should(/_file_1_import_2/.test(_res.code)).eql(true);
-      should(_res.imports['_file_1_import_0']).eql('./test.js');
-      should(_res.imports['_file_1_import_1']).eql('./test1.js');
-      should(_res.imports['_file_1_import_2']).eql('./test2.js');
+      should(/imports\[0\]/.test(_res.code)).eql(true);
+      should(/imports\[1\]/.test(_res.code)).eql(true);
+      should(/imports\[2\]/.test(_res.code)).eql(true);
+      should(_res.imports[0]).eql('test.js');
+      should(_res.imports[1]).eql('test1.js');
+      should(_res.imports[2]).eql('test2.js');
     });
 
   });
@@ -49,8 +49,8 @@ describe('Profiler', () => {
       `;
 
       var _res = profiler('file-1', _code);
-      should(/var _file_1_export_0/.test(_res.code)).eql(true);
-      should(_res.exports['_file_1_export_0']).eql('exports.default');
+      should(/exports\['default'\]/.test(_res.code)).eql(true);
+      should(_res.exports['default']).eql('exports.default');
     });
 
     it('should extract a value export : var', () => {
@@ -59,8 +59,8 @@ describe('Profiler', () => {
       `;
 
       var _res = profiler('file-1', _code);
-      should(/var _file_1_export_0/.test(_res.code)).eql(true);
-      should(_res.exports['_file_1_export_0']).eql('exports.test');
+      should(/exports\['test'\]/.test(_res.code)).eql(true);
+      should(_res.exports['test']).eql('exports.test');
     });
 
     it('should extract exports', () => {
@@ -72,19 +72,36 @@ describe('Profiler', () => {
       `;
 
       var _res = profiler('file-1', _code);
-      should(/var _file_1_export_0/.test(_res.code)).eql(true);
-      should(/var _file_1_export_1/.test(_res.code)).eql(true);
-      should(_res.exports['_file_1_export_0']).eql('exports.default');
-      should(_res.exports['_file_1_export_1']).eql('exports.test');
+      should(/exports\['default'\]/.test(_res.code)).eql(true);
+      should(/exports\['test'\]/.test(_res.code)).eql(true);
+      should(_res.exports['default']).eql('exports.default');
+      should(_res.exports['test']).eql('exports.test');
+    });
+
+    it('should extract module.exports', () => {
+      var _code = `
+        exports.default = {
+          test : 1
+        };
+        exports.test = 1;
+        module.exports = {}
+      `;
+
+      var _res = profiler('file-1', _code);
+
+      should(/exports\['default'\]/.test(_res.code)).eql(true);
+      should(/exports\['test'\]/.test(_res.code)).eql(true);
+      should(/exports/.test(_res.code)).eql(true);
+      should(_res.exports).eql('module.exports');
     });
 
   });
 
   it('should extract exports and imports', () => {
     var _code = `
-      var something  require('./test.js');
-      var something1 require('./test1.js');
-      var something2 require('./test2.js');
+      var something  = require('./test.js');
+      var something1 = require('./test1.js');
+      var something2 = require('./test2.js');
       exports.default = {
         test : 1
       };
@@ -92,17 +109,17 @@ describe('Profiler', () => {
     `;
 
     var _res = profiler('file-1', _code);
-    should(/var _file_1_export_0/.test(_res.code)).eql(true);
-    should(/var _file_1_export_1/.test(_res.code)).eql(true);
-    should(_res.exports['_file_1_export_0']).eql('exports.default');
-    should(_res.exports['_file_1_export_1']).eql('exports.test');
+    should(/exports\['default'\]/.test(_res.code)).eql(true);
+    should(/exports\['test'\]/.test(_res.code)).eql(true);
+    should(_res.exports['default']).eql('exports.default');
+    should(_res.exports['test']).eql('exports.test');
 
-    should(/_file_1_import_0/.test(_res.code)).eql(true);
-    should(/_file_1_import_1/.test(_res.code)).eql(true);
-    should(/_file_1_import_2/.test(_res.code)).eql(true);
-    should(_res.imports['_file_1_import_0']).eql('./test.js');
-    should(_res.imports['_file_1_import_1']).eql('./test1.js');
-    should(_res.imports['_file_1_import_2']).eql('./test2.js');
+    should(/imports\[0\]/.test(_res.code)).eql(true);
+    should(/imports\[1\]/.test(_res.code)).eql(true);
+    should(/imports\[2\]/.test(_res.code)).eql(true);
+    should(_res.imports[0]).eql('test.js');
+    should(_res.imports[1]).eql('test1.js');
+    should(_res.imports[2]).eql('test2.js');
   });
 
 });
