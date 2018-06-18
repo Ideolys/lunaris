@@ -3,6 +3,7 @@ const compiler    = require('../lib/_builder/compiler').test;
 const vueCompiler = require('vue-template-compiler');
 const transpile   = require('vue-template-es2015-compiler');
 const path        = require('path');
+const fs          = require('fs');
 
 // Pay attention, vue templates are compiled by default. The skipped tests are for non compilated templates.
 
@@ -245,7 +246,6 @@ describe('Test vue compilation', () => {
 
       should(_render.length).eql(2);
       var _expectedCode = 'function render () {' + vueCompiler.compile(_template).render + '}';
-      _expectedCode     = transpile(_expectedCode);
       should(_render[1]).eql(_expectedCode);
     });
 
@@ -325,7 +325,7 @@ describe('Test vue compilation', () => {
             <li v-for="item in items">{{ item.id ? \'1\' : \'2\' }}</li>
           </ul>
         `;
-        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : true });
+        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : false });
 
         should(/template/.test(_compiled)).eql(false);
         should(/render/.test(_compiled)).eql(true);
@@ -335,7 +335,6 @@ describe('Test vue compilation', () => {
 
         should(_render.length).eql(2);
         var _expectedCode = 'function render () {' + vueCompiler.compile(_template).render + '}';
-        _expectedCode     = transpile(_expectedCode);
         should(_render[1]).eql(_expectedCode);
       });
 
@@ -359,7 +358,7 @@ describe('Test vue compilation', () => {
             <li v-for="item in items">{{ item.id ? \'1\' : \'2\' }}</li>
           </ul>
         `;
-        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : true });
+        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : false });
 
         should(/template/.test(_compiled)).eql(false);
         should(/render/.test(_compiled)).eql(true);
@@ -370,26 +369,17 @@ describe('Test vue compilation', () => {
         should(_render.length).eql(2);
 
         var _expectedCode = 'function render () {' + vueCompiler.compile(_template).render + '}';
-        _expectedCode     = transpile(_expectedCode);
         should(_render[1]).eql(_expectedCode);
       });
 
       it('should compile file : static HTML', () => {
         var _file = `
           Vue.component('list-cars', {
-            template : 'template_static.html',
-            data     : function () {
-              return {
-                cars : [
-                  'Tesla',
-                  'Zoé'
-                ]
-              }
-            }
+            template : 'template_static.html'
           });
         `;
 
-        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : true });
+        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : false });
 
         should(/template/.test(_compiled)).eql(false);
         should(/render/.test(_compiled)).eql(true);
@@ -398,17 +388,16 @@ describe('Test vue compilation', () => {
         var _render          = /render\s*:\s*(.*),/.exec(_compiled);
         var _staticRenderFns = /staticRenderFns\s*:\s*(.*),/.exec(_compiled);
 
-        var _template   = '<ul class="bla bloop"><li>option</li></ul>';
+        var _template   = fs.readFileSync(path.join(__dirname, 'datasets', 'vue', 'template_static.html')).toString();
         var _compileRes = vueCompiler.compile(_template);
 
         should(_render.length).eql(2);
-        var _expectedCode = 'function render () {' + vueCompiler.compile(_template).render + '}';
-        _expectedCode     = transpile(_expectedCode);
+        var _expectedCode = 'function render () {' + _compileRes.render + '}';
+
         should(_render[1]).eql(_expectedCode);
 
         _compileRes.staticRenderFns = _compileRes.staticRenderFns.map((code, index) => {
-          code = 'function staticRender_' + index + ' () {' + code + '}';
-          return transpile(code);
+          return 'function staticRender_' + index + ' () {' + code + '}';
         });
         should(_staticRenderFns[1]).eql('[' + _compileRes.staticRenderFns.join(',') + ']');
       });
@@ -439,7 +428,6 @@ describe('Test vue compilation', () => {
 
         should(_render.length).eql(2);
         var _expectedCode = 'function render () {' + vueCompiler.compile(_template).render + '}';
-        _expectedCode     = transpile(_expectedCode);
         should(_render[1]).eql(_expectedCode);
       });
 
@@ -456,7 +444,7 @@ describe('Test vue compilation', () => {
         `;
 
         var _template = '<ul class="bla bloop"><li v-for="item in items">{{ item.id ? \'1\' : \'2\'}}</li></ul>';
-        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : true });
+        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : false });
 
         should(/template/.test(_compiled)).eql(false);
         should(/render/.test(_compiled)).eql(true);
@@ -466,7 +454,6 @@ describe('Test vue compilation', () => {
 
         should(_render.length).eql(2);
         var _expectedCode = 'function render () {' + vueCompiler.compile(_template).render + '}';
-        _expectedCode     = transpile(_expectedCode);
         should(_render[1]).eql(_expectedCode);
       });
 
@@ -486,7 +473,7 @@ describe('Test vue compilation', () => {
         `;
 
         var _template = '<ul class="bla bloop"><li v-for="item in items">{{ item.id ? \'1\' : \'2\' }}</li></ul>';
-        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.vue'), _file, { isProduction : true });
+        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.vue'), _file, { isProduction : false });
 
         should(/template/.test(_compiled)).eql(false);
         should(/render/.test(_compiled)).eql(true);
@@ -496,7 +483,6 @@ describe('Test vue compilation', () => {
 
         should(_render.length).eql(2);
         var _expectedCode = 'function render () {' + vueCompiler.compile(_template).render + '}';
-        _expectedCode     = transpile(_expectedCode);
         should(_render[1]).eql(_expectedCode);
       });
 
@@ -512,7 +498,7 @@ describe('Test vue compilation', () => {
         `;
 
         var _template = '<ul class="bla bloop"><li v-for="item in items">{{ item.id ? \'1\' : \'2\' }}</li></ul>';
-        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : true });
+        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : false });
 
         should(/template/.test(_compiled)).eql(false);
         should(/render/.test(_compiled)).eql(true);
@@ -522,7 +508,6 @@ describe('Test vue compilation', () => {
 
         should(_render.length).eql(2);
         var _expectedCode = 'function render () {' + vueCompiler.compile(_template).render + '}';
-        _expectedCode     = transpile(_expectedCode);
         should(_render[1]).eql(_expectedCode);
       });
 
