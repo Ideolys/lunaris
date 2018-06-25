@@ -161,7 +161,12 @@ Parce qu'on a trouvé plus performant (bublé) : https://buble.surge.sh/guide/#f
 - synhroniser les champs qui dépendent du même nom SQL (sum list-header avec l'objet complet par exemple)
 - décrire les filtres qui ne sont pas présent dans la map (ex withAllChildren, etc...)
 
+#### Versionning des données
 
+- Utilisation d'un numéro de version pour chaque objet de la collection pour déterminer son état (à la Postgres). Un objet peut être être présent plusieurs fois dans la collection, 
+mais il possèdera plusieurs numéros. Lunaris conservera le numéro courant pour connaître la version à utiliser.
+- Une mise à jour s'effectue "en masse" sur toutes les données de la base lorsque l'appli est connectée à internet. Sinon, seule les données locales sont modiifiées.
+- 
 
 # Lecture conseillée
 
