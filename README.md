@@ -155,6 +155,14 @@ Notre version :  https://git.ideolys.com/ideolys/vuejs-nickel/tree/master/CIR/sc
 Parce qu'on a trouvé plus performant (bublé) : https://buble.surge.sh/guide/#faqs
 
 
+#### quelques concepts
+
+- il faut toujours écrire la requête SQL, même le générateur (pout gerer les _labelSearchIndex, sites). La rendre la plus dynamique.
+- synhroniser les champs qui dépendent du même nom SQL (sum list-header avec l'objet complet par exemple)
+- décrire les filtres qui ne sont pas présent dans la map (ex withAllChildren, etc...)
+
+
+
 # Lecture conseillée
 
 Toute l'équipe, en avant  !
