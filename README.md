@@ -168,7 +168,7 @@ mais il possèdera plusieurs numéros. Lunaris conservera le numéro courant pou
 - Une mise à jour s'effectue "en masse" sur toutes les données de la base lorsque l'appli est connectée à internet. Sinon, seule les données locales sont modiifiées.
 - Chaque store possède un template d'erreur qui s'affiche si erreur HTTP il y a.
 
-![schema](images/IMG_20180625_174943.jpg=300x)
+![schema](images/IMG_20180625_174943.jpg)
 
 # Lecture conseillée
 
