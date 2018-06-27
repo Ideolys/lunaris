@@ -1,4 +1,5 @@
-var hook = require('./hook.js');
+var hook  = require('./hook.js');
+var utils = require('./utils.js');
 
 /**
  * Get store
@@ -108,7 +109,7 @@ function getOne (store) {
     throw new Error('"' + store + '" has not been defined!');
   }
 
-  return _collection.getFirst();
+  return utils.clone(_collection.getFirst());
 }
 
 exports.get            = get;
