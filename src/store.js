@@ -19,17 +19,27 @@ function _getStore (storeName) {
 }
 
 /**
+ * Check arguments for upsert, get, deleteStore
+ * @param {String} store
+ * @param {*} value
+ * @param {Boolean} isNotValue enable or not value check
+ */
+function _checkArgs (store, value, isNotValue) {
+  if (value === undefined && !isNotValue) {
+    throw new Error('lunaris.<get|insert|update>(<store>, <value>) must have a value, provided value: ' + value);
+  }
+  if (!store || typeof store !== 'string') {
+    throw new Error('lunaris.<get|insert|update>(<store>, <value>) must have a correct store value: @<store>');
+  }
+}
+
+/**
  * Insert or Update a value in store
  * @param {String} store
  * @param {*} value
  */
 function upsert (store, value) {
-  if (value === undefined) {
-    throw new Error('lunaris.insert(<store>, <value>) must have a value, provided value: ' + value);
-  }
-  if (!store || typeof store !== 'string') {
-    throw new Error('lunaris.insert(<store>, <value>) must have a correct store value: @<store>');
-  }
+  _checkArgs(store, value);
 
   var _event      = value._id ? 'update' : 'insert';
   var _store      = _getStore(store);
@@ -51,16 +61,10 @@ function upsert (store, value) {
  * @param {*} value
  */
 function deleteStore (store, value) {
-  if (value === undefined) {
-    throw new Error('lunaris.delete(<store>, <value>) must have a value, provided value: ' + value);
-  }
-  if (!store || typeof store !== 'string') {
-    throw new Error('lunaris.delete(<store>, <value>) must have a correct store value: @<store>');
-  }
+  _checkArgs(store, value);
 
   var _store      = _getStore(store);
   var _collection = _store.data;
-
   if (!_collection) {
     throw new Error('"' + store + '" has not been defined!');
   }
@@ -71,9 +75,47 @@ function deleteStore (store, value) {
   // TODO push to HTTP
 }
 
-exports.update         = upsert;
-// exports.updateFiltered = upsertFiltered;
+/**
+ * Get values
+ * @param {String} store
+ * @param {*} value
+ */
+function get (store) {
+  _checkArgs(store, null, true);
+
+  var _store      = _getStore(store);
+  var _collection = _store.data;
+  if (!_collection) {
+    throw new Error('"' + store + '" has not been defined!');
+  }
+
+  // TODO push to HTTP
+
+  hook.pushToHandlers(_store, 'get', _collection.getAll());
+}
+
+/**
+ * Get firt value
+ * @param {String} store
+ * @param {*} value
+ */
+function getOne (store) {
+  _checkArgs(store, null, true);
+
+  var _store      = _getStore(store);
+  var _collection = _store.data;
+  if (!_collection) {
+    throw new Error('"' + store + '" has not been defined!');
+  }
+
+  return _collection.getFirst();
+}
+
+exports.get            = get;
+exports.getOne         = getOne;
 exports.insert         = upsert;
 // exports.insertFiltered = upsertFiltered;
+exports.update         = upsert;
+// exports.updateFiltered = upsertFiltered;
 exports.delete         = deleteStore;
 //exports.deleteFiltered = deleteFiltered;

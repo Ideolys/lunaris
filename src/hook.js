@@ -1,3 +1,6 @@
+
+var utils = require('./utils.js');
+
 function _extractHookAndStore (hook) {
   var _hook = /(get|insert|update|delete)@(.*)/.exec(hook);
   if (!_hook || _hook.length < 3) {
@@ -70,7 +73,7 @@ function pushToHandlers (store, hook, payload) {
   }
 
   for (var i = 0; i < _storeHooks.length; i++) {
-    _storeHooks[i](payload);
+    _storeHooks[i](utils.clone(payload));
   }
 }
 

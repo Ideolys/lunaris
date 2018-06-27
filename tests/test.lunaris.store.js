@@ -16,13 +16,13 @@ describe('lunaris store', () => {
     it('should throw an error if no value is provided', () => {
       (function () {
         store.insert('@store');
-      }).should.throw('lunaris.insert(<store>, <value>) must have a value, provided value: undefined');
+      }).should.throw('lunaris.<get|insert|update>(<store>, <value>) must have a value, provided value: undefined');
     });
 
     it('should throw an error if the store is not a string', () => {
       (function () {
         store.insert({}, { id : 1 });
-      }).should.throw('lunaris.insert(<store>, <value>) must have a correct store value: @<store>');
+      }).should.throw('lunaris.<get|insert|update>(<store>, <value>) must have a correct store value: @<store>');
     });
 
     it('should throw an error if the store is not defined', () => {
@@ -112,13 +112,13 @@ describe('lunaris store', () => {
     it('should throw an error if no value is provided', () => {
       (function () {
         store.delete('@store');
-      }).should.throw('lunaris.delete(<store>, <value>) must have a value, provided value: undefined');
+      }).should.throw('lunaris.<get|insert|update>(<store>, <value>) must have a value, provided value: undefined');
     });
 
     it('should throw an error if the store is not a string', () => {
       (function () {
         store.delete({}, { id : 1 });
-      }).should.throw('lunaris.delete(<store>, <value>) must have a correct store value: @<store>');
+      }).should.throw('lunaris.<get|insert|update>(<store>, <value>) must have a correct store value: @<store>');
     });
 
     it('should throw an error if the store is not defined', () => {
@@ -166,6 +166,77 @@ describe('lunaris store', () => {
       store.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql(_expectedValue);
       store.delete('@store1', { _id : 2, id : 2, label : 'B' });
+    });
+  });
+
+  describe('get()', () => {
+    it('insert() should be defined', () => {
+      should(store.get).be.a.Function();
+    });
+
+    it('should throw an error if the store is not a string', () => {
+      (function () {
+        store.get({});
+      }).should.throw('lunaris.<get|insert|update>(<store>, <value>) must have a correct store value: @<store>');
+    });
+
+    it('should throw an error if the store is not defined', () => {
+      (function () {
+        store.get('@store');
+      }).should.throw('The store "store" has not been defined');
+    });
+
+    it('should get the values and execute the hook', done => {
+      var _store          = _initStore();
+      var _expectedValues = [
+        { _id : 1, id : 1, label : 'A' },
+        { _id : 2, id : 2, label : 'B' }
+      ];
+      lunaris._stores['store1'] = _store;
+
+      lunaris.hook('get@store1', items => {
+        should(items).eql(_expectedValues);
+        done();
+      });
+
+      store.insert('@store1', { id : 1, label : 'A' });
+      store.insert('@store1', { id : 2, label : 'B' });
+      should(_store.data.get(1)).eql(_expectedValues[0]);
+      should(_store.data.get(2)).eql(_expectedValues[1]);
+      store.get('@store1');
+    });
+  });
+
+  describe('getOne()', () => {
+    it('insert() should be defined', () => {
+      should(store.getOne).be.a.Function();
+    });
+
+    it('should throw an error if the store is not a string', () => {
+      (function () {
+        store.getOne({});
+      }).should.throw('lunaris.<get|insert|update>(<store>, <value>) must have a correct store value: @<store>');
+    });
+
+    it('should throw an error if the store is not defined', () => {
+      (function () {
+        store.getOne('@store');
+      }).should.throw('The store "store" has not been defined');
+    });
+
+    it('should get the first value', () => {
+      var _store          = _initStore();
+      var _expectedValues = [
+        { _id : 1, id : 1, label : 'A' },
+        { _id : 2, id : 2, label : 'B' }
+      ];
+      lunaris._stores['store1'] = _store;
+
+      store.insert('@store1', { id : 1, label : 'A' });
+      store.insert('@store1', { id : 2, label : 'B' });
+      should(_store.data.get(1)).eql(_expectedValues[0]);
+      should(_store.data.get(2)).eql(_expectedValues[1]);
+      should(store.getOne('@store1')).eql(_expectedValues[0]);
     });
   });
 

@@ -8,6 +8,8 @@ module.exports = {
   hook       : hook.hook,
   removeHook : hook.removeHook,
 
+  get    : store.get,
+  getOne : store.getOne,
   insert : store.insert,
   update : store.update,
   delete : store.delete

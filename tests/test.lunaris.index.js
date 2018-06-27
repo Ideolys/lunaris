@@ -16,6 +16,16 @@ describe('lunaris index', () => {
     should(index.removeHook).be.a.Function();
   });
 
+  it('get() should be defined', () => {
+    should(index.get).be.ok();
+    should(index.get).be.a.Function();
+  });
+
+  it('getOne() should be defined', () => {
+    should(index.getOne).be.ok();
+    should(index.getOne).be.a.Function();
+  });
+
   it('insert() should be defined', () => {
     should(index.insert).be.ok();
     should(index.insert).be.a.Function();

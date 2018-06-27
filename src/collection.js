@@ -82,6 +82,14 @@ function collection (startId) {
     },
 
     /**
+     * Get first item
+     * @param {Int} id
+     */
+    getFirst : function (id) {
+      return _data[0];
+    },
+
+    /**
      * Get all items in the collection
      */
     getAll : function () {

@@ -164,4 +164,17 @@ describe('lunaris internal collection', () => {
     });
   });
 
+  describe('getFirst()', () => {
+    it('should be defined', () => {
+      should(collection().getFirst).be.ok();
+    });
+
+    it('should return the first item', () => {
+      var _collection = collection();
+      should(_collection.getFirst()).eql(undefined);
+      _collection.add({ id : 1, test : 1 });
+      should(_collection.getFirst()).eql({ _id : 1, id : 1, test : 1 });
+    });
+  });
+
 });
