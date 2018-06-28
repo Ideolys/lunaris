@@ -19,7 +19,7 @@ describe('Lunaris hooks', () => {
     it('should throw an error if the hook is not well configured', () => {
       (function () {
         lunaris.hook('a', function () {});
-      }).should.throw('A hook must be: <get|insert|update>@<store>');
+      }).should.throw('A hook must be: <event>@<store>');
     });
 
     it('should throw an error if the store is not defined', () => {
@@ -70,7 +70,7 @@ describe('Lunaris hooks', () => {
         lunaris._stores['store1'] = { hooks : [] };
         lunaris.hook('get@store1', function () {});
         lunaris.removeHook('a', function () {});
-      }).should.throw('A hook must be: <get|insert|update>@<store>');
+      }).should.throw('A hook must be: <event>@<store>');
       delete lunaris._stores['store1'];
     });
 
