@@ -1,10 +1,7 @@
-
-var utils = require('./utils.js');
-
 function _extractHookAndStore (hook) {
-  var _hook = /(get|insert|update|delete)@(.*)/.exec(hook);
+  var _hook = /(.*)@(.*)/.exec(hook);
   if (!_hook || _hook.length < 3) {
-    throw new Error('A hook must be: <get|insert|update>@<store>');
+    throw new Error('A hook must be: <event>@<store>');
   }
 
   return  {
@@ -73,7 +70,7 @@ function pushToHandlers (store, hook, payload) {
   }
 
   for (var i = 0; i < _storeHooks.length; i++) {
-    _storeHooks[i](utils.clone(payload));
+    _storeHooks[i](payload);
   }
 }
 

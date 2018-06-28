@@ -1,5 +1,6 @@
 var hook  = require('./hook.js');
 var utils = require('./utils.js');
+var http  = require('./http.js');
 
 /**
  * Get store
@@ -90,9 +91,25 @@ function get (store) {
     throw new Error('"' + store + '" has not been defined!');
   }
 
-  // TODO push to HTTP
+  var _request = '/';
+  if (pluralize.isPlural(_store.name) === false) {
+    _request += pluralize(_store.name);
+  }
+  else {
+    _request += _store.name;
+  }
 
-  hook.pushToHandlers(_store, 'get', _collection.getAll());
+  http.get(_request, function (err, data) {
+    if (err) {
+      return hook.pushToHandlers(_store, 'errorHttp', err);
+    }
+
+    for (var i = 0; i < data.length; i++) {
+      _collection.upsert(data[i]);
+    }
+
+    hook.pushToHandlers(_store, 'get', utils.clone(data));
+  });
 }
 
 /**

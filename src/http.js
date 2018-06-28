@@ -1,56 +1,29 @@
-function _getStore (storeName) {
-  if (!storeName) {
-    throw new Error('You must enter a valid store name, given value: ' + storeName);
-  }
-
-  if (/@/.test(storeName)) {
-    storeName = storeName.split('@');
-    storeName = storeName[storeName.length - 1];
-  }
-
-
-  var _store = lunaris._stores[storeName];
-  if (!_store) {
-    throw new Error('The store `' + storeName + '` has not been defined');
-  }
-
-  return lunaris._stores[storeName];
-}
+var lunarisExports = require('./exports.js');
 
 /**
  * Make HTTP request
  * @param {String} store
  * @param {String} method
- * @param {Options} Array
  * @param {Function} callback
  */
-function _get (store, method, options, callback) {
-  var _request = '/';
-  if (method === 'GET' && pluralize.isPlural(store) === false) {
-    store = pluralize(store);
-  }
-
-  _request += store + '/root/1';
-  if (options.length) {
-    _request += '?';
-  }
-  for (var i = 0; i < options.length; i++) {
-    _request += options[i][0] + '=' + options[i][1] + '&';
-  }
-
-  fetch(_request, {
+function _httpRequest (request, method, callback) {
+  fetch(lunarisExports.baseUrl + request, {
     method      : method,
     credentials : 'same-origin'
   }).then(function (response) {
+    if (response.status !== 200) {
+      return Promise.reject({ status : response.status, statusText : response.statusText });
+    }
     return response.json();
   }).then(function (json) {
+    if (json.success === false) {
+      return callback({ error : json.error, message : json.message });
+    }
     callback(null, json.data);
   }).catch(function (err) {
     callback(err);
   });
 }
-
-var httpErrors = [];
 
 /**
  * Push HTTP result to given hook
@@ -76,48 +49,21 @@ var httpErrors = [];
 //  }
 //}
 
-function get (store) {
-  var _store   = _getStore(store);
-  var _options = [];
-
-  _options.push(['limit' , _store.limit]);
-  _options.push(['offset', _store.offset]);
-
-  return _get(_store.name, 'GET', _options, function (err, payload) {
+function get (request, callback) {
+  return _httpRequest(request, 'GET', function (err, payload) {
     if (err) {
-      return httpErrors.push(err);
+      return callback(err);
     }
 
     if (!Array.isArray(payload)) {
       payload = [payload];
     }
 
-    var _store = store.replace('@', '');
-    _pushToHook('get' + store, payload);
+    callback(null, payload);
   });
 }
 
-// function insert (store, payload) {
-//   return _get(store, 'POST', function (err, payload) {
-//     if (err) {
-//       return httpErrors.push(err);
-//     }
-//
-//     _pushToHook('insert' + store, payload);
-//   });
-// }
-//
-// function update (store, payload) {
-//   return _get(store, 'PUT', function (err, payload) {
-//     if (err) {
-//       return httpErrors.push(err);
-//     }
-//
-//     _pushToHook('update' + store, payload);
-//   });
-// }
-
-exports.get        = get;
-//exports.insert     = insert;
-//exports.update     = update;
-exports.httpErrors = httpErrors;
+exports.get  = get;
+// exports.post = isnert;
+// exports.put  = update;
+// exports.del  = deleteHTTP;
