@@ -36,6 +36,7 @@ describe('lunaris store', () => {
       lunaris._stores['store1'] = _store;
       store.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A' });
+      delete lunaris._stores['store1'];
     });
 
     it('should insert the value and execute the hook', done => {
@@ -45,6 +46,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('insert@store1', updatedValue => {
         should(updatedValue).eql({ _id : 1, id : 1, label : 'A' });
+        delete lunaris._stores['store1'];
         done();
       });
 
@@ -67,6 +69,7 @@ describe('lunaris store', () => {
         should(updatedValue).eql({ _id : 1, id : 1, label : 'A' });
         _nbExecutedHandlers++;
 
+        delete lunaris._stores['store1'];
         if (_nbExecutedHandlers === 2) {
           done();
         }
@@ -86,6 +89,7 @@ describe('lunaris store', () => {
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A' });
       store.update('@store1', { _id : 1, id : 1, label : 'B' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'B' });
+      delete lunaris._stores['store1'];
     });
 
     it('should update the value and execute the hook', done => {
@@ -95,6 +99,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('update@store1', updatedValue => {
         should(updatedValue).eql(_expectedValue);
+        delete lunaris._stores['store1'];
         done();
       });
 
@@ -196,6 +201,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@store1', items => {
         should(items).eql(_expectedValues);
+        delete lunaris._stores['store1'];
         done();
       });
 
@@ -237,6 +243,7 @@ describe('lunaris store', () => {
       should(_store.data.get(1)).eql(_expectedValues[0]);
       should(_store.data.get(2)).eql(_expectedValues[1]);
       should(store.getOne('@store1')).eql(_expectedValues[0]);
+      delete lunaris._stores['store1'];
     });
   });
 

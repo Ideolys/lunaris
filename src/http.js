@@ -57,26 +57,24 @@ var httpErrors = [];
  * @param {String} hook 'event@store'
  * @param {*} payload
  */
-function _pushToHook (hook, payload) {
-  var _hook      = hook.split('@');
-  var _storeName = _hook[1];
-  _hook          = _hook[0];
-
-  var _store      = _getStore(_storeName);
-  var _storeHooks = _store.hooks[_hook];
-  if (!_storeHooks) {
-    return;
-  }
-
-  for (var i = 0; i < _storeHooks.length; i++) {
-    _storeHooks[i](payload);
-  }
-
-  if (_hook === 'GET') {
-    _store.currentPage++;
-    _store.offset = _store.limit * _store.currentPage;
-  }
-}
+//function _pushToHook (hook, payload) {
+//  var _hook      = hook.split('@');
+//  var _storeName = _hook[1];
+//  _hook          = _hook[0];
+//
+//  var _store      = _getStore(_storeName);
+//  var _storeHooks = _store.hooks[_hook];
+//  if (!_storeHooks) {
+//    return;
+//  }
+//  for (var i = 0; i < _storeHooks.length; i++) {
+//    _storeHooks[i](payload);
+//  }
+//  if (_hook === 'GET') {
+//    _store.currentPage++;
+//    _store.offset = _store.limit * _store.currentPage;
+//  }
+//}
 
 function get (store) {
   var _store   = _getStore(store);
