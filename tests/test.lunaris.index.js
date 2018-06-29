@@ -16,6 +16,11 @@ describe('lunaris index', () => {
     should(index.removeHook).be.a.Function();
   });
 
+  it('pushToHandlers() should be defined', () => {
+    should(index.pushToHandlers).be.ok();
+    should(index.pushToHandlers).be.a.Function();
+  });
+
   it('get() should be defined', () => {
     should(index.get).be.ok();
     should(index.get).be.a.Function();
@@ -36,8 +41,18 @@ describe('lunaris index', () => {
     should(index.update).be.a.Function();
   });
 
+  it('upsert() should be defined', () => {
+    should(index.upsert).be.ok();
+    should(index.upsert).be.a.Function();
+  });
+
   it('delete() should be defined', () => {
     should(index.delete).be.ok();
     should(index.delete).be.a.Function();
+  });
+
+  it('clear() should be defined', () => {
+    should(index.clear).be.ok();
+    should(index.clear).be.a.Function();
   });
 });

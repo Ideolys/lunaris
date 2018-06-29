@@ -7,12 +7,15 @@ module.exports = {
   _stores     : lunarisExports._stores,
   _collection : collection,
 
-  hook       : hook.hook,
-  removeHook : hook.removeHook,
+  hook           : hook.hook,
+  removeHook     : hook.removeHook,
+  pushToHandlers : hook.pushToHandlers,
 
   get    : store.get,
   getOne : store.getOne,
   insert : store.insert,
   update : store.update,
-  delete : store.delete
+  upsert : store.upsert,
+  delete : store.delete,
+  clear  : store.clear
 };

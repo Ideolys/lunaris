@@ -27,10 +27,11 @@ function _httpRequest (request, method, callback) {
 
 /**
  * HTTP GET
+ * @param {String} method
  * @param {String} request url
  * @param {Function} callback err, data or err object
  */
-function get (request, callback) {
+function request (method, request, callback) {
   return _httpRequest(request, 'GET', function (err, payload) {
     if (err) {
       return callback(err);
@@ -44,7 +45,4 @@ function get (request, callback) {
   });
 }
 
-exports.get  = get;
-// exports.post = isnert;
-// exports.put  = update;
-// exports.del  = deleteHTTP;
+exports.request = request;

@@ -42,6 +42,26 @@ lunaris._vue = {
             return lunaris._vue._vm.$data.$stores[_store].state;
           }
         });
+
+        if (!_this.$options.storeHooks) {
+          _this.$options.storeHooks = {};
+        }
+
+        _this.$options.storeHooks['get@' + _store] = function (items) {
+          if (!Array.isArray(items)) {
+            return;
+          }
+
+          var _storeObj = lunaris._vue._vm.$data.$stores[_store];
+          for (var i = 0; i < items.length; i++) {
+            _storeObj.state.push(items[i]);
+          }
+        };
+
+        _this.$options.storeHooks['reset@' + _store] = function () {
+          lunaris._vue._vm.$data.$stores[_store].state.splice(0);
+          lunaris.get('@' + _store);
+        };
       }
     }
 
@@ -87,9 +107,6 @@ lunaris._vue = {
     Vue.mixin({
       beforeCreate: function () {
         _registerStores(this);
-      },
-
-      created : function () {
         _registerHooks(this);
       },
 

@@ -37,6 +37,10 @@ describe('lunaris store', () => {
       should(lunaris.update).be.a.Function();
     });
 
+    it('upsert should be defined', () => {
+      should(lunaris.upsert).be.a.Function();
+    });
+
     it('should throw an error if no value is provided', () => {
       (function () {
         lunaris.insert('@store');
@@ -225,6 +229,12 @@ describe('lunaris store', () => {
       should(_store.data.get(1)).eql(_expectedValues[0]);
       should(_store.data.get(2)).eql(_expectedValues[1]);
       should(lunaris.getOne('@store1')).eql(_expectedValues[0]);
+    });
+
+    it('should get undefined if no value is in the collection', () => {
+      var _store                = _initStore('store1');
+      lunaris._stores['store1'] = _store;
+      should(lunaris.getOne('@store1')).eql(undefined);
     });
   });
 
@@ -456,6 +466,31 @@ describe('lunaris store', () => {
       lunaris.get('@optional');
     });
 
+    it('should not filter the store if the optional filter is not set', done => {
+      lunaris._stores['optional.param.site']     = _initStore('optional.param.site');
+      lunaris._stores['optional']                = _initStore('optional');
+      lunaris._stores['optional'].fakeAttributes = ['site'];
+      lunaris._stores['optional'].filters.push({
+        source          : '@optional.param.site',
+        sourceAttribute : 'site',
+        localAttribute  : 'site',
+      });
+
+      lunaris.hook('get@optional', items => {
+        should(items).eql([
+          { _id : 1, limit : '50', offset : '0'}
+        ]);
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@optional', err => {
+        done(err);
+      });
+
+      lunaris.get('@optional');
+    });
+
     it('should get the item identified by its id', done => {
       var _currentId = 1;
       lunaris._stores['get'] = _initStore('get');
@@ -486,6 +521,34 @@ describe('lunaris store', () => {
       lunaris.get('@get', _currentId);
     });
 
+  });
+
+  describe('clear()', () => {
+    it('should be defined', () => {
+      should(lunaris.clear).be.ok();
+      should(lunaris.clear).be.Function();
+    });
+
+    it('should throw an error if the store is not a string', () => {
+      (function () {
+        lunaris.clear({});
+      }).should.throw('lunaris.<get|insert|update>(<store>, <value>) must have a correct store value: @<store>');
+    });
+
+    it('should throw an error if the store is not defined', () => {
+      (function () {
+        lunaris.clear('@store');
+      }).should.throw('The store "store" has not been defined');
+    });
+
+    it('should clear the store', () => {
+      var _store = _initStore();
+      lunaris._stores['store1'] = _store;
+      lunaris.insert('@store1', { id : 1, label : 'A' });
+      should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A' });
+      lunaris.clear('@store1');
+      should(lunaris._stores['store1'].data.getAll()).be.an.Array().and.have.length(0);
+    });
   });
 
 });

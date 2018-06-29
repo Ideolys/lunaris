@@ -76,13 +76,15 @@ function _getFilterValuesHTTPRequest (store) {
     var _sourceStore = _getStore(_filter.source);
     var _sourceValue = _getCollection(_sourceStore).getFirst();
 
-    _value.push(_filter.localAttribute, _sourceValue[_filter.sourceAttribute]);
+    if (_sourceValue !== undefined) {
+      _value.push(_filter.localAttribute, _sourceValue[_filter.sourceAttribute]);
 
-    if (_filter.isRequired) {
-      _filterValues.requiredOptions += '/' + _value[0] + '/' + _value[1];
-    }
-    else {
-      _filterValues.optionalOptions.push(_value);
+      if (_filter.isRequired) {
+        _filterValues.requiredOptions += '/' + _value[0] + '/' + _value[1];
+      }
+      else {
+        _filterValues.optionalOptions.push(_value);
+      }
     }
   }
 
@@ -106,6 +108,7 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
     _options.push(['limit' , _limit]);
     _options.push(['offset', _offset]);
     store.paginationOffset = _limit * store.paginationCurrentPage;
+    store.paginationCurrentPage++;
   }
 
   if (_options.length) {
@@ -185,6 +188,20 @@ function deleteStore (store, value) {
 }
 
 /**
+ * Clear the store collection
+ * @param {String} store
+ */
+function clear (store) {
+  _checkArgs(store, null, true);
+
+  var _store      = _getStore(store);
+  var _collection = _getCollection(_store);
+
+  var _res = _collection.clear();
+  hook.pushToHandlers(_store, 'reset');
+}
+
+/**
  * Get values
  * @param {String} store
  * @param {*} primaryKeyValue
@@ -204,7 +221,7 @@ function get (store, primaryKeyValue) {
     return hook.pushToHandlers(_store, 'errorHttp', e);
   }
 
-  http.get(_request, function (err, data) {
+  http.request('GET', _request, function (err, data) {
     if (err) {
       return hook.pushToHandlers(_store, 'errorHttp', err);
     }
@@ -231,8 +248,11 @@ function getOne (store) {
 
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
-
-  return utils.clone(_collection.getFirst());
+  var _item       = _collection.getFirst();
+  if (!_item) {
+    return;
+  }
+  return utils.clone(_item);
 }
 
 exports.get            = get;
@@ -241,5 +261,7 @@ exports.insert         = upsert;
 // exports.insertFiltered = upsertFiltered;
 exports.update         = upsert;
 // exports.updateFiltered = upsertFiltered;
+exports.upsert         = upsert;
 exports.delete         = deleteStore;
+exports.clear          = clear;
 //exports.deleteFiltered = deleteFiltered;
