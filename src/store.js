@@ -123,6 +123,33 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
 }
 
 /**
+ * Create URL for givens tore and action
+ * @param {Object} store
+ * @param {Boolean} isGET is GET HTTP me:thod ?
+ * @param {*} primaryKeyValue
+ * @returns {String}
+ */
+function _createUrl (store, isGET, primaryKeyValue) {
+  var _request = '/';
+  if (pluralize.isPlural(store.name) === false && !primaryKeyValue && isGET) {
+    _request += pluralize(store.name);
+  }
+  else {
+    _request += store.name;
+  }
+
+  if (primaryKeyValue) {
+    _request += '/' + primaryKeyValue;
+  }
+
+  var _filterValues   = _getFilterValuesHTTPRequest(store);
+  _request           += _filterValues.requiredOptions;
+  _request           += _getUrlOptionsForHTTPRequest(store, true, _filterValues.optionalOptions);
+
+  return _request;
+}
+
+/**
  * Insert or Update a value in store
  * @param {String} store
  * @param {*} value
@@ -160,26 +187,18 @@ function deleteStore (store, value) {
 /**
  * Get values
  * @param {String} store
+ * @param {*} primaryKeyValue
  * @param {*} value
  */
-function get (store) {
+function get (store, primaryKeyValue) {
   _checkArgs(store, null, true);
 
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
 
   var _request = '/';
-  if (pluralize.isPlural(_store.name) === false) {
-    _request += pluralize(_store.name);
-  }
-  else {
-    _request += _store.name;
-  }
-
   try {
-    var _filterValues   = _getFilterValuesHTTPRequest(_store);
-    _request           += _filterValues.requiredOptions;
-    _request           += _getUrlOptionsForHTTPRequest(_store, true, _filterValues.optionalOptions);
+    _request = _createUrl(_store, true, primaryKeyValue);
   }
   catch (e) {
     return hook.pushToHandlers(_store, 'errorHttp', e);
@@ -192,6 +211,10 @@ function get (store) {
 
     for (var i = 0; i < data.length; i++) {
       _collection.upsert(data[i]);
+    }
+
+    if (primaryKeyValue && data.length) {
+      data = data[0];
     }
 
     hook.pushToHandlers(_store, 'get', utils.clone(data));

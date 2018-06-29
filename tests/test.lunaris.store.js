@@ -456,6 +456,36 @@ describe('lunaris store', () => {
       lunaris.get('@optional');
     });
 
+    it('should get the item identified by its id', done => {
+      var _currentId = 1;
+      lunaris._stores['get'] = _initStore('get');
+      lunaris.hook('get@get', item => {
+        if (_currentId === 1) {
+          should(item).be.an.Object();
+          should(item).eql({
+            _id : 1,
+            id  : 1
+          });
+          _currentId++;
+          lunaris.get('@get', _currentId);
+          return;
+        }
+
+        should(item).eql({
+          _id : 2,
+          id  : 2
+        });
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@get', err => {
+        done(err);
+      });
+
+      lunaris.get('@get', _currentId);
+    });
+
   });
 
 });
@@ -549,6 +579,17 @@ function _startServer (callback) {
     }
 
     res.json({ success : false, error : 'Error', message : null, data : []});
+  });
+
+  server.get('/get/:id', (req, res) => {
+    if (req.params.id === '1') {
+      return res.json({ success : true, error : null, message : null, data : [{ id : 1 }] });
+    }
+    if (req.params.id === '2') {
+      return res.json({ success : true, error : null, message : null, data : [{ id : 2 }] });
+    }
+
+    return res.json({ success : true, error : null, message : null, data : [{ id : 3 }, { id : 4 }] });
   });
 
   server = server.listen(port, callback);
