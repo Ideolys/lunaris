@@ -1,3 +1,3 @@
 exports.clone = function clone (value) {
-  return JSON.parse(JSON.stringify(value));
+  return Object.freeze(JSON.parse(JSON.stringify(value)));
 };

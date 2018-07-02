@@ -60,17 +60,17 @@ lunaris._vue = {
 
         _this.$options.storeHooks['reset@' + _store] = function () {
           lunaris._vue._vm.$data.$stores[_store].state.splice(0);
-          //lunaris.get('@' + _store);
+          lunaris.get('@' + _store);
         };
 
         _this.$options.storeHooks['insert@' + _store] = function (item) {
-          lunaris._vue._vm.$data.$stores[_store].state.push(item);
+          lunaris._vue._vm.$data.$stores[_store].state.push(lunaris.clone(item));
         };
         _this.$options.storeHooks['update@' + _store] = function (item) {
           var _state = lunaris._vue._vm.$data.$stores[_store].state;
           for (var j = 0; j < _state.length; j++) {
-            if (_state._id === item._id) {
-              _state.splice(j, item);
+            if (_state[j]._id === item._id) {
+              _state.splice(j, 1, lunaris.clone(item));
             }
           }
         };

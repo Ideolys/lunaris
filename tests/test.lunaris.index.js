@@ -6,6 +6,11 @@ describe('lunaris index', () => {
     should(index._stores).be.an.Object().eql({});
   });
 
+  it('clone() should be defined', () => {
+    should(index.clone).be.ok();
+    should(index.clone).be.a.Function();
+  });
+
   it('hook() should be defined', () => {
     should(index.hook).be.ok();
     should(index.hook).be.a.Function();

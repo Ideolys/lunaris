@@ -6,6 +6,7 @@ var collection     = require('./collection.js');
 module.exports = {
   _stores     : lunarisExports._stores,
   _collection : collection,
+  clone       : require('./utils.js').clone,
 
   hook           : hook.hook,
   removeHook     : hook.removeHook,

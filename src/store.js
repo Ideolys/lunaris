@@ -211,7 +211,7 @@ function upsert (store, value, isLocal) {
   var _collection = _getCollection(_store);
 
   _collection.upsert(value);
-  hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', value);
+  hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.clone(value));
 
   if (_store.isLocal || isLocal) {
     return;
@@ -257,15 +257,18 @@ function deleteStore (store, value) {
 /**
  * Clear the store collection
  * @param {String} store
+ * @param {Boolean} isSilent fire or not hooks
  */
-function clear (store) {
+function clear (store, isSilent) {
   _checkArgs(store, null, true);
 
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
 
   var _res = _collection.clear();
-  hook.pushToHandlers(_store, 'reset');
+  if (!isSilent) {
+    hook.pushToHandlers(_store, 'reset');
+  }
 }
 
 /**
@@ -295,13 +298,14 @@ function get (store, primaryKeyValue) {
 
     for (var i = 0; i < data.length; i++) {
       _collection.upsert(data[i]);
+      data[i] = utils.clone(data[i]);
     }
 
     if (primaryKeyValue && data.length) {
       data = data[0];
     }
 
-    hook.pushToHandlers(_store, 'get', utils.clone(data));
+    hook.pushToHandlers(_store, 'get', data);
   });
 }
 

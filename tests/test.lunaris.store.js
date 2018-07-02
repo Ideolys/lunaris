@@ -77,6 +77,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('insert@store1', updatedValue => {
         should(updatedValue).eql(_expectedValue);
+        should(Object.isFrozen(updatedValue)).eql(true);
         _isUpdateHook = true;
       });
 
@@ -149,6 +150,7 @@ describe('lunaris store', () => {
         _isUpdateHook = true;
         should(_store.data.get(1)).eql(_expectedValue);
         should(updatedValue).eql(_expectedValue);
+        should(Object.isFrozen(updatedValue)).eql(true);
       });
 
       lunaris.hook('updated@store1', data => {
@@ -655,6 +657,9 @@ describe('lunaris store', () => {
             { _id : 2, id : 30, label : 'D' },
             { _id : 3, id : 10, label : 'E' }
           ]);
+          for (var i = 0; i < items.length; i++) {
+            should(Object.isFrozen(items[i])).eql(true);
+          }
           lunaris.get('@pagination');
           return;
         }
@@ -664,6 +669,9 @@ describe('lunaris store', () => {
             { _id : 5, id : 50, label : 'C' },
             { _id : 6, id : 60, label : 'F' }
           ]);
+          for (var i = 0; i < items.length; i++) {
+            should(Object.isFrozen(items[i])).eql(true);
+          }
         }
 
         done();
