@@ -86,9 +86,10 @@ function _checkArgs (store, value, isNotValue) {
 /**
  * Get required params for HTTP request
  * @param {Object} store
+ * @param {Sting} method
  * @returns {String} /param/paramValue/...
  */
-function _getFilterValuesHTTPRequest (store) {
+function _getFilterValuesHTTPRequest (store, method) {
   var _filterValues = { requiredOptions : '', optionalOptions : [] };
   if (!store.filters.length) {
     return _filterValues;
@@ -109,15 +110,26 @@ function _getFilterValuesHTTPRequest (store) {
 
     var _sourceStore = _getStore(_filter.source);
     var _sourceValue = _getCollection(_sourceStore).getFirst();
+    var _methods     = [];
+    if (_filter.httpMethods) {
+      if (Array.isArray(_filter.httpMethods)) {
+        _methods = _filter.httpMethods;
+      }
+    }
+    else {
+      _methods.push(method);
+    }
 
     if (_sourceValue !== undefined) {
       _value.push(_filter.localAttribute, _sourceValue[_filter.sourceAttribute]);
 
-      if (_filter.isRequired) {
-        _filterValues.requiredOptions += '/' + _value[0] + '/' + _value[1];
-      }
-      else {
-        _filterValues.optionalOptions.push(_value);
+      if (_methods.indexOf(method) !== -1) {
+        if (_filter.isRequired) {
+          _filterValues.requiredOptions += '/' + _value[0] + '/' + _value[1];
+        }
+        else {
+          _filterValues.optionalOptions.push(_value);
+        }
       }
     }
   }
@@ -164,22 +176,24 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
  * @param {*} primaryKeyValue
  * @returns {String}
  */
-function _createUrl (store, isGET, primaryKeyValue) {
+function _createUrl (store, method, primaryKeyValue) {
   var _request = '/';
-  if (pluralize.isPlural(store.name) === false && !primaryKeyValue && isGET) {
-    _request += pluralize(store.name);
+  var _isGet   = method === 'GET';
+  var _url     = store.url || store.name;
+  if (pluralize.isPlural(_url) === false && !primaryKeyValue && _isGet) {
+    _request += pluralize(_url);
   }
   else {
-    _request += store.name;
+    _request += _url;
   }
 
   if (primaryKeyValue) {
     _request += '/' + primaryKeyValue;
   }
 
-  var _filterValues   = _getFilterValuesHTTPRequest(store);
+  var _filterValues   = _getFilterValuesHTTPRequest(store, method);
   _request           += _filterValues.requiredOptions;
-  _request           += _getUrlOptionsForHTTPRequest(store, isGET, _filterValues.optionalOptions);
+  _request           += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues.optionalOptions);
   return _request;
 }
 
@@ -187,8 +201,9 @@ function _createUrl (store, isGET, primaryKeyValue) {
  * Insert or Update a value in store
  * @param {String} store
  * @param {*} value
+ * @param {Boolean} isLocal insert or update
  */
-function upsert (store, value) {
+function upsert (store, value, isLocal) {
   _checkArgs(store, value);
 
   var _isUpdate   = !!value._id;
@@ -198,8 +213,13 @@ function upsert (store, value) {
   _collection.upsert(value);
   hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', value);
 
-  var _request = _createUrl(_store, false, _getPrimaryKeyValue(_store, value, !_isUpdate));
-  http.request(_isUpdate ? 'PUT' : 'POST', _request, function (err, data) {
+  if (_store.isLocal || isLocal) {
+    return;
+  }
+
+  var _method  = _isUpdate ? 'PUT' : 'POST'
+  var _request = _createUrl(_store, _method, _getPrimaryKeyValue(_store, value, !_isUpdate));
+  http.request(_method, _request, value, function (err, data) {
     if (err) {
       return hook.pushToHandlers(_store, 'errorHttp', err);
     }
@@ -221,8 +241,12 @@ function deleteStore (store, value) {
   var _res = _collection.remove(value._id);
   hook.pushToHandlers(_store, 'delete', _res);
 
-  var _request = _createUrl(_store, false, _getPrimaryKeyValue(_store, value));
-  http.request('DELETE', _request, function (err, data) {
+  if (_store.isLocal) {
+    return;
+  }
+
+  var _request = _createUrl(_store, 'DELETE', _getPrimaryKeyValue(_store, value));
+  http.request('DELETE', _request, null, function (err, data) {
     if (err) {
       return hook.pushToHandlers(_store, 'errorHttp', err);
     }
@@ -258,13 +282,13 @@ function get (store, primaryKeyValue) {
 
   var _request = '/';
   try {
-    _request = _createUrl(_store, true, primaryKeyValue);
+    _request = _createUrl(_store, 'GET', primaryKeyValue);
   }
   catch (e) {
     return hook.pushToHandlers(_store, 'errorHttp', e);
   }
 
-  http.request('GET', _request, function (err, data) {
+  http.request('GET', _request, null, function (err, data) {
     if (err) {
       return hook.pushToHandlers(_store, 'errorHttp', err);
     }
