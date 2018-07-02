@@ -32,12 +32,12 @@ function _httpRequest (request, method, callback) {
  * @param {Function} callback err, data or err object
  */
 function request (method, request, callback) {
-  return _httpRequest(request, 'GET', function (err, payload) {
+  return _httpRequest(request, method, function (err, payload) {
     if (err) {
       return callback(err);
     }
 
-    if (!Array.isArray(payload)) {
+    if (!Array.isArray(payload) && method === 'GET') {
       payload = [payload];
     }
 

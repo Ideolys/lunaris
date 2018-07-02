@@ -35,6 +35,40 @@ function _getCollection (store) {
 }
 
 /**
+ * Get primary key value for update and delete
+ * @param {Object} store
+ * @param {Object} value
+ * @param {Boolean} isInsert
+ * @returns {String}
+ */
+function _getPrimaryKeyValue (store, value, isInsert) {
+  var _id = null;
+
+  if (isInsert) {
+    return _id;
+  }
+  if (!store.primaryKey) {
+    return value._id;
+  }
+
+  var _primaryKey = store.primaryKey;
+  if (Array.isArray(_primaryKey)) {
+    for (var i = 0; i < _primaryKey.length; i++) {
+      var _value = value[_primaryKey[i]];
+      if (_value) {
+        _id += _value + '-';
+      }
+    }
+
+    if (_id !== '') {
+      _id = _id.slice(0, _id.length - 1);
+    }
+  }
+
+  return value[store.primaryKey];
+}
+
+/**
  * Check arguments for upsert, get, deleteStore
  * @param {String} store
  * @param {*} value
@@ -111,14 +145,12 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
     store.paginationCurrentPage++;
   }
 
+  _options = _options.concat(filterValues);
   if (_options.length) {
     _optionsStr += '?';
   }
   for (var i = 0; i < _options.length; i++) {
     _optionsStr += _options[i][0] + '=' + _options[i][1] + '&';
-  }
-  for (i = 0; i < filterValues.length; i++) {
-    _optionsStr += filterValues[i][0] + '=' + filterValues[i][1] + '&';
   }
 
   _optionsStr = _optionsStr.slice(0, _optionsStr.length - 1);
@@ -147,8 +179,7 @@ function _createUrl (store, isGET, primaryKeyValue) {
 
   var _filterValues   = _getFilterValuesHTTPRequest(store);
   _request           += _filterValues.requiredOptions;
-  _request           += _getUrlOptionsForHTTPRequest(store, true, _filterValues.optionalOptions);
-
+  _request           += _getUrlOptionsForHTTPRequest(store, isGET, _filterValues.optionalOptions);
   return _request;
 }
 
@@ -160,14 +191,20 @@ function _createUrl (store, isGET, primaryKeyValue) {
 function upsert (store, value) {
   _checkArgs(store, value);
 
-  var _event      = value._id ? 'update' : 'insert';
+  var _isUpdate   = !!value._id;
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
 
   _collection.upsert(value);
-  hook.pushToHandlers(_store, _event, value);
+  hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', value);
 
-  // TODO push to HTTP
+  var _request = _createUrl(_store, false, _getPrimaryKeyValue(_store, value, !_isUpdate));
+  http.request(_isUpdate ? 'PUT' : 'POST', _request, function (err, data) {
+    if (err) {
+      return hook.pushToHandlers(_store, 'errorHttp', err);
+    }
+    hook.pushToHandlers(_store, _isUpdate ? 'updated' : 'inserted', data);
+  });
 }
 
 /**
@@ -184,7 +221,13 @@ function deleteStore (store, value) {
   var _res = _collection.remove(value._id);
   hook.pushToHandlers(_store, 'delete', _res);
 
-  // TODO push to HTTP
+  var _request = _createUrl(_store, false, _getPrimaryKeyValue(_store, value));
+  http.request('DELETE', _request, function (err, data) {
+    if (err) {
+      return hook.pushToHandlers(_store, 'errorHttp', err);
+    }
+    hook.pushToHandlers(_store, 'deleted', data);
+  });
 }
 
 /**

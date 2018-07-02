@@ -60,39 +60,58 @@ describe('lunaris store', () => {
     });
 
     it('should insert the value', () => {
-      var _store = _initStore();
+      var _store = _initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A' });
     });
 
-    it('should insert the value and execute the hook', done => {
-      var _store                = _initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'A' };
-      lunaris._stores['store1'] = _store;
+    it('should insert the value and execute the hooks : insert & inserted', done => {
+      var _isUpdateHook                    = false;
+      var _isUpdatedHook                   = false;
+      var _store                           = _initStore('store1');
+      var _expectedValue                   = { _id : 1, id : 2, label : 'A' };
+      lunaris._stores['store1']            = _store;
+      lunaris._stores['store1'].primaryKey = 'id';
 
       lunaris.hook('insert@store1', updatedValue => {
-        should(updatedValue).eql({ _id : 1, id : 1, label : 'A' });
-        done();
+        should(updatedValue).eql(_expectedValue);
+        _isUpdateHook = true;
       });
 
-      lunaris.insert('@store1', { id : 1, label : 'A' });
-      should(_store.data.get(1)).eql(_expectedValue);
+      lunaris.hook('inserted@store1', data => {
+        _isUpdatedHook = true;
+        should(data.query).be.ok();
+        should(data.params).be.ok();
+        should(data.query).eql({});
+        should(data.params).eql({});
+
+        if (_isUpdateHook && _isUpdatedHook) {
+          done();
+        }
+      });
+
+      lunaris.hook('errorHttp@store1', (err) => {
+        done(err);
+      });
+
+      lunaris.insert('@store1', { id : 2, label : 'A' });
     });
 
     it('should insert the value and execute the hooks', done => {
-      var _nbExecutedHandlers   = 0;
-      var _store                = _initStore();
-      var _expectedValue        = { _id : 1, id : 1, label : 'A' };
-      lunaris._stores['store1'] = _store;
+      var _nbExecutedHandlers              = 0;
+      var _store                           = _initStore('store1');
+      var _expectedValue                   = { _id : 1, id : 2, label : 'A' };
+      lunaris._stores['store1']            = _store;
+      lunaris._stores['store1'].primaryKey = 'id';
 
       lunaris.hook('insert@store1', updatedValue => {
-        should(updatedValue).eql({ _id : 1, id : 1, label : 'A' });
+        should(updatedValue).eql(_expectedValue);
         _nbExecutedHandlers++;
       });
 
       lunaris.hook('insert@store1', updatedValue => {
-        should(updatedValue).eql({ _id : 1, id : 1, label : 'A' });
+        should(updatedValue).eql(_expectedValue);
         _nbExecutedHandlers++;
 
         if (_nbExecutedHandlers === 2) {
@@ -103,34 +122,108 @@ describe('lunaris store', () => {
         }
       });
 
-      lunaris.insert('@store1', { id : 1, label : 'A' });
+      lunaris.insert('@store1', { id : 2, label : 'A' });
       should(_store.data.get(1)).eql(_expectedValue);
     });
 
     it('should update a value', () => {
-      var _store = _initStore();
+      var _store = _initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A' });
       lunaris.update('@store1', { _id : 1, id : 1, label : 'B' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'B' });
-      delete lunaris._stores['store1'];
     });
 
-    it('should update the value and execute the hook', done => {
-      var _store                = _initStore();
+    it('should update the value and execute the hooks : update and updated', done => {
+      var _isUpdateHook         = false;
+      var _isUpdatedHook        = false;
+      var _store                = _initStore('store1');
       var _expectedValue        = { _id : 1, id : 1, label : 'B' };
       lunaris._stores['store1'] = _store;
 
       lunaris.hook('update@store1', updatedValue => {
+        _isUpdateHook = true;
+        should(_store.data.get(1)).eql(_expectedValue);
         should(updatedValue).eql(_expectedValue);
-        delete lunaris._stores['store1'];
-        done();
+      });
+
+      lunaris.hook('updated@store1', data => {
+        _isUpdatedHook = true;
+        should(data.query).be.ok();
+        should(data.params).be.ok();
+        should(data.query).eql({});
+        should(data.params).eql({ id : '1' });
+
+        if (_isUpdateHook && _isUpdatedHook) {
+          done();
+        }
+      });
+
+      lunaris.hook('errorHttp@store1', (err) => {
+        done(err);
       });
 
       lunaris.insert('@store1', { id : 1, label : 'A' });
       lunaris.update('@store1', _expectedValue);
-      should(_store.data.get(1)).eql(_expectedValue);
+    });
+
+    it('should insert and update the values and execute the hooks with filters', done => {
+      var _isInsertedHook       = false;
+      var _isUpdatedHook        = false;
+      var _store                = _initStore('store1');
+      var _expectedValue        = { _id : 1, id : 1, label : 'A' };
+      lunaris._stores['optional'] = _initStore('optional');
+      lunaris._stores['optional'].data.add({
+        site : 2
+      });
+
+      lunaris._stores['required'] = _initStore('required');
+      lunaris._stores['required'].data.add({
+        category : 'A'
+      });
+      lunaris._stores['store1'] = _store;
+      lunaris._stores['store1'].fakeAttributes = ['site'];
+      lunaris._stores['store1'].filters.push({
+        source          : '@required',
+        sourceAttribute : 'category',
+        localAttribute  : 'category',
+        isRequired      : false
+      });
+      lunaris._stores['store1'].filters.push({
+        source          : '@optional',
+        sourceAttribute : 'site',
+        localAttribute  : 'site',
+        isRequired      : true
+      });
+
+      lunaris.hook('inserted@store1', data => {
+        _isInsertedHook = true;
+        should(_store.data.get(1)).eql(_expectedValue);
+        should(data.query).be.ok();
+        should(data.params).be.ok();
+        should(data.params).eql({ idSite : '2' });
+        should(data.query).eql({ category : 'A' });
+        lunaris.update('@store1', _expectedValue);
+      });
+
+      lunaris.hook('updated@store1', data => {
+        _isUpdatedHook = true;
+        should(data.query).be.ok();
+        should(data.params).be.ok();
+        should(data.params).eql({ id : '1', idSite : '2' });
+        should(data.query).eql({ category : 'A' });
+
+        if (_isInsertedHook && _isUpdatedHook) {
+          done();
+        }
+      });
+
+      lunaris.hook('errorHttp@store1', (err) => {
+        done(err);
+      });
+
+      lunaris.insert('@store1', { id : 1, label : 'A' });
     });
   });
 
@@ -160,7 +253,7 @@ describe('lunaris store', () => {
     it('should delete the value', () => {
       var _value = { _id : 1, id : 1, label : 'A' };
 
-      var _store = _initStore();
+      var _store = _initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql(_value);
@@ -168,23 +261,42 @@ describe('lunaris store', () => {
       should(_store.data.getAll()).have.length(0);
     });
 
-    it('should delete the value and execute the hook', done => {
-      var _store                = _initStore();
-      var _expectedValue        = { _id : 1, id : 1, label : 'A' };
-      lunaris._stores['store1'] = _store;
+    it('should delete the value and execute the hooks : delete & deleted', done => {
+      var _isDeleteHook                    = false;
+      var _isDeletedHook                   = false;
+      var _store                           = _initStore('store1');
+      var _expectedValue                   = { _id : 1, id : 2, label : 'A' };
+      lunaris._stores['store1']            = _store;
+      lunaris._stores['store1'].primaryKey = 'id';
 
       lunaris.hook('delete@store1', result => {
+        _isDeleteHook = true;
         should(result).eql(true);
-        done();
       });
 
-      lunaris.insert('@store1', { id : 1, label : 'A' });
+      lunaris.hook('deleted@store1', data => {
+        _isDeletedHook = true;
+        should(data.query).be.ok();
+        should(data.params).be.ok();
+        should(data.query).eql({});
+        should(data.params).eql({ id : '2' });
+
+        if (_isDeletedHook && _isDeleteHook) {
+          done();
+        }
+      });
+
+      lunaris.hook('errorHttp@store1', (err) => {
+        done(err);
+      });
+
+      lunaris.insert('@store1', { id : 2, label : 'A' });
       should(_store.data.get(1)).eql(_expectedValue);
       lunaris.delete('@store1', _expectedValue);
     });
 
     it('should delete the value and execute the hook and return false if the value has not been deleted', done => {
-      var _store                = _initStore();
+      var _store                = _initStore('store1');
       var _expectedValue        = { _id : 1, id : 1, label : 'A' };
       lunaris._stores['store1'] = _store;
 
@@ -217,7 +329,7 @@ describe('lunaris store', () => {
     });
 
     it('should get the first value', () => {
-      var _store          = _initStore();
+      var _store          = _initStore('store1');
       var _expectedValues = [
         { _id : 1, id : 1, label : 'A' },
         { _id : 2, id : 2, label : 'B' }
@@ -542,7 +654,7 @@ describe('lunaris store', () => {
     });
 
     it('should clear the store', () => {
-      var _store = _initStore();
+      var _store = _initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A' });
@@ -560,6 +672,7 @@ describe('lunaris store', () => {
 function _initStore (name) {
   var _store                   = {};
   _store.name                  = name;
+  _store.primaryKey            = null;
   _store.data                  = collection();
   _store.filters               = [];
   _store.hooks                 = {};
@@ -654,6 +767,18 @@ function _startServer (callback) {
 
     return res.json({ success : true, error : null, message : null, data : [{ id : 3 }, { id : 4 }] });
   });
+
+  var _postPutDelHandler = (req, res) => {
+    return res.json({ success : true, error : null, message : null, data : {
+      query  : req.query,
+      params : req.params
+    }});
+  };
+  server.post('/store1'                , _postPutDelHandler);
+  server.put('/store1/:id'             , _postPutDelHandler);
+  server.delete('/store1/:id'          , _postPutDelHandler);
+  server.post('/store1/site/:idSite'   , _postPutDelHandler);
+  server.put('/store1/:id/site/:idSite', _postPutDelHandler);
 
   server = server.listen(port, callback);
 }
