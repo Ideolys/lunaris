@@ -27,7 +27,7 @@ function registerHook (hook, handler) {
   var lunarisExports = require('./exports.js');
   var _store         = lunarisExports._stores[_hook.store];
   if (!_store) {
-    throw new Error('Cannor register hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
+    throw new Error('Cannot register hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
   }
 
   if (!_store.hooks[_hook.event]) {
@@ -42,12 +42,12 @@ function removeHook (hook, handler) {
   var lunarisExports = require('./exports.js');
   var _store         = lunarisExports._stores[_hook.store];
   if (!_store) {
-    throw new Error('Cannor remove hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
+    throw new Error('Cannot remove hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
   }
 
   var _handlers = _store.hooks[_hook.event];
   if (!_handlers) {
-    throw new Error('Cannor remove hook "' + hook + '", it has not been defined!');
+    throw new Error('Cannot remove hook "' + hook + '", it has not been defined!');
   }
 
   for (var i = 0; i < _handlers.length; i++) {

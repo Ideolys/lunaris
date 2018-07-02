@@ -25,7 +25,7 @@ describe('Lunaris hooks', () => {
     it('should throw an error if the store is not defined', () => {
       (function () {
         lunaris.hook('get@store1', function () {});
-      }).should.throw('Cannor register hook "get@store1", store "store1" has not been defined!');
+      }).should.throw('Cannot register hook "get@store1", store "store1" has not been defined!');
     });
 
     it('should register the hook', () => {
@@ -77,7 +77,7 @@ describe('Lunaris hooks', () => {
     it('should throw an error if the store is not defined', () => {
       (function () {
         lunaris.removeHook('get@store1', function () {});
-      }).should.throw('Cannor remove hook "get@store1", store "store1" has not been defined!');
+      }).should.throw('Cannot remove hook "get@store1", store "store1" has not been defined!');
     });
 
     it('should remove a hook', () => {
