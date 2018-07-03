@@ -222,6 +222,10 @@ function upsert (store, value, isLocal) {
   var _collection = _getCollection(_store);
   _initStoreIfNotAlreadyInitialized(_store);
 
+  if (Object.isFrozen(value)) {
+    value = utils.clone(value);
+  }
+
   _collection.upsert(value);
   hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
 
@@ -270,8 +274,9 @@ function deleteStore (store, value) {
 /**
  * Clear the store collection
  * @param {String} store
+ * @param {Boolean} isSilent
  */
-function clear (store) {
+function clear (store, isSilent) {
   _checkArgs(store, null, true);
 
   var _store      = _getStore(store);
@@ -281,7 +286,9 @@ function clear (store) {
   _store.isInit                = false;
   _store.paginationCurrentPage = 1;
   _store.paginationOffset      = 0;
-  hook.pushToHandlers(_store, 'reset');
+  if (isSilent) {
+    hook.pushToHandlers(_store, 'reset');
+  }
 }
 
 /**
@@ -310,13 +317,19 @@ function get (store, primaryKeyValue) {
       return hook.pushToHandlers(_store, 'errorHttp', err);
     }
 
-    for (var i = 0; i < data.length; i++) {
-      _collection.upsert(data[i]);
-      data[i] = utils.freeze(utils.clone(data[i]));
-    }
+    if (Array.isArray(data)) {
+      for (var i = 0; i < data.length; i++) {
+        _collection.upsert(data[i]);
+        data[i] = utils.freeze(utils.clone(data[i]));
+      }
 
-    if (primaryKeyValue && data.length) {
-      data = data[0];
+      if (primaryKeyValue && data.length) {
+        data = data[0];
+      }
+    }
+    else {
+      _collection.upsert(data);
+      data = utils.freeze(utils.clone(data));
     }
 
     hook.pushToHandlers(_store, 'get', data);

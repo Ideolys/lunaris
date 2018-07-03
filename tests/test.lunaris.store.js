@@ -887,7 +887,6 @@ describe('lunaris store', () => {
       });
 
       lunaris.hook('get@methods', data => {
-        data = data[0];
         should(data.query).be.ok();
         should(data.params).be.ok();
         should(data.query).eql({ limit : '50', offset : '0' });

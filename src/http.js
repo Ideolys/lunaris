@@ -43,10 +43,6 @@ function request (method, request, body, callback) {
       return callback(err);
     }
 
-    if (!Array.isArray(payload) && method === 'GET') {
-      payload = [payload];
-    }
-
     callback(null, payload);
   });
 }
