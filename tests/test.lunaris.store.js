@@ -570,7 +570,9 @@ describe('lunaris store', () => {
       lunaris.insert('@store1', { id : 2, label : 'B' });
       should(_store.data.get(1)).eql(_expectedValues[0]);
       should(_store.data.get(2)).eql(_expectedValues[1]);
-      should(lunaris.getOne('@store1')).eql(_expectedValues[0]);
+      var _val = lunaris.getOne('@store1');
+      should(_val).eql(_expectedValues[0]);
+      should(Object.isFrozen(_val)).eql(true);
     });
 
     it('should get undefined if no value is in the collection', () => {

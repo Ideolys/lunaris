@@ -211,7 +211,7 @@ function upsert (store, value, isLocal) {
   var _collection = _getCollection(_store);
 
   _collection.upsert(value);
-  hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.clone(value));
+  hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
 
   if (_store.isLocal || isLocal) {
     return;
@@ -298,7 +298,7 @@ function get (store, primaryKeyValue) {
 
     for (var i = 0; i < data.length; i++) {
       _collection.upsert(data[i]);
-      data[i] = utils.clone(data[i]);
+      data[i] = utils.freeze(utils.clone(data[i]));
     }
 
     if (primaryKeyValue && data.length) {
@@ -323,7 +323,7 @@ function getOne (store) {
   if (!_item) {
     return;
   }
-  return utils.clone(_item);
+  return utils.freeze(utils.clone(_item));
 }
 
 exports.get            = get;
