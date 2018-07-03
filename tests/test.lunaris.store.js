@@ -931,6 +931,15 @@ describe('lunaris store', () => {
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A' });
       lunaris.clear('@store1');
       should(lunaris._stores['store1'].data.getAll()).be.an.Array().and.have.length(0);
+      lunaris.get('@store1');
+      lunaris.get('@store1');
+      should(lunaris._stores['store1'].paginationCurrentPage).eql(3);
+      should(lunaris._stores['store1'].paginationOffset).eql(100);
+      should(lunaris._stores['store1'].isInit).eql(true);
+      lunaris.clear('@store1');
+      should(lunaris._stores['store1'].paginationCurrentPage).eql(1);
+      should(lunaris._stores['store1'].paginationOffset).eql(0);
+      should(lunaris._stores['store1'].isInit).eql(false);
     });
   });
 

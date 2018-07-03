@@ -69,6 +69,17 @@ function _getPrimaryKeyValue (store, value, isInsert) {
 }
 
 /**
+ * Set store.isInit to true
+ * isInit control the 'reset' hook behaviour for lunaris-vue plugin
+ * @param {Object} store
+ */
+function _initStoreIfNotAlreadyInitialized (store) {
+  if (!store.isInit) {
+    store.isInit = true;
+  }
+}
+
+/**
  * Check arguments for upsert, get, deleteStore
  * @param {String} store
  * @param {*} value
@@ -209,6 +220,7 @@ function upsert (store, value, isLocal) {
   var _isUpdate   = !!value._id;
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
+  _initStoreIfNotAlreadyInitialized(_store);
 
   _collection.upsert(value);
   hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
@@ -237,6 +249,7 @@ function deleteStore (store, value) {
 
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
+  _initStoreIfNotAlreadyInitialized(_store);
 
   var _res = _collection.remove(value._id);
   hook.pushToHandlers(_store, 'delete', _res);
@@ -257,18 +270,18 @@ function deleteStore (store, value) {
 /**
  * Clear the store collection
  * @param {String} store
- * @param {Boolean} isSilent fire or not hooks
  */
-function clear (store, isSilent) {
+function clear (store) {
   _checkArgs(store, null, true);
 
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
 
-  var _res = _collection.clear();
-  if (!isSilent) {
-    hook.pushToHandlers(_store, 'reset');
-  }
+  _collection.clear();
+  _store.isInit                = false;
+  _store.paginationCurrentPage = 1;
+  _store.paginationOffset      = 0;
+  hook.pushToHandlers(_store, 'reset');
 }
 
 /**
@@ -282,6 +295,7 @@ function get (store, primaryKeyValue) {
 
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
+  _initStoreIfNotAlreadyInitialized(_store);
 
   var _request = '/';
   try {
