@@ -300,7 +300,7 @@ function clear (store, isSilent) {
   _store.isInit                = false;
   _store.paginationCurrentPage = 1;
   _store.paginationOffset      = 0;
-  if (isSilent) {
+  if (!isSilent) {
     hook.pushToHandlers(_store, 'reset');
   }
 }

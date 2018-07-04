@@ -974,6 +974,24 @@ describe('lunaris store', () => {
       should(lunaris._stores['store1'].paginationOffset).eql(0);
       should(lunaris._stores['store1'].isInit).eql(false);
     });
+
+    it('should clear the store and enver trigger the hook', done => {
+      var _hasFiredHook = false;
+      var _store        = _initStore('store1');
+      lunaris._stores['store1'] = _store;
+      lunaris.insert('@store1', { id : 1, label : 'A' });
+      should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A' });
+
+      lunaris.hook('reset@store1', () => {
+        _hasFiredHook = true;
+      });
+
+      lunaris.clear('@store1', true);
+      setTimeout(() => {
+        should(_hasFiredHook).eql(false);
+        done();
+      }, 200);
+    });
   });
 
 });
