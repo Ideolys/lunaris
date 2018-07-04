@@ -36,6 +36,11 @@ function registerHook (hook, handler) {
   _store.hooks[_hook.event].push(handler);
 }
 
+/**
+ * Remove hook
+ * @param {String} hook must be <action>@<store>
+ * @param {Function} handler
+ */
 function removeHook (hook, handler) {
   _isFunction(handler);
   var _hook          = _extractHookAndStore(hook);
