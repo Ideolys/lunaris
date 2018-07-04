@@ -937,6 +937,90 @@ describe('lunaris store', () => {
       lunaris.get('@methods');
     });
 
+    describe('search', () => {
+      it('should filter the store by the default filter operator', done => {
+        lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
+        lunaris._stores['optional.param.site'].data.add({
+          id : 1
+        });
+        lunaris._stores['optional'] = _initStore('optional');
+        lunaris._stores['optional'].filters.push({
+          source          : '@optional.param.site',
+          sourceAttribute : 'id',
+          localAttribute  : 'id'
+        });
+
+        lunaris.hook('get@optional', items => {
+          should(items).eql([
+            { _id : 1, limit : '50', offset : '0', search : 'id:=1'}
+          ]);
+
+          done();
+        });
+
+        lunaris.hook('errorHttp@optional', err => {
+          done(err);
+        });
+
+        lunaris.get('@optional');
+      });
+
+      it('should filter the store by an "=" filter', done => {
+        lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
+        lunaris._stores['optional.param.site'].data.add({
+          id : 1
+        });
+        lunaris._stores['optional'] = _initStore('optional');
+        lunaris._stores['optional'].filters.push({
+          source          : '@optional.param.site',
+          sourceAttribute : 'id',
+          localAttribute  : 'id',
+          operator        : '='
+        });
+
+        lunaris.hook('get@optional', items => {
+          should(items).eql([
+            { _id : 1, limit : '50', offset : '0', search : 'id:=1'}
+          ]);
+
+          done();
+        });
+
+        lunaris.hook('errorHttp@optional', err => {
+          done(err);
+        });
+
+        lunaris.get('@optional');
+      });
+
+      it('should filter the store by an "ILIKE" filter', done => {
+        lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
+        lunaris._stores['optional.param.site'].data.add({
+          id : 1
+        });
+        lunaris._stores['optional'] = _initStore('optional');
+        lunaris._stores['optional'].filters.push({
+          source          : '@optional.param.site',
+          sourceAttribute : 'id',
+          localAttribute  : 'id',
+          operator        : 'ILIKE'
+        });
+
+        lunaris.hook('get@optional', items => {
+          should(items).eql([
+            { _id : 1, limit : '50', offset : '0', search : 'id:1'}
+          ]);
+
+          done();
+        });
+
+        lunaris.hook('errorHttp@optional', err => {
+          done(err);
+        });
+
+        lunaris.get('@optional');
+      });
+    });
   });
 
   describe('clear()', () => {

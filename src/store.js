@@ -132,7 +132,7 @@ function _getFilterValuesHTTPRequest (store, method) {
     }
 
     if (_sourceValue !== undefined) {
-      _value.push(_filter.localAttribute, _sourceValue[_filter.sourceAttribute]);
+      _value.push(_filter.localAttribute, _sourceValue[_filter.sourceAttribute], _filter.operator);
 
       if (_methods.indexOf(method) !== -1) {
         if (_filter.isRequired) {
@@ -153,9 +153,17 @@ function _getFilterValuesHTTPRequest (store, method) {
  * @param {Array} filterValues
  */
 function _getSearchOption (filterValues) {
-  var _search = '';
+  var _search    = '';
+  var _operators = {
+    '='     : ':=',
+    'ILIKE' : ':'
+  };
   for (var j = 0; j < filterValues.length; j++) {
-    _search += filterValues[j][0] + encodeURIComponent(':=') + encodeURIComponent(filterValues[j][1]) + encodeURIComponent('+');
+    var _operator = ':=';
+    if (filterValues[j][2]) {
+      _operator = _operators[filterValues[j][2]] || _operator;
+    }
+    _search += filterValues[j][0] + encodeURIComponent(_operator) + encodeURIComponent(filterValues[j][1]) + encodeURIComponent('+');
   }
   _search = _search.slice(0, _search.length - encodeURIComponent('+').length);
   return ['search', _search];
