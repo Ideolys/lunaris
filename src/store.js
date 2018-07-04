@@ -149,8 +149,22 @@ function _getFilterValuesHTTPRequest (store, method) {
 }
 
 /**
+ * Construct searhc options
+ * @param {Array} filterValues
+ */
+function _getSearchOption (filterValues) {
+  var _search = '';
+  for (var j = 0; j < filterValues.length; j++) {
+    _search += filterValues[j][0] + encodeURIComponent(':=') + encodeURIComponent(filterValues[j][1]) + encodeURIComponent('+');
+  }
+  _search = _search.slice(0, _search.length - encodeURIComponent('+').length);
+  return ['search', _search];
+}
+
+/**
  * Get and construct the url options
  * @param {Object} store
+ * @param {Boolean} isPagination
  * @returns {String} ?option=optionvalue&...
  */
 function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
@@ -168,7 +182,11 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
     store.paginationCurrentPage++;
   }
 
-  _options = _options.concat(filterValues);
+  // _options = _options.concat(filterValues);
+  if (filterValues.length) {
+    _options.push(_getSearchOption(filterValues));
+  }
+
   if (_options.length) {
     _optionsStr += '?';
   }
@@ -191,12 +209,8 @@ function _createUrl (store, method, primaryKeyValue) {
   var _request = '/';
   var _isGet   = method === 'GET';
   var _url     = store.url || store.name;
-  if (pluralize.isPlural(_url) === false && !primaryKeyValue && _isGet) {
-    _request += pluralize(_url);
-  }
-  else {
-    _request += _url;
-  }
+
+  _request += _url;
 
   if (primaryKeyValue) {
     _request += '/' + primaryKeyValue;
@@ -350,7 +364,7 @@ function getOne (store) {
   if (!_item) {
     return;
   }
-  return utils.freeze(utils.clone(_item));
+  return utils.clone(_item);
 }
 
 exports.get            = get;

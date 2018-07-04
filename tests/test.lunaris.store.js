@@ -3,7 +3,6 @@ const buildLunaris = require('../lib/builder').buildLunaris;
 const express      = require('express');
 const bodyParser   = require('body-parser')
 const fetch        = require('node-fetch');
-const pluralize    = require('pluralize');
 
 const port    = 4040;
 
@@ -269,7 +268,7 @@ describe('lunaris store', () => {
         should(data.query).be.ok();
         should(data.params).be.ok();
         should(data.params).eql({ idSite : '2' });
-        should(data.query).eql({ category : 'A' });
+        should(data.query).eql({ search : 'category:=A' });
         lunaris.update('@store1', _expectedValue);
         should(data.body).be.ok();
         should(data.body).eql(_expectedValue);
@@ -280,7 +279,7 @@ describe('lunaris store', () => {
         should(data.query).be.ok();
         should(data.params).be.ok();
         should(data.params).eql({ id : '1', idSite : '2' });
-        should(data.query).eql({ category : 'A' });
+        should(data.query).eql({ search : 'category:=A' });
         should(data.body).be.ok();
         should(data.body).eql(_expectedValue);
 
@@ -397,7 +396,7 @@ describe('lunaris store', () => {
         should(data.query).be.ok();
         should(data.params).be.ok();
         should(data.params).eql({});
-        should(data.query).eql({ category : 'A' });
+        should(data.query).eql({ search : 'category:=A' });
         should(data.body).be.ok();
         should(data.body).eql(_expectedValue);
         lunaris.update('@store1', _expectedValue);
@@ -572,7 +571,7 @@ describe('lunaris store', () => {
       should(_store.data.get(2)).eql(_expectedValues[1]);
       var _val = lunaris.getOne('@store1');
       should(_val).eql(_expectedValues[0]);
-      should(Object.isFrozen(_val)).eql(true);
+      // should(Object.isFrozen(_val)).eql(true);
     });
 
     it('should get undefined if no value is in the collection', () => {
@@ -791,19 +790,54 @@ describe('lunaris store', () => {
     it('should filter the store by an optional filter', done => {
       lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
       lunaris._stores['optional.param.site'].data.add({
-        site : 1
+        id : 1
       });
-      lunaris._stores['optional']                = _initStore('optional');
-      lunaris._stores['optional'].fakeAttributes = ['site'];
+      lunaris._stores['optional'] = _initStore('optional');
       lunaris._stores['optional'].filters.push({
         source          : '@optional.param.site',
-        sourceAttribute : 'site',
-        localAttribute  : 'site',
+        sourceAttribute : 'id',
+        localAttribute  : 'id',
       });
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _id : 1, limit : '50', offset : '0', site : '1'}
+          { _id : 1, limit : '50', offset : '0', search : 'id:=1'}
+        ]);
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@optional', err => {
+        done(err);
+      });
+
+      lunaris.get('@optional');
+    });
+
+    it('should filter the store by two optional filters', done => {
+      lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
+      lunaris._stores['optional.param.site'].data.add({
+        id : 1
+      });
+      lunaris._stores['optional.param.category'] = _initStore('optional.param.category');
+      lunaris._stores['optional.param.category'].data.add({
+        id : 2
+      });
+      lunaris._stores['optional'] = _initStore('optional');
+      lunaris._stores['optional'].filters.push({
+        source          : '@optional.param.site',
+        sourceAttribute : 'id',
+        localAttribute  : 'id',
+      });
+      lunaris._stores['optional'].filters.push({
+        source          : '@optional.param.category',
+        sourceAttribute : 'id',
+        localAttribute  : 'category',
+      });
+
+      lunaris.hook('get@optional', items => {
+        should(items).eql([
+          { _id : 1, limit : '50', offset : '0', search : 'id:=1+category:=2'}
         ]);
 
         done();
@@ -963,7 +997,7 @@ function _initStore (name) {
 
 function _startServer (callback) {
   server.use(bodyParser.json());
-  server.get('/store1S', (req, res) => {
+  server.get('/store1', (req, res) => {
     res.json({ success : true, error : null, message : null, data : [
       { id : 20, label : 'B' },
       { id : 30, label : 'D' },
@@ -971,11 +1005,11 @@ function _startServer (callback) {
     ]});
   });
 
-  server.get('/store2S', (req, res) => {
+  server.get('/store2', (req, res) => {
     res.json({ success : false, error : 'Error', message : null, data : [] });
   });
 
-  server.get('/paginations', (req, res) => {
+  server.get('/pagination', (req, res) => {
     if (req.query.limit === '50' && req.query.offset === '0') {
       return res.json({ success : true, error : null, message : null, data : [
         { id : 20, label : 'B' },
@@ -994,7 +1028,7 @@ function _startServer (callback) {
     res.json({ success : false, error : 'Error', message : null, data : []});
   });
 
-  server.get('/requireds/site/:idSite', (req, res) => {
+  server.get('/required/site/:idSite', (req, res) => {
     if (req.params.idSite === '1') {
       res.json({ success : true, error : null, message : null, data : [
         { id : 1}, { id : 2 }, { id : 3 }
@@ -1007,11 +1041,11 @@ function _startServer (callback) {
     }
   });
 
-  server.get('/optionals', (req, res) => {
+  server.get('/optional', (req, res) => {
     res.json({ success : true, error : null, message : null, data : [req.query] });
   });
 
-  server.get('/pagination2S/site/:idSite', (req, res) => {
+  server.get('/pagination2/site/:idSite', (req, res) => {
     if (req.query.limit === '50' && req.query.offset === '0' && req.params.idSite === '1') {
       return res.json({ success : true, error : null, message : req.params.id, data : [
         { id : 20, label : 'B' },
