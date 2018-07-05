@@ -253,13 +253,12 @@ describe('lunaris store', () => {
         source          : '@required',
         sourceAttribute : 'category',
         localAttribute  : 'category',
-        isRequired      : false
+        operator        : ['=']
       });
       lunaris._stores['store1'].filters.push({
         source          : '@optional',
         sourceAttribute : 'site',
-        localAttribute  : 'site',
-        isRequired      : true
+        localAttribute  : 'site'
       });
 
       lunaris.hook('inserted@store1', data => {
@@ -379,14 +378,13 @@ describe('lunaris store', () => {
         source          : '@optional',
         sourceAttribute : 'category',
         localAttribute  : 'category',
-        isRequired      : false,
-        httpMethods     : ['GET', 'POST']
+        httpMethods     : ['GET', 'POST'],
+        operator        : '='
       });
       lunaris._stores['store1'].filters.push({
         source          : '@required',
         sourceAttribute : 'site',
         localAttribute  : 'site',
-        isRequired      : true,
         httpMethods     : ['PUT']
       });
 
@@ -797,6 +795,7 @@ describe('lunaris store', () => {
         source          : '@optional.param.site',
         sourceAttribute : 'id',
         localAttribute  : 'id',
+        operator        : '='
       });
 
       lunaris.hook('get@optional', items => {
@@ -828,11 +827,13 @@ describe('lunaris store', () => {
         source          : '@optional.param.site',
         sourceAttribute : 'id',
         localAttribute  : 'id',
+        operator        : '='
       });
       lunaris._stores['optional'].filters.push({
         source          : '@optional.param.category',
         sourceAttribute : 'id',
         localAttribute  : 'category',
+        operator        : '='
       });
 
       lunaris.hook('get@optional', items => {
@@ -938,33 +939,6 @@ describe('lunaris store', () => {
     });
 
     describe('search', () => {
-      it('should filter the store by the default filter operator', done => {
-        lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
-        lunaris._stores['optional.param.site'].data.add({
-          id : 1
-        });
-        lunaris._stores['optional'] = _initStore('optional');
-        lunaris._stores['optional'].filters.push({
-          source          : '@optional.param.site',
-          sourceAttribute : 'id',
-          localAttribute  : 'id'
-        });
-
-        lunaris.hook('get@optional', items => {
-          should(items).eql([
-            { _id : 1, limit : '50', offset : '0', search : 'id:=1'}
-          ]);
-
-          done();
-        });
-
-        lunaris.hook('errorHttp@optional', err => {
-          done(err);
-        });
-
-        lunaris.get('@optional');
-      });
-
       it('should filter the store by an "=" filter', done => {
         lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
         lunaris._stores['optional.param.site'].data.add({
@@ -1052,11 +1026,9 @@ describe('lunaris store', () => {
       lunaris.get('@store1');
       should(lunaris._stores['store1'].paginationCurrentPage).eql(3);
       should(lunaris._stores['store1'].paginationOffset).eql(100);
-      should(lunaris._stores['store1'].isInit).eql(true);
       lunaris.clear('@store1');
       should(lunaris._stores['store1'].paginationCurrentPage).eql(1);
       should(lunaris._stores['store1'].paginationOffset).eql(0);
-      should(lunaris._stores['store1'].isInit).eql(false);
     });
 
     it('should clear the store and enver trigger the hook', done => {

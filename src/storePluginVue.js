@@ -60,9 +60,7 @@ lunaris._vue = {
 
         _this.$options.storeHooks['reset@' + _store] = function () {
           lunaris._vue._vm.$data.$stores[_store].state.splice(0);
-          if (lunaris._stores[_store].isInit) {
-            lunaris.get('@' + _store);
-          }
+          lunaris.get('@' + _store);
         };
 
         _this.$options.storeHooks['insert@' + _store] = function (item) {

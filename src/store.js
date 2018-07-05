@@ -69,17 +69,6 @@ function _getPrimaryKeyValue (store, value, isInsert) {
 }
 
 /**
- * Set store.isInit to true
- * isInit control the 'reset' hook behaviour for lunaris-vue plugin
- * @param {Object} store
- */
-function _initStoreIfNotAlreadyInitialized (store) {
-  if (!store.isInit) {
-    store.isInit = true;
-  }
-}
-
-/**
  * Check arguments for upsert, get, deleteStore
  * @param {String} store
  * @param {*} value
@@ -98,10 +87,16 @@ function _checkArgs (store, value, isNotValue) {
  * Get required params for HTTP request
  * @param {Object} store
  * @param {Sting} method
- * @returns {String} /param/paramValue/...
+ * @returns {object} {
+ *  isRequiredOptionsFilled : {Boolean}
+ *  requiredOptions         : {String}
+ *  optionalOptions         : {Array}
+ * }
  */
 function _getFilterValuesHTTPRequest (store, method) {
-  var _filterValues = { requiredOptions : '', optionalOptions : [] };
+  var _filterValues            = { isRequiredOptionsFilled : true, requiredOptions : '', optionalOptions : [] };
+  var _nbRequiredFIlters       = 0;
+  var _nbRequiredFilledFilters = 0;
   if (!store.filters.length) {
     return _filterValues;
   }
@@ -131,20 +126,29 @@ function _getFilterValuesHTTPRequest (store, method) {
       _methods.push(method);
     }
 
+    if (_filter.isRequired && _methods.indexOf(method) !== -1) {
+      _nbRequiredFIlters++;
+    }
+
     if (_sourceValue !== undefined) {
       _value.push(_filter.localAttribute, _sourceValue[_filter.sourceAttribute], _filter.operator);
 
       if (_methods.indexOf(method) !== -1) {
         if (_filter.isRequired) {
-          _filterValues.requiredOptions += '/' + _value[0] + '/' + _value[1];
+          _nbRequiredFilledFilters++;
+        }
+
+        if (_value[2]) {
+          _filterValues.optionalOptions.push(_value);
         }
         else {
-          _filterValues.optionalOptions.push(_value);
+          _filterValues.requiredOptions += '/' + _value[0] + '/' + _value[1];
         }
       }
     }
   }
 
+  _filterValues.isRequiredOptionsFilled = _nbRequiredFIlters === _nbRequiredFilledFilters;
   return _filterValues;
 }
 
@@ -225,6 +229,11 @@ function _createUrl (store, method, primaryKeyValue) {
   }
 
   var _filterValues   = _getFilterValuesHTTPRequest(store, method);
+
+  if (!_filterValues.isRequiredOptionsFilled) {
+    throw new Error('Required filter values must be defined!');
+  }
+
   _request           += _filterValues.requiredOptions;
   _request           += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues.optionalOptions);
   return _request;
@@ -242,7 +251,6 @@ function upsert (store, value, isLocal) {
   var _isUpdate   = !!value._id;
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
-  _initStoreIfNotAlreadyInitialized(_store);
 
   if (Object.isFrozen(value)) {
     value = utils.clone(value);
@@ -275,7 +283,6 @@ function deleteStore (store, value) {
 
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
-  _initStoreIfNotAlreadyInitialized(_store);
 
   var _res = _collection.remove(value._id);
   hook.pushToHandlers(_store, 'delete', _res);
@@ -305,7 +312,6 @@ function clear (store, isSilent) {
   var _collection = _getCollection(_store);
 
   _collection.clear();
-  _store.isInit                = false;
   _store.paginationCurrentPage = 1;
   _store.paginationOffset      = 0;
   if (!isSilent) {
@@ -324,14 +330,13 @@ function get (store, primaryKeyValue) {
 
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
-  _initStoreIfNotAlreadyInitialized(_store);
 
   var _request = '/';
   try {
     _request = _createUrl(_store, 'GET', primaryKeyValue);
   }
   catch (e) {
-    return hook.pushToHandlers(_store, 'errorHttp', e);
+    return hook.pushToHandlers(_store, 'error', e);
   }
 
   http.request('GET', _request, null, function (err, data) {
