@@ -26,9 +26,3 @@ lunaris.build({
   // do some magic
 });
 ```
-
-## Features
-
- - Vuejs template compilation
- - Transpiling
- - ES6 modules
