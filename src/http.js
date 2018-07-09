@@ -7,7 +7,7 @@ var lunarisExports = require('./exports.js');
  * @param {Object} body
  * @param {Function} callback
  */
-function _httpRequest (request, method, body, callback) {
+function request (method, request, body, callback) {
   fetch(lunarisExports.baseUrl + request, {
     method      : method,
     credentials : 'same-origin',
@@ -27,23 +27,6 @@ function _httpRequest (request, method, body, callback) {
     callback(null, json.data);
   }).catch(function (err) {
     callback(err);
-  });
-}
-
-/**
- * HTTP GET
- * @param {String} method
- * @param {String} request url
- * @param {Object} body
- * @param {Function} callback err, data or err object
- */
-function request (method, request, body, callback) {
-  return _httpRequest(request, method, body, function (err, payload) {
-    if (err) {
-      return callback(err);
-    }
-
-    callback(null, payload);
   });
 }
 
