@@ -198,6 +198,10 @@ describe('lunaris internal collection', () => {
     });
 
     it('should return the default index', () => {
+      should(collection().getCurrentVersionNumber()).be.a.Number();
+    });
+
+    it('should return the default index', () => {
       should(collection().getCurrentVersionNumber()).eql(1);
     });
 
@@ -233,6 +237,21 @@ describe('lunaris internal collection', () => {
   describe('begin()', () => {
     it('should be defined', () => {
       should(collection().begin).be.ok();
+    });
+
+    it('should be equal to currentVersionNumber()', () => {
+      var _collection     = collection();
+      var _version        = _collection.begin();
+      var _currentVersion = _collection.getCurrentVersionNumber();
+      should(_version).eql(_currentVersion);
+    });
+
+    it('should be less than currentVersionNumber()', () => {
+      var _collection     = collection();
+      _collection.add({ id : 1, test : 1 }, _version);
+      var _version        = _collection.begin();
+      var _currentVersion = _collection.getCurrentVersionNumber();
+      should(_version).lessThan(_currentVersion);
     });
 
     it('should begin', () => {
