@@ -256,7 +256,7 @@ function upsert (store, value, isLocal) {
     value = utils.clone(value);
   }
 
-  _collection.upsert(value);
+  value = _collection.upsert(value);
   hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
 
   if (_store.isLocal || isLocal) {
