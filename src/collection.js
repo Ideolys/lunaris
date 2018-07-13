@@ -34,7 +34,7 @@ function collection (startId, startVersion) {
         this.commit();
       }
 
-      value._lastOperation = value._lastOperation || OPERATIONS.INSERT;
+      value._operation = value._operation || OPERATIONS.INSERT;
 
       _data.push(value);
       return value;
@@ -68,11 +68,11 @@ function collection (startId, startVersion) {
             return;
           }
 
-          if (_data[i]._lastOperation === OPERATIONS.DELETE) {
-            _objToUpdate._lastOperation = OPERATIONS.INSERT;
+          if (_data[i]._operation === OPERATIONS.DELETE) {
+            _objToUpdate._operation = OPERATIONS.INSERT;
           }
           else {
-            _objToUpdate._lastOperation = OPERATIONS.UPDATE;
+            _objToUpdate._operation = OPERATIONS.UPDATE;
           }
           if (versionNumber) {
             _data[i]._version[1] = versionNumber;
@@ -86,7 +86,7 @@ function collection (startId, startVersion) {
           }
 
           if (isRemove) {
-            _objToUpdate._lastOperation = OPERATIONS.DELETE;
+            _objToUpdate._operation = OPERATIONS.DELETE;
           }
 
           return this.add(_objToUpdate, versionNumber ? _version + 1 : null);
@@ -122,7 +122,7 @@ function collection (startId, startVersion) {
         var _item = _data[i];
         var _lowerVersion = _item._version[0];
         var _upperVersion = _item._version[1] || _currentVersionNumber;
-        var _operation    = _item._lastOperation;
+        var _operation    = _item._operation;
         if (_item._id === id && _lowerVersion <= _currentVersionNumber && _currentVersionNumber <= _upperVersion && _operation !== OPERATIONS.DELETE) {
           return _item;
         }
@@ -162,35 +162,15 @@ function collection (startId, startVersion) {
           var _item = utils.clone(_data[n]);
           var _upperVersion = _item._version[1];
           if (_item._id === _objToRollback[k]._id && versionNumber === _upperVersion) {
-            delete _item._lastOperation;
+            delete _item._operation;
             _objToRollback[k] = _item;
           }
         }
       }
 
-      // var _objToRollbackComputed = [];
-      // for (var k = 0; k < _objToRollback.length; k++) {
-      //   var _isInsert = false;
-      //   for (var l = 0; l < _objToRollback.length; l++) {
-      //     if (k !== l && _objToRollback[k]._id === _objToRollback[l]._id &&
-      //     (_objToRollback[k]._lastOperation !== OPERATIONS.INSERT && _objToRollback[l]._lastOperation === OPERATIONS.INSERT)) {
-      //       _isInsert = true;
-      //       break;
-      //     }
-      //   }
-      //   if (!_isInsert) {
-      //     _objToRollbackComputed.push(_objToRollback[k]);
-      //   }
-      // }
-      // console.log(_objToRollbackComputed, versionNumber);
-
-      //onsole.log(_data)
-      //console.log(_objToRollback);
-      //console.log('\n\n');
-
       var _version = this.begin();
       for (var j = 0; j < _objToRollback.length; j++) {
-        if (_objToRollback[j]._lastOperation === OPERATIONS.INSERT) {
+        if (_objToRollback[j]._operation === OPERATIONS.INSERT) {
           this.upsert(_objToRollback[j], _version, true);
         }
         else {
