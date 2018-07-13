@@ -58,19 +58,17 @@ function collection (startId, startVersion) {
         var _upperVersion = _data[i]._version[1] || _version;
 
         if (_data[i]._id === value._id && _lowerVersion <= _version && _version <= _upperVersion) {
-
           var _objToUpdate = utils.clone(value);
-          if (_data[i]._lastOperation !== OPERATIONS.DELETE) {
-            _objToUpdate._lastOperation = OPERATIONS.UPDATE;
-            if (versionNumber) {
-              _data[i]._version[1] = versionNumber;
-            }
-            else {
-              _data[i]._version[1] = _currentVersionNumber;
-            }
+          if (isRemove) {
+            _objToUpdate = utils.clone(_data[i]);
+          }
+
+          _objToUpdate._lastOperation = OPERATIONS.UPDATE;
+          if (versionNumber) {
+            _data[i]._version[1] = versionNumber;
           }
           else {
-            _objToUpdate._lastOperation = OPERATIONS.INSERT;
+            _data[i]._version[1] = _currentVersionNumber;
           }
 
           if (!versionNumber) {
@@ -78,8 +76,7 @@ function collection (startId, startVersion) {
           }
 
           if (isRemove) {
-            _data[i]._lastOperation = OPERATIONS.DELETE;
-            return;
+            _objToUpdate._lastOperation = OPERATIONS.DELETE;
           }
 
           return this.add(_objToUpdate, versionNumber ? versionNumber + 1 : null);
@@ -115,7 +112,8 @@ function collection (startId, startVersion) {
         var _item = _data[i];
         var _lowerVersion = _item._version[0];
         var _upperVersion = _item._version[1] || _currentVersionNumber;
-        if (_item._id === id && _lowerVersion <= _currentVersionNumber && _currentVersionNumber <= _upperVersion) {
+        var _operation    = _item._lastOperation;
+        if (_item._id === id && _lowerVersion <= _currentVersionNumber && _currentVersionNumber <= _upperVersion && _operation !== OPERATIONS.DELETE) {
           return _item;
         }
       }

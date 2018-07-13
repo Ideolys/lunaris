@@ -89,8 +89,9 @@ describe.only('lunaris internal collection', () => {
       _collection.add({ id : 1 });
       _collection.remove(1);
       var _data = _collection._getAll();
-      should(_data).have.length(1);
-      should(_data[0]).eql({ _id : 1, id : 1, _version : [1, 2], _lastOperation : 'D'});
+      should(_data).have.length(2);
+      should(_data[0]).eql({ _id : 1, id : 1, _version : [1, 2], _lastOperation : 'I'});
+      should(_data[1]).eql({ _id : 1, id : 1, _version : [3],    _lastOperation : 'D'});
       should(_collection.get(2)).eql(null);
     });
 
@@ -100,8 +101,10 @@ describe.only('lunaris internal collection', () => {
       _collection.add({ id : 2 });
       _collection.remove(2);
       var _values = _collection._getAll();
-      should(_values).have.length(2);
-      should(_values[1]).eql({ _id : 2, id : 2, _version : [2, 3], _lastOperation : 'D' });
+      should(_values).have.length(3);
+      should(_values[0]).eql({ _id : 1, id : 1, _version : [1]   , _lastOperation : 'I' });
+      should(_values[1]).eql({ _id : 2, id : 2, _version : [2, 3], _lastOperation : 'I' });
+      should(_values[2]).eql({ _id : 2, id : 2, _version : [4]   , _lastOperation : 'D' });
       should(_collection.get(2)).eql(null);
     });
 
@@ -118,9 +121,12 @@ describe.only('lunaris internal collection', () => {
       _collection.commit();
 
       var _values = _collection._getAll();
-      should(_values).have.length(2);
-      should(_values[0]).eql({ _id : 1, id : 1, _version : [1, _version], _lastOperation : 'D' });
-      should(_values[1]).eql({ _id : 2, id : 2, _version : [1, _version], _lastOperation : 'D' });
+      console.log(_values);
+      should(_values).have.length(4);
+      should(_values[0]).eql({ _id : 1, id : 1, _version : [1, _version], _lastOperation : 'I' });
+      should(_values[1]).eql({ _id : 2, id : 2, _version : [1, _version], _lastOperation : 'I' });
+      should(_values[2]).eql({ _id : 2, id : 2, _version : [3], _lastOperation : 'D' });
+      should(_values[3]).eql({ _id : 1, id : 1, _version : [3], _lastOperation : 'D' });
     });
   });
 
