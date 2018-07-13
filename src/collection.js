@@ -63,7 +63,17 @@ function collection (startId, startVersion) {
             _objToUpdate = utils.clone(_data[i]);
           }
 
-          _objToUpdate._lastOperation = OPERATIONS.UPDATE;
+          if (_lowerVersion === versionNumber && _upperVersion === versionNumber) {
+            Object.assign(_data[i], _objToUpdate);
+            return;
+          }
+
+          if (_data[i]._lastOperation === OPERATIONS.DELETE) {
+            _objToUpdate._lastOperation = OPERATIONS.INSERT;
+          }
+          else {
+            _objToUpdate._lastOperation = OPERATIONS.UPDATE;
+          }
           if (versionNumber) {
             _data[i]._version[1] = versionNumber;
           }
@@ -79,7 +89,7 @@ function collection (startId, startVersion) {
             _objToUpdate._lastOperation = OPERATIONS.DELETE;
           }
 
-          return this.add(_objToUpdate, versionNumber ? versionNumber + 1 : null);
+          return this.add(_objToUpdate, versionNumber ? _version + 1 : null);
         }
       }
     },
@@ -140,37 +150,51 @@ function collection (startId, startVersion) {
       var _objToRollback = [];
       for (var i = 0; i < _data.length; i++) {
         var _lowerVersion = _data[i]._version[0];
-        var _upperVersion = _data[i]._version[1] || versionNumber;
-        if (versionNumber >= _lowerVersion && versionNumber <= _upperVersion) {
+        var _upperVersion = _data[i]._version[1];
+        if (versionNumber >= _lowerVersion && (versionNumber <= _upperVersion || !_upperVersion)) {
           _objToRollback.push(utils.clone(_data[i]));
         }
       }
 
-      var _objToRollbackComputed = [];
+      // Search last item value
       for (var k = 0; k < _objToRollback.length; k++) {
-        var _isInsert = false;
-        for (var l = 0; l < _objToRollback.length; l++) {
-          if (k !== l && _objToRollback[k]._id === _objToRollback[l]._id &&
-          (_objToRollback[k]._lastOperation !== OPERATIONS.INSERT && _objToRollback[l]._lastOperation === OPERATIONS.INSERT)) {
-            _isInsert = true;
-            break;
+        for (var n = 0; n < _data.length; n++) {
+          var _item = utils.clone(_data[n]);
+          var _upperVersion = _item._version[1];
+          if (_item._id === _objToRollback[k]._id && versionNumber === _upperVersion) {
+            delete _item._lastOperation;
+            _objToRollback[k] = _item;
           }
-        }
-
-        if (!_isInsert) {
-          _objToRollbackComputed.push(_objToRollback[k]);
         }
       }
 
-      console.log(_objToRollbackComputed, versionNumber);
+      // var _objToRollbackComputed = [];
+      // for (var k = 0; k < _objToRollback.length; k++) {
+      //   var _isInsert = false;
+      //   for (var l = 0; l < _objToRollback.length; l++) {
+      //     if (k !== l && _objToRollback[k]._id === _objToRollback[l]._id &&
+      //     (_objToRollback[k]._lastOperation !== OPERATIONS.INSERT && _objToRollback[l]._lastOperation === OPERATIONS.INSERT)) {
+      //       _isInsert = true;
+      //       break;
+      //     }
+      //   }
+      //   if (!_isInsert) {
+      //     _objToRollbackComputed.push(_objToRollback[k]);
+      //   }
+      // }
+      // console.log(_objToRollbackComputed, versionNumber);
+
+      //onsole.log(_data)
+      //console.log(_objToRollback);
+      //console.log('\n\n');
 
       var _version = this.begin();
-      for (var j = 0; j < _objToRollbackComputed.length; j++) {
-        if (_objToRollbackComputed[j]._lastOperation === OPERATIONS.INSERT) {
-          this.upsert(_objToRollbackComputed[j], _version, true);
+      for (var j = 0; j < _objToRollback.length; j++) {
+        if (_objToRollback[j]._lastOperation === OPERATIONS.INSERT) {
+          this.upsert(_objToRollback[j], _version, true);
         }
         else {
-          this.upsert(_objToRollbackComputed[j], _version);
+          this.upsert(_objToRollback[j], _version);
         }
       }
       this.commit();
