@@ -1,5 +1,11 @@
 var utils = require('./utils.js');
 
+var OPERATIONS = {
+  'DELETE' : 'D',
+  'INSERT' : 'I',
+  'UPDATE' : 'U'
+};
+
 /**
  * @param {Int} startId from where to start id generation, default 1
  */
@@ -20,13 +26,15 @@ function collection (startId, startVersion) {
         throw new Error('add must have a value. It must be an Object.');
       }
 
-      value._id = value._id || _currentId;
+      value._id =  value._id || _currentId;
       _currentId++;
 
       value._version = [versionNumber || _currentVersionNumber];
       if (!versionNumber) {
         this.commit();
       }
+
+      value._lastOperation = value._lastOperation || OPERATIONS.INSERT;
 
       _data.push(value);
       return value;
@@ -36,32 +44,45 @@ function collection (startId, startVersion) {
      * Update an item
      * @param {*} value
      * @param {Int} versionNumber force versionNumber (must call begin() first)
+     * @param {Boolean} isRemove
      * @returns {Object} inserted / updated value
      */
-    upsert : function (value, versionNumber) {
-      if (!value._id) {
+    upsert : function (value, versionNumber, isRemove) {
+      if (!value._id && !isRemove) {
         return this.add(value, versionNumber);
       }
 
-      for (var i = 0; i < _data.length; i++) {
+      for (var i = _data.length - 1; i >= 0; i--) {
         var _version      = versionNumber || _currentVersionNumber;
         var _lowerVersion = _data[i]._version[0];
         var _upperVersion = _data[i]._version[1] || _version;
-        if (_data[i]._id === value._id && _lowerVersion <= _version && _version <= _upperVersion) {
-          var _objToUpdate = utils.clone(value);
 
-          if (versionNumber) {
-            _data[i]._version[1] = versionNumber;
+        if (_data[i]._id === value._id && _lowerVersion <= _version && _version <= _upperVersion) {
+
+          var _objToUpdate = utils.clone(value);
+          if (_data[i]._lastOperation !== OPERATIONS.DELETE) {
+            _objToUpdate._lastOperation = OPERATIONS.UPDATE;
+            if (versionNumber) {
+              _data[i]._version[1] = versionNumber;
+            }
+            else {
+              _data[i]._version[1] = _currentVersionNumber;
+            }
           }
           else {
-            _data[i]._version[1] = _currentVersionNumber;
+            _objToUpdate._lastOperation = OPERATIONS.INSERT;
           }
 
           if (!versionNumber) {
             this.commit();
           }
 
-          return this.add(_objToUpdate, versionNumber ? _currentVersionNumber : null);
+          if (isRemove) {
+            _data[i]._lastOperation = OPERATIONS.DELETE;
+            return;
+          }
+
+          return this.add(_objToUpdate, versionNumber ? versionNumber + 1 : null);
         }
       }
     },
@@ -78,21 +99,11 @@ function collection (startId, startVersion) {
     /**
      * Remove an item with the given id / value
      * @param {*} id
+     * @param {Int} versionNumber force versionNumber (must call begin() first)
      * @returns {Boolean} true if the value has been removed, of false if not
      */
-    remove : function (id) {
-      for (var i = 0; i < _data.length; i++) {
-        var _id           = _data[i]._id;
-        var _lowerVersion = _data[i]._version[0];
-        var _upperVersion = _data[i]._version[1] || _currentVersionNumber;
-        if (_id === id  && _lowerVersion <= _currentVersionNumber && _currentVersionNumber <= _upperVersion) {
-          _data[i]._version[1] = _currentVersionNumber;
-          _currentVersionNumber++;
-          return true;
-        }
-      }
-
-      return false;
+    remove : function (id, versionNumber) {
+      this.upsert({ _id : id }, versionNumber, true);
     },
 
     /**
@@ -130,17 +141,39 @@ function collection (startId, startVersion) {
     rollback : function (versionNumber) {
       var _objToRollback = [];
       for (var i = 0; i < _data.length; i++) {
-        var _id           = _data[i]._id;
         var _lowerVersion = _data[i]._version[0];
-        var _upperVersion = _data[i]._version[1] || _currentVersionNumber;
-        if (versionNumber >= _lowerVersion && versionNumber >= _upperVersion) {
+        var _upperVersion = _data[i]._version[1] || versionNumber;
+        if (versionNumber >= _lowerVersion && versionNumber <= _upperVersion) {
           _objToRollback.push(utils.clone(_data[i]));
         }
       }
 
+      var _objToRollbackComputed = [];
+      for (var k = 0; k < _objToRollback.length; k++) {
+        var _isInsert = false;
+        for (var l = 0; l < _objToRollback.length; l++) {
+          if (k !== l && _objToRollback[k]._id === _objToRollback[l]._id &&
+          (_objToRollback[k]._lastOperation !== OPERATIONS.INSERT && _objToRollback[l]._lastOperation === OPERATIONS.INSERT)) {
+            _isInsert = true;
+            break;
+          }
+        }
+
+        if (!_isInsert) {
+          _objToRollbackComputed.push(_objToRollback[k]);
+        }
+      }
+
+      console.log(_objToRollbackComputed, versionNumber);
+
       var _version = this.begin();
-      for (var j = 0; j < _objToRollback.length; j++) {
-        this.upsert(_objToRollback[j], _version);
+      for (var j = 0; j < _objToRollbackComputed.length; j++) {
+        if (_objToRollbackComputed[j]._lastOperation === OPERATIONS.INSERT) {
+          this.upsert(_objToRollbackComputed[j], _version, true);
+        }
+        else {
+          this.upsert(_objToRollbackComputed[j], _version);
+        }
       }
       this.commit();
     },

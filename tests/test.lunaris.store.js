@@ -465,9 +465,8 @@ describe('lunaris store', () => {
       lunaris._stores['store1']            = _store;
       lunaris._stores['store1'].primaryKey = 'id';
 
-      lunaris.hook('delete@store1', result => {
+      lunaris.hook('delete@store1', () => {
         _isDeleteHook = true;
-        should(result).eql(true);
       });
 
       lunaris.hook('deleted@store1', data => {
@@ -528,8 +527,7 @@ describe('lunaris store', () => {
       var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [1] };
       lunaris._stores['store1'] = _store;
 
-      lunaris.hook('delete@store1', result => {
-        should(result).eql(false);
+      lunaris.hook('delete@store1', () => {
         done();
       });
 

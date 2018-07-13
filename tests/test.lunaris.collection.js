@@ -1,6 +1,6 @@
 const collection = require('../src/collection');
 
-describe('lunaris internal collection', () => {
+describe.only('lunaris internal collection', () => {
   it('should return an object', () => {
     var _collection = collection();
     should(_collection).be.an.Object();
@@ -29,7 +29,7 @@ describe('lunaris internal collection', () => {
       _collection.add({ id : 1 });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
-      should(_values[0]).eql({ _id : 1, id : 1, _version : [1]});
+      should(_values[0]).eql({ _id : 1, id : 1, _version : [1], _lastOperation : 'I'});
     });
 
     it('should add multiple items to the collection', () => {
@@ -37,9 +37,10 @@ describe('lunaris internal collection', () => {
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
       var _values = _collection._getAll();
+      console.log(_values);
       should(_values).be.an.Array().and.have.length(2);
-      should(_values[0]).eql({ _id : 1, id : 1, _version : [1]});
-      should(_values[1]).eql({ _id : 2, id : 2, _version : [2]});
+      should(_values[0]).eql({ _id : 1, id : 1, _version : [1], _lastOperation : 'I'});
+      should(_values[1]).eql({ _id : 2, id : 2, _version : [2], _lastOperation : 'I'});
     });
 
     it('should start the index generation from 6 and version from 10', () => {
@@ -47,12 +48,12 @@ describe('lunaris internal collection', () => {
       _collection.add({ id : 1 });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
-      should(_values[0]).eql({ _id : 6, id : 1, _version : [10]});
+      should(_values[0]).eql({ _id : 6, id : 1, _version : [10], _lastOperation : 'I'});
 
       _collection.add({ id : 2 });
       _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(2);
-      should(_values[1]).eql({ _id : 7, id : 2, _version : [11]});
+      should(_values[1]).eql({ _id : 7, id : 2, _version : [11], _lastOperation : 'I'});
     });
 
     it('should clear the collection', () => {
@@ -70,7 +71,7 @@ describe('lunaris internal collection', () => {
       should(_collection._getAll()).be.an.Array().and.have.length(1);
 
       var _values = _collection._getAll();
-      should(_values[0]).eql({ _id : 6, id : 1, _version : [10]});
+      should(_values[0]).eql({ _id : 6, id : 1, _version : [10], _lastOperation : 'I'});
 
       _collection.clear();
       should(_collection._getAll()).be.an.Array().and.have.length(0);
@@ -78,7 +79,7 @@ describe('lunaris internal collection', () => {
       _collection.add({ id : 2 });
       _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
-      should(_values[0]).eql({ _id : 1, id : 2, _version : [1]});
+      should(_values[0]).eql({ _id : 1, id : 2, _version : [1], _lastOperation : 'I'});
     });
   });
 
@@ -86,11 +87,10 @@ describe('lunaris internal collection', () => {
     it('should remove the item', () => {
       var _collection = collection();
       _collection.add({ id : 1 });
-      var _res = _collection.remove(1);
-      should(_res).eql(true);
+      _collection.remove(1);
       var _data = _collection._getAll();
       should(_data).have.length(1);
-      should(_data[0]).eql({ _id : 1, id : 1, _version : [1, 2]});
+      should(_data[0]).eql({ _id : 1, id : 1, _version : [1, 2], _lastOperation : 'D'});
       should(_collection.get(2)).eql(null);
     });
 
@@ -98,12 +98,29 @@ describe('lunaris internal collection', () => {
       var _collection = collection();
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
-      var _res = _collection.remove(2);
-      should(_res).eql(true);
-      var _values = _collection._getAll()
+      _collection.remove(2);
+      var _values = _collection._getAll();
       should(_values).have.length(2);
-      should(_values[1]).eql({ _id : 2, id : 2, _version : [2, 3] });
+      should(_values[1]).eql({ _id : 2, id : 2, _version : [2, 3], _lastOperation : 'D' });
       should(_collection.get(2)).eql(null);
+    });
+
+    it('should remove items within the same transaction', () => {
+      var _collection = collection();
+      var _version = _collection.begin();
+      _collection.add({ id : 1 }, _version);
+      _collection.add({ id : 2 }, _version);
+      _collection.commit();
+
+      _version = _collection.begin();
+      _collection.remove(2, _version);
+      _collection.remove(1, _version);
+      _collection.commit();
+
+      var _values = _collection._getAll();
+      should(_values).have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 1, _version : [1, _version], _lastOperation : 'D' });
+      should(_values[1]).eql({ _id : 2, id : 2, _version : [1, _version], _lastOperation : 'D' });
     });
   });
 
@@ -111,15 +128,15 @@ describe('lunaris internal collection', () => {
     it('should get the item', () => {
       var _collection = collection();
       _collection.add({ id : 1 });
-      should(_collection.get(1)).eql({ _id : 1, id : 1, _version : [1] });
+      should(_collection.get(1)).eql({ _id : 1, id : 1, _version : [1], _lastOperation : 'I' });
     });
 
     it('should get the item from multiple items', () => {
       var _collection = collection();
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
-      should(_collection.get(1)).eql({ _id : 1, id : 1, _version : [1] });
-      should(_collection.get(2)).eql({ _id : 2, id : 2, _version : [2] });
+      should(_collection.get(1)).eql({ _id : 1, id : 1, _version : [1], _lastOperation : 'I' });
+      should(_collection.get(2)).eql({ _id : 2, id : 2, _version : [2], _lastOperation : 'I' });
     });
 
     it('should return null if not value has been found', () => {
@@ -133,11 +150,11 @@ describe('lunaris internal collection', () => {
       var _collection = collection();
       _collection.add({ id : 1, test : 1 });
       _collection.upsert({ _id : 1, id : 1, test : 2 });
-      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 2, _version : [3] });
+      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 2, _version : [3], _lastOperation : 'U' });
 
       var _values = _collection._getAll();
       should(_values).have.length(2);
-      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1, 2] });
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1, 2], _lastOperation : 'I' });
     });
 
     it('should update the item, multiple items', () => {
@@ -145,13 +162,13 @@ describe('lunaris internal collection', () => {
       _collection.add({ id : 1, test : 1 });
       _collection.add({ id : 2, test : 2 });
       _collection.upsert({ _id : 2, id : 2, test : 3 });
-      should(_collection.get(2)).eql({ _id : 2, id : 2, test : 3, _version : [4] });
+      should(_collection.get(2)).eql({ _id : 2, id : 2, test : 3, _version : [4], _lastOperation : 'U' });
 
       var _values = _collection._getAll();
       should(_values).have.length(3);
-      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1] });
-      should(_values[1]).eql({ _id : 2, id : 2, test : 2, _version : [2, 3] });
-      should(_values[2]).eql({ _id : 2, id : 2, test : 3, _version : [4] });
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1], _lastOperation : 'I' });
+      should(_values[1]).eql({ _id : 2, id : 2, test : 2, _version : [2, 3], _lastOperation : 'I' });
+      should(_values[2]).eql({ _id : 2, id : 2, test : 3, _version : [4], _lastOperation : 'U' });
     });
 
     it('should not update an older version of the item', () => {
@@ -159,19 +176,19 @@ describe('lunaris internal collection', () => {
       _collection.add({ id : 1, test : 1 });
       _collection.upsert({ _id : 1, id : 1, test : 2 });
       _collection.upsert({ _id : 1, id : 1, test : 3 });
-      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 3, _version : [5] });
+      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 3, _version : [5], _lastOperation : 'U' });
 
       var _values = _collection._getAll();
       should(_values).have.length(3);
-      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1, 2] });
-      should(_values[1]).eql({ _id : 1, id : 1, test : 2, _version : [3, 4] });
-      should(_values[2]).eql({ _id : 1, id : 1, test : 3, _version : [5] });
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1, 2], _lastOperation : 'I' });
+      should(_values[1]).eql({ _id : 1, id : 1, test : 2, _version : [3, 4], _lastOperation : 'U' });
+      should(_values[2]).eql({ _id : 1, id : 1, test : 3, _version : [5]   , _lastOperation : 'U' });
     });
 
     it('should insert the item if the id is not present in the collection', () => {
       var _collection = collection();
       _collection.upsert({ id : 1, test : 2 });
-      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 2, _version : [1] });
+      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 2, _version : [1], _lastOperation : 'I' });
     });
   });
 
@@ -222,7 +239,7 @@ describe('lunaris internal collection', () => {
       var _collection = collection();
       should(_collection.getFirst()).eql(undefined);
       _collection.add({ id : 1, test : 1 });
-      should(_collection.getFirst()).eql({ _id : 1, id : 1, test : 1, _version : [1] });
+      should(_collection.getFirst()).eql({ _id : 1, id : 1, test : 1, _version : [1], _lastOperation : 'I' });
     });
 
     it('should return the good first item', () => {
@@ -230,7 +247,7 @@ describe('lunaris internal collection', () => {
       should(_collection.getFirst()).eql(undefined);
       _collection.add({ id : 1, test : 1 });
       _collection.upsert({_id : 1, id : 1, test : 2, _version : [1] });
-      should(_collection.getFirst()).eql({ _id : 1, id : 1, test : 2, _version : [3] });
+      should(_collection.getFirst()).eql({ _id : 1, id : 1, test : 2, _version : [3], _lastOperation : 'U' });
     });
   });
 
@@ -263,12 +280,12 @@ describe('lunaris internal collection', () => {
 
       var _values = _collection._getAll();
       should(_values).have.length(2);
-      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1] });
-      should(_values[1]).eql({ _id : 2, id : 2, test : 2, _version : [1] });
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1], _lastOperation : 'I' });
+      should(_values[1]).eql({ _id : 2, id : 2, test : 2, _version : [1], _lastOperation : 'I' });
     });
   });
 
-  describe('rollback()', () => {
+  describe.skip('rollback()', () => {
     it('should be defined', () => {
       should(collection().rollback).be.ok();
     });
@@ -276,16 +293,18 @@ describe('lunaris internal collection', () => {
     it('should rollback the item', () => {
       var _collection = collection();
       _collection.add({ id : 1, test : 1 });
-      _collection.upsert({ _id : 1, id : 1, test : 2 });
-      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 2, _version : [3] });
-      _collection.rollback(3);
-      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 1, _version : [5] });
+      var _version = _collection.begin();
+      _collection.upsert({ _id : 1, id : 1, test : 2 }, _version);
+      _collection.commit();
+      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 2, _version : [3], _lastOperation  : 'U' });
+      _collection.rollback(_version);
+      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 1, _version : [5], _lastOperation  : 'U' });
 
       var _values = _collection._getAll();
       should(_values).have.length(3);
-      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1, 2] });
-      should(_values[1]).eql({ _id : 1, id : 1, test : 2, _version : [3, 4] });
-      should(_values[2]).eql({ _id : 1, id : 1, test : 1, _version : [5] });
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1, 2], _lastOperation : 'U' });
+      should(_values[1]).eql({ _id : 1, id : 1, test : 2, _version : [3, 4], _lastOperation : 'U' });
+      should(_values[2]).eql({ _id : 1, id : 1, test : 1, _version : [5]   , _lastOperation : 'U' });
     });
 
     it('should rollback the items', () => {
@@ -298,8 +317,8 @@ describe('lunaris internal collection', () => {
 
       var _values = _collection._getAll();
       should(_values).have.length(2);
-      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1] });
-      should(_values[1]).eql({ _id : 2, id : 2, test : 2, _version : [1] });
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1], _lastOperation  : 'I' });
+      should(_values[1]).eql({ _id : 2, id : 2, test : 2, _version : [1], _lastOperation  : 'I' });
 
       _version = _collection.begin();
       _collection.upsert({ _id : 1, id : 1, test : 1.1 }, _version);
@@ -308,18 +327,83 @@ describe('lunaris internal collection', () => {
 
       var _values = _collection._getAll();
       should(_values).have.length(4);
-      should(_values[0]).eql({ _id : 1, id : 1, test : 1,   _version : [1, 2] });
-      should(_values[1]).eql({ _id : 2, id : 2, test : 2,   _version : [1, 2] });
-      should(_values[2]).eql({ _id : 1, id : 1, test : 1.1, _version : [3] });
-      should(_values[3]).eql({ _id : 2, id : 2, test : 2.2, _version : [3] });
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1,   _version : [1, 2], _lastOperation  : 'I' });
+      should(_values[1]).eql({ _id : 2, id : 2, test : 2,   _version : [1, 2], _lastOperation  : 'I' });
+      should(_values[2]).eql({ _id : 1, id : 1, test : 1.1, _version : [3]   , _lastOperation  : 'U' });
+      should(_values[3]).eql({ _id : 2, id : 2, test : 2.2, _version : [3]   , _lastOperation  : 'U' });
 
       _collection.rollback(_version);
       var _values = _collection._getAll();
       should(_values).have.length(6);
-      should(_values[2]).eql({ _id : 1, id : 1, test : 1.1, _version : [3, 4] });
-      should(_values[3]).eql({ _id : 2, id : 2, test : 2.2, _version : [3, 4] });
-      should(_values[4]).eql({ _id : 1, id : 1, test : 1,   _version : [5] });
-      should(_values[5]).eql({ _id : 2, id : 2, test : 2,   _version : [5] });
+      should(_values[2]).eql({ _id : 1, id : 1, test : 1.1, _version : [3, 4], _lastOperation  : 'U' });
+      should(_values[3]).eql({ _id : 2, id : 2, test : 2.2, _version : [3, 4], _lastOperation  : 'U' });
+      should(_values[4]).eql({ _id : 1, id : 1, test : 1,   _version : [5]   , _lastOperation  : 'U'});
+      should(_values[5]).eql({ _id : 2, id : 2, test : 2,   _version : [5]   , _lastOperation  : 'U'});
+    });
+
+    it('should rollback deleted items', () => {
+      var _collection = collection();
+      var _version = _collection.begin();
+      _collection.add({ id : 1 }, _version);
+      _collection.add({ id : 2 }, _version);
+      _collection.commit();
+
+      _version = _collection.begin();
+      _collection.remove(2, _version);
+      _collection.remove(1, _version);
+      _collection.commit();
+
+      var _values = _collection._getAll();
+      should(_values).have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 1, _version : [1, _version], _lastOperation : 'D' });
+      should(_values[1]).eql({ _id : 2, id : 2, _version : [1, _version], _lastOperation : 'D' });
+
+      _collection.rollback(_version);
+      _values = _collection._getAll();
+      should(_values).have.length(4);
+      should(_values[0]).eql({ _id : 1, id : 1, _version : [1, _version], _lastOperation : 'D' });
+      should(_values[1]).eql({ _id : 2, id : 2, _version : [1, _version], _lastOperation : 'D' });
+      should(_values[2]).eql({ _id : 1, id : 1, _version : [5], _lastOperation : 'I' });
+      should(_values[3]).eql({ _id : 2, id : 2, _version : [5], _lastOperation : 'I' });
+
+      _version = _collection.begin();
+      _collection.remove(1, _version);
+      _collection.remove(2, _version);
+      _collection.commit();
+
+      _values = _collection._getAll();
+      should(_values).have.length(4);
+      should(_values[0]).eql({ _id : 1, id : 1, _version : [1, 2], _lastOperation : 'D' });
+      should(_values[1]).eql({ _id : 2, id : 2, _version : [1, 2], _lastOperation : 'D' });
+      should(_values[2]).eql({ _id : 1, id : 1, _version : [5, 6], _lastOperation : 'D' });
+      should(_values[3]).eql({ _id : 2, id : 2, _version : [5, 6], _lastOperation : 'D' });
+
+
+      _collection.rollback(_version);
+      _values = _collection._getAll();
+      should(_values).have.length(6);
+      should(_values[0]).eql({ _id : 1, id : 1, _version : [1, 2], _lastOperation : 'D' });
+      should(_values[1]).eql({ _id : 2, id : 2, _version : [1, 2], _lastOperation : 'D' });
+      should(_values[2]).eql({ _id : 1, id : 1, _version : [5, 6], _lastOperation : 'D' });
+      should(_values[3]).eql({ _id : 2, id : 2, _version : [5, 6], _lastOperation : 'D' });
+      should(_values[4]).eql({ _id : 1, id : 1, _version : [9],    _lastOperation : 'I' });
+      should(_values[5]).eql({ _id : 2, id : 2, _version : [9],    _lastOperation : 'I' });
+    });
+
+    it('should rollback the item : insert & update', () => {
+      var _collection = collection();
+      var _version = _collection.begin();
+      _collection.add({ id : 1, test : 1 }            , _version);
+      _collection.upsert({ _id : 1, id : 1, test : 2 }, _version);
+      _collection.commit();
+      should(_collection.get(1)).eql({ _id : 1, id : 1, test : 2, _version : [1], _lastOperation  : 'U' });
+      _collection.rollback(_version);
+      should(_collection.get(1)).eql(null);
+
+      var _values = _collection._getAll();
+      should(_values).have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1, 1], _lastOperation : 'I' });
+      should(_values[1]).eql({ _id : 1, id : 1, test : 2, _version : [1, 2], _lastOperation : 'D' });
     });
   });
 
