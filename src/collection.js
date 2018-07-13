@@ -50,10 +50,6 @@ function collection (startId, startVersion) {
         if (_data[i]._id === value._id && _lowerVersion <= _version && _version <= _upperVersion) {
           var _objToUpdate = utils.clone(value);
 
-          //if (_objToUpdate._version) {
-          //  _objToUpdate._version = [_data[i]._version[0]];
-          //}
-
           if (versionNumber) {
             _data[i]._version[1] = versionNumber;
           }

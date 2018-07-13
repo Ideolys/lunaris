@@ -3,6 +3,7 @@ const buildLunaris = require('../lib/builder').buildLunaris;
 const express      = require('express');
 const bodyParser   = require('body-parser')
 const fetch        = require('node-fetch');
+const compression  = require('compression')
 
 const port    = 4040;
 
@@ -603,8 +604,8 @@ describe('lunaris store', () => {
       lunaris.hook('get@store1', items => {
         should(items).eql([
           { _id : 1, id : 20, label : 'B', _version : [1] },
-          { _id : 2, id : 30, label : 'D', _version : [2] },
-          { _id : 3, id : 10, label : 'E', _version : [3] }
+          { _id : 2, id : 30, label : 'D', _version : [1] },
+          { _id : 3, id : 10, label : 'E', _version : [1] }
         ]);
 
         done();
@@ -653,8 +654,8 @@ describe('lunaris store', () => {
         if (_nbPages === 1) {
           should(items).eql([
             { _id : 1, id : 20, label : 'B', _version : [1] },
-            { _id : 2, id : 30, label : 'D', _version : [2] },
-            { _id : 3, id : 10, label : 'E', _version : [3] }
+            { _id : 2, id : 30, label : 'D', _version : [1] },
+            { _id : 3, id : 10, label : 'E', _version : [1] }
           ]);
           for (var i = 0; i < items.length; i++) {
             should(Object.isFrozen(items[i])).eql(true);
@@ -664,9 +665,9 @@ describe('lunaris store', () => {
         }
         if (_nbPages === 2) {
           should(items).eql([
-            { _id : 4, id : 40, label : 'A', _version : [4] },
-            { _id : 5, id : 50, label : 'C', _version : [5] },
-            { _id : 6, id : 60, label : 'F', _version : [6] }
+            { _id : 4, id : 40, label : 'A', _version : [2] },
+            { _id : 5, id : 50, label : 'C', _version : [2] },
+            { _id : 6, id : 60, label : 'F', _version : [2] }
           ]);
           for (var i = 0; i < items.length; i++) {
             should(Object.isFrozen(items[i])).eql(true);
@@ -701,7 +702,9 @@ describe('lunaris store', () => {
       lunaris.hook('get@required', items => {
         if (_isFirstCall) {
           should(items).eql([
-            { _id : 1, id : 1, _version : [1] }, { _id : 2, id : 2, _version : [2] }, { _id : 3, id : 3, _version : [3] }
+            { _id : 1, id : 1, _version : [1] },
+            { _id : 2, id : 2, _version : [1] },
+            { _id : 3, id : 3, _version : [1] }
           ]);
           _isFirstCall = false;
           lunaris.update('@required.param.site', {
@@ -712,7 +715,9 @@ describe('lunaris store', () => {
           return;
         }
         should(items).eql([
-          { _id : 4, id : 4, _version : [4] }, { _id : 5, id : 5, _version : [5] }, { _id : 6, id : 6, _version : [6] }
+          { _id : 4, id : 4, _version : [2] },
+          { _id : 5, id : 5, _version : [2] },
+          { _id : 6, id : 6, _version : [2] }
         ]);
 
         done();
@@ -749,17 +754,17 @@ describe('lunaris store', () => {
         if (_nbPages === 1) {
           should(items).eql([
             { _id : 1, id : 20, label : 'B', _version : [1] },
-            { _id : 2, id : 30, label : 'D', _version : [2] },
-            { _id : 3, id : 10, label : 'E', _version : [3] }
+            { _id : 2, id : 30, label : 'D', _version : [1] },
+            { _id : 3, id : 10, label : 'E', _version : [1] }
           ]);
           lunaris.get('@pagination2');
           return;
         }
         if (_nbPages === 2) {
           should(items).eql([
-            { _id : 4, id : 40, label : 'A', _version : [4] },
-            { _id : 5, id : 50, label : 'C', _version : [5] },
-            { _id : 6, id : 60, label : 'F', _version : [6] }
+            { _id : 4, id : 40, label : 'A', _version : [2] },
+            { _id : 5, id : 50, label : 'C', _version : [2] },
+            { _id : 6, id : 60, label : 'F', _version : [2] }
           ]);
           lunaris.update('@pagination2.param.site', {
             _id      : 1,
@@ -770,9 +775,9 @@ describe('lunaris store', () => {
         }
 
         should(items).eql([
-          { _id : 7, id : 70, label : 'G', _version : [7] },
-          { _id : 8, id : 80, label : 'H', _version : [8] },
-          { _id : 9, id : 90, label : 'I', _version : [9] }
+          { _id : 7, id : 70, label : 'G', _version : [4] },
+          { _id : 8, id : 80, label : 'H', _version : [4] },
+          { _id : 9, id : 90, label : 'I', _version : [4] }
         ]);
 
         done();
@@ -1072,6 +1077,7 @@ function _initStore (name) {
 }
 
 function _startServer (callback) {
+  server.use(compression());
   server.use(bodyParser.json());
   server.get('/store1', (req, res) => {
     res.json({ success : true, error : null, message : null, data : [

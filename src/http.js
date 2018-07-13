@@ -12,7 +12,8 @@ function request (method, request, body, callback) {
     method      : method,
     credentials : 'same-origin',
     headers     : {
-      'Content-Type' : 'application/json'
+      'Content-Type'    : 'application/json',
+      'Accept-Encoding' : 'gzip'
     },
     body        : body ? JSON.stringify(body) : null
   }).then(function (response) {

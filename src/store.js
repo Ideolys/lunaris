@@ -239,6 +239,10 @@ function _createUrl (store, method, primaryKeyValue) {
   return _request;
 }
 
+/** =================================================  *
+ *                   Public methods                    *
+ *  ================================================= **/
+
 /**
  * Insert or Update a value in store
  * @param {String} store
@@ -256,7 +260,9 @@ function upsert (store, value, isLocal) {
     value = utils.clone(value);
   }
 
-  value = _collection.upsert(value);
+  var _version = _collection.begin();
+  value = _collection.upsert(value, _version);
+  _collection.commit();
   hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
 
   if (_store.isLocal || isLocal) {
@@ -284,7 +290,9 @@ function deleteStore (store, value) {
   var _store      = _getStore(store);
   var _collection = _getCollection(_store);
 
-  var _res = _collection.remove(value._id);
+  var _version = _collection.begin();
+  var _res = _collection.remove(value._id, _version);
+  _collection.commit();
   hook.pushToHandlers(_store, 'delete', _res);
 
   if (_store.isLocal) {
@@ -343,10 +351,10 @@ function get (store, primaryKeyValue) {
     if (err) {
       return hook.pushToHandlers(_store, 'errorHttp', err);
     }
-
+    var _version = _collection.begin();
     if (Array.isArray(data)) {
       for (var i = 0; i < data.length; i++) {
-        _collection.upsert(data[i]);
+        _collection.upsert(data[i], _version);
         data[i] = utils.freeze(utils.clone(data[i]));
       }
 
@@ -355,9 +363,10 @@ function get (store, primaryKeyValue) {
       }
     }
     else {
-      _collection.upsert(data);
+      _collection.upsert(data, _version);
       data = utils.freeze(utils.clone(data));
     }
+    _collection.commit();
 
     hook.pushToHandlers(_store, 'get', data);
   });
