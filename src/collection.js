@@ -26,8 +26,13 @@ function collection (startId, startVersion) {
         throw new Error('add must have a value. It must be an Object.');
       }
 
-      value._id =  value._id || _currentId;
-      _currentId++;
+      if (value._id) {
+        value._id =  value._id;
+      }
+      else {
+        value._id = _currentId;
+        _currentId++;
+      }
 
       value._version = [versionNumber || _currentVersionNumber];
       if (!versionNumber) {
@@ -59,12 +64,21 @@ function collection (startId, startVersion) {
 
         if (_data[i]._id === value._id && _lowerVersion <= _version && _version <= _upperVersion) {
           var _objToUpdate = utils.clone(value);
+
           if (isRemove) {
             _objToUpdate = utils.clone(_data[i]);
           }
 
+          /**
+           * During the same transaction :
+           *  - If insert / update : the updated row will be merged with the inserted one
+           *  - If Insert / delete : the inserted row will be removed
+           */
           if (_lowerVersion === versionNumber && _upperVersion === versionNumber) {
             Object.assign(_data[i], _objToUpdate);
+            if (isRemove) {
+              _data.splice(i, 1);
+            }
             return;
           }
 
@@ -148,7 +162,7 @@ function collection (startId, startVersion) {
      */
     rollback : function (versionNumber) {
       var _objToRollback = [];
-      for (var i = 0; i < _data.length; i++) {
+      for (var i = _data.length - 1; i >= 0; i--) {
         var _lowerVersion = _data[i]._version[0];
         var _upperVersion = _data[i]._version[1];
         if (versionNumber >= _lowerVersion && (versionNumber <= _upperVersion || !_upperVersion)) {
