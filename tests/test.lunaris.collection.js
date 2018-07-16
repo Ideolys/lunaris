@@ -1,6 +1,11 @@
-const collection = require('../src/collection');
+const collectionModule = require('../src/collection');
+const collection       = collectionModule.collection;
 
 describe('lunaris internal collection', () => {
+  beforeEach(() => {
+    collectionModule.resetVersionNumber();
+  });
+
   it('should return an object', () => {
     var _collection = collection();
     should(_collection).be.an.Object();
@@ -42,17 +47,17 @@ describe('lunaris internal collection', () => {
       should(_values[1]).eql({ _id : 2, id : 2, _version : [2], _operation : 'I'});
     });
 
-    it('should start the index generation from 6 and version from 10', () => {
+    it('should start the index generation from 6', () => {
       var _collection = collection(6, 10);
       _collection.add({ id : 1 });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
-      should(_values[0]).eql({ _id : 6, id : 1, _version : [10], _operation : 'I'});
+      should(_values[0]).eql({ _id : 6, id : 1, _version : [1], _operation : 'I'});
 
       _collection.add({ id : 2 });
       _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(2);
-      should(_values[1]).eql({ _id : 7, id : 2, _version : [11], _operation : 'I'});
+      should(_values[1]).eql({ _id : 7, id : 2, _version : [2], _operation : 'I'});
     });
 
     it('should clear the collection', () => {
@@ -64,13 +69,13 @@ describe('lunaris internal collection', () => {
       should(_collection._getAll()).be.an.Array().and.have.length(0);
     });
 
-    it('should clear the collection , the index and the version', () => {
-      var _collection = collection(6, 10);
+    it('should clear the collection and the index', () => {
+      var _collection = collection(6);
       _collection.add({ id : 1 });
       should(_collection._getAll()).be.an.Array().and.have.length(1);
 
       var _values = _collection._getAll();
-      should(_values[0]).eql({ _id : 6, id : 1, _version : [10], _operation : 'I'});
+      should(_values[0]).eql({ _id : 6, id : 1, _version : [1], _operation : 'I'});
 
       _collection.clear();
       should(_collection._getAll()).be.an.Array().and.have.length(0);
@@ -78,7 +83,7 @@ describe('lunaris internal collection', () => {
       _collection.add({ id : 2 });
       _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
-      should(_values[0]).eql({ _id : 1, id : 2, _version : [1], _operation : 'I'});
+      should(_values[0]).eql({ _id : 1, id : 2, _version : [2], _operation : 'I'});
     });
   });
 
@@ -263,10 +268,9 @@ describe('lunaris internal collection', () => {
     });
 
     it('should be equal to currentVersionNumber()', () => {
-      var _collection     = collection();
-      var _version        = _collection.begin();
-      var _currentVersion = _collection.getCurrentVersionNumber();
-      should(_version).eql(_currentVersion);
+      var _collection = collection();
+      var _version    = _collection.begin();
+      should(_version).eql(1);
     });
 
     it('should be less than currentVersionNumber()', () => {
@@ -440,7 +444,7 @@ describe('lunaris internal collection', () => {
       var _collection = collection();
       _collection.add({ id : 1, test : 1 });
 
-      var _version    = _collection.begin();
+      var _version = _collection.begin();
       _collection.remove(1, _version);
       _collection.add({ id : 1, test : 2 }, _version);
       _collection.commit();

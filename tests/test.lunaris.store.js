@@ -19,6 +19,10 @@ describe('lunaris store', () => {
     _startServer(done);
   });
 
+  beforeEach(() => {
+    collection.resetVersionNumber();
+  });
+
   after(done => {
     _stopServer(done);
   });
@@ -238,7 +242,7 @@ describe('lunaris store', () => {
       var _isInsertedHook       = false;
       var _isUpdatedHook        = false;
       var _store                = _initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [1], _operation : 'I' };
+      var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [3], _operation : 'I' };
       lunaris._stores['optional'] = _initStore('optional');
       lunaris._stores['optional'].data.add({
         site : 2
@@ -281,7 +285,7 @@ describe('lunaris store', () => {
         should(data.params).eql({ id : '1', idSite : '2' });
         should(data.query).eql({ search : 'category:=A' });
         should(data.body).be.ok();
-        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [3], _operation : 'U' });
+        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [6], _operation : 'U' });
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -299,7 +303,7 @@ describe('lunaris store', () => {
       var _isInsertedHook       = false;
       var _isUpdatedHook        = false;
       var _store                = _initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [1], _operation : 'I' };
+      var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [3], _operation : 'I' };
       lunaris._stores['optional'] = _initStore('optional');
       lunaris._stores['optional'].data.add({
         site : 2
@@ -345,7 +349,7 @@ describe('lunaris store', () => {
         should(data.params).eql({ id : '1'});
         should(data.query).eql({});
         should(data.body).be.ok();
-        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [3], _operation : 'U' });
+        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [6], _operation : 'U' });
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -363,7 +367,7 @@ describe('lunaris store', () => {
       var _isInsertedHook       = false;
       var _isUpdatedHook        = false;
       var _store                = _initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [1], _operation : 'I' };
+      var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [3], _operation : 'I' };
       lunaris._stores['required'] = _initStore('required');
       lunaris._stores['required'].data.add({
         site : 2
@@ -408,7 +412,7 @@ describe('lunaris store', () => {
         should(data.params).eql({ id : '1', idSite : '2'});
         should(data.query).eql({});
         should(data.body).be.ok();
-        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [3], _operation : 'U' });
+        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [6], _operation : 'U' });
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -700,9 +704,9 @@ describe('lunaris store', () => {
       lunaris.hook('get@required', items => {
         if (_isFirstCall) {
           should(items).eql([
-            { _id : 1, id : 1, _version : [1], _operation : 'I' },
-            { _id : 2, id : 2, _version : [1], _operation : 'I' },
-            { _id : 3, id : 3, _version : [1], _operation : 'I' }
+            { _id : 1, id : 1, _version : [2], _operation : 'I' },
+            { _id : 2, id : 2, _version : [2], _operation : 'I' },
+            { _id : 3, id : 3, _version : [2], _operation : 'I' }
           ]);
           _isFirstCall = false;
           lunaris.update('@required.param.site', {
@@ -713,9 +717,9 @@ describe('lunaris store', () => {
           return;
         }
         should(items).eql([
-          { _id : 4, id : 4, _version : [2], _operation : 'I' },
-          { _id : 5, id : 5, _version : [2], _operation : 'I' },
-          { _id : 6, id : 6, _version : [2], _operation : 'I' }
+          { _id : 4, id : 4, _version : [6], _operation : 'I' },
+          { _id : 5, id : 5, _version : [6], _operation : 'I' },
+          { _id : 6, id : 6, _version : [6], _operation : 'I' }
         ]);
 
         done();
@@ -751,18 +755,18 @@ describe('lunaris store', () => {
         _nbPages++;
         if (_nbPages === 1) {
           should(items).eql([
-            { _id : 1, id : 20, label : 'B', _version : [1], _operation : 'I' },
-            { _id : 2, id : 30, label : 'D', _version : [1], _operation : 'I' },
-            { _id : 3, id : 10, label : 'E', _version : [1], _operation : 'I' }
+            { _id : 1, id : 20, label : 'B', _version : [2], _operation : 'I' },
+            { _id : 2, id : 30, label : 'D', _version : [2], _operation : 'I' },
+            { _id : 3, id : 10, label : 'E', _version : [2], _operation : 'I' }
           ]);
           lunaris.get('@pagination2');
           return;
         }
         if (_nbPages === 2) {
           should(items).eql([
-            { _id : 4, id : 40, label : 'A', _version : [2], _operation : 'I' },
-            { _id : 5, id : 50, label : 'C', _version : [2], _operation : 'I' },
-            { _id : 6, id : 60, label : 'F', _version : [2], _operation : 'I' }
+            { _id : 4, id : 40, label : 'A', _version : [4], _operation : 'I' },
+            { _id : 5, id : 50, label : 'C', _version : [4], _operation : 'I' },
+            { _id : 6, id : 60, label : 'F', _version : [4], _operation : 'I' }
           ]);
           lunaris.update('@pagination2.param.site', {
             _id      : 1,
@@ -773,9 +777,9 @@ describe('lunaris store', () => {
         }
 
         should(items).eql([
-          { _id : 7, id : 70, label : 'G', _version : [4], _operation : 'I' },
-          { _id : 8, id : 80, label : 'H', _version : [4], _operation : 'I' },
-          { _id : 9, id : 90, label : 'I', _version : [4], _operation : 'I' }
+          { _id : 7, id : 70, label : 'G', _version : [8], _operation : 'I' },
+          { _id : 8, id : 80, label : 'H', _version : [8], _operation : 'I' },
+          { _id : 9, id : 90, label : 'I', _version : [8], _operation : 'I' }
         ]);
 
         done();
@@ -803,7 +807,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _id : 1, limit : '50', offset : '0', search : 'id:=1', _version : [1], _operation : 'I'}
+          { _id : 1, limit : '50', offset : '0', search : 'id:=1', _version : [2], _operation : 'I'}
         ]);
 
         done();
@@ -841,7 +845,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _id : 1, limit : '50', offset : '0', search : 'id:=1+category:=2', _version : [1], _operation : 'I'}
+          { _id : 1, limit : '50', offset : '0', search : 'id:=1+category:=2', _version : [3], _operation : 'I'}
         ]);
 
         done();
@@ -961,7 +965,7 @@ describe('lunaris store', () => {
 
         lunaris.hook('get@optional', items => {
           should(items).eql([
-            { _id : 1, limit : '50', offset : '0', search : 'id:=1', _version : [1], _operation : 'I'}
+            { _id : 1, limit : '50', offset : '0', search : 'id:=1', _version : [2], _operation : 'I'}
           ]);
 
           done();
@@ -989,7 +993,7 @@ describe('lunaris store', () => {
 
         lunaris.hook('get@optional', items => {
           should(items).eql([
-            { _id : 1, limit : '50', offset : '0', search : 'id:1', _version : [1], _operation : 'I'}
+            { _id : 1, limit : '50', offset : '0', search : 'id:1', _version : [2], _operation : 'I'}
           ]);
 
           done();
@@ -1067,7 +1071,7 @@ function _initStore (name) {
   var _store                   = {};
   _store.name                  = name;
   _store.primaryKey            = null;
-  _store.data                  = collection();
+  _store.data                  = collection.collection();
   _store.filters               = [];
   _store.hooks                 = {};
   _store.paginationLimit       = 50;

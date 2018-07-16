@@ -6,13 +6,14 @@ var OPERATIONS = {
   'UPDATE' : 'U'
 };
 
+var currentVersionNumber = 1;
+
 /**
  * @param {Int} startId from where to start id generation, default 1
  */
-function collection (startId, startVersion) {
-  var _data                 = [];
-  var _currentId            = startId      && typeof startId      === 'number' ? startId      : 1;
-  var _currentVersionNumber = startVersion && typeof startVersion === 'number' ? startVersion : 1;
+function collection (startId) {
+  var _data      = [];
+  var _currentId = startId && typeof startId === 'number' ? startId : 1;
 
   return {
     /**
@@ -34,7 +35,7 @@ function collection (startId, startVersion) {
         _currentId++;
       }
 
-      value._version = [versionNumber || _currentVersionNumber];
+      value._version = [versionNumber || currentVersionNumber];
       if (!versionNumber) {
         this.commit();
       }
@@ -58,7 +59,7 @@ function collection (startId, startVersion) {
       }
 
       for (var i = _data.length - 1; i >= 0; i--) {
-        var _version      = versionNumber || _currentVersionNumber;
+        var _version      = versionNumber || currentVersionNumber;
         var _lowerVersion = _data[i]._version[0];
         var _upperVersion = _data[i]._version[1] || _version;
 
@@ -88,11 +89,12 @@ function collection (startId, startVersion) {
           else {
             _objToUpdate._operation = OPERATIONS.UPDATE;
           }
+
           if (versionNumber) {
             _data[i]._version[1] = versionNumber;
           }
           else {
-            _data[i]._version[1] = _currentVersionNumber;
+            _data[i]._version[1] = currentVersionNumber;
           }
 
           if (!versionNumber) {
@@ -103,7 +105,7 @@ function collection (startId, startVersion) {
             _objToUpdate._operation = OPERATIONS.DELETE;
           }
 
-          return this.add(_objToUpdate, versionNumber ? _version + 1 : null);
+          return this.add(_objToUpdate, versionNumber ? currentVersionNumber : null);
         }
       }
     },
@@ -112,9 +114,8 @@ function collection (startId, startVersion) {
      * Clear the collection
      */
     clear : function () {
-      _data                 = [];
-      _currentId            = 1;
-      _currentVersionNumber = 1;
+      _data      = [];
+      _currentId = 1;
     },
 
     /**
@@ -135,9 +136,9 @@ function collection (startId, startVersion) {
       for (var i = 0; i < _data.length; i++) {
         var _item = _data[i];
         var _lowerVersion = _item._version[0];
-        var _upperVersion = _item._version[1] || _currentVersionNumber;
+        var _upperVersion = _item._version[1] || currentVersionNumber;
         var _operation    = _item._operation;
-        if (_item._id === id && _lowerVersion <= _currentVersionNumber && _currentVersionNumber <= _upperVersion && _operation !== OPERATIONS.DELETE) {
+        if (_item._id === id && _lowerVersion <= currentVersionNumber && currentVersionNumber <= _upperVersion && _operation !== OPERATIONS.DELETE) {
           return _item;
         }
       }
@@ -196,14 +197,14 @@ function collection (startId, startVersion) {
 
     begin : function () {
       // If the collection has just been initialized, no need to update versionNumber
-      if (_currentVersionNumber === 1) {
+      if (currentVersionNumber === 1) {
         return 1;
       }
-      return _currentVersionNumber++;
+      return currentVersionNumber++;
     },
 
     commit : function () {
-      _currentVersionNumber++;
+      currentVersionNumber++;
     },
 
     /**
@@ -225,9 +226,17 @@ function collection (startId, startVersion) {
      * Get current version number
      */
     getCurrentVersionNumber :  function () {
-      return _currentVersionNumber;
+      return currentVersionNumber;
+    }
     }
   }
+
+/**
+ * Reset current version number
+ */
+function resetVersionNumber () {
+  currentVersionNumber = 1;
 }
 
-module.exports = collection;
+exports.collection         = collection;
+exports.resetVersionNumber = resetVersionNumber;
