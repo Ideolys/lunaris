@@ -397,7 +397,6 @@ function get (store, primaryKeyValue) {
       if (err) {
         logger.warn(['lunaris.get' + store], err);
         var _error = _getError(err, _store, 'GET', true);
-        console.log(_error);
         return hook.pushToHandlers(_store, 'errorHttp', _error);
       }
 
