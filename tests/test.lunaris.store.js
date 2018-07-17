@@ -645,8 +645,7 @@ describe('lunaris store', () => {
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris warn] lunaris.get@store');
         should(lastError[1]).eql({ error : 404, message : 'Not Found'});
-        should(err.error).eql(404);
-        should(err.message).eql('Not Found');
+        should(err).eql('404 : Not Found');
         done();
       });
 
@@ -658,8 +657,7 @@ describe('lunaris store', () => {
       lunaris._stores['store2'] = _store;
 
       lunaris.hook('errorHttp@store2', err => {
-        should(err.error).eql('Error');
-        should(err.message).eql(null);
+        should(err).eql('Error : null');
         done();
       });
 

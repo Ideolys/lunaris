@@ -253,9 +253,10 @@ function _getError (err, store, method, isPlural) {
   }
 
   var _methods = {
-    'GET'  : '${load}',
-    'PUT'  : '${edit}',
-    'POST' : '${create}'
+    'GET'    : '${load}',
+    'PUT'    : '${edit}',
+    'POST'   : '${create}',
+    'DELETE' : '${delete}'
   };
 
   var _message = store.errorTemplate;
@@ -342,7 +343,8 @@ function deleteStore (store, value) {
       if (err) {
         // _collection.rollback(_version);
         logger.warn(['lunaris.delete' + store], err);
-        return hook.pushToHandlers(_store, 'errorHttp', [err, value]);
+        var _error = _getError(err, _store, 'DELETE', false);
+        return hook.pushToHandlers(_store, 'errorHttp', [_error, value]);
       }
       hook.pushToHandlers(_store, 'deleted', data);
     });
@@ -394,7 +396,9 @@ function get (store, primaryKeyValue) {
     http.request('GET', _request, null, function (err, data) {
       if (err) {
         logger.warn(['lunaris.get' + store], err);
-        return hook.pushToHandlers(_store, 'errorHttp', err);
+        var _error = _getError(err, _store, 'GET', true);
+        console.log(_error);
+        return hook.pushToHandlers(_store, 'errorHttp', _error);
       }
 
       var _version = _collection.begin();
