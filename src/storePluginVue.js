@@ -77,18 +77,20 @@ lunaris._vue = {
             _state.splice(j, 1, lunaris.clone(item));
           }
         }
+
+        lunaris._vue._vm.$data.$stores[store].state.push(lunaris.clone(item));
       }
     }
 
     /**
-     * Set _delet hook handler
+     * Set _delete hook handler
      * @param {String} store
      */
     function _delete (store) {
       return function (item) {
         var _state = lunaris._vue._vm.$data.$stores[store].state;
         for (var j = 0; j < _state.length; j++) {
-          if (_state._id === item._id) {
+          if (_state[j]._id === item._id) {
             _state.splice(j, 1);
           }
         }
