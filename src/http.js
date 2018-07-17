@@ -18,7 +18,7 @@ function request (method, request, body, callback) {
     body        : body ? JSON.stringify(body) : null
   }).then(function (response) {
     if (response.status !== 200) {
-      return Promise.reject({ status : response.status, statusText : response.statusText });
+      return Promise.reject({ error : response.status, message : response.statusText });
     }
     return response.json();
   }).then(function (json) {

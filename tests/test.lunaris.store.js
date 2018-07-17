@@ -625,8 +625,8 @@ describe('lunaris store', () => {
       lunaris._stores['store'] = _store;
 
       lunaris.hook('errorHttp@store', err => {
-        should(err.status).eql(404);
-        should(err.statusText).eql('Not Found');
+        should(err.error).eql(404);
+        should(err.message).eql('Not Found');
         done();
       });
 
@@ -688,7 +688,8 @@ describe('lunaris store', () => {
 
     it('should filter the store by a required filter', done => {
       var _isFirstCall = true;
-      lunaris._stores['required.param.site'] = _initStore('required.param.site');
+      lunaris._stores['required.param.site']         = _initStore('required.param.site');
+      lunaris._stores['required.param.site'].isLocal = true;
       lunaris._stores['required.param.site'].data.add({
         site : 1
       });
