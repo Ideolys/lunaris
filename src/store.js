@@ -273,7 +273,8 @@ function upsert (store, value, isLocal) {
   var _request = _createUrl(_store, _method, _getPrimaryKeyValue(_store, value, !_isUpdate));
   http.request(_method, _request, value, function (err, data) {
     if (err) {
-      return hook.pushToHandlers(_store, 'errorHttp', err);
+      //_collection.rollback(_version);
+      return hook.pushToHandlers(_store, 'errorHttp', [err, value]);
     }
     hook.pushToHandlers(_store, _isUpdate ? 'updated' : 'inserted', data);
   });
@@ -302,7 +303,8 @@ function deleteStore (store, value) {
   var _request = _createUrl(_store, 'DELETE', _getPrimaryKeyValue(_store, value));
   http.request('DELETE', _request, null, function (err, data) {
     if (err) {
-      return hook.pushToHandlers(_store, 'errorHttp', err);
+      // _collection.rollback(_version);
+      return hook.pushToHandlers(_store, 'errorHttp', [err, value]);
     }
     hook.pushToHandlers(_store, 'deleted', data);
   });
@@ -351,6 +353,7 @@ function get (store, primaryKeyValue) {
     if (err) {
       return hook.pushToHandlers(_store, 'errorHttp', err);
     }
+
     var _version = _collection.begin();
     if (Array.isArray(data)) {
       for (var i = 0; i < data.length; i++) {
@@ -368,7 +371,7 @@ function get (store, primaryKeyValue) {
     }
     _collection.commit();
 
-    hook.pushToHandlers(_store, 'get', data);
+    hook.pushToHandlers(_store, 'get', data, Array.isArray(data));
   });
 }
 

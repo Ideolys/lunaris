@@ -67,15 +67,25 @@ function removeHook (hook, handler) {
  * @param {Object} store
  * @param {String} hook
  * @param {*} payload
+ * @param {Boolean} isMultipleArgsPayload
  */
-function pushToHandlers (store, hook, payload) {
+function pushToHandlers (store, hook, payload, isMultipleArgsPayload) {
   var _storeHooks = store.hooks[hook];
   if (!_storeHooks) {
     return;
   }
 
+  if (!Array.isArray(payload)) {
+    payload = [payload];
+  }
+
   for (var i = 0; i < _storeHooks.length; i++) {
-    _storeHooks[i](payload);
+    if (isMultipleArgsPayload) {
+      _storeHooks[i](payload);
+    }
+    else {
+      _storeHooks[i].apply(null, payload);
+    }
   }
 }
 
