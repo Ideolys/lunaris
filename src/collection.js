@@ -1,10 +1,5 @@
-var utils = require('./utils.js');
-
-var OPERATIONS = {
-  'DELETE' : 'D',
-  'INSERT' : 'I',
-  'UPDATE' : 'U'
-};
+var utils      = require('./utils.js');
+var OPERATIONS = utils.OPERATIONS;
 
 var currentVersionNumber = 1;
 
@@ -22,12 +17,12 @@ function collection (startId) {
      * @param {Int} versionNumber force versionNumber (must call begin() first)
      * @returns {Object} inserted value
      */
-    add : function (value, versionNumber) {
+    add : function (value, versionNumber, isFromUpsert) {
       if (value === undefined || value === null || typeof value !== 'object') {
         throw new Error('add must have a value. It must be an Object.');
       }
 
-      if (value._id) {
+      if (value._id && isFromUpsert) {
         value._id =  value._id;
       }
       else {
@@ -41,7 +36,6 @@ function collection (startId) {
       }
 
       value._operation = value._operation || OPERATIONS.INSERT;
-
       _data.push(value);
       return value;
     },
@@ -105,9 +99,11 @@ function collection (startId) {
             _objToUpdate._operation = OPERATIONS.DELETE;
           }
 
-          return this.add(_objToUpdate, versionNumber ? currentVersionNumber : null);
+          return this.add(_objToUpdate, versionNumber ? currentVersionNumber : null, true);
         }
       }
+
+      return this.add(value, versionNumber);
     },
 
     /**

@@ -1,4 +1,5 @@
 const index = require('../src/index');
+const utils = require('../src/utils');
 
 describe('lunaris index', () => {
   it('_stores should be defined', () => {
@@ -59,5 +60,16 @@ describe('lunaris index', () => {
   it('clear() should be defined', () => {
     should(index.clear).be.ok();
     should(index.clear).be.a.Function();
+  });
+
+  it('_collection() should be defined', () => {
+    should(index._collection).be.ok();
+    should(index._collection).be.a.Function();
+  });
+
+  it('OPERATIONS should be defined', () => {
+    should(index.OPERATIONS).be.ok();
+    should(index.OPERATIONS).be.an.Object();
+    should(index.OPERATIONS).eql(utils.OPERATIONS);
   });
 });
