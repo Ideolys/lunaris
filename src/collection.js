@@ -1,4 +1,5 @@
 var utils      = require('./utils.js');
+var logger     = require('./logger.js');
 var OPERATIONS = utils.OPERATIONS;
 
 var currentVersionNumber = 1;

@@ -3,11 +3,13 @@ var store          = require('./store.js');
 var lunarisExports = require('./exports.js');
 var collection     = require('./collection.js');
 var utils          = require('./utils.js');
+var logger         = require('./logger.js');
 
 module.exports = {
   _stores     : lunarisExports._stores,
   _collection : collection.collection,
   clone       : require('./utils.js').clone,
+  logger      : logger,
 
   hook           : hook.hook,
   removeHook     : hook.removeHook,

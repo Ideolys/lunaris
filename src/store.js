@@ -1,6 +1,7 @@
-var hook  = require('./hook.js');
-var utils = require('./utils.js');
-var http  = require('./http.js');
+var hook   = require('./hook.js');
+var utils  = require('./utils.js');
+var http   = require('./http.js');
+var logger = require('./logger.js');
 
 /**
  * Get store
@@ -76,10 +77,10 @@ function _getPrimaryKeyValue (store, value, isInsert) {
  */
 function _checkArgs (store, value, isNotValue) {
   if (value === undefined && !isNotValue) {
-    throw new Error('lunaris.<get|insert|update>(<store>, <value>) must have a value, provided value: ' + value);
+    throw new Error('lunaris.<insert|update|delete>(<store>, <value>) must have a value, provided value: ' + value);
   }
   if (!store || typeof store !== 'string') {
-    throw new Error('lunaris.<get|insert|update>(<store>, <value>) must have a correct store value: @<store>');
+    throw new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>');
   }
 }
 
@@ -228,15 +229,43 @@ function _createUrl (store, method, primaryKeyValue) {
     _request += '/' + primaryKeyValue;
   }
 
-  var _filterValues   = _getFilterValuesHTTPRequest(store, method);
+  var _filterValues  = _getFilterValuesHTTPRequest(store, method);
 
   if (!_filterValues.isRequiredOptionsFilled) {
     throw new Error('Required filter values must be defined!');
   }
 
-  _request           += _filterValues.requiredOptions;
-  _request           += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues.optionalOptions);
+  _request += _filterValues.requiredOptions;
+  _request += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues.optionalOptions);
   return _request;
+}
+
+/**
+ * Construct error template
+ * @param {*} err
+ * @param {*} store
+ * @param {*} method
+ * @param {*} isPlural
+ */
+function _getError (err, store, method, isPlural) {
+  if (!store.errorTemplate) {
+    return err.error + ' : ' + err.message;
+  }
+
+  var _methods = {
+    'GET'  : '${load}',
+    'PUT'  : '${edit}',
+    'POST' : '${create}'
+  };
+
+  var _message = store.errorTemplate;
+  _message = _message
+                  .replace('$method'       , _methods[method])
+                  .replace('$storeName'    , store.nameTranslated)
+                  .replace('$pronounMale'  , isPlural ? '${thePlural}' : '${the}')
+                  .replace('$pronounFemale', isPlural ? '${thePlural}' : '${theFemale}')
+  ;
+  return _message;
 }
 
 /** =================================================  *
@@ -250,34 +279,41 @@ function _createUrl (store, method, primaryKeyValue) {
  * @param {Boolean} isLocal insert or update
  */
 function upsert (store, value, isLocal) {
-  _checkArgs(store, value);
+  var _isUpdate = false;
+  try {
+    _checkArgs(store, value);
+    _isUpdate       = !!value._id;
+    var _store      = _getStore(store);
+    var _collection = _getCollection(_store);
 
-  var _isUpdate   = !!value._id;
-  var _store      = _getStore(store);
-  var _collection = _getCollection(_store);
-
-  if (Object.isFrozen(value)) {
-    value = utils.clone(value);
-  }
-
-  var _version = _collection.begin();
-  value = _collection.upsert(value, _version);
-  _collection.commit();
-  hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
-
-  if (_store.isLocal || isLocal) {
-    return;
-  }
-
-  var _method  = _isUpdate ? 'PUT' : 'POST'
-  var _request = _createUrl(_store, _method, _getPrimaryKeyValue(_store, value, !_isUpdate));
-  http.request(_method, _request, value, function (err, data) {
-    if (err) {
-      //_collection.rollback(_version);
-      return hook.pushToHandlers(_store, 'errorHttp', [err, value]);
+    if (Object.isFrozen(value)) {
+      value = utils.clone(value);
     }
-    hook.pushToHandlers(_store, _isUpdate ? 'updated' : 'inserted', data);
-  });
+
+    var _version = _collection.begin();
+    value = _collection.upsert(value, _version);
+    _collection.commit();
+    hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
+
+    if (_store.isLocal || isLocal) {
+      return;
+    }
+
+    var _method  = _isUpdate ? 'PUT' : 'POST'
+    var _request = _createUrl(_store, _method, _getPrimaryKeyValue(_store, value, !_isUpdate));
+    http.request(_method, _request, value, function (err, data) {
+      if (err) {
+        //_collection.rollback(_version);
+        var _error = _getError(err, _store, _method, false);
+        logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store], err);
+        return hook.pushToHandlers(_store, 'errorHttp', [_error, value]);
+      }
+      hook.pushToHandlers(_store, _isUpdate ? 'updated' : 'inserted', data);
+    });
+  }
+  catch (e) {
+    logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store], e);
+  }
 }
 
 /**
@@ -286,28 +322,34 @@ function upsert (store, value, isLocal) {
  * @param {*} value
  */
 function deleteStore (store, value) {
-  _checkArgs(store, value);
+  try {
+    _checkArgs(store, value);
 
-  var _store      = _getStore(store);
-  var _collection = _getCollection(_store);
+    var _store      = _getStore(store);
+    var _collection = _getCollection(_store);
 
-  var _version = _collection.begin();
-  var _res = _collection.remove(value._id, _version);
-  _collection.commit();
-  hook.pushToHandlers(_store, 'delete', _res);
+    var _version = _collection.begin();
+    var _res = _collection.remove(value._id, _version);
+    _collection.commit();
+    hook.pushToHandlers(_store, 'delete', _res);
 
-  if (_store.isLocal) {
-    return;
-  }
-
-  var _request = _createUrl(_store, 'DELETE', _getPrimaryKeyValue(_store, value));
-  http.request('DELETE', _request, null, function (err, data) {
-    if (err) {
-      // _collection.rollback(_version);
-      return hook.pushToHandlers(_store, 'errorHttp', [err, value]);
+    if (_store.isLocal) {
+      return;
     }
-    hook.pushToHandlers(_store, 'deleted', data);
-  });
+
+    var _request = _createUrl(_store, 'DELETE', _getPrimaryKeyValue(_store, value));
+    http.request('DELETE', _request, null, function (err, data) {
+      if (err) {
+        // _collection.rollback(_version);
+        logger.warn(['lunaris.delete' + store], err);
+        return hook.pushToHandlers(_store, 'errorHttp', [err, value]);
+      }
+      hook.pushToHandlers(_store, 'deleted', data);
+    });
+  }
+  catch (e) {
+    logger.warn(['lunaris.delete' + store], e);
+  }
 }
 
 /**
@@ -316,16 +358,21 @@ function deleteStore (store, value) {
  * @param {Boolean} isSilent
  */
 function clear (store, isSilent) {
-  _checkArgs(store, null, true);
+  try {
+    _checkArgs(store, null, true);
 
-  var _store      = _getStore(store);
-  var _collection = _getCollection(_store);
+    var _store      = _getStore(store);
+    var _collection = _getCollection(_store);
 
-  _collection.clear();
-  _store.paginationCurrentPage = 1;
-  _store.paginationOffset      = 0;
-  if (!isSilent) {
-    hook.pushToHandlers(_store, 'reset');
+    _collection.clear();
+    _store.paginationCurrentPage = 1;
+    _store.paginationOffset      = 0;
+    if (!isSilent) {
+      hook.pushToHandlers(_store, 'reset');
+    }
+  }
+  catch (e) {
+    logger.warn(['lunaris.clear' + store], e);
   }
 }
 
@@ -336,43 +383,43 @@ function clear (store, isSilent) {
  * @param {*} value
  */
 function get (store, primaryKeyValue) {
-  _checkArgs(store, null, true);
-
-  var _store      = _getStore(store);
-  var _collection = _getCollection(_store);
-
-  var _request = '/';
   try {
-    _request = _createUrl(_store, 'GET', primaryKeyValue);
+    _checkArgs(store, null, true);
+
+    var _store      = _getStore(store);
+    var _collection = _getCollection(_store);
+
+    var _request = '/';
+    _request     = _createUrl(_store, 'GET', primaryKeyValue);
+    http.request('GET', _request, null, function (err, data) {
+      if (err) {
+        logger.warn(['lunaris.get' + store], err);
+        return hook.pushToHandlers(_store, 'errorHttp', err);
+      }
+
+      var _version = _collection.begin();
+      if (Array.isArray(data)) {
+        for (var i = 0; i < data.length; i++) {
+          _collection.upsert(data[i], _version);
+          data[i] = utils.freeze(utils.clone(data[i]));
+        }
+
+        if (primaryKeyValue && data.length) {
+          data = data[0];
+        }
+      }
+      else {
+        _collection.upsert(data, _version);
+        data = utils.freeze(utils.clone(data));
+      }
+      _collection.commit();
+
+      hook.pushToHandlers(_store, 'get', data, Array.isArray(data));
+    });
   }
   catch (e) {
-    return hook.pushToHandlers(_store, 'error', e);
+    logger.warn(['lunaris.get' + store], e);
   }
-
-  http.request('GET', _request, null, function (err, data) {
-    if (err) {
-      return hook.pushToHandlers(_store, 'errorHttp', err);
-    }
-
-    var _version = _collection.begin();
-    if (Array.isArray(data)) {
-      for (var i = 0; i < data.length; i++) {
-        _collection.upsert(data[i], _version);
-        data[i] = utils.freeze(utils.clone(data[i]));
-      }
-
-      if (primaryKeyValue && data.length) {
-        data = data[0];
-      }
-    }
-    else {
-      _collection.upsert(data, _version);
-      data = utils.freeze(utils.clone(data));
-    }
-    _collection.commit();
-
-    hook.pushToHandlers(_store, 'get', data, Array.isArray(data));
-  });
 }
 
 /**
@@ -381,15 +428,20 @@ function get (store, primaryKeyValue) {
  * @param {*} value
  */
 function getOne (store) {
-  _checkArgs(store, null, true);
+  try  {
+    _checkArgs(store, null, true);
 
-  var _store      = _getStore(store);
-  var _collection = _getCollection(_store);
-  var _item       = _collection.getFirst();
-  if (!_item) {
-    return;
+    var _store      = _getStore(store);
+    var _collection = _getCollection(_store);
+    var _item       = _collection.getFirst();
+    if (!_item) {
+      return;
+    }
+    return utils.clone(_item);
   }
-  return utils.clone(_item);
+  catch (e) {
+    logger.warn(['lunaris.getOne' + store], e);
+  }
 }
 
 exports.get            = get;

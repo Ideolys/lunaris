@@ -72,4 +72,10 @@ describe('lunaris index', () => {
     should(index.OPERATIONS).be.an.Object();
     should(index.OPERATIONS).eql(utils.OPERATIONS);
   });
+
+  it('logger should be defined', () => {
+    should(index.logger).be.ok();
+    should(index.logger).be.an.Object();
+    should(index.logger).eql(require('../src/logger'));
+  });
 });

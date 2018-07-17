@@ -6,3 +6,11 @@ try {
 catch (e) {
   exports.baseUrl = '';
 }
+
+// is production :  display or not error message in the console
+try {
+  exports.isProduction = IS_PRODUCTION;
+}
+catch (e) {
+  exports.isProduction = true;
+}
