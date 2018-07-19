@@ -214,8 +214,9 @@ function collection (startId) {
     /**
      * Get all valid items in the collection
      * only for tests
+     * @param {Array} ids
      */
-    getAll : function () {
+    getAll : function (ids) {
       var _items = [];
       for (var i = 0; i < _data.length; i++) {
         var _item = _data[i];
@@ -223,7 +224,12 @@ function collection (startId) {
         var _upperVersion = _item._version[1] || currentVersionNumber;
         var _operation    = _item._operation;
         if (_lowerVersion <= currentVersionNumber && currentVersionNumber <= _upperVersion && _operation !== OPERATIONS.DELETE) {
-          _items.push(_item);
+          if (ids && ids.indexOf(_item.id)) {
+            _items.push(_item);
+          }
+          else if (!ids) {
+            _items.push(_item);
+          }
         }
       }
       return _items;
