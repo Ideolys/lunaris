@@ -334,7 +334,7 @@ function upsert (store, value, isLocal, retryOptions) {
           url                : _request,
           method             : _method,
           storeName          : _store.name,
-          date               : moment(),
+          date               : dayjs(),
           messageError       : _error,
           messageErrorServer : err
         });
@@ -402,7 +402,7 @@ function deleteStore (store, value, retryOptions) {
           url                : _request,
           method             : 'DELETE',
           storeName          : _store.name,
-          date               : moment(),
+          date               : dayjs(),
           messageError       : _error,
           messageErrorServer : err
         });
@@ -480,7 +480,7 @@ function get (store, primaryKeyValue, retryOptions) {
           url                : _request,
           method             : 'GET',
           storeName          : _store.name,
-          date               : moment(),
+          date               : dayjs(),
           messageError       : _error,
           messageErrorServer : err
         });

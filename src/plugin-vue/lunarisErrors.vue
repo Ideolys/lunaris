@@ -42,11 +42,11 @@
     methods : {
       /**
        * Return fromatted date
-       * @param {Object} date moment date object
+       * @param {Object} date dayjs date object
        */
       getDate : function (date) {
-        if (!moment.isMoment(date)) {
-          date = moment(date);
+        if (!dayjs.isDayjs(date)) {
+          date = dayjs(date);
         }
         return date.format('LLL');
       },

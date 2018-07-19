@@ -8,10 +8,10 @@
   },
   "dependencies": {
     "buefy": "^0.6.6",
+    "dayjs": "^1.7.4",
     "echarts": "^4.1.0",
     "graphlib": "^2.1.5",
     "intersection-observer": "^0.5.0",
-    "moment": "^2.22.2",
     "vue": "^2.5.16",
     "vue-gesture": "^2.0.0",
     "vue-router": "^3.0.1",
