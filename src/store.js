@@ -278,12 +278,22 @@ function _getError (err, store, method, isPlural) {
  * @param {String} store
  * @param {*} value
  * @param {Boolean} isLocal insert or update
+ * @param {Object} retryOptions {
+ *  url,
+ *  data,
+ *  method,
+ *   version
+ * }
  */
-function upsert (store, value, isLocal) {
+function upsert (store, value, isLocal, retryOptions) {
   var _isUpdate = false;
   try {
+    if (retryOptions) {
+      value = retryOptions.data;
+    }
+
     _checkArgs(store, value);
-    _isUpdate       = !!value._id;
+    _isUpdate       = !retryOptions ? !!value._id : (retryOptions.method === 'POST' ? false : true);
     var _store      = _getStore(store);
     var _collection = _getCollection(_store);
 
@@ -291,24 +301,47 @@ function upsert (store, value, isLocal) {
       value = utils.clone(value);
     }
 
-    var _version = _collection.begin();
-    value = _collection.upsert(value, _version);
-    _collection.commit();
-    hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
+    var _version;
+    if (!retryOptions) {
+      _version = _collection.begin();
+      value    = _collection.upsert(value, _version);
+      _collection.commit();
+      hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
+    }
+    else {
+      _version = retryOptions.version;
+    }
 
     if (_store.isLocal || isLocal) {
       return;
     }
 
     var _method  = _isUpdate ? 'PUT' : 'POST'
-    var _request = _createUrl(_store, _method, _getPrimaryKeyValue(_store, value, !_isUpdate));
+    var _request = '/';
+
+    if (!retryOptions) {
+      _request = _createUrl(_store, _method, _getPrimaryKeyValue(_store, value, !_isUpdate));
+    }
+    else {
+      _request = retryOptions.url;
+    }
     http.request(_method, _request, value, function (err, data) {
       if (err) {
-        //_collection.rollback(_version);
         var _error = _getError(err, _store, _method, false);
+        upsert('@lunarisErrors', {
+          version            : _version,
+          data               : value,
+          url                : _request,
+          method             : _method,
+          storeName          : _store.name,
+          date               : moment(),
+          messageError       : _error,
+          messageErrorServer : err
+        });
         logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store], err);
         return hook.pushToHandlers(_store, 'errorHttp', [_error, value]);
       }
+
       hook.pushToHandlers(_store, _isUpdate ? 'updated' : 'inserted', data);
     });
   }
@@ -321,31 +354,62 @@ function upsert (store, value, isLocal) {
  * Delete a value from the store
  * @param {String} store
  * @param {*} value
+ * @param {Object} retryOptions {
+ *   url,
+ *   data,
+ *   version
+ * }
  */
-function deleteStore (store, value) {
+function deleteStore (store, value, retryOptions) {
   try {
+    if (retryOptions) {
+      value = retryOptions.data;
+    }
     _checkArgs(store, value);
 
     var _store      = _getStore(store);
     var _collection = _getCollection(_store);
 
-    var _version = _collection.begin();
-    var _res = _collection.remove(value._id, _version);
-    _collection.commit();
-    hook.pushToHandlers(_store, 'delete', _res);
+    var _version;
+    if (!retryOptions) {
+      var _version = _collection.begin();
+      _collection.remove(value._id, _version);
+      _collection.commit();
+      hook.pushToHandlers(_store, 'delete', value);
+    }
+    else {
+      _version = retryOptions.version;
+    }
 
     if (_store.isLocal) {
       return;
     }
 
-    var _request = _createUrl(_store, 'DELETE', _getPrimaryKeyValue(_store, value));
+    var _request = '/';
+    if (!retryOptions) {
+      _request = _createUrl(_store, 'DELETE', _getPrimaryKeyValue(_store, value));
+    }
+    else {
+      _request = retryOptions.url;
+    }
     http.request('DELETE', _request, null, function (err, data) {
       if (err) {
-        // _collection.rollback(_version);
         logger.warn(['lunaris.delete' + store], err);
         var _error = _getError(err, _store, 'DELETE', false);
+        upsert('@lunarisErrors', {
+          version            : _version,
+          data               : value,
+          url                : _request,
+          method             : 'DELETE',
+          storeName          : _store.name,
+          date               : moment(),
+          messageError       : _error,
+          messageErrorServer : err
+        });
+        logger.warn(['lunaris.delete' + store], err);
         return hook.pushToHandlers(_store, 'errorHttp', [_error, value]);
       }
+
       hook.pushToHandlers(_store, 'deleted', data);
     });
   }
@@ -383,20 +447,44 @@ function clear (store, isSilent) {
  * @param {String} store
  * @param {*} primaryKeyValue
  * @param {*} value
+ * @param {Object} retryOptions {
+ *   url,
+ * }
  */
-function get (store, primaryKeyValue) {
+function get (store, primaryKeyValue, retryOptions) {
   try {
     _checkArgs(store, null, true);
 
     var _store      = _getStore(store);
     var _collection = _getCollection(_store);
 
+    if (_store.isLocal) {
+      return hook.pushToHandlers(_store, 'get', _collection.getAll(), true);
+    }
+
     var _request = '/';
-    _request     = _createUrl(_store, 'GET', primaryKeyValue);
+
+    if (!retryOptions) {
+      _request = _createUrl(_store, 'GET', primaryKeyValue);
+    }
+    else {
+      _request = retryOptions.url || '/';
+    }
+
     http.request('GET', _request, null, function (err, data) {
       if (err) {
-        logger.warn(['lunaris.get' + store], err);
         var _error = _getError(err, _store, 'GET', true);
+        upsert('@lunarisErrors', {
+          version            : null,
+          data               : null,
+          url                : _request,
+          method             : 'GET',
+          storeName          : _store.name,
+          date               : moment(),
+          messageError       : _error,
+          messageErrorServer : err
+        });
+        logger.warn(['lunaris.get' + store], err);
         return hook.pushToHandlers(_store, 'errorHttp', _error);
       }
 
@@ -447,6 +535,47 @@ function getOne (store) {
   }
 }
 
+/**
+ * retry to perform an http request
+ * @param {String} store
+ * @param {String} url
+ * @param {String} method
+ * @param {*} data
+ * @param {Int} version
+ */
+function retry (store, url, method, data, version) {
+  if (method === 'GET') {
+    return get('@' + store, null, { url : url });
+  }
+  if (method === 'PUT') {
+    return upsert('@' + store, null, null, { url : url, method : method, data : data, version : version });
+  }
+  if (method === 'POST') {
+    return upsert('@' + store, null, null, { url : url, method : method, data : data, version : version });
+  }
+  if (method === 'DELETE') {
+    return deleteStore('@' + store, null, { url : url, data : data, version : version });
+  }
+}
+
+/**
+ * Rollback a store to the specified version
+ * @param {String} store
+ * @param {Int} version
+ */
+function rollback (store, version) {
+  try {
+    _checkArgs(store, null, true);
+
+    var _store      = _getStore(store);
+    var _collection = _getCollection(_store);
+    _collection.rollback(version);
+  }
+  catch (e) {
+    logger.warn(['lunaris.rollback' + store], e);
+  }
+}
+
 exports.get            = get;
 exports.getOne         = getOne;
 exports.insert         = upsert;
@@ -456,4 +585,6 @@ exports.update         = upsert;
 exports.upsert         = upsert;
 exports.delete         = deleteStore;
 exports.clear          = clear;
+exports.retry          = retry;
+exports.rollback       = rollback;
 //exports.deleteFiltered = deleteFiltered;

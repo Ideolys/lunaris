@@ -4,6 +4,7 @@ const express      = require('express');
 const bodyParser   = require('body-parser')
 const fetch        = require('node-fetch');
 const compression  = require('compression')
+const moment       = require('moment');
 
 const port    = 4040;
 
@@ -13,11 +14,12 @@ console.error = function () {
 }
 
 var lunaris = {};
-eval(buildLunaris({}, {
+eval(buildLunaris({
   BASE_URL      : "'http://localhost:" + port + "'",
   IS_PRODUCTION : false
 }));
 let server  = express();
+lunaris._stores.lunarisErrors.data = collection.collection();
 
 describe('lunaris store', () => {
 
@@ -26,8 +28,9 @@ describe('lunaris store', () => {
   });
 
   beforeEach(() => {
-    collection.resetVersionNumber();
     lastError = [];
+    lunaris._stores.lunarisErrors.data.clear();
+    collection.resetVersionNumber();
   });
 
   after(done => {
@@ -36,7 +39,9 @@ describe('lunaris store', () => {
 
   afterEach(() => {
     for (store in lunaris._stores) {
-      delete lunaris._stores[store];
+      if (store !== 'lunarisErrors') {
+        delete lunaris._stores[store];
+      }
     }
   });
 
@@ -144,6 +149,49 @@ describe('lunaris store', () => {
       should(_store.data.get(1)).eql(_expectedValue);
     });
 
+    it('should fire an error for insert', done => {
+      var _store                           = _initStore('store_insert_post');
+      lunaris._stores['store_insert_post']            = _store;
+      lunaris._stores['store_insert_post'].primaryKey = 'id';
+
+      lunaris.hook('errorHttp@store_insert_post', err => {
+        should(lastError.length).eql(2);
+        should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post');
+        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(err).eql('404 : Not Found');
+        done();
+      });
+
+      lunaris.insert('@store_insert_post', { id : 2, label : 'A' });
+    });
+
+    it('should add the error into lunarisErrors store : insert', done => {
+      var _store                           = _initStore('store_insert_post');
+      lunaris._stores['store_insert_post']            = _store;
+      lunaris._stores['store_insert_post'].primaryKey = 'id';
+
+      lunaris.hook('errorHttp@store_insert_post', err => {
+        var _values = lunaris._stores.lunarisErrors.data.getAll();
+        should(_values).have.lengthOf(1);
+        delete _values[0].date;
+        should(_values[0]).eql({
+          _id                : 1,
+          _version           : [2],
+          _operation         : 'I',
+          version            : 1,
+          data               : { _id : 1, id : 2, label : 'A', _version : [1], _operation : 'I' },
+          url                : '/store_insert_post',
+          method             : 'POST',
+          storeName          : 'store_insert_post',
+          messageError       : '404 : Not Found',
+          messageErrorServer : { error : 404, message : 'Not Found'},
+        });
+        done();
+      });
+
+      lunaris.insert('@store_insert_post', { id : 2, label : 'A' });
+    });
+
     it('should update a value', () => {
       var _store = _initStore('store1');
       lunaris._stores['store1'] = _store;
@@ -187,6 +235,57 @@ describe('lunaris store', () => {
 
       lunaris.insert('@store1', { id : 1, label : 'A' });
       lunaris.update('@store1', { _id : 1, id : 1, label : 'B', _version : [1], _operation : 'I' });
+    });
+
+    it('should insert a value and fire an error for update', done => {
+      var _store                                     = _initStore('store_insert_put');
+      lunaris._stores['store_insert_put']            = _store;
+      lunaris._stores['store_insert_put'].primaryKey = 'id';
+
+      lunaris.hook('inserted@store_insert_put', () => {
+        lunaris.update('@store_insert_put', { _id : 1, id : 1, label : 'B' });
+      });
+
+      lunaris.hook('errorHttp@store_insert_put', err => {
+        should(lastError.length).eql(2);
+        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put');
+        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(err).eql('404 : Not Found');
+        done();
+      });
+
+      lunaris.insert('@store_insert_put', { id : 1 });
+    });
+
+    it('should insert a value and add an error into lunarisErrors store : update', done => {
+      var _store                                     = _initStore('store_insert_put');
+      lunaris._stores['store_insert_put']            = _store;
+      lunaris._stores['store_insert_put'].primaryKey = 'id';
+
+      lunaris.hook('inserted@store_insert_put', () => {
+        lunaris.update('@store_insert_put', { _id : 1, id : 1, label : 'B' });
+      });
+
+      lunaris.hook('errorHttp@store_insert_put', err => {
+        var _values = lunaris._stores.lunarisErrors.data.getAll();
+        should(_values).have.lengthOf(1);
+        delete _values[0].date;
+        should(_values[0]).eql({
+          _id                : 1,
+          _version           : [4],
+          _operation         : 'I',
+          version            : 2,
+          data               : { _id : 1, id : 1, label : 'B', _version : [3], _operation : 'U' },
+          url                : '/store_insert_put/1',
+          method             : 'PUT',
+          storeName          : 'store_insert_put',
+          messageError       : '404 : Not Found',
+          messageErrorServer : { error : 404, message : 'Not Found'},
+        });
+        done();
+      });
+
+      lunaris.insert('@store_insert_put', { id : 1 });
     });
 
     it('should update the value and not execute the hook updated', done => {
@@ -474,6 +573,49 @@ describe('lunaris store', () => {
       should(_store.data.get(1)).eql(null);
     });
 
+    it('should fire an error for delete', done => {
+      var _store                                     = _initStore('store_del');
+      lunaris._stores['store_del']            = _store;
+      lunaris._stores['store_del'].primaryKey = 'id';
+
+      lunaris.hook('errorHttp@store_del', err => {
+        should(lastError.length).eql(2);
+        should(lastError[0]).eql('[Lunaris warn] lunaris.delete@store_del');
+        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(err).eql('404 : Not Found');
+        done();
+      });
+
+      lunaris.delete('@store_del', { _id : 1, id : 1 });
+    });
+
+    it('should add an error into lunarisErrors store : delete', done => {
+      var _store                                     = _initStore('store_del');
+      lunaris._stores['store_del']            = _store;
+      lunaris._stores['store_del'].primaryKey = 'id';
+
+      lunaris.hook('errorHttp@store_del', err => {
+        var _values = lunaris._stores.lunarisErrors.data.getAll();
+        should(_values).have.lengthOf(1);
+        delete _values[0].date;
+        should(_values[0]).eql({
+          _id                : 1,
+          _version           : [2],
+          _operation         : 'I',
+          version            : 1,
+          data               : { _id : 1, id : 1},
+          url                : '/store_del/1',
+          method             : 'DELETE',
+          storeName          : 'store_del',
+          messageError       : '404 : Not Found',
+          messageErrorServer : { error : 404, message : 'Not Found'},
+        });
+        done();
+      });
+
+      lunaris.delete('@store_del', { _id : 1, id : 1 });
+    });
+
     it('should delete the value and execute the hooks : delete & deleted', done => {
       var _isDeleteHook                    = false;
       var _isDeletedHook                   = false;
@@ -637,6 +779,29 @@ describe('lunaris store', () => {
       lunaris.get('@store1');
     });
 
+    it('should get the all the values of the colection and execute the hook if the store is local', done => {
+      var _store                        = _initStore('store1');
+      lunaris._stores['store1']         = _store;
+      lunaris._stores['store1'].isLocal = true;
+      lunaris._stores['store1'].data.add({ id : 1});
+      lunaris._stores['store1'].data.add({ id : 2});
+
+      lunaris.hook('get@store1', items => {
+        should(items).be.an.Array().and.have.lengthOf(2);
+        should(items).eql([
+          { _id : 1, id : 1, _version : [1], _operation : 'I' },
+          { _id : 2, id : 2, _version : [2], _operation : 'I' }
+        ]);
+        done();
+      });
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.get('@store1');
+    });
+
     it('should fire the errorHttp event : HTTP error', done => {
       var _store               = _initStore('store');
       lunaris._stores['store'] = _store;
@@ -646,6 +811,32 @@ describe('lunaris store', () => {
         should(lastError[0]).eql('[Lunaris warn] lunaris.get@store');
         should(lastError[1]).eql({ error : 404, message : 'Not Found'});
         should(err).eql('404 : Not Found');
+        done();
+      });
+
+      lunaris.get('@store');
+    });
+
+    it('should add the error into lunarisErrors store', done => {
+      var _store               = _initStore('store');
+      lunaris._stores['store'] = _store;
+
+      lunaris.hook('errorHttp@store', err => {
+        var _values = lunaris._stores.lunarisErrors.data.getAll();
+        should(_values).have.lengthOf(1);
+        delete _values[0].date;
+        should(_values[0]).eql({
+          _id                : 1,
+          _version           : [1],
+          _operation         : 'I',
+          version            : null,
+          data               : null,
+          url                : '/store?limit=50&offset=0',
+          method             : 'GET',
+          storeName          : 'store',
+          messageError       : '404 : Not Found',
+          messageErrorServer : { error : 404, message : 'Not Found'},
+        });
         done();
       });
 
@@ -796,9 +987,9 @@ describe('lunaris store', () => {
         }
 
         should(items).eql([
-          { _id : 7, id : 70, label : 'G', _version : [8], _operation : 'I' },
-          { _id : 8, id : 80, label : 'H', _version : [8], _operation : 'I' },
-          { _id : 9, id : 90, label : 'I', _version : [8], _operation : 'I' }
+          { _id : 7, id : 70, label : 'G', _version : [10], _operation : 'I' },
+          { _id : 8, id : 80, label : 'H', _version : [10], _operation : 'I' },
+          { _id : 9, id : 90, label : 'I', _version : [10], _operation : 'I' }
         ]);
 
         done();
@@ -1082,6 +1273,243 @@ describe('lunaris store', () => {
     });
   });
 
+  describe('rollback', () => {
+    it('should be defined', () => {
+      should(lunaris.rollback).be.ok();
+      should(lunaris.rollback).be.Function();
+    });
+
+    it('should throw an error if the store is not a string', () => {
+      lunaris.rollback({});
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.rollback' + {});
+      should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
+    });
+
+    it('should throw an error if the store is not defined', () => {
+      lunaris.rollback('@store');
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.rollback@store');
+      should(lastError[1]).eql(new Error('The store "store" has not been defined'));
+    });
+
+    it('should rollback the store', done => {
+      var _store                                      = _initStore('store_insert_post');
+      lunaris._stores['store_insert_post']            = _store;
+      lunaris._stores['store_insert_post'].primaryKey = 'id';
+
+      lunaris.hook('errorHttp@store_insert_post', err => {
+        lunaris.rollback('@store_insert_post', lunaris._stores.lunarisErrors.data.getAll()[0].version);
+        should(lunaris._stores.store_insert_post.data.getAll()).have.lengthOf(0);
+        done();
+      });
+
+      lunaris.insert('@store_insert_post', { id : 2, label : 'A' });
+      should(lunaris._stores.store_insert_post.data.getAll()).have.lengthOf(1);
+    });
+  });
+
+  describe('retry', () => {
+    it('should be defined', () => {
+      should(lunaris.retry).be.ok();
+      should(lunaris.retry).be.Function();
+    });
+
+    it('should retry : insert', done => {
+      var _retryObj;
+      var _nbExecuted = 0;
+      var _store                                      = _initStore('store_insert_post');
+      lunaris._stores['store_insert_post']            = _store;
+      lunaris._stores['store_insert_post'].primaryKey = 'id';
+
+      lunaris.hook('errorHttp@store_insert_post', err => {
+        var _values = lunaris._stores.lunarisErrors.data.getAll();
+        _nbExecuted++;
+        if (_nbExecuted === 1) {
+          should(_values).have.lengthOf(1);
+          delete _values[0].date;
+          should(_values[0]).eql({
+            _id                : 1,
+            _version           : [2],
+            _operation         : 'I',
+            version            : 1,
+            data               : { _id : 1, id : 2, label : 'A', _version : [1], _operation : 'I' },
+            url                : '/store_insert_post',
+            method             : 'POST',
+            storeName          : 'store_insert_post',
+            messageError       : '404 : Not Found',
+            messageErrorServer : { error : 404, message : 'Not Found'},
+          });
+          lunaris.retry('@store_insert_post', _values[0].url, _values[0].method, _values[0].data, _values[0].version);
+          return;
+        }
+
+        should(_values).have.lengthOf(2);
+        delete _values[1].date;
+        should(_values[1]).eql({
+          _id                : 2,
+          _version           : [4],
+          _operation         : 'I',
+          version            : 1,
+          data               : { _id : 1, id : 2, label : 'A', _version : [1], _operation : 'I' },
+          url                : '/store_insert_post',
+          method             : 'POST',
+          storeName          : 'store_insert_post',
+          messageError       : '404 : Not Found',
+          messageErrorServer : { error : 404, message : 'Not Found'},
+        });
+        done();
+      });
+
+      lunaris.insert('@store_insert_post', { id : 2, label : 'A' });
+    });
+
+    it('should retry : update', done => {
+      var _nbExecuted = 0;
+      var _store                                     = _initStore('store_insert_put');
+      lunaris._stores['store_insert_put']            = _store;
+      lunaris._stores['store_insert_put'].primaryKey = 'id';
+
+      lunaris.hook('inserted@store_insert_put', () => {
+        lunaris.update('@store_insert_put', { _id : 1, id : 2, label : 'A' });
+      });
+
+      lunaris.hook('errorHttp@store_insert_put', err => {
+        var _values = lunaris._stores.lunarisErrors.data.getAll();
+        _nbExecuted++;
+        if (_nbExecuted === 1) {
+          should(_values).have.lengthOf(1);
+          delete _values[0].date;
+          should(_values[0]).eql({
+            _id                : 1,
+            _version           : [4],
+            _operation         : 'I',
+            version            : 2,
+            data               : { _id : 1, id : 2, label : 'A', _version : [3], _operation : 'U' },
+            url                : '/store_insert_put/2',
+            method             : 'PUT',
+            storeName          : 'store_insert_put',
+            messageError       : '404 : Not Found',
+            messageErrorServer : { error : 404, message : 'Not Found'},
+          });
+          lunaris.retry('@store_insert_put', _values[0].url, _values[0].method, _values[0].data, _values[0].version);
+          return;
+        }
+        should(_values).have.lengthOf(2);
+        delete _values[1].date;
+        should(_values[1]).eql({
+          _id                : 2,
+          _version           : [6],
+          _operation         : 'I',
+          version            : 2,
+          data               : { _id : 1, id : 2, label : 'A', _version : [3], _operation : 'U' },
+          url                : '/store_insert_put/2',
+          method             : 'PUT',
+          storeName          : 'store_insert_put',
+          messageError       : '404 : Not Found',
+          messageErrorServer : { error : 404, message : 'Not Found'},
+        });
+        done();
+      });
+
+      lunaris.insert('@store_insert_put', { id : 2, label : 'A' });
+    });
+
+    it('should retry : get', done => {
+      var _nbExecuted = 0;
+      var _store               = _initStore('store');
+      lunaris._stores['store'] = _store;
+
+      lunaris.hook('errorHttp@store', err => {
+        var _values = lunaris._stores.lunarisErrors.data.getAll();
+        _nbExecuted++;
+        if (_nbExecuted === 1) {
+          should(_values).have.lengthOf(1);
+          delete _values[0].date;
+          should(_values[0]).eql({
+            _id                : 1,
+            _version           : [1],
+            _operation         : 'I',
+            version            : null,
+            data               : null,
+            url                : '/store?limit=50&offset=0',
+            method             : 'GET',
+            storeName          : 'store',
+            messageError       : '404 : Not Found',
+            messageErrorServer : { error : 404, message : 'Not Found'},
+          });
+          lunaris.retry('@store', _values[0].url, _values[0].method, _values[0].data, _values[0].version);
+          return;
+        }
+
+        should(_values).have.lengthOf(2);
+        delete _values[1].date;
+        should(_values[1]).eql({
+          _id                : 2,
+          _version           : [2],
+          _operation         : 'I',
+          version            : null,
+          data               : null,
+          url                : '/store?limit=50&offset=0',
+          method             : 'GET',
+          storeName          : 'store',
+          messageError       : '404 : Not Found',
+          messageErrorServer : { error : 404, message : 'Not Found'},
+        });
+        done();
+      });
+
+      lunaris.get('@store');
+    });
+
+    it('should retry : delete', done => {
+      var _nbExecuted = 0;
+      var _store               = _initStore('store_del');
+      lunaris._stores['store_del'] = _store;
+
+      lunaris.hook('errorHttp@store_del', err => {
+        var _values = lunaris._stores.lunarisErrors.data.getAll();
+        _nbExecuted++;
+        if (_nbExecuted === 1) {
+          should(_values).have.lengthOf(1);
+          delete _values[0].date;
+          should(_values[0]).eql({
+            _id                : 1,
+            _version           : [2],
+            _operation         : 'I',
+            version            : 1,
+            data               : { _id : 1 },
+            url                : '/store_del/1',
+            method             : 'DELETE',
+            storeName          : 'store_del',
+            messageError       : '404 : Not Found',
+            messageErrorServer : { error : 404, message : 'Not Found'},
+          });
+          lunaris.retry('@store_del', _values[0].url, _values[0].method, _values[0].data, _values[0].version);
+          return;
+        }
+
+        should(_values).have.lengthOf(2);
+        delete _values[1].date;
+        should(_values[1]).eql({
+          _id                : 2,
+          _version           : [4],
+          _operation         : 'I',
+          version            : 1,
+          data               : { _id : 1 },
+          url                : '/store_del/1',
+          method             : 'DELETE',
+          storeName          : 'store_del',
+          messageError       : '404 : Not Found',
+          messageErrorServer : { error : 404, message : 'Not Found'},
+        });
+        done();
+      });
+
+      lunaris.delete('@store_del', { _id : 1 });
+    });
+  });
+
 });
 
 /**
@@ -1196,6 +1624,7 @@ function _startServer (callback) {
       params : req.params
     }});
   };
+  server.post('/store_insert_put'      , _postPutDelHandler);
   server.get('/methods'                , _postPutDelHandler);
   server.post('/store1'                , _postPutDelHandler);
   server.put('/store1/:id'             , _postPutDelHandler);
@@ -1210,3 +1639,132 @@ function _stopServer (callback) {
   server.close(callback);
 }
 
+
+describe('Lunaris hooks', () => {
+
+  beforeEach(() => {
+    for (store in lunaris._stores) {
+      delete lunaris._stores[store];
+    }
+    lastError = [];
+  });
+
+  it('hook() should be defined', () => {
+    should(lunaris.hook).be.ok();
+  });
+
+  it('removeHook() should be defined', () => {
+    should(lunaris.removeHook).be.ok();
+  });
+
+  describe('add hook', () => {
+    it('should throw an error if the handler is not a function', () => {
+      lunaris.hook('a');
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.hook:a');
+      should(lastError[1]).eql(new Error('A handler must be a Function'));
+    });
+
+    it('should throw an error if the hook is not well configured', () => {
+      lunaris.hook('a', function () {});
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.hook:a');
+      should(lastError[1]).eql(new Error('A hook must be: <event>@<store>'));
+    });
+
+    it('should throw an error if the store is not defined', () => {
+      lunaris.hook('get@store1', function () {});
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.hook:get@store1');
+      should(lastError[1]).eql(new Error('Cannot register hook "get@store1", store "store1" has not been defined!'));
+    });
+
+    it('should register the hook', () => {
+      var _handler              = function () {}
+      lunaris._stores['store1'] = { hooks : [] };
+      lunaris.hook('get@store1', _handler);
+      should(lunaris._stores['store1'].hooks).be.an.Array();
+      should(lunaris._stores['store1'].hooks.get).have.length(1);
+      should(lunaris._stores['store1'].hooks.get[0]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[0]).eql(_handler);
+      delete lunaris._stores['store1'];
+    });
+
+    it('should register multiple handlers for a hook', () => {
+      var _handler1             = function handler1 () {}
+      var _handler2             = function handler2 () {}
+      lunaris._stores['store1'] = { hooks : [] };
+      lunaris.hook('get@store1', _handler1);
+      lunaris.hook('get@store1', _handler2);
+      should(lunaris._stores['store1'].hooks).be.an.Array();
+      should(lunaris._stores['store1'].hooks.get).have.length(2);
+      should(lunaris._stores['store1'].hooks.get[0]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[0]).eql(_handler1);
+      should(lunaris._stores['store1'].hooks.get[1]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[1]).eql(_handler2);
+      delete lunaris._stores['store1'];
+    });
+  });
+
+  describe('remove hook', () => {
+    it('should throw an error if the handler is not a function', () => {
+      lunaris._stores['store1'] = { hooks : [] };
+      lunaris.hook('get@store1', function () {});
+      lunaris.removeHook('get@store');
+
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.removeHook:get@store');
+      should(lastError[1]).eql(new Error('A handler must be a Function'));
+    });
+
+    it('should throw an error if the hook is not well configured', () => {
+      lunaris._stores['store1'] = { hooks : [] };
+      lunaris.hook('get@store1', function () {});
+      lunaris.removeHook('a', function () {});
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.removeHook:a');
+      should(lastError[1]).eql(new Error('A hook must be: <event>@<store>'));
+    });
+
+    it('should throw an error if the store is not defined', () => {
+      lunaris.removeHook('get@store1', function () {});
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.removeHook:get@store1');
+      should(lastError[1]).eql(new Error('Cannot remove hook "get@store1", store "store1" has not been defined!'));
+    });
+
+    it('should remove a hook', () => {
+      var _handler              = function () {}
+      lunaris._stores['store1'] = { hooks : [] };
+      lunaris.hook('get@store1', _handler);
+      should(lunaris._stores['store1'].hooks).be.an.Array();
+      should(lunaris._stores['store1'].hooks.get).have.length(1);
+      should(lunaris._stores['store1'].hooks.get[0]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[0]).eql(_handler);
+      lunaris.removeHook('get@store1', _handler);
+      should(lunaris._stores['store1'].hooks).be.an.Array();
+      should(lunaris._stores['store1'].hooks.get).have.length(0);
+      delete lunaris._stores['store1'];
+    });
+
+    it('should remove one handler from a list of handlers', () => {
+      var _handler1             = function handler1 () {}
+      var _handler2             = function handler2 () {}
+      lunaris._stores['store1'] = { hooks : [] };
+      lunaris.hook('get@store1', _handler1);
+      lunaris.hook('get@store1', _handler2);
+      should(lunaris._stores['store1'].hooks).be.an.Array();
+      should(lunaris._stores['store1'].hooks.get).have.length(2);
+      should(lunaris._stores['store1'].hooks.get[0]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[0]).eql(_handler1);
+      should(lunaris._stores['store1'].hooks.get[1]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[1]).eql(_handler2);
+      lunaris.removeHook('get@store1', _handler1);
+      should(lunaris._stores['store1'].hooks).be.an.Array();
+      should(lunaris._stores['store1'].hooks.get).have.length(1);
+      should(lunaris._stores['store1'].hooks.get[0]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[0]).eql(_handler2);
+      delete lunaris._stores['store1'];
+    });
+  });
+});

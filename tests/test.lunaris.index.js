@@ -4,7 +4,7 @@ const utils = require('../src/utils');
 describe('lunaris index', () => {
   it('_stores should be defined', () => {
     should(index._stores).be.ok();
-    should(index._stores).be.an.Object().eql({});
+    should(index._stores).be.an.Object().and.eql(require('../src/exports.js')._stores);
   });
 
   it('clone() should be defined', () => {
@@ -77,5 +77,15 @@ describe('lunaris index', () => {
     should(index.logger).be.ok();
     should(index.logger).be.an.Object();
     should(index.logger).eql(require('../src/logger'));
+  });
+
+  it('rollback() should be defined', () => {
+    should(index.rollback).be.ok();
+    should(index.rollback).be.a.Function();
+  });
+
+  it('retry() should be defined', () => {
+    should(index.retry).be.ok();
+    should(index.retry).be.a.Function();
   });
 });

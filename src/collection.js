@@ -1,5 +1,4 @@
 var utils      = require('./utils.js');
-var logger     = require('./logger.js');
 var OPERATIONS = utils.OPERATIONS;
 
 var currentVersionNumber = 1;
@@ -213,6 +212,24 @@ function collection (startId) {
     },
 
     /**
+     * Get all valid items in the collection
+     * only for tests
+     */
+    getAll : function () {
+      var _items = [];
+      for (var i = 0; i < _data.length; i++) {
+        var _item = _data[i];
+        var _lowerVersion = _item._version[0];
+        var _upperVersion = _item._version[1] || currentVersionNumber;
+        var _operation    = _item._operation;
+        if (_lowerVersion <= currentVersionNumber && currentVersionNumber <= _upperVersion && _operation !== OPERATIONS.DELETE) {
+          _items.push(_item);
+        }
+      }
+      return _items;
+    },
+
+    /**
      * Get current id
      */
     getCurrentId :  function () {
@@ -225,8 +242,8 @@ function collection (startId) {
     getCurrentVersionNumber :  function () {
       return currentVersionNumber;
     }
-    }
   }
+}
 
 /**
  * Reset current version number

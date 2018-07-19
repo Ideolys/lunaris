@@ -1,3 +1,5 @@
+var logger = require('./logger.js');
+
 function _extractHookAndStore (hook) {
   var _hook = /(.*)@(.*)/.exec(hook);
   if (!_hook || _hook.length < 3) {
@@ -12,7 +14,7 @@ function _extractHookAndStore (hook) {
 
 function _isFunction (handler) {
   if (typeof handler !== 'function') {
-    throw new Error('handler must be a Function');
+    throw new Error('A handler must be a Function');
   }
 }
 
@@ -22,18 +24,23 @@ function _isFunction (handler) {
  * @param {Function} handler
  */
 function registerHook (hook, handler) {
-  _isFunction(handler);
-  var _hook          = _extractHookAndStore(hook);
-  var lunarisExports = require('./exports.js');
-  var _store         = lunarisExports._stores[_hook.store];
-  if (!_store) {
-    throw new Error('Cannot register hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
-  }
+  try {
+    _isFunction(handler);
+    var _hook          = _extractHookAndStore(hook);
+    var lunarisExports = require('./exports.js');
+    var _store         = lunarisExports._stores[_hook.store];
+    if (!_store) {
+      throw new Error('Cannot register hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
+    }
 
-  if (!_store.hooks[_hook.event]) {
-    _store.hooks[_hook.event] = [];
+    if (!_store.hooks[_hook.event]) {
+      _store.hooks[_hook.event] = [];
+    }
+    _store.hooks[_hook.event].push(handler);
   }
-  _store.hooks[_hook.event].push(handler);
+  catch (e) {
+    logger.warn(['lunaris.hook:' + hook], e);
+  }
 }
 
 /**
@@ -42,23 +49,28 @@ function registerHook (hook, handler) {
  * @param {Function} handler
  */
 function removeHook (hook, handler) {
-  _isFunction(handler);
-  var _hook          = _extractHookAndStore(hook);
-  var lunarisExports = require('./exports.js');
-  var _store         = lunarisExports._stores[_hook.store];
-  if (!_store) {
-    throw new Error('Cannot remove hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
-  }
-
-  var _handlers = _store.hooks[_hook.event];
-  if (!_handlers) {
-    throw new Error('Cannot remove hook "' + hook + '", it has not been defined!');
-  }
-
-  for (var i = 0; i < _handlers.length; i++) {
-    if (_handlers[i] === handler) {
-      _handlers.splice(i, 1);
+  try {
+    _isFunction(handler);
+    var _hook          = _extractHookAndStore(hook);
+    var lunarisExports = require('./exports.js');
+    var _store         = lunarisExports._stores[_hook.store];
+    if (!_store) {
+      throw new Error('Cannot remove hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
     }
+
+    var _handlers = _store.hooks[_hook.event];
+    if (!_handlers) {
+      throw new Error('Cannot remove hook "' + hook + '", it has not been defined!');
+    }
+
+    for (var i = 0; i < _handlers.length; i++) {
+      if (_handlers[i] === handler) {
+        _handlers.splice(i, 1);
+      }
+    }
+  }
+  catch (e) {
+    logger.warn(['lunaris.removeHook:' + hook], e);
   }
 }
 

@@ -156,6 +156,28 @@ describe('lunaris internal collection', () => {
     });
   });
 
+  describe('getAll()', () => {
+    it('should be defined', () => {
+      var _collection = collection();
+      should(_collection.getAll).be.ok();
+      should(_collection.getAll).be.a.Function();
+    });
+
+    it('should return the valid items in the collection', () => {
+      var _collection = collection();
+      _collection.add({ id : 1 });
+      _collection.add({ id : 2 });
+      _collection.remove(1);
+      _collection.upsert({ _id : 2, id : 2, label : 'A' });
+      _collection.add({ id : 3 });
+
+      var _items = _collection.getAll();
+      should(_items).be.an.Array().and.have.lengthOf(2);
+      should(_items[0]).eql({ _id : 2, id : 2, label : 'A', _operation : 'U', _version : [6] });
+      should(_items[1]).eql({ _id : 3, id : 3, _operation : 'I', _version : [7] });
+    });
+  });
+
   describe('upsert()', () => {
     it('should update the item', () => {
       var _collection = collection();
