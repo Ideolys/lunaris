@@ -3,12 +3,33 @@ var OPERATIONS = utils.OPERATIONS;
 
 var currentVersionNumber = 1;
 
+function incrementVersionNumber () {
+  currentVersionNumber++;
+}
+
 /**
  * @param {Int} startId from where to start id generation, default 1
  */
 function collection (startId) {
-  var _data      = [];
-  var _currentId = startId && typeof startId === 'number' ? startId : 1;
+  var _data                     = [];
+  var _currentId                = startId && typeof startId === 'number' ? startId : 1;
+  var _transactions             = {};
+  var _isTransactionCommit      = false;
+  var _transactionVersionNumber = null;
+
+  /**
+   * Add transaction to the transactions
+   * @param {Int} versionNumber
+   * @param {Object} data
+   * @param {String} operation
+   */
+  function _addTransaction (versionNumber, data, operation) {
+    if (!_transactions[versionNumber]) {
+      return;
+    }
+
+    _transactions[versionNumber].push([versionNumber, data, operation]);
+  }
 
   return {
     /**
@@ -22,6 +43,11 @@ function collection (startId) {
         throw new Error('add must have a value. It must be an Object.');
       }
 
+      if (versionNumber && !_isTransactionCommit) {
+        _addTransaction(versionNumber, value, OPERATIONS.INSERT);
+        return;
+      }
+
       if (value._id && isFromUpsert) {
         value._id =  value._id;
       }
@@ -31,11 +57,10 @@ function collection (startId) {
       }
 
       value._version = [versionNumber || currentVersionNumber];
-      if (!versionNumber) {
-        this.commit();
+      if (!_isTransactionCommit) {
+        incrementVersionNumber();
       }
 
-      value._operation = value._operation || OPERATIONS.INSERT;
       _data.push(value);
       return value;
     },
@@ -52,58 +77,42 @@ function collection (startId) {
         return this.add(value, versionNumber);
       }
 
-      for (var i = _data.length - 1; i >= 0; i--) {
-        var _version      = versionNumber || currentVersionNumber;
+      if (versionNumber && !_isTransactionCommit) {
+        _addTransaction(versionNumber, value, OPERATIONS.UPDATE);
+        return;
+      }
+
+      for (var i = 0; i <_data.length; i++) {
+        var _version      = _transactionVersionNumber || currentVersionNumber;
         var _lowerVersion = _data[i]._version[0];
         var _upperVersion = _data[i]._version[1] || _version;
 
         if (_data[i]._id === value._id && _lowerVersion <= _version && _version <= _upperVersion) {
-          var _objToUpdate = utils.clone(value);
+          var _objToUpdate     = utils.clone(value);
+          _data[i]._version[1] = _version;
 
-          if (isRemove) {
-            _objToUpdate = utils.clone(_data[i]);
-          }
-
-          /**
-           * During the same transaction :
-           *  - If insert / update : the updated row will be merged with the inserted one
-           *  - If Insert / delete : the inserted row will be removed
-           */
-          if (_lowerVersion === versionNumber && _upperVersion === versionNumber) {
+          //  During the same transaction :
+          //   - If insert / update : the updated row will be merged with the inserted one
+          //   - If Insert / delete : the inserted row will be removed
+          if (_lowerVersion === _version && _upperVersion === _version && _data[i]._version[1] >= 0) {
             Object.assign(_data[i], _objToUpdate);
+            _data[i]._version.pop();
             if (isRemove) {
               _data.splice(i, 1);
+              return;
             }
-            return;
+            return _data[i];
           }
 
-          if (_data[i]._operation === OPERATIONS.DELETE) {
-            _objToUpdate._operation = OPERATIONS.INSERT;
+          // _objToUpdate._operation = OPERATIONS.UPDATE;
+          if (!isRemove) {
+            return this.add(_objToUpdate, _transactionVersionNumber ? _transactionVersionNumber : null, true);
           }
           else {
-            _objToUpdate._operation = OPERATIONS.UPDATE;
+            return _data[i];
           }
-
-          if (versionNumber) {
-            _data[i]._version[1] = versionNumber;
-          }
-          else {
-            _data[i]._version[1] = currentVersionNumber;
-          }
-
-          if (!versionNumber) {
-            this.commit();
-          }
-
-          if (isRemove) {
-            _objToUpdate._operation = OPERATIONS.DELETE;
-          }
-
-          return this.add(_objToUpdate, versionNumber ? currentVersionNumber : null, true);
         }
       }
-
-      return this.add(value, versionNumber);
     },
 
     /**
@@ -121,7 +130,11 @@ function collection (startId) {
      * @returns {Boolean} true if the value has been removed, of false if not
      */
     remove : function (id, versionNumber) {
-      this.upsert({ _id : id }, versionNumber, true);
+      if (versionNumber && !_isTransactionCommit) {
+        _addTransaction(versionNumber, { _id : id }, OPERATIONS.DELETE);
+        return;
+      }
+      return this.upsert({ _id : id }, versionNumber, true);
     },
 
     /**
@@ -132,9 +145,8 @@ function collection (startId) {
       for (var i = 0; i < _data.length; i++) {
         var _item = _data[i];
         var _lowerVersion = _item._version[0];
-        var _upperVersion = _item._version[1] || currentVersionNumber;
-        var _operation    = _item._operation;
-        if (_item._id === id && _lowerVersion <= currentVersionNumber && currentVersionNumber <= _upperVersion && _operation !== OPERATIONS.DELETE) {
+        var _upperVersion = _item._version[1];
+        if (_item._id === id && _lowerVersion <= currentVersionNumber && !_upperVersion) {
           return _item;
         }
       }
@@ -158,49 +170,74 @@ function collection (startId) {
      * @param {Int} versionNumber
      */
     rollback : function (versionNumber) {
+      var _transaction = _transactions[versionNumber];
+      if (!_transaction) {
+        return;
+      }
+
+      versionNumber = _transaction;
+
       var _objToRollback = [];
       for (var i = _data.length - 1; i >= 0; i--) {
         var _lowerVersion = _data[i]._version[0];
         var _upperVersion = _data[i]._version[1];
-        if (versionNumber >= _lowerVersion && (versionNumber <= _upperVersion || !_upperVersion)) {
+        if (
+          (versionNumber === _upperVersion)
+          ||
+          (versionNumber === _lowerVersion && !_upperVersion)
+        ) {
           _objToRollback.push(utils.clone(_data[i]));
-        }
-      }
-
-      // Search last item value
-      for (var k = 0; k < _objToRollback.length; k++) {
-        for (var n = 0; n < _data.length; n++) {
-          var _item = utils.clone(_data[n]);
-          var _upperVersion = _item._version[1];
-          if (_item._id === _objToRollback[k]._id && versionNumber === _upperVersion) {
-            delete _item._operation;
-            _objToRollback[k] = _item;
-          }
         }
       }
 
       var _version = this.begin();
       for (var j = 0; j < _objToRollback.length; j++) {
-        if (_objToRollback[j]._operation === OPERATIONS.INSERT) {
-          this.upsert(_objToRollback[j], _version, true);
+        if (_objToRollback[j]._version[1]) {
+          this.add(_objToRollback[j], _version);
         }
         else {
-          this.upsert(_objToRollback[j], _version);
+          this.remove(_objToRollback[j]._id, _version);
         }
       }
-      this.commit();
+      this.commit(_version);
     },
 
     begin : function () {
-      // If the collection has just been initialized, no need to update versionNumber
-      if (currentVersionNumber === 1) {
-        return 1;
-      }
-      return currentVersionNumber++;
+      _transactions[currentVersionNumber] = [];
+      return currentVersionNumber;
     },
 
-    commit : function () {
-      currentVersionNumber++;
+    /**
+     * Commit the transaction version number
+     * @param {Int} versionNumber
+     */
+    commit : function (versionNumber) {
+      var _res         = [];
+      var _transaction = _transactions[versionNumber];
+      if (!_transaction) {
+        return;
+      }
+
+      _isTransactionCommit      = true;
+      _transactionVersionNumber = currentVersionNumber;
+
+      for (var i = 0; i < _transaction.length; i++) {
+        if (_transaction[i][2] === OPERATIONS.INSERT) {
+          _res.push(this.add(_transaction[i][1], null, true));
+        }
+        else if (_transaction[i][2] === OPERATIONS.UPDATE) {
+          _res.push(this.upsert(_transaction[i][1]));
+        }
+        else {
+          _res.push(this.remove(_transaction[i][1]._id));
+        }
+      }
+
+      _transactions[versionNumber] = _transactionVersionNumber;
+      _isTransactionCommit         = false;
+      _transactionVersionNumber    = null;
+      incrementVersionNumber();
+      return _res;
     },
 
     /**
@@ -221,9 +258,8 @@ function collection (startId) {
       for (var i = 0; i < _data.length; i++) {
         var _item = _data[i];
         var _lowerVersion = _item._version[0];
-        var _upperVersion = _item._version[1] || currentVersionNumber;
-        var _operation    = _item._operation;
-        if (_lowerVersion <= currentVersionNumber && currentVersionNumber <= _upperVersion && _operation !== OPERATIONS.DELETE) {
+        var _upperVersion = _item._version[1];
+        if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
           if (ids && ids.indexOf(_item.id)) {
             _items.push(_item);
           }

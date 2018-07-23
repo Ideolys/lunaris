@@ -304,8 +304,9 @@ function upsert (store, value, isLocal, retryOptions) {
     var _version;
     if (!retryOptions) {
       _version = _collection.begin();
-      value    = _collection.upsert(value, _version);
-      _collection.commit();
+      _collection.upsert(value, _version);
+      value = _collection.commit(_version);
+      value = value[0];
       hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
     }
     else {
@@ -374,7 +375,11 @@ function deleteStore (store, value, retryOptions) {
     if (!retryOptions) {
       var _version = _collection.begin();
       _collection.remove(value._id, _version);
-      _collection.commit();
+      value = _collection.commit(_version);
+      value = value[0];
+      if (!value) {
+        throw new Error('You cannot delete a value not in the store!');
+      }
       hook.pushToHandlers(_store, 'delete', value);
     }
     else {
@@ -492,7 +497,6 @@ function get (store, primaryKeyValue, retryOptions) {
       if (Array.isArray(data)) {
         for (var i = 0; i < data.length; i++) {
           _collection.upsert(data[i], _version);
-          data[i] = utils.freeze(utils.clone(data[i]));
         }
 
         if (primaryKeyValue && data.length) {
@@ -501,11 +505,15 @@ function get (store, primaryKeyValue, retryOptions) {
       }
       else {
         _collection.upsert(data, _version);
-        data = utils.freeze(utils.clone(data));
       }
-      _collection.commit();
 
-      hook.pushToHandlers(_store, 'get', data, Array.isArray(data));
+      var _isArray = Array.isArray(data);
+      data         = _collection.commit(_version);
+      for (var i = 0; i < data.length; i++) {
+        data[i] = utils.freeze(utils.clone(data[i]));
+      }
+
+      hook.pushToHandlers(_store, 'get', data, _isArray);
     });
   }
   catch (e) {
