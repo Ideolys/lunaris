@@ -26,9 +26,9 @@
 <script>
   function removeElement(el) {
     if (typeof el.remove !== 'undefined') {
-        el.remove();
+      el.remove();
     } else {
-        el.parentNode.removeChild(el);
+      el.parentNode.removeChild(el);
     }
   }
 

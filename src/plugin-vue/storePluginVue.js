@@ -108,7 +108,7 @@ lunaris._vue = {
         lunaris._vue._vm.$data.nbSnackbars++;
         if (lunaris._vue._vm.$data.nbSnackbars > 1) {
           return;
-        }
+        };
 
         var onAction = function () {
           _this.$lunarisErrorsResolver.open();
@@ -151,7 +151,10 @@ lunaris._vue = {
 
         // re-initialize current store
         lunaris._vue._vm.$data.$stores[_store].state.splice(0);
-        lunaris.clear('@' + _store);
+        if (lunaris._stores[_store]) {
+          lunaris._stores[_store].paginationCurrentPage = 1;
+          lunaris._stores[_store].paginationOffset      = 0;
+        }
 
         _setGet(_store, _this);
 
