@@ -1,6 +1,14 @@
 var utils      = require('./utils.js');
 var OPERATIONS = utils.OPERATIONS;
 
+/**
+ * Version number :
+ * Each item in the collection has an attribute `_version` which is an Array of 2 values :
+ *  - first, the min version number
+ *  - last, the max version number
+ * The interval is [min, max)
+ */
+
 var currentVersionNumber = 1;
 
 function incrementVersionNumber () {
