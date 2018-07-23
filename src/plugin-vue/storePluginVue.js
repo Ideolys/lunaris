@@ -14,6 +14,7 @@ lunaris._vue = {
       }
     }
   }),
+
   install : function (Vue, options) {
     /**
      * Set $storeName value
@@ -149,8 +150,8 @@ lunaris._vue = {
         }
 
         // re-initialize current store
-        // lunaris._vue._vm.$data.$stores[_store].state.splice(0);
         lunaris._vue._vm.$data.$stores[_store].state.splice(0);
+        lunaris.clear('@' + _store);
 
         _setGet(_store, _this);
 
@@ -164,13 +165,6 @@ lunaris._vue = {
         var _updateFn = _update(_store);
         var _deleteFn = _delete(_store);
         var _errorFn  = _errorHttp(_this);
-
-        // lunaris.hook('get@'       + _store, _getFn);
-        // lunaris.hook('reset@'     + _store, _resetFn);
-        // lunaris.hook('insert@'    + _store, _insertFn);
-        // lunaris.hook('update@'    + _store, _updateFn);
-        // lunaris.hook('delete@'    + _store, _deleteFn);
-        // lunaris.hook('errorHttp@' + _store, _errorHttp);
 
         _this.$options.internalStoreHooks[_store] = [
           ['get@'       + _store, _getFn],
@@ -212,6 +206,10 @@ lunaris._vue = {
       }
     }
 
+    /**
+     * Remove store hooks
+     * @param {Object} _this
+     */
     function _removeHooks (_this) {
       var _hooks = _this.$options.storeHooks;
       if (!_hooks) {
