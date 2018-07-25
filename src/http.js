@@ -15,7 +15,7 @@ function request (method, request, body, callback) {
       'Content-Type'    : 'application/json',
       'Accept-Encoding' : 'gzip'
     },
-    body        : body ? JSON.stringify(body) : null
+    body : body ? JSON.stringify(body) : null
   }).then(function (response) {
     if (response.status !== 200) {
       return Promise.reject({ error : response.status, message : response.statusText });

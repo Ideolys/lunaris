@@ -261,10 +261,10 @@ function _getError (err, store, method, isPlural) {
 
   var _message = store.errorTemplate;
   _message = _message
-                  .replace('$method'       , _methods[method])
-                  .replace('$storeName'    , store.nameTranslated)
-                  .replace('$pronounMale'  , isPlural ? '${thePlural}' : '${the}')
-                  .replace('$pronounFemale', isPlural ? '${thePlural}' : '${theFemale}')
+    .replace('$method'       , _methods[method])
+    .replace('$storeName'    , store.nameTranslated)
+    .replace('$pronounMale'  , isPlural ? '${thePlural}' : '${the}')
+    .replace('$pronounFemale', isPlural ? '${thePlural}' : '${theFemale}')
   ;
   return _message;
 }
@@ -595,4 +595,4 @@ exports.delete         = deleteStore;
 exports.clear          = clear;
 exports.retry          = retry;
 exports.rollback       = rollback;
-//exports.deleteFiltered = deleteFiltered;
+// exports.deleteFiltered = deleteFiltered;

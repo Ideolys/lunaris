@@ -56,10 +56,7 @@ function collection (startId) {
         return;
       }
 
-      if (value._id && isFromUpsert) {
-        value._id =  value._id;
-      }
-      else {
+      if (!(value._id && isFromUpsert)) {
         value._id = _currentId;
         _currentId++;
       }

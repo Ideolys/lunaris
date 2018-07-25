@@ -6,10 +6,10 @@ function _extractHookAndStore (hook) {
     throw new Error('A hook must be: <event>@<store>');
   }
 
-  return  {
+  return {
     event : _hook[1],
     store : _hook[2]
-  }
+  };
 }
 
 function _isFunction (handler) {
