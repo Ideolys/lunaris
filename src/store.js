@@ -269,6 +269,67 @@ function _getError (err, store, method, isPlural) {
   return _message;
 }
 
+/**
+ * Upsert a value in a store
+ * @param {Object} store
+ * @param {*} value
+ * @param {Boolean} isLocal
+ * @param {Boolean} isUpdate
+ * @param {Object} retryOptions
+ */
+function _upsert (store, value, isLocal, isUpdate, retryOptions) {
+  var _collection = _getCollection(store);
+
+  if (Object.isFrozen(value)) {
+    value = utils.clone(value);
+  }
+
+  var _version;
+  if (!retryOptions) {
+    _version = _collection.begin();
+    _collection.upsert(value, _version);
+    value = _collection.commit(_version);
+    value = value[0];
+    hook.pushToHandlers(store, isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
+  }
+  else {
+    _version = retryOptions.version;
+  }
+
+  if (store.isLocal || isLocal) {
+    return;
+  }
+
+  var _method  = isUpdate ? 'PUT' : 'POST';
+  var _request = '/';
+
+  if (!retryOptions) {
+    _request = _createUrl(store, _method, _getPrimaryKeyValue(store, value, !isUpdate));
+  }
+  else {
+    _request = retryOptions.url;
+  }
+  http.request(_method, _request, value, function (err, data) {
+    if (err) {
+      var _error = _getError(err, store, _method, false);
+      upsert('@lunarisErrors', {
+        version            : _version,
+        data               : value,
+        url                : _request,
+        method             : _method,
+        storeName          : store.name,
+        date               : dayjs(),
+        messageError       : _error,
+        messageErrorServer : err
+      });
+      logger.warn(['lunaris.' + (isUpdate ? 'update' : 'insert') + '@' + store.name], err);
+      return hook.pushToHandlers(store, 'errorHttp', [_error, value]);
+    }
+
+    hook.pushToHandlers(store, isUpdate ? 'updated' : 'inserted', data);
+  });
+}
+
 /** =================================================  *
  *                   Public methods                    *
  *  ================================================= **/
@@ -295,56 +356,21 @@ function upsert (store, value, isLocal, retryOptions) {
     _checkArgs(store, value);
     _isUpdate       = !retryOptions ? !!value._id : (retryOptions.method === 'POST' ? false : true);
     var _store      = _getStore(store);
-    var _collection = _getCollection(_store);
 
-    if (Object.isFrozen(value)) {
-      value = utils.clone(value);
+    if (_store.validateFn) {
+      return _store.validateFn([value], _store.meta.onValidate, (err) => {
+        if (err.length) {
+          for (var i = 0; i < err.length; i++) {
+            logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store + ' Error when validating data'], err[i]);
+          }
+          return;
+        }
+
+        _upsert(_store, value, isLocal, _isUpdate, retryOptions);
+      });
     }
 
-    var _version;
-    if (!retryOptions) {
-      _version = _collection.begin();
-      _collection.upsert(value, _version);
-      value = _collection.commit(_version);
-      value = value[0];
-      hook.pushToHandlers(_store, _isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
-    }
-    else {
-      _version = retryOptions.version;
-    }
-
-    if (_store.isLocal || isLocal) {
-      return;
-    }
-
-    var _method  = _isUpdate ? 'PUT' : 'POST'
-    var _request = '/';
-
-    if (!retryOptions) {
-      _request = _createUrl(_store, _method, _getPrimaryKeyValue(_store, value, !_isUpdate));
-    }
-    else {
-      _request = retryOptions.url;
-    }
-    http.request(_method, _request, value, function (err, data) {
-      if (err) {
-        var _error = _getError(err, _store, _method, false);
-        upsert('@lunarisErrors', {
-          version            : _version,
-          data               : value,
-          url                : _request,
-          method             : _method,
-          storeName          : _store.name,
-          date               : dayjs(),
-          messageError       : _error,
-          messageErrorServer : err
-        });
-        logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store], err);
-        return hook.pushToHandlers(_store, 'errorHttp', [_error, value]);
-      }
-
-      hook.pushToHandlers(_store, _isUpdate ? 'updated' : 'inserted', data);
-    });
+    _upsert(_store, value, isLocal, _isUpdate, retryOptions);
   }
   catch (e) {
     logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store], e);
@@ -373,7 +399,7 @@ function deleteStore (store, value, retryOptions) {
 
     var _version;
     if (!retryOptions) {
-      var _version = _collection.begin();
+      _version = _collection.begin();
       _collection.remove(value._id, _version);
       value = _collection.commit(_version);
       value = value[0];
@@ -509,7 +535,7 @@ function get (store, primaryKeyValue, retryOptions) {
 
       var _isArray = Array.isArray(data);
       data         = _collection.commit(_version);
-      for (var i = 0; i < data.length; i++) {
+      for (i = 0; i < data.length; i++) {
         data[i] = utils.freeze(utils.clone(data[i]));
       }
 
@@ -527,7 +553,7 @@ function get (store, primaryKeyValue, retryOptions) {
  * @param {*} value
  */
 function getOne (store) {
-  try  {
+  try {
     _checkArgs(store, null, true);
 
     var _store      = _getStore(store);

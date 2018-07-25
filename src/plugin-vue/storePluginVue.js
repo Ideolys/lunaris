@@ -2,7 +2,7 @@ lunaris._vue = {
   _vm : new Vue({
     data : {
       nbSnackbars : 0,
-      $stores : {}
+      $stores     : {}
     },
 
     created : function () {
@@ -15,7 +15,7 @@ lunaris._vue = {
     }
   }),
 
-  install : function (Vue, options) {
+  install : function (Vue) {
     /**
      * Set $storeName value
      * @param {String} store
@@ -43,7 +43,7 @@ lunaris._vue = {
         for (var i = 0; i < items.length; i++) {
           _storeObj.state.push(lunaris.clone(items[i]));
         }
-      }
+      };
     }
 
     /**
@@ -54,7 +54,7 @@ lunaris._vue = {
       return function () {
         lunaris._vue._vm.$data.$stores[store].state.splice(0);
         lunaris.get('@' + store);
-      }
+      };
     }
 
     /**
@@ -64,7 +64,7 @@ lunaris._vue = {
     function _insert (store) {
       return function (item) {
         lunaris._vue._vm.$data.$stores[store].state.push(lunaris.clone(item));
-      }
+      };
     }
 
     /**
@@ -81,7 +81,7 @@ lunaris._vue = {
         }
 
         lunaris._vue._vm.$data.$stores[store].state.push(lunaris.clone(item));
-      }
+      };
     }
 
     /**
@@ -96,7 +96,7 @@ lunaris._vue = {
             _state.splice(j, 1);
           }
         }
-      }
+      };
     }
 
     /**
@@ -108,7 +108,7 @@ lunaris._vue = {
         lunaris._vue._vm.$data.nbSnackbars++;
         if (lunaris._vue._vm.$data.nbSnackbars > 1) {
           return;
-        };
+        }
 
         var onAction = function () {
           _this.$lunarisErrorsResolver.open();
@@ -123,7 +123,7 @@ lunaris._vue = {
           queue      : false,
           onAction   : onAction
         });
-      }
+      };
     }
 
     /**
@@ -231,9 +231,9 @@ lunaris._vue = {
         return;
       }
 
-      _internalHookKeys = Object.keys(_internalHooks);
-      for (var i = 0; i < _internalHookKeys.length; i++) {
-        var _hooks = _internalHooks[_internalHookKeys[i]];
+      var _internalHookKeys = Object.keys(_internalHooks);
+      for (i = 0; i < _internalHookKeys.length; i++) {
+        _hooks = _internalHooks[_internalHookKeys[i]];
         for (var j = 0; j < _hooks.length; j++) {
           lunaris.removeHook.apply(null, _hooks[j]);
         }
