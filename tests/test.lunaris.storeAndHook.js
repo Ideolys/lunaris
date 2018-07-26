@@ -195,7 +195,7 @@ describe('lunaris store', () => {
     });
 
     it('should fire an error for insert if the the validation failed', () => {
-      var _store                                      = _initStore('store_insert_post', [{ id : ['int'], label : ['string'] }]);
+      var _store                                      = _initStore('store_insert_post', [{ id : ['<<int>>'], label : ['string'] }]);
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
@@ -272,7 +272,7 @@ describe('lunaris store', () => {
     });
 
     it('should insert a value and fire an error for update when validating', done => {
-      var _store                                     = _initStore('store_insert_put', [{ id : ['int'], label : ['string'] }]);
+      var _store                                     = _initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
       lunaris._stores['store_insert_put']            = _store;
       lunaris._stores['store_insert_put'].primaryKey = 'id';
 

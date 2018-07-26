@@ -560,10 +560,10 @@ describe('Validate', () => {
 
         it('should works even if there is one arrays', () => {
           var _objectDescriptor = {
-            id        : ['int'],
+            id        : ['<<int>>'],
             continent : ['string'],
             countries : ['array',{
-              id   : ['int'],
+              id   : ['<<int>>'],
               name : ['string']
             }]
           };
@@ -583,13 +583,13 @@ describe('Validate', () => {
 
         it('should works even if there are nested arrays', () => {
           var _objectDescriptor = {
-            id        : ['int'],
+            id        : ['<<int>>'],
             continent : ['string'],
             countries : ['array',{
-              id     : ['int'],
+              id     : ['<<int>>'],
               name   : ['string'],
               cities : ['array', {
-                id : ['int']
+                id : ['<<int>>']
               }]
             }]
           };
@@ -612,14 +612,14 @@ describe('Validate', () => {
 
         it('should works even if there are nested arrays', () => {
           var _objectDescriptor = {
-            id        : ['int'],
+            id        : ['<<int>>'],
             continent : ['string'],
             countries : ['array',{
-              id   : ['int'],
+              id   : ['<<int>>'],
               name : ['string'],
             }],
             cities : ['array', {
-              id : ['int']
+              id : ['<<int>>']
             }]
           };
           var _objectToCheck = {
@@ -641,20 +641,20 @@ describe('Validate', () => {
 
         it('should works even if there are nested arrays', () => {
           var _objectDescriptor = {
-            id        : ['int'],
+            id        : ['<<int>>'],
             continent : ['string'],
             countries : ['array',{
-              id     : ['int'],
+              id     : ['<<int>>'],
               name   : ['string'],
               cities : ['array', {
-                id   : ['int'],
+                id   : ['<<int>>'],
                 info : ['object',{
                   temperature : ['string']
                 }]
               }]
             }],
             cities : ['array', {
-              id : ['int']
+              id : ['<<int>>']
             }]
           };
           var _objectToCheck = {
@@ -808,7 +808,7 @@ describe('Validate', () => {
         it('should build a function which checks array of objects', () => {
           var _objectDescriptor = {
             id : ['array', {
-              test : ['int']
+              test : ['<<int>>']
             }]
           };
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
@@ -832,7 +832,7 @@ describe('Validate', () => {
         it('should build a function which checks array of object with min and max', () => {
           var _objectDescriptor = {
             id : ['array', 'min', 1, 'max', 2, {
-              test : ['int']
+              test : ['<<int>>']
             }]
           };
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
@@ -1406,9 +1406,13 @@ describe('Validate', () => {
         it('should analyze a descriptor and return a flat description of the object and accept multtiple paramaters in the array descriptions', () => {
           var _expectedTreeDescriptor = {
             meta : {
-              jsonToSQL     : {},
-              sortGroup     : {},
-              sortMandatory :  []
+              jsonToSQL : {
+                'obj[][test]' : 'test'
+              },
+              sortGroup : {
+                test : 1
+              },
+              sortMandatory : [ 'test' ]
             },
             onValidate  : { },
             onTransform : {},
@@ -1432,14 +1436,16 @@ describe('Validate', () => {
                 name       : 'obj',
                 type       : 'array',
                 obj        : {test : ['int']},
-                objTrans   : {},
-                keys       : []
+                objTrans   : {
+                  test : 'test'
+                },
+                keys : [ 'test' ]
               }
             }
           };
           var _objectDescriptor = {
             obj : ['array','min',1,'max',5, {
-              test : ['int']
+              test : ['<<int>>']
             }]
           };
           // Compute the result
