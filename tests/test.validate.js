@@ -1281,15 +1281,16 @@ describe('Validate', () => {
             onTransform : {},
             compilation : {
               main0 : {
-                arrChild   : [],
-                arrParents : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {id : ['array']},
-                objTrans   : {},
-                keys       : []
+                arrChild     : [],
+                arrParents   : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {id : ['array']},
+                objTrans     : {},
+                keys         : []
               }
             }
           };
@@ -1313,15 +1314,16 @@ describe('Validate', () => {
             onTransform : {},
             compilation : {
               main0 : {
-                arrChild   : [],
-                arrParents : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {id : ['object']},
-                objTrans   : {},
-                keys       : []
+                arrChild     : [],
+                arrParents   : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {id : ['object']},
+                objTrans     : {},
+                keys         : []
               }
             }
           };
@@ -1345,15 +1347,16 @@ describe('Validate', () => {
             onTransform : {},
             compilation : {
               main0 : {
-                arrChild   : [],
-                arrParents : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {id : ['array','min',1,'max',5]},
-                objTrans   : {},
-                keys       : []
+                arrChild     : [],
+                arrParents   : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {id : ['array','min',1,'max',5]},
+                objTrans     : {},
+                keys         : []
               }
             }
           };
@@ -1381,15 +1384,16 @@ describe('Validate', () => {
             onTransform : {},
             compilation : {
               main0 : {
-                arrChild   : [],
-                arrParents : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {id : []},
-                objTrans   : {id : 'idMenu'},
-                keys       : []
+                arrChild     : [],
+                arrParents   : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {id : []},
+                objTrans     : {id : 'idMenu'},
+                keys         : []
               }
             }
           };
@@ -1418,25 +1422,27 @@ describe('Validate', () => {
             onTransform : {},
             compilation : {
               main0 : {
-                arrChild   : ['obj1'],
-                arrParents : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {obj : ['array','min',1,'max',5]},
-                objTrans   : {obj : []},
-                keys       : []
+                arrChild     : ['obj1'],
+                arrParents   : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {obj : ['array','min',1,'max',5]},
+                objTrans     : {obj : []},
+                keys         : []
               },
               obj1 : {
-                arrChild   : [],
-                arrParents : [],
-                level      : 1,
-                objParent  : 'main0',
-                name       : 'obj',
-                type       : 'array',
-                obj        : {test : ['int']},
-                objTrans   : {
+                arrChild     : [],
+                arrParents   : [],
+                level        : 1,
+                objParent    : 'main0',
+                name         : 'obj',
+                type         : 'array',
+                defaultValue : [],
+                obj          : {test : ['int']},
+                objTrans     : {
                   test : 'test'
                 },
                 keys : [ 'test' ]
@@ -1466,15 +1472,16 @@ describe('Validate', () => {
             },
             compilation : {
               main0 : {
-                arrChild   : [],
-                arrParents : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {obj : ['array','min',1,'max',5]},
-                objTrans   : {obj : {type : 'function'}},
-                keys       : []
+                arrChild     : [],
+                arrParents   : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {obj : ['array','min',1,'max',5]},
+                objTrans     : {obj : {type : 'function'}},
+                keys         : []
               }
             }
           };
@@ -1503,15 +1510,16 @@ describe('Validate', () => {
             },
             compilation : {
               main0 : {
-                arrChild   : [],
-                arrParents : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {obj : ['array','min',1,'max',5]},
-                objTrans   : {obj : {type : 'function'}},
-                keys       : []
+                arrChild     : [],
+                arrParents   : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {obj : ['array','min',1,'max',5]},
+                objTrans     : {obj : {type : 'function'}},
+                keys         : []
               }
             }
           };
@@ -1534,15 +1542,16 @@ describe('Validate', () => {
             onTransform : {},
             compilation : {
               main0 : {
-                arrChild   : [],
-                arrParents : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {obj : ['array','min',1,'max',5]},
-                objTrans   : {obj : {type : 'int', value : 33}},
-                keys       : []
+                arrChild     : [],
+                arrParents   : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {obj : ['array','min',1,'max',5]},
+                objTrans     : {obj : {type : 'int', value : 33}},
+                keys         : []
               }
             }
           };
@@ -1565,15 +1574,16 @@ describe('Validate', () => {
             onTransform : {},
             compilation : {
               main0 : {
-                arrChild   : [],
-                arrParents : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {obj : ['array','min',1,'max',5]},
-                objTrans   : {obj : {type : 'string', value : '33string'}},
-                keys       : []
+                arrChild     : [],
+                arrParents   : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {obj : ['array','min',1,'max',5]},
+                objTrans     : {obj : {type : 'string', value : '33string'}},
+                keys         : []
               }
             }
           };
@@ -1600,15 +1610,16 @@ describe('Validate', () => {
             onTransform : {},
             compilation : {
               main0 : {
-                arrChild   : [],
-                arrParents : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {obj : ['array','min',1,'max',5]},
-                objTrans   : {obj : 'idMenu'},
-                keys       : []
+                arrChild     : [],
+                arrParents   : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {obj : ['array','min',1,'max',5]},
+                objTrans     : {obj : 'idMenu'},
+                keys         : []
               }
             }
           };
@@ -1638,15 +1649,16 @@ describe('Validate', () => {
             onTransform : {},
             compilation : {
               main0 : {
-                arrChild   : [],
-                arrParents : [],
-                keys       : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {obj : ['array','min',1,'max',5]},
-                objTrans   : {obj : 'idMenu'},
+                arrChild     : [],
+                arrParents   : [],
+                keys         : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {obj : ['array','min',1,'max',5]},
+                objTrans     : {obj : 'idMenu'},
               }
             }
           };
@@ -1714,70 +1726,76 @@ describe('Validate', () => {
             onTransform : {},
             compilation : {
               main0 : {
-                arrChild   : ['countries1', 'cities2', 'goodies4'],
-                arrParents : [],
-                keys       : [],
-                level      : 0,
-                objParent  : '',
-                name       : '',
-                type       : 'object',
-                obj        : {id : ['int']      , continent : ['string'],      countries : ['array']},
-                objTrans   : {id : 'idContinent', continent : 'continentName', countries : []}
+                arrChild     : ['countries1', 'cities2', 'goodies4'],
+                arrParents   : [],
+                keys         : [],
+                level        : 0,
+                objParent    : '',
+                name         : '',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {id : ['int']      , continent : ['string'],      countries : ['array']},
+                objTrans     : {id : 'idContinent', continent : 'continentName', countries : []}
               },
               countries1 : {
-                arrChild   : ['cities2', 'goodies4'],
-                arrParents : [],
-                level      : 1,
-                objParent  : 'main0',
-                name       : 'countries',
-                type       : 'array',
-                obj        : {id : ['int'],     name : ['string'],     cities : ['array']},
-                objTrans   : {id : 'idCountry', name : 'countryName' , cities : []},
-                keys       : ['idCountry']
+                arrChild     : ['cities2', 'goodies4'],
+                arrParents   : [],
+                level        : 1,
+                objParent    : 'main0',
+                name         : 'countries',
+                type         : 'array',
+                defaultValue : [],
+                obj          : {id : ['int'],     name : ['string'],     cities : ['array']},
+                objTrans     : {id : 'idCountry', name : 'countryName' , cities : []},
+                keys         : ['idCountry']
               },
               cities2 : {
-                arrChild   : ['goodies4'],
-                arrParents : ['countries1'],
-                level      : 2,
-                objParent  : 'countries1',
-                name       : 'cities',
-                type       : 'array',
-                obj        : {id : ['int'],  name : ['string', 'onValidate', function () {return 'test';}], info : ['object']},
-                objTrans   : {id : 'idCity', name : 'cityName', info                                             : {type : 'object'}},
-                keys       : ['idCity']
+                arrChild     : ['goodies4'],
+                arrParents   : ['countries1'],
+                level        : 2,
+                objParent    : 'countries1',
+                name         : 'cities',
+                type         : 'array',
+                defaultValue : [],
+                obj          : {id : ['int'],  name : ['string', 'onValidate', function () {return 'test';}], info : ['object']},
+                objTrans     : {id : 'idCity', name : 'cityName', info                                             : {type : 'object'}},
+                keys         : ['idCity']
               },
               info3 : {
-                arrChild   : ['goodies4'],
-                arrParents : ['countries1', 'cities2'],
-                level      : 2,
-                objParent  : 'cities2',
-                name       : 'info',
-                type       : 'object',
-                obj        : {temperature : ['string'],    language : ['string'], goodies : ['array']},
-                objTrans   : {temperature : 'temperature', language : 'language', goodies : []},
-                keys       : []
+                arrChild     : ['goodies4'],
+                arrParents   : ['countries1', 'cities2'],
+                level        : 2,
+                objParent    : 'cities2',
+                name         : 'info',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {temperature : ['string'],    language : ['string'], goodies : ['array']},
+                objTrans     : {temperature : 'temperature', language : 'language', goodies : []},
+                keys         : []
               },
               goodies4 : {
-                arrChild   : [],
-                arrParents : ['countries1', 'cities2'],
-                level      : 3,
-                objParent  : 'info3',
-                name       : 'goodies',
-                type       : 'array',
-                obj        : {id : ['int'],     name : ['string'],    info : ['object']},
-                objTrans   : {id : 'idGoodies', name : 'goodiesName', info : {type : 'object'}},
-                keys       : ['idGoodies']
+                arrChild     : [],
+                arrParents   : ['countries1', 'cities2'],
+                level        : 3,
+                objParent    : 'info3',
+                name         : 'goodies',
+                type         : 'array',
+                defaultValue : [],
+                obj          : {id : ['int'],     name : ['string'],    info : ['object']},
+                objTrans     : {id : 'idGoodies', name : 'goodiesName', info : {type : 'object'}},
+                keys         : ['idGoodies']
               },
               info5 : {
-                arrChild   : [],
-                arrParents : ['countries1', 'cities2', 'goodies4'],
-                level      : 3,
-                objParent  : 'goodies4',
-                name       : 'info',
-                type       : 'object',
-                obj        : {temperature : ['string'],          language : ['string']},
-                objTrans   : {temperature : 'goodieTemperature', language : 'goodieLanguage'},
-                keys       : []
+                arrChild     : [],
+                arrParents   : ['countries1', 'cities2', 'goodies4'],
+                level        : 3,
+                objParent    : 'goodies4',
+                name         : 'info',
+                type         : 'object',
+                defaultValue : null,
+                obj          : {temperature : ['string'],          language : ['string']},
+                objTrans     : {temperature : 'goodieTemperature', language : 'goodieLanguage'},
+                keys         : []
               }
             }
           };
