@@ -620,7 +620,7 @@ describe('lunaris store', () => {
     });
 
     it('should add an error into lunarisErrors store : delete', done => {
-      var _store                                     = _initStore('store_del');
+      var _store                              = _initStore('store_del');
       lunaris._stores['store_del']            = _store;
       lunaris._stores['store_del'].primaryKey = 'id';
 

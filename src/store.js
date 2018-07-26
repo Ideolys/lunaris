@@ -335,7 +335,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
  *  ================================================= **/
 
 /**
- * Insert or Update a value in store
+ * Insert or Update a value in a store
  * @param {String} store
  * @param {*} value
  * @param {Boolean} isLocal insert or update
@@ -378,7 +378,7 @@ function upsert (store, value, isLocal, retryOptions) {
 }
 
 /**
- * Delete a value from the store
+ * Delete a value from a store
  * @param {String} store
  * @param {*} value
  * @param {Object} retryOptions {
