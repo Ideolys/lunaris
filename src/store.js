@@ -326,7 +326,11 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       return hook.pushToHandlers(store, 'errorHttp', [_error, value]);
     }
 
-    hook.pushToHandlers(store, isUpdate ? 'updated' : 'inserted', data);
+    value = Object.assign(data, value);
+    _collection.upsert(value);
+    value = utils.freeze(utils.clone(value));
+    hook.pushToHandlers(store, isUpdate ? 'update'  : 'insert'  , value);
+    hook.pushToHandlers(store, isUpdate ? 'updated' : 'inserted', value);
   });
 }
 

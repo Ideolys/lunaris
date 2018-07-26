@@ -13,7 +13,7 @@ const port    = 4040;
 var lastError = [];
 console.error = function () {
   lastError = [arguments[0], arguments[1]];
-}
+};
 
 var lunaris = {};
 eval(buildLunaris({
@@ -89,6 +89,7 @@ describe('lunaris store', () => {
     });
 
     it('should insert the value and execute the hooks : insert & inserted', done => {
+      var _isFirstInsertEvent              = true;
       var _isUpdateHook                    = false;
       var _isUpdatedHook                   = false;
       var _store                           = _initStore('store1');
@@ -97,19 +98,29 @@ describe('lunaris store', () => {
       lunaris._stores['store1'].primaryKey = 'id';
 
       lunaris.hook('insert@store1', updatedValue => {
-        should(updatedValue).eql(_expectedValue);
-        should(Object.isFrozen(updatedValue)).eql(true);
+        if (_isFirstInsertEvent) {
+          should(updatedValue).eql(_expectedValue);
+          should(Object.isFrozen(updatedValue)).eql(true);
+          return _isFirstInsertEvent = false;
+        }
+
+        should(_store.data.get(1)).eql(Object.assign(_expectedValue, {
+          body     : { _id : 1, id : 2, label : 'A', _version : [ 1 ] },
+          query    : {},
+          params   : {},
+          _version : [2]
+        }));
         _isUpdateHook = true;
       });
 
       lunaris.hook('inserted@store1', data => {
         _isUpdatedHook = true;
-        should(data.query).be.ok();
-        should(data.params).be.ok();
-        should(data.query).eql({});
-        should(data.params).eql({});
-        should(data.body).be.ok();
-        should(data.body).eql(_expectedValue);
+        should(data).eql(Object.assign(_expectedValue, {
+          body     : { _id : 1, id : 2, label : 'A', _version : [ 1 ] },
+          query    : {},
+          params   : {},
+          _version : [1, 2]
+        }));
 
         if (_isUpdateHook && _isUpdatedHook) {
           done();
@@ -216,6 +227,7 @@ describe('lunaris store', () => {
     });
 
     it('should update the value and execute the hooks : update and updated', done => {
+      var _isFirstUpdateEvent   = true;
       var _isUpdateHook         = false;
       var _isUpdatedHook        = false;
       var _store                = _initStore('store1');
@@ -224,19 +236,30 @@ describe('lunaris store', () => {
 
       lunaris.hook('update@store1', updatedValue => {
         _isUpdateHook = true;
-        should(_store.data.get(1)).eql(_expectedValue);
-        should(updatedValue).eql(_expectedValue);
-        should(Object.isFrozen(updatedValue)).eql(true);
+        if (_isFirstUpdateEvent) {
+          should(_store.data.get(1)).eql(_expectedValue);
+          should(updatedValue).eql(_expectedValue);
+          should(Object.isFrozen(updatedValue)).eql(true);
+          _isFirstUpdateEvent = false;
+          return;
+        }
+
+        should(_store.data.get(1)).eql(Object.assign(_expectedValue, {
+          body     : { _id : 1, id : 1, label : 'B', _version : [ 2 ] },
+          query    : {},
+          params   : { id : '1' },
+          _version : [4]
+        }));
       });
 
       lunaris.hook('updated@store1', data => {
         _isUpdatedHook = true;
-        should(data.query).be.ok();
-        should(data.params).be.ok();
-        should(data.query).eql({});
-        should(data.params).eql({ id : '1' });
-        should(data.body).be.ok();
-        should(data.body).eql(_expectedValue);
+        should(data).eql(Object.assign(_expectedValue, {
+          body     : { _id : 1, id : 1, label : 'B', _version : [ 2 ] },
+          query    : {},
+          params   : { id : '1' },
+          _version : [2, 3]
+        }));
 
         if (_isUpdateHook && _isUpdatedHook) {
           done();
@@ -248,7 +271,7 @@ describe('lunaris store', () => {
       });
 
       lunaris.insert('@store1', { id : 1, label : 'A' });
-      lunaris.update('@store1', { _id : 1, id : 1, label : 'B', _version : [1] });
+      lunaris.update('@store1', { _id : 1, id : 1, label : 'B'});
     });
 
     it('should insert a value and fire an error for update', done => {
@@ -302,9 +325,9 @@ describe('lunaris store', () => {
         delete _values[0].date;
         should(_values[0]).eql({
           _id                : 1,
-          _version           : [3],
-          version            : 2,
-          data               : { _id : 1, id : 1, label : 'B', _version : [2] },
+          _version           : [4],
+          version            : 3,
+          data               : { _id : 1, id : 1, label : 'B', _version : [3] },
           url                : '/store_insert_put/1',
           method             : 'PUT',
           storeName          : 'store_insert_put',
@@ -406,7 +429,6 @@ describe('lunaris store', () => {
 
       lunaris.hook('inserted@store1', data => {
         _isInsertedHook = true;
-        should(_store.data.get(1)).eql(_expectedValue);
         should(data.query).be.ok();
         should(data.params).be.ok();
         should(data.params).eql({ idSite : '2' });
@@ -423,7 +445,7 @@ describe('lunaris store', () => {
         should(data.params).eql({ id : '1', idSite : '2' });
         should(data.query).eql({ search : 'category:=A' });
         should(data.body).be.ok();
-        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [4] });
+        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [5] });
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -470,7 +492,6 @@ describe('lunaris store', () => {
 
       lunaris.hook('inserted@store1', data => {
         _isInsertedHook = true;
-        should(_store.data.get(1)).eql(_expectedValue);
         should(data.query).be.ok();
         should(data.params).be.ok();
         should(data.params).eql({});
@@ -487,7 +508,7 @@ describe('lunaris store', () => {
         should(data.params).eql({ id : '1'});
         should(data.query).eql({});
         should(data.body).be.ok();
-        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [4] });
+        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [5] });
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -533,7 +554,6 @@ describe('lunaris store', () => {
 
       lunaris.hook('inserted@store1', data => {
         _isInsertedHook = true;
-        should(_store.data.get(1)).eql(_expectedValue);
         should(data.query).be.ok();
         should(data.params).be.ok();
         should(data.params).eql({});
@@ -550,7 +570,7 @@ describe('lunaris store', () => {
         should(data.params).eql({ id : '1', idSite : '2'});
         should(data.query).eql({});
         should(data.body).be.ok();
-        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [4] });
+        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [5] });
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -1128,8 +1148,8 @@ describe('lunaris store', () => {
         if (_currentId === 1) {
           should(item).be.an.Object();
           should(item).eql({
-            _id : 1,
-            id  : 1,
+            _id      : 1,
+            id       : 1,
             _version : [1]
           });
           _currentId++;
@@ -1138,8 +1158,8 @@ describe('lunaris store', () => {
         }
 
         should(item).eql({
-          _id : 2,
-          id  : 2,
+          _id      : 2,
+          id       : 2,
           _version : [2]
         });
 
@@ -1405,9 +1425,9 @@ describe('lunaris store', () => {
           delete _values[0].date;
           should(_values[0]).eql({
             _id                : 1,
-            _version           : [3],
-            version            : 2,
-            data               : { _id : 1, id : 2, label : 'A', _version : [2] },
+            _version           : [4],
+            version            : 3,
+            data               : { _id : 1, id : 2, label : 'A', _version : [3] },
             url                : '/store_insert_put/2',
             method             : 'PUT',
             storeName          : 'store_insert_put',
@@ -1421,9 +1441,9 @@ describe('lunaris store', () => {
         delete _values[1].date;
         should(_values[1]).eql({
           _id                : 2,
-          _version           : [4],
-          version            : 2,
-          data               : { _id : 1, id : 2, label : 'A', _version : [2] },
+          _version           : [5],
+          version            : 3,
+          data               : { _id : 1, id : 2, label : 'A', _version : [3] },
           url                : '/store_insert_put/2',
           method             : 'PUT',
           storeName          : 'store_insert_put',
