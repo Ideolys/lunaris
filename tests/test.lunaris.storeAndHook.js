@@ -3,9 +3,9 @@ const buildLunaris = require('../lib/builder').buildLunaris;
 const storeMap     = require('../lib/_builder/store/schema');
 const validateMap  = require('../lib/_builder/store/validate');
 const express      = require('express');
-const bodyParser   = require('body-parser')
+const bodyParser   = require('body-parser');
 const fetch        = require('node-fetch');
-const compression  = require('compression')
+const compression  = require('compression');
 const dayjs        = require('dayjs');
 
 const port    = 4040;

@@ -1,6 +1,6 @@
 var schema = require('../lib/_builder/store/schema');
 
-describe('Schema', () => {
+describe.only('Schema', () => {
 
   describe('analyzeDescriptor(obj)', () => {
 
@@ -8,12 +8,13 @@ describe('Schema', () => {
       var _expectedTreeDescriptor = {
         compilation : {
           main0 : {
-            arrChild   : [],
-            arrParents : [],
-            objParent  : '',
-            name       : '',
-            type       : 'object',
-            obj        : {
+            arrChild     : [],
+            arrParents   : [],
+            objParent    : '',
+            name         : '',
+            type         : 'object',
+            defaultValue : null,
+            obj          : {
               id : ['array']
             },
             objTrans : {},
@@ -33,12 +34,13 @@ describe('Schema', () => {
     it('should analyze a descriptor and return a flat description of the array (array of object)', () => {
       var _expectedCompilationDescriptor = {
         main0 : {
-          arrChild   : [],
-          arrParents : [],
-          objParent  : '',
-          name       : '',
-          type       : 'array',
-          obj        : {
+          arrChild     : [],
+          arrParents   : [],
+          objParent    : '',
+          name         : '',
+          type         : 'array',
+          defaultValue : [],
+          obj          : {
             id : ['array']
           },
           objTrans : {
@@ -59,12 +61,13 @@ describe('Schema', () => {
     it('should analyze a descriptor and return a flat description of the object and accept that an object has no descriptions', () => {
       var _expectedCompilationDescriptor = {
         main0 : {
-          arrChild   : [],
-          arrParents : [],
-          objParent  : '',
-          name       : '',
-          type       : 'object',
-          obj        : {
+          arrChild     : [],
+          arrParents   : [],
+          objParent    : '',
+          name         : '',
+          type         : 'object',
+          defaultValue : null,
+          obj          : {
             id : ['object']
           },
           objTrans : {},
@@ -83,12 +86,13 @@ describe('Schema', () => {
     it('should analyze a descriptor and return a flat description of the object and accept multtiple paramaters in the array descriptions', () => {
       var _expectedCompilationDescriptor = {
         main0 : {
-          arrChild   : [],
-          arrParents : [],
-          objParent  : '',
-          name       : '',
-          type       : 'object',
-          obj        : {
+          arrChild     : [],
+          arrParents   : [],
+          objParent    : '',
+          name         : '',
+          type         : 'object',
+          defaultValue : null,
+          obj          : {
             id : ['array', 'min', 1, 'max', 5]
           },
           objTrans : {},
@@ -108,12 +112,13 @@ describe('Schema', () => {
     it('should analyze a descriptor and return a flat description of the object and accept multtiple paramaters in the array descriptions', () => {
       var _expectedCompilationDescriptor = {
         main0 : {
-          arrChild   : ['obj1'],
-          arrParents : [],
-          objParent  : '',
-          name       : '',
-          type       : 'object',
-          obj        : {
+          arrChild     : ['obj1'],
+          arrParents   : [],
+          objParent    : '',
+          name         : '',
+          type         : 'object',
+          defaultValue : null,
+          obj          : {
             obj : ['array', 'min', 1, 'max', 5]
           },
           objTrans : {
@@ -123,12 +128,13 @@ describe('Schema', () => {
           keys  : []
         },
         obj1 : {
-          arrChild   : [],
-          arrParents : [],
-          objParent  : 'main0',
-          name       : 'obj',
-          type       : 'array',
-          obj        : {
+          arrChild     : [],
+          arrParents   : [],
+          objParent    : 'main0',
+          name         : 'obj',
+          type         : 'array',
+          defaultValue : [],
+          obj          : {
             test : ['int']
           },
           objTrans : {
@@ -172,12 +178,13 @@ describe('Schema', () => {
         },
         compilation : {
           main0 : {
-            arrChild   : [],
-            arrParents : [],
-            objParent  : '',
-            name       : '',
-            type       : 'object',
-            obj        : {
+            arrChild     : [],
+            arrParents   : [],
+            objParent    : '',
+            name         : '',
+            type         : 'object',
+            defaultValue : null,
+            obj          : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -209,12 +216,13 @@ describe('Schema', () => {
         },
         compilation : {
           main0 : {
-            arrChild   : [],
-            arrParents : [],
-            objParent  : '',
-            name       : '',
-            type       : 'object',
-            obj        : {
+            arrChild     : [],
+            arrParents   : [],
+            objParent    : '',
+            name         : '',
+            type         : 'object',
+            defaultValue : null,
+            obj          : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -241,12 +249,13 @@ describe('Schema', () => {
       var _expectedTreeDescriptor = {
         compilation : {
           main0 : {
-            arrChild   : [],
-            arrParents : [],
-            objParent  : '',
-            name       : '',
-            type       : 'object',
-            obj        : {
+            arrChild     : [],
+            arrParents   : [],
+            objParent    : '',
+            name         : '',
+            type         : 'object',
+            defaultValue : null,
+            obj          : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -271,12 +280,13 @@ describe('Schema', () => {
       var _expectedTreeDescriptor = {
         compilation : {
           main0 : {
-            arrChild   : [],
-            arrParents : [],
-            objParent  : '',
-            name       : '',
-            type       : 'object',
-            obj        : {
+            arrChild     : [],
+            arrParents   : [],
+            objParent    : '',
+            name         : '',
+            type         : 'object',
+            defaultValue : null,
+            obj          : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -301,12 +311,13 @@ describe('Schema', () => {
       var _expectedTreeDescriptor = {
         compilation : {
           main0 : {
-            arrChild   : [],
-            arrParents : [],
-            objParent  : '',
-            name       : '',
-            type       : 'object',
-            obj        : {
+            arrChild     : [],
+            arrParents   : [],
+            objParent    : '',
+            name         : '',
+            type         : 'object',
+            defaultValue : null,
+            obj          : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -340,12 +351,13 @@ describe('Schema', () => {
       var _expectedTreeDescriptor = {
         compilation : {
           main0 : {
-            arrChild   : [],
-            arrParents : [],
-            objParent  : '',
-            name       : '',
-            type       : 'object', // TODO, strange?
-            obj        : {
+            arrChild     : [],
+            arrParents   : [],
+            objParent    : '',
+            name         : '',
+            type         : 'object', // TODO, strange?
+            defaultValue : null,
+            obj          : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -817,12 +829,13 @@ describe('Schema', () => {
         onTransform : {},
         compilation : {
           main0 : {
-            arrChild   : ['countries1', 'cities2', 'goodies4'],
-            arrParents : [],
-            objParent  : '',
-            name       : '',
-            type       : 'object',
-            obj        : {
+            arrChild     : ['countries1', 'cities2', 'goodies4'],
+            arrParents   : [],
+            objParent    : '',
+            name         : '',
+            type         : 'object',
+            defaultValue : null,
+            obj          : {
               id        : ['int'],
               continent : ['string'],
               countries : ['array']
@@ -836,12 +849,13 @@ describe('Schema', () => {
             keys  : []
           },
           countries1 : {
-            arrChild   : ['cities2', 'goodies4'],
-            arrParents : [],
-            objParent  : 'main0',
-            name       : 'countries',
-            type       : 'array',
-            obj        : {
+            arrChild     : ['cities2', 'goodies4'],
+            arrParents   : [],
+            objParent    : 'main0',
+            name         : 'countries',
+            type         : 'array',
+            defaultValue : [],
+            obj          : {
               id     : ['int'],
               name   : ['string'],
               cities : ['array']
@@ -855,12 +869,13 @@ describe('Schema', () => {
             keys  : ['idCountry']
           },
           cities2 : {
-            arrChild   : ['goodies4'],
-            arrParents : ['countries1'],
-            objParent  : 'countries1',
-            name       : 'cities',
-            type       : 'array',
-            obj        : {
+            arrChild     : ['goodies4'],
+            arrParents   : ['countries1'],
+            objParent    : 'countries1',
+            name         : 'cities',
+            type         : 'array',
+            defaultValue : [],
+            obj          : {
               id   : ['int'],
               name : ['string', 'onValidate', function () {
                 return 'test';
@@ -878,12 +893,13 @@ describe('Schema', () => {
             keys  : ['idCity']
           },
           info3 : {
-            arrChild   : ['goodies4'],
-            arrParents : ['countries1', 'cities2'],
-            objParent  : 'cities2',
-            name       : 'info',
-            type       : 'object',
-            obj        : {
+            arrChild     : ['goodies4'],
+            arrParents   : ['countries1', 'cities2'],
+            objParent    : 'cities2',
+            name         : 'info',
+            type         : 'object',
+            defaultValue : null,
+            obj          : {
               temperature : ['string'],
               language    : ['string'],
               goodies     : ['array']
@@ -897,12 +913,13 @@ describe('Schema', () => {
             keys  : []
           },
           goodies4 : {
-            arrChild   : [],
-            arrParents : ['countries1', 'cities2'],
-            objParent  : 'info3',
-            name       : 'goodies',
-            type       : 'array',
-            obj        : {
+            arrChild     : [],
+            arrParents   : ['countries1', 'cities2'],
+            objParent    : 'info3',
+            name         : 'goodies',
+            type         : 'array',
+            defaultValue : [],
+            obj          : {
               id   : ['int'],
               name : ['string'],
               info : ['object']
@@ -918,12 +935,13 @@ describe('Schema', () => {
             keys  : ['idGoodies']
           },
           info5 : {
-            arrChild   : [],
-            arrParents : ['countries1', 'cities2', 'goodies4'],
-            objParent  : 'goodies4',
-            name       : 'info',
-            type       : 'object',
-            obj        : {
+            arrChild     : [],
+            arrParents   : ['countries1', 'cities2', 'goodies4'],
+            objParent    : 'goodies4',
+            name         : 'info',
+            type         : 'object',
+            defaultValue : null,
+            obj          : {
               temperature : ['string'],
               language    : ['string']
             },
@@ -1008,8 +1026,9 @@ describe('Schema', () => {
               continent : 'continentName',
               countries : []
             },
-            level : 0,
-            keys  : ['idContinent']
+            level        : 0,
+            keys         : ['idContinent'],
+            defaultValue : []
           },
           countries1 : {
             arrChild   : [],
@@ -1029,8 +1048,9 @@ describe('Schema', () => {
                 type : 'object'
               }
             },
-            level : 1,
-            keys  : ['idCountry', 'goodieLanguage']
+            level        : 1,
+            keys         : ['idCountry', 'goodieLanguage'],
+            defaultValue : []
           },
           info2 : {
             arrChild   : [],
@@ -1046,8 +1066,9 @@ describe('Schema', () => {
               temperature : 'goodieTemperature',
               language    : 'goodieLanguage'
             },
-            level : 1,
-            keys  : []
+            level        : 1,
+            keys         : [],
+            defaultValue : null
           }
         }
       };
