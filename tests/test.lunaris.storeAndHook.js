@@ -1548,6 +1548,62 @@ describe('lunaris store', () => {
     });
   });
 
+  describe('getDefaultValue()', () => {
+    it('should be defined', () => {
+      should(lunaris.getDefaultValue).be.ok();
+      should(lunaris.getDefaultValue).be.Function();
+    });
+
+    it('should throw an error if the store value is not correct', () => {
+      lunaris.getDefaultValue({});
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.getDefaultValue' + {});
+      should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
+    });
+
+    it('should return an empty object if no map has been provided', () => {
+      lunaris._stores['store1'] = _initStore('store1');
+      should(lunaris.getDefaultValue('@store1')).eql({});
+    });
+
+    it('should return a default object', () => {
+      lunaris._stores['store1'] = _initStore('store1', [{
+        id    : ['<<int>>', 2],
+        label : ['string'],
+        menus : ['array', {
+          id    : ['<<int>>'],
+          label : ['string']
+        }]
+      }]);
+      should(lunaris.getDefaultValue('@store1')).eql({
+        id    : 2,
+        label : null,
+        menus : []
+      });
+    });
+
+    it('should return a default object and not edit the base object', () => {
+      lunaris._stores['store1'] = _initStore('store1', [{
+        id    : ['<<int>>', 2],
+        label : ['string'],
+        menus : ['array', {
+          id    : ['<<int>>'],
+          label : ['string']
+        }]
+      }]);
+
+      var _defaultValue = lunaris.getDefaultValue('@store1');
+      _defaultValue.id    = 3;
+      _defaultValue.label = 5;
+
+      should(lunaris._stores['store1'].meta.defaultValue).eql({
+        id    : 2,
+        label : null,
+        menus : []
+      });
+    });
+  });
+
 });
 
 /**

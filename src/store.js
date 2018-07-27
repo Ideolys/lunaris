@@ -614,15 +614,37 @@ function rollback (store, version) {
   }
 }
 
-exports.get            = get;
-exports.getOne         = getOne;
-exports.insert         = upsert;
+/**
+ * get store default value
+ * @param {String} store
+ * @return {Object}
+ */
+function getDefaultValue (store) {
+  try {
+    _checkArgs(store, null, true);
+
+    var _store = _getStore(store);
+    if (!_store.meta) {
+      return {};
+    }
+
+    return utils.clone(_store.meta.defaultValue);
+  }
+  catch (e) {
+    logger.warn(['lunaris.getDefaultValue' + store], e);
+  }
+}
+
+exports.get               = get;
+exports.getOne            = getOne;
+exports.insert            = upsert;
 // exports.insertFiltered = upsertFiltered;
-exports.update         = upsert;
+exports.update            = upsert;
 // exports.updateFiltered = upsertFiltered;
-exports.upsert         = upsert;
-exports.delete         = deleteStore;
-exports.clear          = clear;
-exports.retry          = retry;
-exports.rollback       = rollback;
+exports.upsert            = upsert;
+exports.delete            = deleteStore;
+exports.clear             = clear;
+exports.retry             = retry;
+exports.rollback          = rollback;
+exports.getDefaultValue   = getDefaultValue;
 // exports.deleteFiltered = deleteFiltered;

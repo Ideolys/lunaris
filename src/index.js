@@ -15,15 +15,16 @@ module.exports = {
   removeHook     : hook.removeHook,
   pushToHandlers : hook.pushToHandlers,
 
-  get      : store.get,
-  getOne   : store.getOne,
-  insert   : store.insert,
-  update   : store.update,
-  upsert   : store.upsert,
-  delete   : store.delete,
-  clear    : store.clear,
-  rollback : store.rollback,
-  retry    : store.retry,
+  get             : store.get,
+  getOne          : store.getOne,
+  insert          : store.insert,
+  update          : store.update,
+  upsert          : store.upsert,
+  delete          : store.delete,
+  clear           : store.clear,
+  rollback        : store.rollback,
+  retry           : store.retry,
+  getDefaultValue : store.getDefaultValue,
 
   OPERATIONS : utils.OPERATIONS
 };
