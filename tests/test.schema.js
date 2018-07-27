@@ -162,9 +162,7 @@ describe('Schema', () => {
       };
 
       var _expectedDefaultValue = {
-        obj : [{
-          test : null
-        }]
+        obj : []
       };
 
       var _objectDescriptor = {
@@ -722,14 +720,8 @@ describe('Schema', () => {
         id    : null,
         label : null,
         obj   : {
-          dishes : [{
-            id    : null,
-            label : null
-          }],
-          meals : [{
-            id    : null,
-            label : null
-          }]
+          dishes : [],
+          meals  : []
         }
       };
 
@@ -780,31 +772,11 @@ describe('Schema', () => {
         id    : null,
         label : null,
         obj   : {
-          dishes : [{
-            id      : null,
-            label   : null,
-            subDish : {
-              id      : null,
-              lunches : [{
-                id         : null,
-                breakfasts : [{
-                  id : null
-                }]
-              }],
-              cars : [{
-                id : null
-              }]
-            }
-          }],
-          info : {
+          dishes : [],
+          info   : {
             subinfo : {
-              meals : [{
-                id    : null,
-                label : null
-              }],
-              diners : [{
-                id : null
-              }]
+              meals  : [],
+              diners : []
             }
           }
         }
@@ -1035,26 +1007,7 @@ describe('Schema', () => {
         defaultValue : {
           id        : null,
           continent : null,
-          countries : [{
-            id     : null,
-            name   : null,
-            cities : [{
-              id   : null,
-              name : null,
-              info : {
-                temperature : '10',
-                language    : 'fr',
-                goodies     : [{
-                  id   : null,
-                  name : null,
-                  info : {
-                    temperature : '0',
-                    language    : 'en'
-                  }
-                }]
-              }
-            }]
-          }]
+          countries : []
         }
       };
 
@@ -1175,14 +1128,7 @@ describe('Schema', () => {
         defaultValue : {
           id        : null,
           continent : null,
-          countries : [{
-            id   : null,
-            name : null,
-            info : {
-              temperature : null,
-              language    : null,
-            }
-          }]
+          countries : []
         }
       };
 

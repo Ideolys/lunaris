@@ -1455,9 +1455,7 @@ describe('Validate', () => {
               }
             },
             defaultValue : {
-              obj : [{
-                test : null
-              }]
+              obj : []
             }
           };
           var _objectDescriptor = {
@@ -1818,26 +1816,7 @@ describe('Validate', () => {
             defaultValue : {
               id        : null,
               continent : null,
-              countries : [{
-                id     : null,
-                name   : null,
-                cities : [{
-                  id   : null,
-                  name : null,
-                  info : {
-                    temperature : null,
-                    language    : null,
-                    goodies     : [{
-                      id   : null,
-                      name : null,
-                      info : {
-                        temperature : null,
-                        language    : null
-                      }
-                    }]
-                  }
-                }]
-              }]
+              countries : []
             }
           };
 
