@@ -240,6 +240,15 @@ function _createUrl (store, method, primaryKeyValue) {
   return _request;
 }
 
+function _replaceTemplateWords (store, method, message, isPlural) {
+  return message
+    .replace('$method'       , method)
+    .replace('$storeName'    , store.nameTranslated || store.name)
+    .replace('$pronounMale'  , isPlural ? '${thePlural}' : '${the}')
+    .replace('$pronounFemale', isPlural ? '${thePlural}' : '${theFemale}')
+  ;
+}
+
 /**
  * Construct error template
  * @param {*} err
@@ -253,16 +262,37 @@ function _getError (err, store, method, isPlural) {
   }
 
   var _methods = {
-    'GET'    : '${load}',
-    'PUT'    : '${edit}',
-    'POST'   : '${create}',
-    'DELETE' : '${delete}'
+    GET    : '${load}',
+    PUT    : '${edit}',
+    POST   : '${create}',
+    DELETE : '${delete}'
   };
 
-  var _message = store.errorTemplate;
+  return _replaceTemplateWords(store, _methods[method], store.errorTemplate, isPlural);
+}
+
+/**
+ * Construct validation template
+ * @param {*} message
+ * @param {*} store
+ * @param {*} method
+ * @param {*} isPlural
+ */
+function _getSuccess (message, store, method, isPlural) {
+  if (!store.successTemplate) {
+    return message;
+  }
+
+  var _methods = {
+    PUT    : '${edited}',
+    POST   : '${created}',
+    DELETE : '${deleted}'
+  };
+
+  var _message = store.successTemplate;
   _message = _message
     .replace('$method'       , _methods[method])
-    .replace('$storeName'    , store.nameTranslated)
+    .replace('$storeName'    , store.nameTranslated || store.name)
     .replace('$pronounMale'  , isPlural ? '${thePlural}' : '${the}')
     .replace('$pronounFemale', isPlural ? '${thePlural}' : '${theFemale}')
   ;
@@ -330,7 +360,10 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
     _collection.upsert(value);
     value = utils.freeze(utils.clone(value));
     hook.pushToHandlers(store, isUpdate ? 'update'  : 'insert'  , value);
-    hook.pushToHandlers(store, isUpdate ? 'updated' : 'inserted', value);
+    hook.pushToHandlers(store, isUpdate ? 'updated' : 'inserted', [
+      value,
+      _getSuccess(null, store, _method, false)
+    ]);
   });
 }
 
@@ -445,7 +478,10 @@ function deleteStore (store, value, retryOptions) {
         return hook.pushToHandlers(_store, 'errorHttp', [_error, value]);
       }
 
-      hook.pushToHandlers(_store, 'deleted', data);
+      hook.pushToHandlers(_store, 'deleted', [
+        data,
+        _getSuccess(null, _store, 'DELETE', false)
+      ]);
     });
   }
   catch (e) {

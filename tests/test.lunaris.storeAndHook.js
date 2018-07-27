@@ -89,17 +89,18 @@ describe('lunaris store', () => {
     });
 
     it('should insert the value and execute the hooks : insert & inserted', done => {
-      var _isFirstInsertEvent              = true;
-      var _isUpdateHook                    = false;
-      var _isUpdatedHook                   = false;
-      var _store                           = _initStore('store1');
-      var _expectedValue                   = { _id : 1, id : 2, label : 'A', _version : [1] };
-      lunaris._stores['store1']            = _store;
-      lunaris._stores['store1'].primaryKey = 'id';
+      var _isFirstInsertEvent                   = true;
+      var _isUpdateHook                         = false;
+      var _isUpdatedHook                        = false;
+      var _store                                = _initStore('store1');
+      var _expectedValue                        = { _id : 1, id : 2, label : 'A', _version : [1] };
+      lunaris._stores['store1']                 = _store;
+      lunaris._stores['store1'].primaryKey      = 'id';
+      lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
       lunaris.hook('insert@store1', updatedValue => {
         if (_isFirstInsertEvent) {
-          should(updatedValue).eql(_expectedValue);
+          should(updatedValue).eql(_expectedValue)
           should(Object.isFrozen(updatedValue)).eql(true);
           return _isFirstInsertEvent = false;
         }
@@ -113,7 +114,7 @@ describe('lunaris store', () => {
         _isUpdateHook = true;
       });
 
-      lunaris.hook('inserted@store1', data => {
+      lunaris.hook('inserted@store1', (data, message) => {
         _isUpdatedHook = true;
         should(data).eql(Object.assign(_expectedValue, {
           body     : { _id : 1, id : 2, label : 'A', _version : [ 1 ] },
@@ -121,6 +122,7 @@ describe('lunaris store', () => {
           params   : {},
           _version : [1, 2]
         }));
+        should(message).eql('${the} store1 has been successfully ${created}');
 
         if (_isUpdateHook && _isUpdatedHook) {
           done();
@@ -233,6 +235,7 @@ describe('lunaris store', () => {
       var _store                = _initStore('store1');
       var _expectedValue        = { _id : 1, id : 1, label : 'B', _version : [2] };
       lunaris._stores['store1'] = _store;
+      lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
       lunaris.hook('update@store1', updatedValue => {
         _isUpdateHook = true;
@@ -252,7 +255,7 @@ describe('lunaris store', () => {
         }));
       });
 
-      lunaris.hook('updated@store1', data => {
+      lunaris.hook('updated@store1', (data, message) => {
         _isUpdatedHook = true;
         should(data).eql(Object.assign(_expectedValue, {
           body     : { _id : 1, id : 1, label : 'B', _version : [ 2 ] },
@@ -260,6 +263,8 @@ describe('lunaris store', () => {
           params   : { id : '1' },
           _version : [2, 3]
         }));
+
+        should(message).eql('${the} store1 has been successfully ${edited}');
 
         if (_isUpdateHook && _isUpdatedHook) {
           done();
@@ -673,17 +678,20 @@ describe('lunaris store', () => {
       var _expectedValue                   = { _id : 1, id : 2, label : 'A', _version : [1] };
       lunaris._stores['store1']            = _store;
       lunaris._stores['store1'].primaryKey = 'id';
+      lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
       lunaris.hook('delete@store1', () => {
         _isDeleteHook = true;
       });
 
-      lunaris.hook('deleted@store1', data => {
+      lunaris.hook('deleted@store1', (data, message) => {
         _isDeletedHook = true;
         should(data.query).be.ok();
         should(data.params).be.ok();
         should(data.query).eql({});
         should(data.params).eql({ id : '2' });
+
+        should(message).eql('${the} store1 has been successfully ${deleted}');
 
         if (_isDeletedHook && _isDeleteHook) {
           done();
