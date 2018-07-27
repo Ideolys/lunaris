@@ -6,11 +6,65 @@ lunaris._vue = {
     },
 
     created : function () {
-      var _stores = Object.keys(lunaris._stores);
+      /**
+       * Set success hook
+       * @param {String} store
+       */
+      function _successHttp (_this) {
+        return function (data, message) {
+          if (!message) {
+            return;
+          }
+
+          _this.$toast.open({
+            message  : message,
+            type     : 'is-success',
+            position : 'is-top-right'
+          });
+        };
+      }
+
+      /**
+       * Set error hook
+       * @param {String} store
+       */
+      function _errorHttp (_this) {
+        return function (err) {
+          lunaris._vue._vm.$data.nbSnackbars++;
+          if (lunaris._vue._vm.$data.nbSnackbars > 1) {
+            return;
+          }
+
+          var onAction = function () {
+            _this.$lunarisErrorsResolver.open();
+          };
+
+          _this.$snackbar.open({
+            message    : err,
+            type       : 'is-warning',
+            position   : 'is-top',
+            indefinite : true,
+            actionText : 'Résoudre',
+            queue      : false,
+            onAction   : onAction
+          });
+        };
+      }
+
+      var _successFn = _successHttp(this);
+      var _errorFn   = _errorHttp(this);
+      var _stores    = Object.keys(lunaris._stores);
       for (var i = 0; i < _stores.length; i++) {
         // must be done in order to be reactive
         // https://fr.vuejs.org/v2/guide/list.html#Limitations
         this.$set(this.$data.$stores, _stores[i], { silent : true, state : [] });
+
+        if (_stores[i].name !== 'lunarisErrors') {
+          lunaris.hook.apply(null, ['inserted@'  + _stores[i], _successFn]);
+          lunaris.hook.apply(null, ['updated@'   + _stores[i], _successFn]);
+          lunaris.hook.apply(null, ['deleted@'   + _stores[i], _successFn]);
+          lunaris.hook.apply(null, ['errorHttp@' + _stores[i], _errorFn]);
+        }
       }
     }
   }),
@@ -100,33 +154,6 @@ lunaris._vue = {
     }
 
     /**
-     * Set error hook
-     * @param {String} store
-     */
-    function _errorHttp (_this) {
-      return function (err) {
-        lunaris._vue._vm.$data.nbSnackbars++;
-        if (lunaris._vue._vm.$data.nbSnackbars > 1) {
-          return;
-        }
-
-        var onAction = function () {
-          _this.$lunarisErrorsResolver.open();
-        };
-
-        _this.$snackbar.open({
-          message    : err,
-          type       : 'is-warning',
-          position   : 'is-top',
-          indefinite : true,
-          actionText : 'Résoudre',
-          queue      : false,
-          onAction   : onAction
-        });
-      };
-    }
-
-    /**
      * Register stores to obtain vm.$<store>
      * @param {Object} _this instance vue
      */
@@ -162,20 +189,18 @@ lunaris._vue = {
           _this.$options.storeHooks = {};
         }
 
-        var _getFn    = _get(_store);
-        var _resetFn  = _reset(_store);
-        var _insertFn = _insert(_store);
-        var _updateFn = _update(_store);
-        var _deleteFn = _delete(_store);
-        var _errorFn  = _errorHttp(_this);
+        var _getFn     = _get(_store);
+        var _resetFn   = _reset(_store);
+        var _insertFn  = _insert(_store);
+        var _updateFn  = _update(_store);
+        var _deleteFn  = _delete(_store);
 
         _this.$options.internalStoreHooks[_store] = [
           ['get@'       + _store, _getFn],
           ['reset@'     + _store, _resetFn],
           ['insert@'    + _store, _insertFn],
           ['update@'    + _store, _updateFn],
-          ['delete@'    + _store, _deleteFn],
-          ['errorHttp@' + _store, _errorFn]
+          ['delete@'    + _store, _deleteFn]
         ];
 
         for (var k = 0; k < _this.$options.internalStoreHooks[_store].length; k++) {
