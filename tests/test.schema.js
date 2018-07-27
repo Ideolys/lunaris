@@ -8,13 +8,12 @@ describe('Schema', () => {
       var _expectedTreeDescriptor = {
         compilation : {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : null,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['array']
             },
             objTrans : {},
@@ -24,23 +23,27 @@ describe('Schema', () => {
         }
       };
 
+      var _expectedDefaultValue = {
+        id : []
+      };
+
       var _objectDescriptor = {
         id : ['array']
       };
       var _computed = schema.analyzeDescriptor(_objectDescriptor);
       should(_computed.compilation).eql(_expectedTreeDescriptor.compilation);
+      should(_computed.defaultValue).eql(_expectedDefaultValue);
     });
 
     it('should analyze a descriptor and return a flat description of the array (array of object)', () => {
       var _expectedCompilationDescriptor = {
         main0 : {
-          arrChild     : [],
-          arrParents   : [],
-          objParent    : '',
-          name         : '',
-          type         : 'array',
-          defaultValue : [],
-          obj          : {
+          arrChild   : [],
+          arrParents : [],
+          objParent  : '',
+          name       : '',
+          type       : 'array',
+          obj        : {
             id : ['array']
           },
           objTrans : {
@@ -50,24 +53,30 @@ describe('Schema', () => {
           keys  : ['idMenu']
         }
       };
+
+      var _expectedDefaultValue = {
+        id : []
+      };
+
       // array of object
       var _objectDescriptor = [{
         id : ['array', '<<idMenu>>']
       }];
+
       var _computed = schema.analyzeDescriptor(_objectDescriptor);
       should(_computed.compilation).eql(_expectedCompilationDescriptor);
+      should(_computed.defaultValue).eql(_expectedDefaultValue);
     });
 
     it('should analyze a descriptor and return a flat description of the object and accept that an object has no descriptions', () => {
       var _expectedCompilationDescriptor = {
         main0 : {
-          arrChild     : [],
-          arrParents   : [],
-          objParent    : '',
-          name         : '',
-          type         : 'object',
-          defaultValue : null,
-          obj          : {
+          arrChild   : [],
+          arrParents : [],
+          objParent  : '',
+          name       : '',
+          type       : 'object',
+          obj        : {
             id : ['object']
           },
           objTrans : {},
@@ -76,23 +85,27 @@ describe('Schema', () => {
         }
       };
 
+      var _expectedDefaultValue = {
+        id : null
+      };
+
       var _objectDescriptor = {
         id : ['object']
       };
       var _computed = schema.analyzeDescriptor(_objectDescriptor);
       should(_computed.compilation).eql(_expectedCompilationDescriptor);
+      should(_computed.defaultValue).eql(_expectedDefaultValue);
     });
 
     it('should analyze a descriptor and return a flat description of the object and accept multtiple paramaters in the array descriptions', () => {
       var _expectedCompilationDescriptor = {
         main0 : {
-          arrChild     : [],
-          arrParents   : [],
-          objParent    : '',
-          name         : '',
-          type         : 'object',
-          defaultValue : null,
-          obj          : {
+          arrChild   : [],
+          arrParents : [],
+          objParent  : '',
+          name       : '',
+          type       : 'object',
+          obj        : {
             id : ['array', 'min', 1, 'max', 5]
           },
           objTrans : {},
@@ -101,24 +114,28 @@ describe('Schema', () => {
         }
       };
 
+      var _expectedDefaultValue = {
+        id : []
+      };
+
       var _objectDescriptor = {
         id : ['array', 'min', 1, 'max', 5]
       };
       var _computed = schema.analyzeDescriptor(_objectDescriptor);
       should(_computed.compilation).eql(_expectedCompilationDescriptor);
+      should(_computed.defaultValue).eql(_expectedDefaultValue);
     });
 
 
     it('should analyze a descriptor and return a flat description of the object and accept multtiple paramaters in the array descriptions', () => {
       var _expectedCompilationDescriptor = {
         main0 : {
-          arrChild     : ['obj1'],
-          arrParents   : [],
-          objParent    : '',
-          name         : '',
-          type         : 'object',
-          defaultValue : null,
-          obj          : {
+          arrChild   : ['obj1'],
+          arrParents : [],
+          objParent  : '',
+          name       : '',
+          type       : 'object',
+          obj        : {
             obj : ['array', 'min', 1, 'max', 5]
           },
           objTrans : {
@@ -128,13 +145,12 @@ describe('Schema', () => {
           keys  : []
         },
         obj1 : {
-          arrChild     : [],
-          arrParents   : [],
-          objParent    : 'main0',
-          name         : 'obj',
-          type         : 'array',
-          defaultValue : [],
-          obj          : {
+          arrChild   : [],
+          arrParents : [],
+          objParent  : 'main0',
+          name       : 'obj',
+          type       : 'array',
+          obj        : {
             test : ['int']
           },
           objTrans : {
@@ -144,6 +160,13 @@ describe('Schema', () => {
           keys  : ['idTest']
         }
       };
+
+      var _expectedDefaultValue = {
+        obj : [{
+          test : null
+        }]
+      };
+
       var _objectDescriptor = {
         obj : ['array', 'min', 1, 'max', 5, {
           test : ['int', '<<idTest>>']
@@ -151,6 +174,7 @@ describe('Schema', () => {
       };
       var _computed = schema.analyzeDescriptor(_objectDescriptor);
       should(_computed.compilation).eql(_expectedCompilationDescriptor);
+      should(_computed.defaultValue).eql(_expectedDefaultValue);
     });
 
     it('should not alter the original descriptor', () => {
@@ -178,13 +202,12 @@ describe('Schema', () => {
         },
         compilation : {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : null,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -197,6 +220,11 @@ describe('Schema', () => {
           }
         }
       };
+
+      var _expectedDefaultValue = {
+        obj : []
+      };
+
       var _objectDescriptor = {
         obj : ['array', 'min', 1, 'max', 5, 'onTransform', function () {
           return 1;
@@ -205,6 +233,7 @@ describe('Schema', () => {
       var _computed = schema.analyzeDescriptor(_objectDescriptor);
       should(_computed.onTransform.toString()).eql(_expectedTreeDescriptor.onTransform.toString());
       should(_computed.compilation).eql(_expectedTreeDescriptor.compilation);
+      should(_computed.defaultValue).eql(_expectedDefaultValue);
     });
 
     it('should analyze a descriptor and return a flat description of the object and consider transform functions instead of column names if both are defined', () => {
@@ -216,13 +245,12 @@ describe('Schema', () => {
         },
         compilation : {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : null,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -235,6 +263,11 @@ describe('Schema', () => {
           }
         }
       };
+
+      var _expectedDefaultValue = {
+        obj : []
+      };
+
       var _objectDescriptor = {
         obj : ['array', 'min', 1, 'max', 5, '<idMenu>', 'onTransform', function () {
           return 1;
@@ -243,19 +276,19 @@ describe('Schema', () => {
       var _computed = schema.analyzeDescriptor(_objectDescriptor);
       should(_computed.onTransform.toString()).eql(_expectedTreeDescriptor.onTransform.toString());
       should(_computed.compilation).eql(_expectedTreeDescriptor.compilation);
+      should(_computed.defaultValue).eql(_expectedDefaultValue);
     });
 
     it('should analyze a descriptor and return a flat description of the object and accept integer values on Transform', () => {
       var _expectedTreeDescriptor = {
         compilation : {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : null,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -280,13 +313,12 @@ describe('Schema', () => {
       var _expectedTreeDescriptor = {
         compilation : {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : null,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -311,13 +343,12 @@ describe('Schema', () => {
       var _expectedTreeDescriptor = {
         compilation : {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : null,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -351,13 +382,12 @@ describe('Schema', () => {
       var _expectedTreeDescriptor = {
         compilation : {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object', // TODO, strange?
-            defaultValue : null,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object', // TODO, strange?
+            obj        : {
               obj : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {
@@ -687,10 +717,28 @@ describe('Schema', () => {
           }]
         }]
       }]);
+
+      var _expectedDefaultValue = {
+        id    : null,
+        label : null,
+        obj   : {
+          dishes : [{
+            id    : null,
+            label : null
+          }],
+          meals : [{
+            id    : null,
+            label : null
+          }]
+        }
+      };
+
       should(_computed.compilation.main0.level).eql(0);
       should(_computed.compilation.obj1.level).eql(0);
       should(_computed.compilation.dishes2.level).eql(1);
       should(_computed.compilation.meals3.level).eql(1);
+
+      should(_computed.defaultValue).eql(_expectedDefaultValue);
     });
 
     it('should compute the level even in complexe cases', () => {
@@ -727,6 +775,41 @@ describe('Schema', () => {
           }]
         }]
       }]);
+
+      var _expectedDefaultValue = {
+        id    : null,
+        label : null,
+        obj   : {
+          dishes : [{
+            id      : null,
+            label   : null,
+            subDish : {
+              id      : null,
+              lunches : [{
+                id         : null,
+                breakfasts : [{
+                  id : null
+                }]
+              }],
+              cars : [{
+                id : null
+              }]
+            }
+          }],
+          info : {
+            subinfo : {
+              meals : [{
+                id    : null,
+                label : null
+              }],
+              diners : [{
+                id : null
+              }]
+            }
+          }
+        }
+      };
+
       // not very good because javascript does not guarantee object attribute order
       should(_computed.compilation.main0.level).eql(0);
       should(_computed.compilation.obj1.level).eql(0);
@@ -739,6 +822,8 @@ describe('Schema', () => {
       should(_computed.compilation.subinfo8.level).eql(0);
       should(_computed.compilation.meals9.level).eql(1);
       should(_computed.compilation.diners10.level).eql(1);
+
+      should(_computed.defaultValue).eql(_expectedDefaultValue);
     });
 
     it('should compute the columns which must be sorted for buidling json', () => {
@@ -829,13 +914,12 @@ describe('Schema', () => {
         onTransform : {},
         compilation : {
           main0 : {
-            arrChild     : ['countries1', 'cities2', 'goodies4'],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : null,
-            obj          : {
+            arrChild   : ['countries1', 'cities2', 'goodies4'],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id        : ['int'],
               continent : ['string'],
               countries : ['array']
@@ -849,13 +933,12 @@ describe('Schema', () => {
             keys  : []
           },
           countries1 : {
-            arrChild     : ['cities2', 'goodies4'],
-            arrParents   : [],
-            objParent    : 'main0',
-            name         : 'countries',
-            type         : 'array',
-            defaultValue : [],
-            obj          : {
+            arrChild   : ['cities2', 'goodies4'],
+            arrParents : [],
+            objParent  : 'main0',
+            name       : 'countries',
+            type       : 'array',
+            obj        : {
               id     : ['int'],
               name   : ['string'],
               cities : ['array']
@@ -869,13 +952,12 @@ describe('Schema', () => {
             keys  : ['idCountry']
           },
           cities2 : {
-            arrChild     : ['goodies4'],
-            arrParents   : ['countries1'],
-            objParent    : 'countries1',
-            name         : 'cities',
-            type         : 'array',
-            defaultValue : [],
-            obj          : {
+            arrChild   : ['goodies4'],
+            arrParents : ['countries1'],
+            objParent  : 'countries1',
+            name       : 'cities',
+            type       : 'array',
+            obj        : {
               id   : ['int'],
               name : ['string', 'onValidate', function () {
                 return 'test';
@@ -893,13 +975,12 @@ describe('Schema', () => {
             keys  : ['idCity']
           },
           info3 : {
-            arrChild     : ['goodies4'],
-            arrParents   : ['countries1', 'cities2'],
-            objParent    : 'cities2',
-            name         : 'info',
-            type         : 'object',
-            defaultValue : null,
-            obj          : {
+            arrChild   : ['goodies4'],
+            arrParents : ['countries1', 'cities2'],
+            objParent  : 'cities2',
+            name       : 'info',
+            type       : 'object',
+            obj        : {
               temperature : ['string'],
               language    : ['string'],
               goodies     : ['array']
@@ -913,13 +994,12 @@ describe('Schema', () => {
             keys  : []
           },
           goodies4 : {
-            arrChild     : [],
-            arrParents   : ['countries1', 'cities2'],
-            objParent    : 'info3',
-            name         : 'goodies',
-            type         : 'array',
-            defaultValue : [],
-            obj          : {
+            arrChild   : [],
+            arrParents : ['countries1', 'cities2'],
+            objParent  : 'info3',
+            name       : 'goodies',
+            type       : 'array',
+            obj        : {
               id   : ['int'],
               name : ['string'],
               info : ['object']
@@ -935,13 +1015,12 @@ describe('Schema', () => {
             keys  : ['idGoodies']
           },
           info5 : {
-            arrChild     : [],
-            arrParents   : ['countries1', 'cities2', 'goodies4'],
-            objParent    : 'goodies4',
-            name         : 'info',
-            type         : 'object',
-            defaultValue : null,
-            obj          : {
+            arrChild   : [],
+            arrParents : ['countries1', 'cities2', 'goodies4'],
+            objParent  : 'goodies4',
+            name       : 'info',
+            type       : 'object',
+            obj        : {
               temperature : ['string'],
               language    : ['string']
             },
@@ -952,6 +1031,30 @@ describe('Schema', () => {
             level : 3,
             keys  : []
           }
+        },
+        defaultValue : {
+          id        : null,
+          continent : null,
+          countries : [{
+            id     : null,
+            name   : null,
+            cities : [{
+              id   : null,
+              name : null,
+              info : {
+                temperature : '10',
+                language    : 'fr',
+                goodies     : [{
+                  id   : null,
+                  name : null,
+                  info : {
+                    temperature : '0',
+                    language    : 'en'
+                  }
+                }]
+              }
+            }]
+          }]
         }
       };
 
@@ -967,14 +1070,14 @@ describe('Schema', () => {
               return 'test';
             }],
             info : ['object', {
-              temperature : ['string', '<temperature>'],
-              language    : ['string', '<language>'],
+              temperature : ['string', '10', '<temperature>'],
+              language    : ['string', 'fr', '<language>'],
               goodies     : ['array', {
                 id   : ['int', '<<idGoodies>>'],
                 name : ['string', '<goodiesName>'],
                 info : ['object', {
-                  temperature : ['string', '<goodieTemperature>'],
-                  language    : ['string', '<goodieLanguage>']
+                  temperature : ['string', '0', '<goodieTemperature>'],
+                  language    : ['string', 'en', '<goodieLanguage>']
                 }]
               }]
             }]
@@ -982,6 +1085,7 @@ describe('Schema', () => {
         }]
       };
       var _computed = schema.analyzeDescriptor(_objectDescriptor);
+      should(_computed.defaultValue).eql(_expectedTreeDescriptor.defaultValue);
       should(JSON.stringify(_computed)).eql(JSON.stringify(_expectedTreeDescriptor));
       done();
     });
@@ -1026,9 +1130,8 @@ describe('Schema', () => {
               continent : 'continentName',
               countries : []
             },
-            level        : 0,
-            keys         : ['idContinent'],
-            defaultValue : []
+            level : 0,
+            keys  : ['idContinent'],
           },
           countries1 : {
             arrChild   : [],
@@ -1048,9 +1151,8 @@ describe('Schema', () => {
                 type : 'object'
               }
             },
-            level        : 1,
-            keys         : ['idCountry', 'goodieLanguage'],
-            defaultValue : []
+            level : 1,
+            keys  : ['idCountry', 'goodieLanguage'],
           },
           info2 : {
             arrChild   : [],
@@ -1066,10 +1168,21 @@ describe('Schema', () => {
               temperature : 'goodieTemperature',
               language    : 'goodieLanguage'
             },
-            level        : 1,
-            keys         : [],
-            defaultValue : null
+            level : 1,
+            keys  : [],
           }
+        },
+        defaultValue : {
+          id        : null,
+          continent : null,
+          countries : [{
+            id   : null,
+            name : null,
+            info : {
+              temperature : null,
+              language    : null,
+            }
+          }]
         }
       };
 
@@ -1094,13 +1207,12 @@ describe('Schema', () => {
       it('should find the default value : type', () => {
         var _expectedCompilationDescriptor = {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : 4,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['int']
             },
             objTrans : {},
@@ -1109,29 +1221,37 @@ describe('Schema', () => {
           }
         };
 
+        var _expectedDefaultValue = {
+          id : 4
+        };
+
         var _objectDescriptor = {
           id : ['int', 4]
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
+        should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
 
       it('should find the default value : before onValidate', () => {
         var _expectedCompilationDescriptor = {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : 4,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['int', 'onValidate', () => {}]
             },
             objTrans : {},
             level    : 0,
             keys     : []
           }
+        };
+
+        var _expectedDefaultValue = {
+          id : 4
         };
 
         var _objectDescriptor = {
@@ -1139,18 +1259,18 @@ describe('Schema', () => {
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
+        should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
 
       it('should find the default value : after onValidate', () => {
         var _expectedCompilationDescriptor = {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : 4,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['int', 'onValidate', () => {}]
             },
             objTrans : {},
@@ -1159,23 +1279,27 @@ describe('Schema', () => {
           }
         };
 
+        var _expectedDefaultValue = {
+          id : 4
+        };
+
         var _objectDescriptor = {
           id : ['int', 'onValidate', () => {}, 4]
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
+        should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
 
       it('should find the default value : before onTransform', () => {
         var _expectedCompilationDescriptor = {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : 'cat',
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['string']
             },
             objTrans : {
@@ -1186,6 +1310,10 @@ describe('Schema', () => {
             level : 0,
             keys  : []
           }
+        };
+
+        var _expectedDefaultValue = {
+          id : 'cat'
         };
 
         var _objectDescriptor = {
@@ -1193,18 +1321,18 @@ describe('Schema', () => {
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
+        should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
 
       it('should find the default value : after onTransform', () => {
         var _expectedCompilationDescriptor = {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : 'cat',
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['string']
             },
             objTrans : {
@@ -1217,30 +1345,38 @@ describe('Schema', () => {
           }
         };
 
+        var _expectedDefaultValue = {
+          id : 'cat'
+        };
+
         var _objectDescriptor = {
           id : ['string', 'onTransform', function () { return 1 + 2; }, 'cat']
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
+        should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
 
 
       it('should find the default value : after min / max', () => {
         var _expectedCompilationDescriptor = {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : 2,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {},
             level    : 0,
             keys     : []
           }
+        };
+
+        var _expectedDefaultValue = {
+          id : 2
         };
 
         var _objectDescriptor = {
@@ -1248,18 +1384,18 @@ describe('Schema', () => {
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
+        should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
 
       it('should find the default value : before min / max', () => {
         var _expectedCompilationDescriptor = {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : 4,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['array', 'min', 1, 'max', 5]
             },
             objTrans : {},
@@ -1268,23 +1404,27 @@ describe('Schema', () => {
           }
         };
 
+        var _expectedDefaultValue = {
+          id : 4
+        };
+
         var _objectDescriptor = {
           id : ['array', 4, 'min', 1, 'max', 5]
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
+        should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
 
       it('should find the default value : toNumber', () => {
         var _expectedCompilationDescriptor = {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : 4,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['array', 'toNumber', 'min', 1, 'max', 5]
             },
             objTrans : {},
@@ -1293,23 +1433,27 @@ describe('Schema', () => {
           }
         };
 
+        var _expectedDefaultValue = {
+          id : 4
+        };
+
         var _objectDescriptor = {
           id : ['array', 'toNumber', 4, 'min', 1, 'max', 5]
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
+        should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
 
       it('should find the default value : toInt', () => {
         var _expectedCompilationDescriptor = {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : 4,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['array', 'toInt', 'min', 1, 'max', 5]
             },
             objTrans : {},
@@ -1318,23 +1462,27 @@ describe('Schema', () => {
           }
         };
 
+        var _expectedDefaultValue = {
+          id : 4
+        };
+
         var _objectDescriptor = {
           id : ['array', 'toInt', 4, 'min', 1, 'max', 5]
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
+        should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
 
       it('should find the default value : toBoolean', () => {
         var _expectedCompilationDescriptor = {
           main0 : {
-            arrChild     : [],
-            arrParents   : [],
-            objParent    : '',
-            name         : '',
-            type         : 'object',
-            defaultValue : 4,
-            obj          : {
+            arrChild   : [],
+            arrParents : [],
+            objParent  : '',
+            name       : '',
+            type       : 'object',
+            obj        : {
               id : ['array', 'toBoolean', 'min', 1, 'max', 5]
             },
             objTrans : {},
@@ -1342,12 +1490,16 @@ describe('Schema', () => {
             keys     : []
           }
         };
+        var _expectedDefaultValue = {
+          id : 4
+        };
 
         var _objectDescriptor = {
           id : ['array', 'toBoolean', 4, 'min', 1, 'max', 5]
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
+        should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
     });
 
