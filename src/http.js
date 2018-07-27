@@ -20,6 +20,12 @@ function request (method, request, body, callback) {
     if (response.status !== 200) {
       return Promise.reject({ error : response.status, message : response.statusText });
     }
+
+    // Redirection
+    if (response.url !== window.origin + request) {
+      window.location = response.url;
+    }
+
     return response.json();
   }).then(function (json) {
     if (json.success === false) {
