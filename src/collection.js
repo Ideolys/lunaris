@@ -279,17 +279,17 @@ function collection (startId) {
     /**
      * Get current id
      */
-    getCurrentId :  function () {
+    getCurrentId : function () {
       return _currentId;
     },
 
     /**
      * Get current version number
      */
-    getCurrentVersionNumber :  function () {
+    getCurrentVersionNumber : function () {
       return currentVersionNumber;
     }
-  }
+  };
 }
 
 /**

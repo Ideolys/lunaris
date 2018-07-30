@@ -8,6 +8,8 @@ const fetch        = require('node-fetch');
 const compression  = require('compression');
 const dayjs        = require('dayjs');
 
+const window = {};
+
 const port    = 4040;
 
 var lastError = [];
@@ -874,6 +876,20 @@ describe('lunaris store', () => {
       lunaris.get('@store');
     });
 
+    it('should throw an error', done => {
+      var _store               = _initStore('pagination', { id : ['int'] });
+      lunaris._stores['pagination'] = _store;
+
+      lunaris.get('@pagination');
+
+      setTimeout(() => {
+        should(lastError.length).eql(2);
+        should(lastError[0]).eql('[Lunaris warn] lunaris.get@pagination');
+        should(lastError[1]).eql(new Error('The store "pagination" is an object store. The GET method cannot return multiple elements!'));
+        done();
+      }, 200);
+    });
+
     it('should add the error into lunarisErrors store', done => {
       var _store               = _initStore('store');
       lunaris._stores['store'] = _store;
@@ -1631,6 +1647,7 @@ function _initStore (name, map) {
   _store.map                   = map;
   _store.meta                  = storeMap.analyzeDescriptor(map);
   _store.validateFn            = validateMap.buildValidateFunction(_store.meta.compilation);
+  _store.isStoreObject         = !map ? false : Array.isArray(map) ? false : true;
   return _store;
 }
 

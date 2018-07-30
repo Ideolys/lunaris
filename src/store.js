@@ -561,6 +561,13 @@ function get (store, primaryKeyValue, retryOptions) {
 
       var _version = _collection.begin();
       if (Array.isArray(data)) {
+        if (_store.isStoreObject) {
+          return logger.warn(
+            ['lunaris.get' + store],
+            new Error('The store "' + _store.name + '" is an object store. The GET method cannot return multiple elements!')
+          );
+        }
+
         for (var i = 0; i < data.length; i++) {
           _collection.upsert(data[i], _version);
         }
