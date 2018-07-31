@@ -1108,6 +1108,42 @@ describe('lunaris store', () => {
       lunaris.get('@store1');
     });
 
+    it('should get null if the store is object and it has no value', done => {
+      var _store                        = _initStore('store1', { id : ['<<int>>'] });
+      lunaris._stores['store1']         = _store;
+      lunaris._stores['store1'].isLocal = true;
+      lunaris._stores['store1'].data.add({ id : 1});
+
+      lunaris.hook('get@store1', items => {
+        should(items).be.an.Object();
+        should(items).eql({_id : 1, id : 1, _version : [1]});
+        done();
+      });
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.get('@store1');
+    });
+
+    it('should get a value if the store is object', done => {
+      var _store                        = _initStore('store1', { id : ['<<int>>'] });
+      lunaris._stores['store1']         = _store;
+      lunaris._stores['store1'].isLocal = true;
+
+      lunaris.hook('get@store1', items => {
+        should(items).eql(null);
+        done();
+      });
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.get('@store1');
+    });
+
     it('should fire the errorHttp event : HTTP error', done => {
       var _store               = _initStore('store');
       lunaris._stores['store'] = _store;
