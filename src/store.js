@@ -39,13 +39,13 @@ function _getCollection (store) {
  * Get primary key value for update and delete
  * @param {Object} store
  * @param {Object} value
- * @param {Boolean} isInsert
+ * @param {Boolean} isInsertOrMassiveUpdate
  * @returns {String}
  */
-function _getPrimaryKeyValue (store, value, isInsert) {
+function _getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
   var _id = null;
 
-  if (isInsert) {
+  if (isInsertOrMassiveUpdate) {
     return _id;
   }
   if (!store.primaryKey) {
@@ -302,7 +302,7 @@ function _getSuccess (message, store, method, isPlural) {
 /**
  * Upsert a value in a store
  * @param {Object} store
- * @param {*} value
+ * @param {Array/Object} value
  * @param {Boolean} isLocal
  * @param {Boolean} isUpdate
  * @param {Object} retryOptions
@@ -314,13 +314,33 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
     value = utils.clone(value);
   }
 
+  var _isMultipleItems = Array.isArray(value);
   var _version;
+  var _ids = [];
   if (!retryOptions) {
     _version = _collection.begin();
-    _collection.upsert(value, _version);
+
+    if (_isMultipleItems) {
+      for (var i = 0; i < value.length; i++) {
+        _collection.upsert(value[i], _version);
+        _ids.push(value[i]._id);
+      }
+    }
+    else {
+      _collection.upsert(value, _version);
+    }
+
     value = _collection.commit(_version);
-    value = value[0];
-    hook.pushToHandlers(store, isUpdate ? 'update' : 'insert', utils.freeze(utils.clone(value)));
+
+    for (var k = 0; k < value.length; k++) {
+      value[k] = utils.freeze(utils.clone(value[k]));
+    }
+
+    if (!_isMultipleItems) {
+      value = value[0];
+    }
+
+    hook.pushToHandlers(store, isUpdate ? 'update' : 'insert', value, _isMultipleItems);
   }
   else {
     _version = retryOptions.version;
@@ -334,11 +354,12 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
   var _request = '/';
 
   if (!retryOptions) {
-    _request = _createUrl(store, _method, _getPrimaryKeyValue(store, value, !isUpdate));
+    _request = _createUrl(store, _method, _getPrimaryKeyValue(store, value, !isUpdate || (isUpdate && _isMultipleItems)));
   }
   else {
     _request = retryOptions.url;
   }
+
   http.request(_method, _request, value, function (err, data) {
     if (err) {
       var _error = _getError(err, store, _method, false);
@@ -356,9 +377,43 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       return hook.pushToHandlers(store, 'errorHttp', [_error, value]);
     }
 
-    value = Object.assign(data, value);
-    _collection.upsert(value);
-    value = utils.freeze(utils.clone(value));
+    var _isEvent = true;
+    if (Array.isArray(data)) {
+      if (store.isStoreObject) {
+        throw new Error('The store "' + store.name + '" is a store object. The ' + _method + ' method tries to ' + (isUpdate ? 'update' : 'insert') + ' multiple elements!');
+      }
+
+      _version = _collection.begin();
+      for (i = 0; i < value.length; i++) {
+        for (var j = 0; j < data.length; j++) {
+          if (value[i]._id === data[j]._id) {
+            value[i] = Object.assign(data[j], value[i]);
+            _collection.upsert(value[i], _version);
+          }
+        }
+      }
+      value = _collection.commit(_version);
+
+      for (var k = 0; k < value.length; k++) {
+        value[k] = utils.freeze(utils.clone(value[k]));
+      }
+    }
+    else {
+      value = Object.assign(data, value);
+      value = _collection.upsert(value);
+      // the value must have been deleted
+      if (value) {
+        value = utils.freeze(utils.clone(value));
+      }
+      else {
+        _isEvent = false;
+      }
+    }
+
+    if (!_isEvent) {
+      return;
+    }
+
     hook.pushToHandlers(store, isUpdate ? 'update'  : 'insert'  , value);
     hook.pushToHandlers(store, isUpdate ? 'updated' : 'inserted', [
       value,
@@ -391,11 +446,25 @@ function upsert (store, value, isLocal, retryOptions) {
     }
 
     _checkArgs(store, value);
-    _isUpdate       = !retryOptions ? !!value._id : (retryOptions.method === 'POST' ? false : true);
-    var _store      = _getStore(store);
+    if ((Array.isArray(value) && value[0]._id) || value._id) {
+      _isUpdate = true;
+    }
+    if (retryOptions && retryOptions.method === 'POST') {
+      _isUpdate = false;
+    }
+
+    var _store = _getStore(store);
 
     if (_store.validateFn) {
-      return _store.validateFn([value], _store.meta.onValidate, (err) => {
+      var _valueToValidate = value;
+      if (_store.isStoreObject && Array.isArray(value)) {
+        throw new Error('The store "' + store.name + '" is a store object, you cannot add or update multiple elements!');
+      }
+      if (!_store.isStoreObject && !Array.isArray(value)) {
+        _valueToValidate = [value];
+      }
+
+      return _store.validateFn(_valueToValidate, _store.meta.onValidate, function (err) {
         if (err.length) {
           for (var i = 0; i < err.length; i++) {
             logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store + ' Error when validating data'], err[i]);
@@ -462,7 +531,6 @@ function deleteStore (store, value, retryOptions) {
     }
     http.request('DELETE', _request, null, function (err, data) {
       if (err) {
-        logger.warn(['lunaris.delete' + store], err);
         var _error = _getError(err, _store, 'DELETE', false);
         upsert('@lunarisErrors', {
           version            : _version,
@@ -530,7 +598,12 @@ function get (store, primaryKeyValue, retryOptions) {
     var _collection = _getCollection(_store);
 
     if (_store.isLocal) {
-      return hook.pushToHandlers(_store, 'get', _collection.getAll(), true);
+      var _collectionValues = _collection.getAll();
+      if (_store.isStoreObject) {
+        return hook.pushToHandlers(_store, 'get', (_collectionValues[0] || null));
+      }
+
+      return hook.pushToHandlers(_store, 'get', _collectionValues, true);
     }
 
     var _request = '/';

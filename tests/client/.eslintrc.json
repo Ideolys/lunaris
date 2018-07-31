@@ -1,0 +1,14 @@
+{
+  "env": {
+    "browser" : true,
+    "es6"     : true,
+    "node"    : false,
+    "mocha"   : true
+  },
+  "globals" : {
+    "should"  : true,
+    "lunaris" : true,
+    "Vue"     : true,
+    "module"  : true
+  }
+}

@@ -11,7 +11,7 @@ lunaris._vue = {
        * @param {String} store
        */
       function _successHttp (_this) {
-        return function (data, message) {
+        return function successHttp (data, message) {
           if (!message) {
             return;
           }
@@ -29,7 +29,7 @@ lunaris._vue = {
        * @param {String} store
        */
       function _errorHttp (_this) {
-        return function (err) {
+        return function errorHttp (err) {
           lunaris._vue._vm.$data.nbSnackbars++;
           if (lunaris._vue._vm.$data.nbSnackbars > 1) {
             return;
@@ -57,7 +57,7 @@ lunaris._vue = {
       for (var i = 0; i < _stores.length; i++) {
         // must be done in order to be reactive
         // https://fr.vuejs.org/v2/guide/list.html#Limitations
-        this.$set(this.$data.$stores, _stores[i], { silent : true, state : [] });
+        this.$set(this.$data.$stores, _stores[i], { silent : true, isStoreObject : lunaris._stores[_stores[i]].isStoreObject, state : lunaris._stores[_stores[i]].isStoreObject ? {} : [] });
 
         if (_stores[i].name !== 'lunarisErrors') {
           lunaris.hook.apply(null, ['inserted@'  + _stores[i], _successFn]);
@@ -88,12 +88,13 @@ lunaris._vue = {
      * @param {String} store
      */
     function _get (store) {
-      return function (items) {
-        if (!Array.isArray(items)) {
-          return;
+      return function get (items) {
+        var _storeObj = lunaris._vue._vm.$data.$stores[store];
+
+        if (_storeObj.isStoreObject) {
+          return _storeObj.state = items;
         }
 
-        var _storeObj = lunaris._vue._vm.$data.$stores[store];
         for (var i = 0; i < items.length; i++) {
           _storeObj.state.push(lunaris.clone(items[i]));
         }
@@ -105,8 +106,15 @@ lunaris._vue = {
      * @param {String} store
      */
     function _reset (store) {
-      return function () {
-        lunaris._vue._vm.$data.$stores[store].state.splice(0);
+      return function reset () {
+        var _storeObj = lunaris._vue._vm.$data.$stores[store];
+        if (_storeObj.isStoreObject) {
+          _storeObj.state = null;
+        }
+        else {
+          _storeObj.state.splice(0);
+        }
+
         lunaris.get('@' + store);
       };
     }
@@ -116,8 +124,20 @@ lunaris._vue = {
      * @param {String} store
      */
     function _insert (store) {
-      return function (item) {
-        lunaris._vue._vm.$data.$stores[store].state.push(lunaris.clone(item));
+      return function insert (items) {
+        var _storeObj = lunaris._vue._vm.$data.$stores[store];
+
+        if (_storeObj.isStoreObject) {
+          return _storeObj.state = items;
+        }
+
+        if (!Array.isArray(items)) {
+          return _storeObj.state.push(items);
+        }
+
+        for (var i = 0; i < items.length; i++) {
+          _storeObj.state.push(items[i]);
+        }
       };
     }
 
@@ -126,15 +146,33 @@ lunaris._vue = {
      * @param {String} store
      */
     function _update (store) {
-      return function (item) {
-        var _state = lunaris._vue._vm.$data.$stores[store].state;
-        for (var j = 0; j < _state.length; j++) {
-          if (_state[j]._id === item._id) {
-            _state.splice(j, 1, lunaris.clone(item));
-          }
+      return function update (items) {
+        var _storeObj = lunaris._vue._vm.$data.$stores[store];
+        if (_storeObj.isStoreObject) {
+          return _storeObj.state = items;
         }
 
-        lunaris._vue._vm.$data.$stores[store].state.push(lunaris.clone(item));
+        if (!Array.isArray(items)) {
+          items = [items];
+        }
+
+        var _state        = _storeObj.state;
+        var _hasBeenFound = false;
+        for (var i = 0; i < items.length; i++) {
+          for (var j = 0; j < _state.length; j++) {
+            if (_state[j]._id === items[i]._id) {
+              _state.splice(j, 1, items[i]);
+              _hasBeenFound = true;
+              break;
+            }
+          }
+
+          if (!_hasBeenFound) {
+            _state.push(items[i]);
+          }
+
+          _hasBeenFound = false;
+        }
       };
     }
 
@@ -143,8 +181,13 @@ lunaris._vue = {
      * @param {String} store
      */
     function _delete (store) {
-      return function (item) {
-        var _state = lunaris._vue._vm.$data.$stores[store].state;
+      return function deleteItem (item) {
+        var _storeObj = lunaris._vue._vm.$data.$stores[store];
+        if (_storeObj.isStoreObject) {
+          return _storeObj.state = null;
+        }
+
+        var _state = _storeObj.state;
         for (var j = 0; j < _state.length; j++) {
           if (_state[j]._id === item._id) {
             _state.splice(j, 1);
@@ -177,7 +220,13 @@ lunaris._vue = {
         }
 
         // re-initialize current store
-        lunaris._vue._vm.$data.$stores[_store].state.splice(0);
+        if (Array.isArray(lunaris._vue._vm.$data.$stores[_store].state)) {
+          lunaris._vue._vm.$data.$stores[_store].state.splice(0);
+        }
+        else {
+          lunaris._vue._vm.$data.$stores[_store].state = null;
+        }
+
         if (lunaris._stores[_store]) {
           lunaris._stores[_store].paginationCurrentPage = 1;
           lunaris._stores[_store].paginationOffset      = 0;

@@ -102,17 +102,11 @@ describe('lunaris store', () => {
 
       lunaris.hook('insert@store1', updatedValue => {
         if (_isFirstInsertEvent) {
-          should(updatedValue).eql(_expectedValue)
+          should(updatedValue).eql(_expectedValue);
           should(Object.isFrozen(updatedValue)).eql(true);
           return _isFirstInsertEvent = false;
         }
 
-        should(_store.data.get(1)).eql(Object.assign(_expectedValue, {
-          body     : { _id : 1, id : 2, label : 'A', _version : [ 1 ] },
-          query    : {},
-          params   : {},
-          _version : [2]
-        }));
         _isUpdateHook = true;
       });
 
@@ -122,7 +116,7 @@ describe('lunaris store', () => {
           body     : { _id : 1, id : 2, label : 'A', _version : [ 1 ] },
           query    : {},
           params   : {},
-          _version : [1, 2]
+          _version : [2]
         }));
         should(message).eql('${the} store1 has been successfully ${created}');
 
@@ -248,13 +242,6 @@ describe('lunaris store', () => {
           _isFirstUpdateEvent = false;
           return;
         }
-
-        should(_store.data.get(1)).eql(Object.assign(_expectedValue, {
-          body     : { _id : 1, id : 1, label : 'B', _version : [ 2 ] },
-          query    : {},
-          params   : { id : '1' },
-          _version : [4]
-        }));
       });
 
       lunaris.hook('updated@store1', (data, message) => {
@@ -263,7 +250,7 @@ describe('lunaris store', () => {
           body     : { _id : 1, id : 1, label : 'B', _version : [ 2 ] },
           query    : {},
           params   : { id : '1' },
-          _version : [2, 3]
+          _version : [4]
         }));
 
         should(message).eql('${the} store1 has been successfully ${edited}');
@@ -589,6 +576,266 @@ describe('lunaris store', () => {
       });
 
       lunaris.insert('@store1', { id : 1, label : 'A' });
+    });
+  });
+
+  describe('mass insert() / update()', () => {
+
+    it('should insert the values', () => {
+      var _store = _initStore('mass');
+      lunaris._stores['mass'] = _store;
+      lunaris.insert('@mass', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ]);
+
+      should(_store.data._getAll()).eql([
+        { _id : 1, id : 1, label : 'A', _version : [1] },
+        { _id : 2, id : 2, label : 'B', _version : [1] }
+      ]);
+    });
+
+    it('should insert the value and execute the hooks : insert & inserted', done => {
+      var _isFirstInsertEvent                   = true;
+      var _isUpdateHook                         = false;
+      var _isUpdatedHook                        = false;
+      var _store                                = _initStore('mass');
+      lunaris._stores['mass']                 = _store;
+      lunaris._stores['mass'].primaryKey      = 'id';
+      lunaris._stores['mass'].successTemplate = '$pronounMale $storeName has been successfully $method';
+
+      lunaris.hook('insert@mass', updatedValue => {
+        if (_isFirstInsertEvent) {
+          should(updatedValue).be.an.Array();
+          should(updatedValue).eql([
+            { _id : 1, id : 1, label : 'A', _version : [1] },
+            { _id : 2, id : 2, label : 'B', _version : [1] }
+          ]);
+
+          for (var i = 0; i < updatedValue.length; i++) {
+            should(Object.isFrozen(updatedValue[i])).eql(true);
+          }
+          return _isFirstInsertEvent = false;
+        }
+
+        _isUpdateHook = true;
+      });
+
+      lunaris.hook('inserted@mass', (data, message) => {
+        _isUpdatedHook = true;
+        should(data).be.an.Array();
+        should(data).eql([
+          { _id : 1, id : 1, label : 'A', post : true, _version : [2] },
+          { _id : 2, id : 2, label : 'B', post : true, _version : [2] }
+        ]);
+
+        for (var i = 0; i < data.length; i++) {
+          should(Object.isFrozen(data[i])).eql(true);
+        }
+        should(message).eql('${the} mass has been successfully ${created}');
+
+        if (_isUpdateHook && _isUpdatedHook) {
+          done();
+        }
+      });
+
+      lunaris.hook('errorHttp@mass', (err) => {
+        done(err);
+      });
+
+
+      lunaris.insert('@mass', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ]);
+    });
+
+    it('should fire an error for insert', done => {
+      var _store                                      = _initStore('store_insert_post');
+      lunaris._stores['store_insert_post']            = _store;
+      lunaris._stores['store_insert_post'].primaryKey = 'id';
+
+      lunaris.hook('errorHttp@store_insert_post', err => {
+        should(lastError.length).eql(2);
+        should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post');
+        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(err).eql('404 : Not Found');
+        done();
+      });
+
+      lunaris.insert('@store_insert_post', [{ id : 2, label : 'A' }, { id : 3, label : 'B' }]);
+    });
+
+    it('should add the error into lunarisErrors store : insert', done => {
+      var _store                           = _initStore('store_insert_post');
+      lunaris._stores['store_insert_post']            = _store;
+      lunaris._stores['store_insert_post'].primaryKey = 'id';
+
+      lunaris.hook('errorHttp@store_insert_post', () => {
+        var _values = lunaris._stores.lunarisErrors.data.getAll();
+        should(_values).have.lengthOf(1);
+        delete _values[0].date;
+        should(_values[0]).eql({
+          _id                : 1,
+          _version           : [2],
+          version            : 1,
+          data               : [{ _id : 1, id : 1, label : 'A', _version : [1] }, { _id : 2, id : 2, label : 'B', _version : [1] }],
+          url                : '/store_insert_post',
+          method             : 'POST',
+          storeName          : 'store_insert_post',
+          messageError       : '404 : Not Found',
+          messageErrorServer : { error : 404, message : 'Not Found'},
+        });
+        done();
+      });
+
+      lunaris.insert('@store_insert_post', [{ id : 1, label : 'A' }, { id : 2, label : 'B' }]);
+    });
+
+    it('should fire an error for insert if the the validation failed', () => {
+      var _store                                      = _initStore('store_insert_post', [{ id : ['<<int>>'], label : ['string'] }]);
+      lunaris._stores['store_insert_post']            = _store;
+      lunaris._stores['store_insert_post'].primaryKey = 'id';
+
+      lunaris.insert('@store_insert_post', [{ id : 2, label : '1' }, { id : 3, label : 1 }]);
+
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post Error when validating data');
+      should(lastError[1]).eql({ error : 'must be a string', field : 'label', value : 1});
+    });
+
+    it('should update a value', () => {
+      var _store = _initStore('mass');
+      lunaris._stores['mass'] = _store;
+      lunaris.insert('@mass', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ]);
+      lunaris.update('@mass', [
+        { _id : 1, id : 1, label : 'A-1' },
+        { _id : 2, id : 2, label : 'B-1' }
+      ]);
+      should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A-1', _version : [2] });
+      should(_store.data.get(2)).eql({ _id : 2, id : 2, label : 'B-1', _version : [2] });
+    });
+
+    it('should update the value and execute the hooks : update and updated', done => {
+      var _isFirstUpdateEvent = true;
+      var _isUpdateHook       = false;
+      var _isUpdatedHook      = false;
+      var _store              = _initStore('mass');
+      lunaris._stores['mass'] = _store;
+      lunaris._stores['mass'].successTemplate = '$pronounMale $storeName has been successfully $method';
+
+      lunaris.hook('update@mass', updatedValue => {
+        _isUpdateHook = true;
+        if (_isFirstUpdateEvent) {
+          should(updatedValue).be.an.Array();
+          should(updatedValue).eql([
+            { _id : 1, id : 1, label : 'A-1', _version : [2] },
+            { _id : 2, id : 2, label : 'B-1', _version : [2] }
+          ]);
+
+          for (var i = 0; i < updatedValue.length; i++) {
+            should(Object.isFrozen(updatedValue[i])).eql(true);
+          }
+          _isFirstUpdateEvent = false;
+          return;
+        }
+      });
+
+      lunaris.hook('updated@mass', (data, message) => {
+        _isUpdatedHook = true;
+        should(data).eql([
+          { _id : 1, id : 1, label : 'A-1', put : true, _version : [4] },
+          { _id : 2, id : 2, label : 'B-1', put : true, _version : [4] }
+        ]);
+
+        should(message).eql('${the} mass has been successfully ${edited}');
+
+        if (_isUpdateHook && _isUpdatedHook) {
+          done();
+        }
+      });
+
+      lunaris.hook('errorHttp@mass', (err) => {
+        done(err);
+      });
+
+      lunaris.insert('@mass', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ]);
+      lunaris.update('@mass', [
+        { _id : 1, id : 1, label : 'A-1' },
+        { _id : 2, id : 2, label : 'B-1' }
+      ]);
+    });
+
+    it('should insert a value and fire an error for update', done => {
+      var _store                                     = _initStore('store_insert_put');
+      lunaris._stores['store_insert_put']            = _store;
+      lunaris._stores['store_insert_put'].primaryKey = 'id';
+
+      lunaris.hook('inserted@store_insert_put', () => {
+        lunaris.update('@store_insert_put', [{ _id : 1, id : 1, label : '1' }, { _id : 2, id : 2, label : '2' }]);
+      });
+
+      lunaris.hook('errorHttp@store_insert_put', err => {
+        should(lastError.length).eql(2);
+        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put');
+        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(err).eql('404 : Not Found');
+        done();
+      });
+
+      lunaris.insert('@store_insert_put', [{ id : 1 }, { id : 2 }]);
+    });
+
+    it('should insert a value and fire an error for update when validating', done => {
+      var _store                                     = _initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
+      lunaris._stores['store_insert_put']            = _store;
+      lunaris._stores['store_insert_put'].primaryKey = 'id';
+
+      lunaris.hook('inserted@store_insert_put', () => {
+        lunaris.update('@store_insert_put', [{ _id : 1, id : 1, label : '1' }, { _id : 2, id : 2, label : 2 }]);
+        should(lastError.length).eql(2);
+        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put Error when validating data');
+        should(lastError[1]).eql({ error : 'must be a string', field : 'label', value : 2});
+        done();
+      });
+
+      lunaris.insert('@store_insert_put', [{ id : 1, label : '' }, { id : 2, label : '' }]);
+    });
+
+    it('should insert a value and add an error into lunarisErrors store : update', done => {
+      var _store                                     = _initStore('store_insert_put');
+      lunaris._stores['store_insert_put']            = _store;
+      lunaris._stores['store_insert_put'].primaryKey = 'id';
+
+      lunaris.hook('inserted@store_insert_put', () => {
+        lunaris.update('@store_insert_put', [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]);
+      });
+
+      lunaris.hook('errorHttp@store_insert_put', () => {
+        var _values = lunaris._stores.lunarisErrors.data.getAll();
+        should(_values).have.lengthOf(1);
+        delete _values[0].date;
+        should(_values[0]).eql({
+          _id                : 1,
+          _version           : [4],
+          version            : 3,
+          data               : [{ _id : 1, id : 1, label : 'A', _version : [3] }, { _id : 2, id : 2, label : 'B', _version : [3] }],
+          url                : '/store_insert_put',
+          method             : 'PUT',
+          storeName          : 'store_insert_put',
+          messageError       : '404 : Not Found',
+          messageErrorServer : { error : 404, message : 'Not Found'},
+        });
+        done();
+      });
+
+      lunaris.insert('@store_insert_put', [{ id : 1 }, { id : 2 }]);
     });
   });
 
@@ -1647,7 +1894,7 @@ function _initStore (name, map) {
   _store.map                   = map;
   _store.meta                  = storeMap.analyzeDescriptor(map);
   _store.validateFn            = validateMap.buildValidateFunction(_store.meta.compilation);
-  _store.isStoreObject         = !map ? false : Array.isArray(map) ? false : true;
+  _store.isStoreObject         = !map ? false : !Array.isArray(map) ? true : false;
   return _store;
 }
 
@@ -1753,6 +2000,21 @@ function _startServer (callback) {
   server.delete('/store1/:id'          , _postPutDelHandler);
   server.post('/store1/site/:idSite'   , _postPutDelHandler);
   server.put('/store1/:id/site/:idSite', _postPutDelHandler);
+
+  server.post('/mass', (req, res) => {
+    req.body.reverse();
+    for (var i = 0; i < req.body.length; i++) {
+      req.body[i].post = true;
+    }
+    res.json({ success : true, error : null, message : null, data : req.body });
+  });
+  server.put('/mass', (req, res) => {
+    req.body.reverse();
+    for (var i = 0; i < req.body.length; i++) {
+      req.body[i].put = true;
+    }
+    res.json({ success : true, error : null, message : null, data : req.body });
+  });
 
   server = server.listen(port, callback);
 }

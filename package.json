@@ -25,12 +25,16 @@
     "eslint": "^5.2.0",
     "eslint-plugin-json": "^1.2.0",
     "express": "^4.16.3",
+    "karma": "^2.0.5",
+    "karma-mocha": "^1.3.0",
+    "karma-should": "^1.0.0",
     "mocha": "^5.2.0",
     "node-fetch": "^2.1.2",
     "should": "^13.2.1"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha ./tests/test*.js -w"
+    "test": "./node_modules/.bin/mocha ./tests/test*.js -w",
+    "test-client": "node tests/client/build && ./node_modules/.bin/karma start karma.conf.js"
   },
   "repository": {
     "type": "git",
