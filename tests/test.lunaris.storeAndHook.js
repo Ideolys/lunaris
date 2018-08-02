@@ -697,7 +697,7 @@ describe('lunaris store', () => {
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
-      lunaris.insert('@store_insert_post', [{ id : 2, label : '1' }, { id : 3, label : 1 }]);
+      lunaris.insert('@store_insert_post', [{ id : null, label : '1' }, { id : null, label : 1 }]);
 
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post Error when validating data');
@@ -802,6 +802,22 @@ describe('lunaris store', () => {
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put Error when validating data');
         should(lastError[1]).eql({ error : 'must be a string', field : 'label', value : 2});
+        done();
+      });
+
+      lunaris.insert('@store_insert_put', [{ id : 1, label : '' }, { id : 2, label : '' }]);
+    });
+
+    it('should insert a value and fire an error for update when validating (ids)', done => {
+      var _store                                     = _initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
+      lunaris._stores['store_insert_put']            = _store;
+      lunaris._stores['store_insert_put'].primaryKey = 'id';
+
+      lunaris.hook('inserted@store_insert_put', () => {
+        lunaris.update('@store_insert_put', [{ _id : 1, id : 1, label : '1' }, { _id : 2, id : null, label : '2' }]);
+        should(lastError.length).eql(2);
+        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put Error when validating data');
+        should(lastError[1]).eql({ error : 'must be an integer', field : 'id', value : null});
         done();
       });
 

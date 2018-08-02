@@ -474,9 +474,29 @@ describe('Validate', () => {
             continent : 'england'
           }
           ];
-          var _expectedResult = [{ value : 'bullshit', field : 'id', error : 'must be an integer' }];
+          var _expectedResult     = [{ value : 'bullshit', field : 'id', error : 'must be an integer' }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
-          var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
+          console.log(validate.buildValidateFunction(_analyzedDescriptor.compilation).toString());
+          var _computedResult     = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck, null, true);
+          should(_computedResult).eql(_expectedResult);
+        });
+
+        it('should validate array with 2 objects and do not validate keys', () => {
+          var _objectDescriptor = [{
+            id        : ['<<int>>'],
+            continent : ['string']
+          }];
+          var _objectToCheck = [{
+            id        : 1,
+            continent : 'france'
+          },{
+            id        : 'bullshit',
+            continent : 'england'
+          }
+          ];
+          var _expectedResult     = [];
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _computedResult     = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck, null, false);
           should(_computedResult).eql(_expectedResult);
         });
 
@@ -1166,7 +1186,7 @@ describe('Validate', () => {
 
           // ok, converted to false
           _data = { id : '5' };
-          _validateFunction(_data, _analyzedDescriptor.onValidate, function () {
+          _validateFunction(_data, _analyzedDescriptor.onValidate, true, function () {
             should(_data).eql({id : 5});
             done();
           });
@@ -1188,9 +1208,9 @@ describe('Validate', () => {
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _validateFunction   = validate.buildValidateFunction(_analyzedDescriptor.compilation);
 
-          _validateFunction({id : 2 }, _analyzedDescriptor.onValidate, function (resFirst) {
+          _validateFunction({id : 2 }, _analyzedDescriptor.onValidate, true, function (resFirst) {
             should(resFirst.length).eql(1);
-            _validateFunction({id : 3 }, _analyzedDescriptor.onValidate, function (resSecond) {
+            _validateFunction({id : 3 }, _analyzedDescriptor.onValidate, true, function (resSecond) {
               should(resSecond.length).eql(0);
               done();
             });
@@ -1211,10 +1231,10 @@ describe('Validate', () => {
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _validateFunction   = validate.buildValidateFunction(_analyzedDescriptor.compilation);
 
-          _validateFunction({id : 2 }, _analyzedDescriptor.onValidate, function (resFirst) {
+          _validateFunction({id : 2 }, _analyzedDescriptor.onValidate, true, function (resFirst) {
             var _expectedResult = [{value : 2, field : 'id', error : 'myMessage'}];
             should(resFirst).eql(_expectedResult);
-            _validateFunction({id : 3 }, _analyzedDescriptor.onValidate, function (resSecond) {
+            _validateFunction({id : 3 }, _analyzedDescriptor.onValidate, true, function (resSecond) {
               should(resSecond.length).eql(0);
               done();
             });
@@ -1241,7 +1261,7 @@ describe('Validate', () => {
 
           var start = new Date();
           for (var i = 0; i < _nbExecuted ; i++) {
-            _validateFunction({id : Math.floor(Math.random()*4) }, _analyzedDescriptor.onValidate, function () {
+            _validateFunction({id : Math.floor(Math.random()*4) }, _analyzedDescriptor.onValidate, true, function () {
               _incomplete--;
               if (_incomplete===0) {
                 var end = new Date();

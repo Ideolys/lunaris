@@ -464,7 +464,7 @@ function upsert (store, value, isLocal, retryOptions) {
         _valueToValidate = [value];
       }
 
-      return _store.validateFn(_valueToValidate, _store.meta.onValidate, function (err) {
+      return _store.validateFn(_valueToValidate, _store.meta.onValidate, _isUpdate, function (err) {
         if (err.length) {
           for (var i = 0; i < err.length; i++) {
             logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store + ' Error when validating data'], err[i]);
