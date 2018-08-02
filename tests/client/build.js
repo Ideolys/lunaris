@@ -8,4 +8,5 @@ build({
   isProduction : false
 }, (err, code) => {
   fs.writeFileSync(path.join(__dirname, 'testbuild.index.js'), code);
+  process.exit();
 });
