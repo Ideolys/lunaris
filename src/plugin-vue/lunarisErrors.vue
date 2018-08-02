@@ -56,7 +56,7 @@
        */
       onCancel : function (lunarisError) {
         this._removeFromStore(lunarisError);
-        this.rollback(lunarisError);
+        this.$rollback(lunarisError);
       },
 
       /**

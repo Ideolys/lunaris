@@ -7,7 +7,7 @@ exports.freeze = function freeze (value) {
 };
 
 exports.OPERATIONS = {
-  'DELETE' : 'D',
-  'INSERT' : 'I',
-  'UPDATE' : 'U'
+  DELETE : 'DELETE',
+  INSERT : 'POST',
+  UPDATE : 'PUT'
 };

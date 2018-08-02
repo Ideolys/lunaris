@@ -1,11 +1,25 @@
+var lastError = [];
+var lastTip   = [];
+console.error = function () {
+  lastError = [arguments[0], arguments[1]];
+};
+console.tip = function () {
+  lastTip = [arguments[0], arguments[1]];
+};
+
 describe('Store plugin', () => {
+
+  afterEach(() => {
+    lastError = [];
+    lastTip   = [];
+  });
 
   it('store define state in vue data', () => {
     should(lunaris._vue._vm).be.ok();
     should(lunaris._vue._vm.$data.$stores).be.ok();
     should(lunaris._vue._vm.$data.$stores.test).be.ok();
     should(lunaris.clone(lunaris._vue._vm.$data.$stores.test)).eql({
-      silent : true, state : [], isStoreObject : false
+      silent : true, state : [], isStoreObject : false, form : {}
     });
   });
 
@@ -343,4 +357,321 @@ describe('Store plugin', () => {
     vm.$destroy();
   });
 
+  describe('form', () => {
+    it('store test form should be defined', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['test'],
+      });
+      should(vm.$testForm).be.ok();
+      should(vm.$testForm).eql({});
+      should(Object.isFrozen(vm.$testForm)).eql(false);
+      vm.$destroy();
+    });
+
+    it('store test form should be defined : storeObject', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['testObject'],
+      });
+      should(vm.$testObjectForm).be.ok();
+      should(vm.$testObjectForm).eql(lunaris._stores.testObject.meta.defaultValue);
+      should(Object.isFrozen(vm.$testObjectForm)).eql(false);
+      vm.$destroy();
+    });
+
+    it('store test form should be reactive', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['testObject'],
+      });
+
+      vm.$testObjectForm.id = 1;
+      should(lunaris._vue._vm.$data.$stores.testObject.form.id).eql(1);
+      vm.$destroy();
+    });
+
+    it('clearForm should be defined', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['testObject'],
+      });
+
+      should(vm.$clearForm).be.ok();
+      should(vm.$clearForm).be.a.Function();
+      vm.$destroy();
+    });
+
+    it('clearForm should throw an error if the store is not defined', () => {
+      const vm = new Vue({
+        el : '#app',
+      });
+
+      vm.$clearForm('test');
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] vm.$clearForm');
+      should(lastError[1]).eql(new Error('The form "test" has not been registered!'));
+
+      vm.$destroy();
+    });
+
+    it('clearForm should throw an error if the storeForm is given', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['test']
+      });
+
+      vm.$clearForm('test');
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] vm.$clearForm');
+      should(lastError[1]).eql(new Error('"test" is not a form! Please, use "testForm" instead.'));
+
+      vm.$destroy();
+    });
+
+    it('clearForm should clear the form', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['test']
+      });
+
+      vm.$testForm.id = 1;
+      vm.$clearForm('testForm');
+      should(lunaris._vue._vm.$data.$stores.test.form).eql(lunaris.getDefaultValue('@test'));
+      vm.$destroy();
+    });
+
+    it('clearForm should clear the form : store object', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['testObject']
+      });
+
+      vm.$testObjectForm.id = 1;
+      vm.$clearForm('testObjectForm');
+      should(lunaris._vue._vm.$data.$stores.testObject.form).eql(lunaris.getDefaultValue('@testObject'));
+      vm.$destroy();
+    });
+  });
+
+  describe('rollback', () => {
+
+    it('$rollback should be defined', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['testObject'],
+      });
+
+      should(vm.$rollback).be.ok();
+      should(vm.$rollback).be.a.Function();
+      vm.$destroy();
+    });
+
+    it('should throw an error if no value is given', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['testObject'],
+      });
+
+      vm.$rollback();
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] vm.$rollback');
+      should(lastError[1]).eql(new Error('The value must be an object and have the properties "data" and "version" defined!'));
+      vm.$destroy();
+    });
+
+    it('should rollback the inserted item', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['test'],
+      });
+
+      lunaris.insert('@test', [{ id : 1 }]);
+      should(lunaris.clone(vm.$test)).eql([
+        { _id : 1, id : 1, _version : [1] }
+      ]);
+      vm.$rollback({
+        storeName : 'test',
+        data      : [
+          { _id : 1, id : 1, _version : [1] }
+        ],
+        method  : 'POST',
+        version : 1
+      });
+      should(lunaris.clone(vm.$test)).eql([]);
+      vm.$destroy();
+      lunaris._stores.test.data = lunaris._collection();
+      lunaris._resetVersionNumber();
+    });
+
+    it('should rollback the inserted item : store object', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['testObject'],
+      });
+
+      lunaris.insert('@testObject', { id : 1 });
+      should(lunaris.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [1] });
+      vm.$rollback({
+        storeName : 'testObject',
+        data      : { _id : 1, id : 1, _version : [1] },
+        method    : 'POST',
+        version   : 1
+      });
+      should(lunaris.clone(vm.$testObject)).eql(null);
+      vm.$destroy();
+      lunaris._stores.testObject.data = lunaris._collection();
+      lunaris._resetVersionNumber();
+    });
+
+    it('should rollback the inserted items', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['test'],
+      });
+
+      lunaris.insert('@test', [{ id : 1 }, { id : 2 }]);
+      should(lunaris.clone(vm.$test)).eql([
+        { _id : 1, id : 1, _version : [1] },
+        { _id : 2, id : 2, _version : [1] }
+      ]);
+      vm.$rollback({
+        storeName : 'test',
+        data      : [
+          { _id : 1, id : 1, _version : [1] },
+          { _id : 2, id : 2, _version : [1] }
+        ],
+        method  : 'POST',
+        version : 1
+      });
+      should(lunaris.clone(vm.$test)).eql([]);
+      vm.$destroy();
+      lunaris._stores.test.data = lunaris._collection();
+      lunaris._resetVersionNumber();
+    });
+
+    it('should rollback the updated item', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['test'],
+      });
+
+      lunaris.insert('@test', { id : 1 });
+      lunaris.update('@test', { _id : 1, id : 1, label : 'A' });
+
+      should(lunaris.clone(vm.$test)).eql([
+        { _id : 1, id : 1, label : 'A', _version : [2] }
+      ]);
+      vm.$rollback({
+        storeName : 'test',
+        data      : { _id : 1, id : 1, label : 'A', _version : [2] },
+        method    : 'PUT',
+        version   : 2
+      });
+      should(lunaris.clone(vm.$test)).eql([
+        { _id : 1, id : 1, _version : [3] }
+      ]);
+      vm.$destroy();
+      lunaris._stores.test.data = lunaris._collection();
+      lunaris._resetVersionNumber();
+    });
+
+    it('should rollback the updated item : store object', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['testObject'],
+      });
+
+      lunaris.insert('@testObject', { id : 1 });
+      lunaris.update('@testObject', { _id : 1, id : 1, label : 'A' });
+
+      should(lunaris.clone(vm.$testObject)).eql({ _id : 1, id : 1, label : 'A', _version : [2] });
+      vm.$rollback({
+        storeName : 'testObject',
+        data      : { _id : 1, id : 1, label : 'A', _version : [2] },
+        method    : 'PUT',
+        version   : 2
+      });
+      should(lunaris.clone(vm.$testObject)).eql({ id : 1, _id : 1, _version : [3] });
+      vm.$destroy();
+      lunaris._stores.testObject.data = lunaris._collection();
+      lunaris._resetVersionNumber();
+    });
+
+    it('should rollback the updated items', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['test'],
+      });
+
+      lunaris.insert('@test', [{ id : 1 }, { id : 2 }]);
+      lunaris.update('@test', [
+        { _id : 1, id : 1, label : 'A' },
+        { _id : 2, id : 2, label : 'B' }
+      ]);
+      should(lunaris.clone(vm.$test)).eql([
+        { _id : 1, id : 1, label : 'A', _version : [2] },
+        { _id : 2, id : 2, label : 'B', _version : [2] }
+      ]);
+      vm.$rollback({
+        storeName : 'test',
+        data      : [
+          { _id : 1, id : 1, label : 'A', _version : [2] },
+          { _id : 2, id : 2, label : 'B', _version : [2] }
+        ],
+        method  : 'PUT',
+        version : 2
+      });
+      should(lunaris.clone(vm.$test)).eql([
+        { _id : 1, id : 1, _version : [3] },
+        { _id : 2, id : 2, _version : [3] }
+      ]);
+      vm.$destroy();
+      lunaris._stores.test.data = lunaris._collection();
+      lunaris._resetVersionNumber();
+    });
+
+    it('should rollback the deleted item', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['test'],
+      });
+
+      lunaris.insert('@test', [{ id : 1 }]);
+      lunaris.delete('@test', { _id : 1 });
+      should(lunaris.clone(vm.$test)).eql([]);
+      vm.$rollback({
+        storeName : 'test',
+        data      : { _id : 1 },
+        method    : 'DELETE',
+        version   : 2
+      });
+      should(lunaris.clone(vm.$test)).eql([{ _id : 1, id : 1, _version : [3] }]);
+      vm.$destroy();
+      lunaris._stores.test.data = lunaris._collection();
+      lunaris._resetVersionNumber();
+    });
+
+    it('should rollback the inserted item : store object', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['testObject'],
+      });
+
+      lunaris.insert('@testObject', { id : 1 });
+      lunaris.delete('@testObject', { _id : 1 });
+      should(lunaris.clone(vm.$testObject)).eql(null);
+      vm.$rollback({
+        storeName : 'testObject',
+        data      : { _id : 1 },
+        method    : 'DELETE',
+        version   : 2
+      });
+      should(lunaris.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [3] });
+      vm.$destroy();
+      lunaris._stores.testObject.data = lunaris._collection();
+      lunaris._resetVersionNumber();
+    });
+
+  });
 });

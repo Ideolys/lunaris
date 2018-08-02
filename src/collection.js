@@ -148,7 +148,7 @@ function collection (startId) {
      */
     get : function (id) {
       for (var i = 0; i < _data.length; i++) {
-        var _item = _data[i];
+        var _item         = _data[i];
         var _lowerVersion = _item._version[0];
         var _upperVersion = _item._version[1];
         if (_item._id === id && _lowerVersion <= currentVersionNumber && !_upperVersion) {
@@ -265,7 +265,7 @@ function collection (startId) {
         var _lowerVersion = _item._version[0];
         var _upperVersion = _item._version[1];
         if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
-          if (ids && ids.indexOf(_item.id)) {
+          if (ids && ids.indexOf(_item.id) >= 0) {
             _items.push(_item);
           }
           else if (!ids) {

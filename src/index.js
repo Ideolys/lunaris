@@ -6,10 +6,12 @@ var utils          = require('./utils.js');
 var logger         = require('./logger.js');
 
 module.exports = {
-  _stores     : lunarisExports._stores,
-  _collection : collection.collection,
-  clone       : require('./utils.js').clone,
-  logger      : logger,
+  _stores             : lunarisExports._stores,
+  _collection         : collection.collection,
+  _resetVersionNumber : collection.resetVersionNumber,
+  freeze              : utils.freeze,
+  clone               : utils.clone,
+  logger              : logger,
 
   hook           : hook.hook,
   removeHook     : hook.removeHook,

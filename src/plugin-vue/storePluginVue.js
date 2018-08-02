@@ -57,7 +57,12 @@ lunaris._vue = {
       for (var i = 0; i < _stores.length; i++) {
         // must be done in order to be reactive
         // https://fr.vuejs.org/v2/guide/list.html#Limitations
-        this.$set(this.$data.$stores, _stores[i], { silent : true, isStoreObject : lunaris._stores[_stores[i]].isStoreObject, state : lunaris._stores[_stores[i]].isStoreObject ? {} : [] });
+        this.$set(this.$data.$stores, _stores[i], {
+          silent        : true,
+          isStoreObject : lunaris._stores[_stores[i]].isStoreObject,
+          state         : lunaris._stores[_stores[i]].isStoreObject ? {} : [],
+          form          : lunaris.getDefaultValue('@' + _stores[i])
+        });
 
         if (_stores[i].name !== 'lunarisErrors') {
           lunaris.hook.apply(null, ['inserted@'  + _stores[i], _successFn]);
@@ -79,6 +84,19 @@ lunaris._vue = {
       Object.defineProperty(_this, '$' + store, {
         get : function () {
           return lunaris._vue._vm.$data.$stores[store].state;
+        }
+      });
+    }
+
+    /**
+     * Set $storeNameForm value
+     * @param {String} store
+     * @param {Object} _this
+     */
+    function _setFormValue (store, _this) {
+      Object.defineProperty(_this, '$' + store + 'Form',  {
+        get : function () {
+          return lunaris._vue._vm.$data.$stores[store].form;
         }
       });
     }
@@ -149,6 +167,9 @@ lunaris._vue = {
       return function update (items) {
         var _storeObj = lunaris._vue._vm.$data.$stores[store];
         if (_storeObj.isStoreObject) {
+          if (Array.isArray(items)) {
+            items = items[0];
+          }
           return _storeObj.state = items;
         }
 
@@ -187,10 +208,16 @@ lunaris._vue = {
           return _storeObj.state = null;
         }
 
+        if (!Array.isArray(item)) {
+          item = [item];
+        }
+
         var _state = _storeObj.state;
-        for (var j = 0; j < _state.length; j++) {
-          if (_state[j]._id === item._id) {
-            _state.splice(j, 1);
+        for (var i = 0; i < item.length; i++) {
+          for (var j = 0; j < _state.length; j++) {
+            if (_state[j]._id === item[i]._id) {
+              _state.splice(j, 1);
+            }
           }
         }
       };
@@ -233,6 +260,7 @@ lunaris._vue = {
         }
 
         _setGet(_store, _this);
+        _setFormValue(_store, _this);
 
         if (!_this.$options.storeHooks) {
           _this.$options.storeHooks = {};
@@ -315,7 +343,7 @@ lunaris._vue = {
     }
 
     Vue.mixin({
-      beforeCreate: function () {
+      beforeCreate : function () {
         _registerStores(this);
         _registerHooks(this);
 
@@ -323,22 +351,65 @@ lunaris._vue = {
          * Set function to rollback lunarisError
          * @param {Object} lunarisError
          */
-        this.rollback = function rollback (lunarisError) {
-          if (!lunarisError.data || !lunarisError.version) {
-            return;
+        this.$rollback = function rollback (lunarisError) {
+          if (!lunarisError ||
+              (lunarisError && !lunarisError.storeName) ||
+              (lunarisError && !lunarisError.data) ||
+              (lunarisError && !lunarisError.method) ||
+              (lunarisError && !lunarisError.version)
+          ) {
+            lunaris.logger.warn('vm.$rollback' ,  new Error('The value must be an object and have the properties \"data\" and \"version\" defined!'));
+            return lunaris.logger.tip('vm.$rollback' ,  'value must be: { data : Object, version : Int, storeName : String, method : String }');
           }
 
           lunaris.rollback('@' + lunarisError.storeName, lunarisError.version);
 
-          if (lunarisError.data._operation === lunaris.OPERATIONS.INSERT) {
+          if (lunarisError.method === lunaris.OPERATIONS.INSERT) {
             return _delete(lunarisError.storeName)(lunarisError.data);
           }
-          if (lunarisError.data._operation === lunaris.OPERATIONS.UPDATE) {
-            return _update(lunarisError.storeName)(lunarisError.data);
+          if (lunarisError.method === lunaris.OPERATIONS.UPDATE) {
+            var _data = lunarisError.data;
+            var _ids  = [];
+            if (!Array.isArray(_data)) {
+              _data = [_data];
+            }
+
+            for (var i = 0; i < _data.length; i++) {
+              if (!_data[i]._id) {
+                return lunaris.warn('$rollback', 'Provided data must have a defined \"_id\" key!');
+              }
+              _ids.push(_data[i]._id);
+            }
+
+            _data = lunaris._stores[lunarisError.storeName].data.getAll(_ids);
+            for (var j = 0; j < _data.length; j++) {
+              _data[j] = lunaris.freeze(lunaris.clone(_data[j]));
+            }
+
+            return _update(lunarisError.storeName)(_data);
           }
-          if (lunarisError.data._operation === lunaris.OPERATIONS.DELETE) {
-            return _insert(lunarisError.storeName)(lunarisError.data);
+          if (lunarisError.method === lunaris.OPERATIONS.DELETE) {
+            _data = lunaris._stores[lunarisError.storeName].data.get(lunarisError.data._id);
+            if (_data) {
+              lunaris.freeze(lunaris.clone(_data));
+            }
+            return _insert(lunarisError.storeName)(_data);
           }
+        };
+
+        /**
+         * Clear form for specified store
+         * @param {String} store
+         */
+        this.$clearForm = function clearForm (store) {
+          if (!this['$' + store]) {
+            return lunaris.logger.warn('vm.$clearForm', new Error('The form \"' + store + '\" has not been registered!'));
+          }
+          if (!/Form$/.test(store)) {
+            return lunaris.logger.warn('vm.$clearForm', new Error('\"' + store + '\" is not a form! Please, use \"' + store + 'Form' + '\" instead.'));
+          }
+
+          lunaris._vue._vm.$data.$stores[store.replace('Form', '')].form = lunaris.getDefaultValue('@' + store.replace('Form', ''));
         };
       },
 

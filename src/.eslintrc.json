@@ -8,6 +8,7 @@
   "globals" : {
     "fetch"   : true,
     "dayjs"   : true,
-    "lunaris" : true
+    "lunaris" : true,
+    "Vue"     : true
   }
 }
