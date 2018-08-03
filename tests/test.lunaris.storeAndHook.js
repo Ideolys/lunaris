@@ -1946,6 +1946,87 @@ describe('lunaris store', () => {
     });
   });
 
+  describe('validate', () => {
+    it('should be defined', () => {
+      should(lunaris.validate).be.ok();
+      should(lunaris.validate).be.a.Function();
+    });
+
+    it('should throw an error if value is an array and store is an object store', done => {
+      lunaris._stores['store'] = _initStore('store', {
+        id    : ['<<int>>'],
+        label : ['string']
+      });
+
+      lunaris.validate('@store', { id : 1, label : 1 }, true, () => {
+        should(lastError.length).eql(2);
+        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store Error when validating data');
+        should(lastError[1]).eql({ value : 1, field : 'label', error : 'must be a string' });
+        done();
+      });
+    });
+
+    it('should validate for insert', done => {
+      lunaris._stores['store'] = _initStore('store', {
+        id    : ['<<int>>'],
+        label : ['string']
+      });
+
+      lunaris.validate('@store', { id : 1, label : 'A' }, isValid => {
+        should(isValid).eql(true);
+        done();
+      });
+    });
+
+    it('should not validate for insert', done => {
+      lunaris._stores['store'] = _initStore('store', {
+        id    : ['<<int>>'],
+        label : ['string']
+      });
+
+      lunaris.validate('@store', { id : 'A', label : 1 }, isValid => {
+        should(isValid).eql(false);
+        done();
+      });
+    });
+
+    it('should validate for update', done => {
+      lunaris._stores['store'] = _initStore('store', {
+        id    : ['<<int>>'],
+        label : ['string']
+      });
+
+      lunaris.validate('@store', { id : 1, label : 'B' }, true, isValid => {
+        should(isValid).eql(true);
+        done();
+      });
+    });
+
+    it('should not validate primary key for update', done => {
+      lunaris._stores['store'] = _initStore('store', {
+        id    : ['<<int>>'],
+        label : ['string']
+      });
+
+      lunaris.validate('@store', { id : 'A', label : '1' }, true, isValid => {
+        should(isValid).eql(false);
+        done();
+      });
+    });
+
+    it('should not validate other keys for update', done => {
+      lunaris._stores['store'] = _initStore('store', {
+        id    : ['<<int>>'],
+        label : ['string']
+      });
+
+      lunaris.validate('@store', { id : 1, label : 1 }, true, isValid => {
+        should(isValid).eql(false);
+        done();
+      });
+    });
+  });
+
 });
 
 /**

@@ -463,19 +463,8 @@ function upsert (store, value, isLocal, retryOptions) {
 
     var _store = _getStore(store);
     if (_store.validateFn) {
-      var _valueToValidate = value;
-      if (_store.isStoreObject && Array.isArray(value)) {
-        throw new Error('The store "' + store.name + '" is a store object, you cannot add or update multiple elements!');
-      }
-      if (!_store.isStoreObject && !Array.isArray(value)) {
-        _valueToValidate = [value];
-      }
-
-      return _store.validateFn(_valueToValidate, _store.meta.onValidate, _isUpdate, function (err) {
-        if (err.length) {
-          for (var i = 0; i < err.length; i++) {
-            logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store + ' Error when validating data'], err[i]);
-          }
+      return validate(store, value, _isUpdate, function (res) {
+        if (!res) {
           return;
         }
 
@@ -758,6 +747,53 @@ function getDefaultValue (store) {
   }
 }
 
+/**
+ * Validate value against store valdiator
+ * @param {String} store
+ * @param {Array/Object} value
+ * @param {Boolean} isUpdate
+ * @param {Function} callback
+ */
+function validate (store, value, isUpdate, callback) {
+  try {
+    var _isUpdate = isUpdate;
+    _checkArgs(store, value, true);
+
+    if (!callback) {
+      callback  = isUpdate;
+      _isUpdate = false;
+      if ((Array.isArray(value) && value[0]._id) || value._id) {
+        _isUpdate = true;
+      }
+    }
+
+    var _store = _getStore(store);
+    if (_store.validateFn) {
+      var _valueToValidate = value;
+      if (_store.isStoreObject && Array.isArray(value)) {
+        throw new Error('The store "' + store.name + '" is a store object, you cannot add or update multiple elements!');
+      }
+      if (!_store.isStoreObject && !Array.isArray(value)) {
+        _valueToValidate = [value];
+      }
+
+      _store.validateFn(_valueToValidate, _store.meta.onValidate, _isUpdate, function (err) {
+        if (err.length) {
+          for (var i = 0; i < err.length; i++) {
+            logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store + ' Error when validating data'], err[i]);
+          }
+          return callback(false);
+        }
+
+        callback(true);
+      });
+    }
+  }
+  catch (e) {
+    logger.warn(['lunaris.getDefaultValue' + store], e);
+  }
+}
+
 exports.get               = get;
 exports.getOne            = getOne;
 exports.insert            = upsert;
@@ -770,4 +806,5 @@ exports.clear             = clear;
 exports.retry             = retry;
 exports.rollback          = rollback;
 exports.getDefaultValue   = getDefaultValue;
+exports.validate          = validate;
 // exports.deleteFiltered = deleteFiltered;

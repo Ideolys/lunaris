@@ -27,6 +27,7 @@ module.exports = {
   rollback        : store.rollback,
   retry           : store.retry,
   getDefaultValue : store.getDefaultValue,
+  validate        : store.validate,
 
   OPERATIONS : utils.OPERATIONS
 };

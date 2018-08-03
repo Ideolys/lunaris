@@ -103,4 +103,9 @@ describe('lunaris index', () => {
     should(index._resetVersionNumber).be.ok();
     should(index._resetVersionNumber).be.a.Function();
   });
+
+  it('validate() should be defined', () => {
+    should(index.validate).be.ok();
+    should(index.validate).be.a.Function();
+  });
 });
