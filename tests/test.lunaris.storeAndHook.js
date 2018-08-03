@@ -304,6 +304,25 @@ describe('lunaris store', () => {
       lunaris.insert('@store_insert_put', { id : 1, label : 'A' });
     });
 
+    it('should always update the same value for store object', done => {
+      var _store                             = _initStore('storeObject', { id : ['<<int>>'], label : ['string'] });
+      lunaris._stores['storeObject']         = _store;
+      lunaris._stores['storeObject'].isLocal = true;
+
+      lunaris.hook('insert@storeObject', () => {
+        lunaris.update('@storeObject', { _id : 2, id : 1, label : 'string' });
+        should(lunaris._stores['storeObject'].data.getAll()).eql([{
+          _id      : 1,
+          id       : 1,
+          label    : 'string',
+          _version : [2]
+        }]);
+        done();
+      });
+
+      lunaris.insert('@storeObject', { id : 1, label : 'A' });
+    });
+
     it('should insert a value and add an error into lunarisErrors store : update', done => {
       var _store                                     = _initStore('store_insert_put');
       lunaris._stores['store_insert_put']            = _store;

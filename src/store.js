@@ -1,7 +1,8 @@
-var hook   = require('./hook.js');
-var utils  = require('./utils.js');
-var http   = require('./http.js');
-var logger = require('./logger.js');
+var hook        = require('./hook.js');
+var utils       = require('./utils.js');
+var http        = require('./http.js');
+var logger      = require('./logger.js');
+var emptyObject = {};
 
 /**
  * Get store
@@ -160,8 +161,8 @@ function _getFilterValuesHTTPRequest (store, method) {
 function _getSearchOption (filterValues) {
   var _search    = '';
   var _operators = {
-    '='     : ':=',
-    'ILIKE' : ':'
+    '='   : ':=',
+    ILIKE : ':'
   };
   for (var j = 0; j < filterValues.length; j++) {
     var _operator = ':=';
@@ -327,6 +328,13 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       }
     }
     else {
+      if (store.isStoreObject) {
+        // we always should update the same value for object store
+        var _value = _collection.getAll()[0];
+        var _id    = _value ? _value._id : null;
+        value._id  = _id;
+
+      }
       _collection.upsert(value, _version);
     }
 
@@ -454,7 +462,6 @@ function upsert (store, value, isLocal, retryOptions) {
     }
 
     var _store = _getStore(store);
-
     if (_store.validateFn) {
       var _valueToValidate = value;
       if (_store.isStoreObject && Array.isArray(value)) {
@@ -741,7 +748,7 @@ function getDefaultValue (store) {
 
     var _store = _getStore(store);
     if (!_store.meta) {
-      return {};
+      return emptyObject;
     }
 
     return utils.clone(_store.meta.defaultValue);

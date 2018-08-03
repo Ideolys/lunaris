@@ -391,7 +391,6 @@ describe('Validate', () => {
           };
           var _expectedResult = [];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
-          // console.log(util.inspect(_analyzedDescriptor, false, 10));
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
           should(_computedResult).eql(_expectedResult);
         });
@@ -407,7 +406,6 @@ describe('Validate', () => {
           };
           var _expectedResult = [];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
-          // console.log(util.inspect(_analyzedDescriptor, false, 10));
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
           should(_computedResult).eql(_expectedResult);
         });
@@ -476,7 +474,6 @@ describe('Validate', () => {
           ];
           var _expectedResult     = [{ value : 'bullshit', field : 'id', error : 'must be an integer' }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
-          console.log(validate.buildValidateFunction(_analyzedDescriptor.compilation).toString());
           var _computedResult     = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck, null, true);
           should(_computedResult).eql(_expectedResult);
         });
