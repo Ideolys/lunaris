@@ -782,7 +782,7 @@ function validate (store, value, isUpdate, callback) {
           for (var i = 0; i < err.length; i++) {
             logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store + ' Error when validating data'], err[i]);
           }
-          return callback(false);
+          return callback(false, err);
         }
 
         callback(true);
