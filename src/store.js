@@ -395,7 +395,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       for (i = 0; i < value.length; i++) {
         for (var j = 0; j < data.length; j++) {
           if (value[i]._id === data[j]._id) {
-            value[i] = Object.assign(data[j], value[i]);
+            value[i] = utils.merge(data[j], value[i]);
             _collection.upsert(value[i], _version);
           }
         }
@@ -407,7 +407,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       }
     }
     else {
-      value = Object.assign(data, value);
+      value = utils.merge(data, value);
       value = _collection.upsert(value);
       // the value must have been deleted
       if (value) {
@@ -664,17 +664,26 @@ function get (store, primaryKeyValue, retryOptions) {
 }
 
 /**
- * Get firt value
+ * Get firt value or the value identified by its _id
  * @param {String} store
- * @param {*} value
+ * @param {Int} id lunaris _id value
  */
-function getOne (store) {
+function getOne (store, id) {
   try {
     _checkArgs(store, null, true);
 
     var _store      = _getStore(store);
     var _collection = _getCollection(_store);
-    var _item       = _collection.getFirst();
+
+    var _item;
+
+    if (id)  {
+      _item = _collection.get(id);
+    }
+    else {
+      _item = _collection.getFirst();
+    }
+
     if (!_item) {
       return;
     }

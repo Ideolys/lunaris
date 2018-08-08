@@ -11,6 +11,7 @@ module.exports = {
   _resetVersionNumber : collection.resetVersionNumber,
   freeze              : utils.freeze,
   clone               : utils.clone,
+  merge               : utils.merge,
   logger              : logger,
 
   hook           : hook.hook,

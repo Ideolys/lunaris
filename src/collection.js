@@ -100,7 +100,7 @@ function collection (startId) {
           //   - If insert / update : the updated row will be merged with the inserted one
           //   - If Insert / delete : the inserted row will be removed
           if (_lowerVersion === _version && _upperVersion === _version && _data[i]._version[1] >= 0) {
-            Object.assign(_data[i], _objToUpdate);
+            utils.merge(_data[i], _objToUpdate);
             _data[i]._version.pop();
             if (isRemove) {
               _data.splice(i, 1);

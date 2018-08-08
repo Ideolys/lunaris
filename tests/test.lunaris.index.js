@@ -17,6 +17,11 @@ describe('lunaris index', () => {
     should(index.hook).be.a.Function();
   });
 
+  it('merge() should be defined', () => {
+    should(index.merge).be.ok();
+    should(index.merge).be.a.Function();
+  });
+
   it('removeHook() should be defined', () => {
     should(index.removeHook).be.ok();
     should(index.removeHook).be.a.Function();

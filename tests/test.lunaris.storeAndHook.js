@@ -1073,6 +1073,18 @@ describe('lunaris store', () => {
       // should(Object.isFrozen(_val)).eql(true);
     });
 
+    it('should get the identified value', () => {
+      var _store                = _initStore('store1');
+      lunaris._stores['store1'] = _store;
+
+      lunaris.insert('@store1', { id : 1, label : 'A' });
+      lunaris.insert('@store1', { id : 2, label : 'B' });
+      var _val = lunaris.getOne('@store1', 2);
+      should(_val).eql(
+        { _id : 2, id : 2, label : 'B', _version : [2] }
+      );
+    });
+
     it('should get undefined if no value is in the collection', () => {
       var _store                = _initStore('store1');
       lunaris._stores['store1'] = _store;
