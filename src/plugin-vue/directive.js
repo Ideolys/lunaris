@@ -42,7 +42,7 @@ function getId (el) {
     return lunaris.logger.warn('v-lunaris', new Error('The directive must have "lunaris-id" defined!'));
   }
 
-  return parseInt(el.attributes['lunaris-id'].value);
+  return parseInt(el.attributes['lunaris-id'].value, 10);
 }
 
 /**
