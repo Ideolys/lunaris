@@ -2,6 +2,7 @@ var hook        = require('./hook.js');
 var utils       = require('./utils.js');
 var http        = require('./http.js');
 var logger      = require('./logger.js');
+var cache       = require('./store.cache.js');
 var emptyObject = {};
 
 /**
@@ -93,10 +94,16 @@ function _checkArgs (store, value, isNotValue) {
  *  isRequiredOptionsFilled : {Boolean}
  *  requiredOptions         : {String}
  *  optionalOptions         : {Array}
+ *  cache                   : {Object}
  * }
  */
 function _getFilterValuesHTTPRequest (store, method) {
-  var _filterValues            = { isRequiredOptionsFilled : true, requiredOptions : '', optionalOptions : [] };
+  var _filterValues            = {
+    isRequiredOptionsFilled : true,
+    requiredOptions         : '',
+    optionalOptions         : [],
+    cache                   : {}
+  };
   var _nbRequiredFIlters       = 0;
   var _nbRequiredFilledFilters = 0;
   if (!store.filters.length) {
@@ -146,6 +153,8 @@ function _getFilterValuesHTTPRequest (store, method) {
         else {
           _filterValues.requiredOptions += '/' + _value[0] + '/' + _value[1];
         }
+
+        _filterValues.cache[_filter.source + ':' + _filter.sourceAttribute] = _value[1];
       }
     }
   }
@@ -217,17 +226,17 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
  * @param {Object} store
  * @param {Boolean} isGET is GET HTTP me:thod ?
  * @param {*} primaryKeyValue
- * @returns {String}
+ * @returns {Object}
  */
 function _createUrl (store, method, primaryKeyValue) {
-  var _request = '/';
+  var _request = { request : '/', cache : {} };
   var _isGet   = method === 'GET';
   var _url     = store.url || store.name;
 
-  _request += _url;
+  _request.request += _url;
 
   if (primaryKeyValue) {
-    _request += '/' + primaryKeyValue;
+    _request.request += '/' + primaryKeyValue;
   }
 
   var _filterValues  = _getFilterValuesHTTPRequest(store, method);
@@ -236,8 +245,15 @@ function _createUrl (store, method, primaryKeyValue) {
     throw new Error('Required filter values must be defined!');
   }
 
-  _request += _filterValues.requiredOptions;
-  _request += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues.optionalOptions);
+  _request.request += _filterValues.requiredOptions;
+  _request.request += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues.optionalOptions);
+
+  if (_isGet) {
+    _filterValues.cache['limit']  = store.paginationLimit;
+    _filterValues.cache['offset'] = store.paginationOffset;
+  }
+
+  _request.cache = _filterValues.cache;
   return _request;
 }
 
@@ -310,6 +326,7 @@ function _getSuccess (message, store, method, isPlural) {
  */
 function _upsert (store, value, isLocal, isUpdate, retryOptions) {
   var _collection = _getCollection(store);
+  var _cache      = cache.getCache(store);
 
   if (Object.isFrozen(value)) {
     value = utils.clone(value);
@@ -333,9 +350,9 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
         var _value = _collection.getAll()[0];
         var _id    = _value ? _value._id : null;
         value._id  = _id;
-
       }
       _collection.upsert(value, _version);
+      _ids.push(value._id);
     }
 
     value = _collection.commit(_version);
@@ -347,6 +364,8 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
     if (!_isMultipleItems) {
       value = value[0];
     }
+
+    _cache.invalidate(_ids, true);
 
     hook.pushToHandlers(store, isUpdate ? 'update' : 'insert', value, _isMultipleItems);
   }
@@ -363,6 +382,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
 
   if (!retryOptions) {
     _request = _createUrl(store, _method, _getPrimaryKeyValue(store, value, !isUpdate || (isUpdate && _isMultipleItems)));
+    _request = _request.request;
   }
   else {
     _request = retryOptions.url;
@@ -498,6 +518,7 @@ function deleteStore (store, value, retryOptions) {
 
     var _store      = _getStore(store);
     var _collection = _getCollection(_store);
+    var _cache      = cache.getCache(_store);
 
     var _version;
     if (!retryOptions) {
@@ -509,6 +530,7 @@ function deleteStore (store, value, retryOptions) {
         throw new Error('You cannot delete a value not in the store!');
       }
       hook.pushToHandlers(_store, 'delete', value);
+      _cache.invalidate(value._id);
     }
     else {
       _version = retryOptions.version;
@@ -521,6 +543,7 @@ function deleteStore (store, value, retryOptions) {
     var _request = '/';
     if (!retryOptions) {
       _request = _createUrl(_store, 'DELETE', _getPrimaryKeyValue(_store, value));
+      _request = _request.request;
     }
     else {
       _request = retryOptions.url;
@@ -554,6 +577,27 @@ function deleteStore (store, value, retryOptions) {
 }
 
 /**
+ * Set store pagination
+ * @param {String} store
+ * @param {Int} page
+ * @param {Int}} limit
+ */
+function setPagination (store, page, limit) {
+  try {
+    _checkArgs(store, null, true);
+
+    var _store      = _getStore(store);
+
+    _store.paginationLimit       = limit;
+    _store.paginationCurrentPage = page;
+    _store.paginationOffset      = _store.paginationLimit * store.paginationCurrentPage;
+  }
+  catch (e) {
+    logger.warn(['lunaris.setPagination' + store], e);
+  }
+}
+
+/**
  * Clear the store collection
  * @param {String} store
  * @param {Boolean} isSilent
@@ -564,10 +608,12 @@ function clear (store, isSilent) {
 
     var _store      = _getStore(store);
     var _collection = _getCollection(_store);
+    var _cache      = cache.getCache(_store);
 
     _collection.clear();
     _store.paginationCurrentPage = 1;
     _store.paginationOffset      = 0;
+    _cache.clear();
     if (!isSilent) {
       hook.pushToHandlers(_store, 'reset');
     }
@@ -592,6 +638,7 @@ function get (store, primaryKeyValue, retryOptions) {
 
     var _store      = _getStore(store);
     var _collection = _getCollection(_store);
+    var _cache      = cache.getCache(_store);
 
     if (_store.isLocal) {
       var _collectionValues = _collection.getAll();
@@ -602,10 +649,18 @@ function get (store, primaryKeyValue, retryOptions) {
       return hook.pushToHandlers(_store, 'get', _collectionValues, true);
     }
 
-    var _request = '/';
+    var _request      = '/';
+    var _cacheFilters =  {};
 
     if (!retryOptions) {
-      _request = _createUrl(_store, 'GET', primaryKeyValue);
+      _request      = _createUrl(_store, 'GET', primaryKeyValue);
+      _cacheFilters = _request.cache;
+      _request      = _request.request;
+      var _ids      = _cache.get(_cacheFilters);
+
+      if (_ids.length) {
+        return hook.pushToHandlers(_store, 'get', _collection.getAll(_ids), true);
+      }
     }
     else {
       _request = retryOptions.url || '/';
@@ -651,10 +706,13 @@ function get (store, primaryKeyValue, retryOptions) {
 
       var _isArray = Array.isArray(data);
       data         = _collection.commit(_version);
+      var _ids     = [];
       for (i = 0; i < data.length; i++) {
+        _ids.push(data[i]._id);
         data[i] = utils.freeze(utils.clone(data[i]));
       }
 
+      _cache.add(_cacheFilters, _ids);
       hook.pushToHandlers(_store, 'get', data, _isArray);
     });
   }
@@ -816,4 +874,5 @@ exports.retry             = retry;
 exports.rollback          = rollback;
 exports.getDefaultValue   = getDefaultValue;
 exports.validate          = validate;
+exports.setPagination     = setPagination;
 // exports.deleteFiltered = deleteFiltered;

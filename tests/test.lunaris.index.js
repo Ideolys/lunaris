@@ -113,4 +113,9 @@ describe('lunaris index', () => {
     should(index.validate).be.ok();
     should(index.validate).be.a.Function();
   });
+
+  it('setPagination() should be defined', () => {
+    should(index.setPagination).be.ok();
+    should(index.setPagination).be.a.Function();
+  });
 });

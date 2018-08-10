@@ -29,6 +29,7 @@ module.exports = {
   retry           : store.retry,
   getDefaultValue : store.getDefaultValue,
   validate        : store.validate,
+  setPagination   : store.setPagination,
 
   OPERATIONS : utils.OPERATIONS
 };

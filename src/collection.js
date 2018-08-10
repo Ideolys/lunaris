@@ -265,7 +265,7 @@ function collection (startId) {
         var _lowerVersion = _item._version[0];
         var _upperVersion = _item._version[1];
         if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
-          if (ids && ids.indexOf(_item.id) >= 0) {
+          if (ids && ids.indexOf(_item._id) !== -1) {
             _items.push(_item);
           }
           else if (!ids) {

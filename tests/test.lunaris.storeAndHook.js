@@ -1,7 +1,7 @@
+const testUtils    = require('./testUtils');
+const initStore    = testUtils.initStore;
 const collection   = require('../src/collection');
 const buildLunaris = require('../lib/builder').buildLunaris;
-const storeMap     = require('../lib/_builder/store/schema');
-const validateMap  = require('../lib/_builder/store/validate');
 const express      = require('express');
 const bodyParser   = require('body-parser');
 const fetch        = require('node-fetch');
@@ -84,7 +84,7 @@ describe('lunaris store', () => {
     });
 
     it('should insert the value', () => {
-      var _store = _initStore('store1');
+      var _store = initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A', _version : [1] });
@@ -94,7 +94,7 @@ describe('lunaris store', () => {
       var _isFirstInsertEvent                   = true;
       var _isUpdateHook                         = false;
       var _isUpdatedHook                        = false;
-      var _store                                = _initStore('store1');
+      var _store                                = initStore('store1');
       var _expectedValue                        = { _id : 1, id : 2, label : 'A', _version : [1] };
       lunaris._stores['store1']                 = _store;
       lunaris._stores['store1'].primaryKey      = 'id';
@@ -135,7 +135,7 @@ describe('lunaris store', () => {
 
     it('should insert the value and execute the hooks', done => {
       var _nbExecutedHandlers              = 0;
-      var _store                           = _initStore('store1');
+      var _store                           = initStore('store1');
       var _expectedValue                   = { _id : 1, id : 2, label : 'A', _version : [1] };
       lunaris._stores['store1']            = _store;
       lunaris._stores['store1'].primaryKey = 'id';
@@ -162,7 +162,7 @@ describe('lunaris store', () => {
     });
 
     it('should fire an error for insert', done => {
-      var _store                           = _initStore('store_insert_post');
+      var _store                           = initStore('store_insert_post');
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
@@ -178,7 +178,7 @@ describe('lunaris store', () => {
     });
 
     it('should add the error into lunarisErrors store : insert', done => {
-      var _store                           = _initStore('store_insert_post');
+      var _store                           = initStore('store_insert_post');
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
@@ -204,7 +204,7 @@ describe('lunaris store', () => {
     });
 
     it('should fire an error for insert if the the validation failed', () => {
-      var _store                                      = _initStore('store_insert_post', [{ id : ['<<int>>'], label : ['string'] }]);
+      var _store                                      = initStore('store_insert_post', [{ id : ['<<int>>'], label : ['string'] }]);
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
@@ -216,7 +216,7 @@ describe('lunaris store', () => {
     });
 
     it('should update a value', () => {
-      var _store = _initStore('store1');
+      var _store = initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A', _version : [1] });
@@ -228,7 +228,7 @@ describe('lunaris store', () => {
       var _isFirstUpdateEvent   = true;
       var _isUpdateHook         = false;
       var _isUpdatedHook        = false;
-      var _store                = _initStore('store1');
+      var _store                = initStore('store1');
       var _expectedValue        = { _id : 1, id : 1, label : 'B', _version : [2] };
       lunaris._stores['store1'] = _store;
       lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
@@ -269,7 +269,7 @@ describe('lunaris store', () => {
     });
 
     it('should insert a value and fire an error for update', done => {
-      var _store                                     = _initStore('store_insert_put');
+      var _store                                     = initStore('store_insert_put');
       lunaris._stores['store_insert_put']            = _store;
       lunaris._stores['store_insert_put'].primaryKey = 'id';
 
@@ -289,7 +289,7 @@ describe('lunaris store', () => {
     });
 
     it('should insert a value and fire an error for update when validating', done => {
-      var _store                                     = _initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
+      var _store                                     = initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
       lunaris._stores['store_insert_put']            = _store;
       lunaris._stores['store_insert_put'].primaryKey = 'id';
 
@@ -305,7 +305,7 @@ describe('lunaris store', () => {
     });
 
     it('should always update the same value for store object', done => {
-      var _store                             = _initStore('storeObject', { id : ['<<int>>'], label : ['string'] });
+      var _store                             = initStore('storeObject', { id : ['<<int>>'], label : ['string'] });
       lunaris._stores['storeObject']         = _store;
       lunaris._stores['storeObject'].isLocal = true;
 
@@ -324,7 +324,7 @@ describe('lunaris store', () => {
     });
 
     it('should insert a value and add an error into lunarisErrors store : update', done => {
-      var _store                                     = _initStore('store_insert_put');
+      var _store                                     = initStore('store_insert_put');
       lunaris._stores['store_insert_put']            = _store;
       lunaris._stores['store_insert_put'].primaryKey = 'id';
 
@@ -356,7 +356,7 @@ describe('lunaris store', () => {
     it('should update the value and not execute the hook updated', done => {
       var _isUpdateHook         = false;
       var _isUpdatedHook        = false;
-      var _store                = _initStore('store1');
+      var _store                = initStore('store1');
       var _expectedValue        = { _id : 1, id : 1, label : 'B' };
       lunaris._stores['store1'] = _store;
 
@@ -385,7 +385,7 @@ describe('lunaris store', () => {
     it('should update the value and not execute the hook updated : store.isLocal = true', done => {
       var _isUpdateHook         = false;
       var _isUpdatedHook        = false;
-      var _store                = _initStore('store1');
+      var _store                = initStore('store1');
       _store.isLocal            = true;
       var _expectedValue        = { _id : 1, id : 1, label : 'B' };
       lunaris._stores['store1'] = _store;
@@ -415,14 +415,14 @@ describe('lunaris store', () => {
     it('should insert and update the values and execute the hooks with filters', done => {
       var _isInsertedHook       = false;
       var _isUpdatedHook        = false;
-      var _store                = _initStore('store1');
+      var _store                = initStore('store1');
       var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [3] };
-      lunaris._stores['optional'] = _initStore('optional');
+      lunaris._stores['optional'] = initStore('optional');
       lunaris._stores['optional'].data.add({
         site : 2
       });
 
-      lunaris._stores['required'] = _initStore('required');
+      lunaris._stores['required'] = initStore('required');
       lunaris._stores['required'].data.add({
         category : 'A'
       });
@@ -475,14 +475,14 @@ describe('lunaris store', () => {
     it('should insert and update the values and execute the hooks with no filters', done => {
       var _isInsertedHook       = false;
       var _isUpdatedHook        = false;
-      var _store                = _initStore('store1');
+      var _store                = initStore('store1');
       var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [3] };
-      lunaris._stores['optional'] = _initStore('optional');
+      lunaris._stores['optional'] = initStore('optional');
       lunaris._stores['optional'].data.add({
         site : 2
       });
 
-      lunaris._stores['required'] = _initStore('required');
+      lunaris._stores['required'] = initStore('required');
       lunaris._stores['required'].data.add({
         category : 'A'
       });
@@ -538,14 +538,14 @@ describe('lunaris store', () => {
     it('should insert and update the values and execute the hooks with authorized filters', done => {
       var _isInsertedHook       = false;
       var _isUpdatedHook        = false;
-      var _store                = _initStore('store1');
+      var _store                = initStore('store1');
       var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [3] };
-      lunaris._stores['required'] = _initStore('required');
+      lunaris._stores['required'] = initStore('required');
       lunaris._stores['required'].data.add({
         site : 2
       });
 
-      lunaris._stores['optional'] = _initStore('optional');
+      lunaris._stores['optional'] = initStore('optional');
       lunaris._stores['optional'].data.add({
         category : 'A'
       });
@@ -601,7 +601,7 @@ describe('lunaris store', () => {
   describe('mass insert() / update()', () => {
 
     it('should insert the values', () => {
-      var _store = _initStore('mass');
+      var _store = initStore('mass');
       lunaris._stores['mass'] = _store;
       lunaris.insert('@mass', [
         { id : 1, label : 'A' },
@@ -618,7 +618,7 @@ describe('lunaris store', () => {
       var _isFirstInsertEvent                   = true;
       var _isUpdateHook                         = false;
       var _isUpdatedHook                        = false;
-      var _store                                = _initStore('mass');
+      var _store                                = initStore('mass');
       lunaris._stores['mass']                 = _store;
       lunaris._stores['mass'].primaryKey      = 'id';
       lunaris._stores['mass'].successTemplate = '$pronounMale $storeName has been successfully $method';
@@ -670,7 +670,7 @@ describe('lunaris store', () => {
     });
 
     it('should fire an error for insert', done => {
-      var _store                                      = _initStore('store_insert_post');
+      var _store                                      = initStore('store_insert_post');
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
@@ -686,7 +686,7 @@ describe('lunaris store', () => {
     });
 
     it('should add the error into lunarisErrors store : insert', done => {
-      var _store                           = _initStore('store_insert_post');
+      var _store                           = initStore('store_insert_post');
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
@@ -712,7 +712,7 @@ describe('lunaris store', () => {
     });
 
     it('should fire an error for insert if the the validation failed', () => {
-      var _store                                      = _initStore('store_insert_post', [{ id : ['<<int>>'], label : ['string'] }]);
+      var _store                                      = initStore('store_insert_post', [{ id : ['<<int>>'], label : ['string'] }]);
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
@@ -724,7 +724,7 @@ describe('lunaris store', () => {
     });
 
     it('should update a value', () => {
-      var _store = _initStore('mass');
+      var _store = initStore('mass');
       lunaris._stores['mass'] = _store;
       lunaris.insert('@mass', [
         { id : 1, label : 'A' },
@@ -742,7 +742,7 @@ describe('lunaris store', () => {
       var _isFirstUpdateEvent = true;
       var _isUpdateHook       = false;
       var _isUpdatedHook      = false;
-      var _store              = _initStore('mass');
+      var _store              = initStore('mass');
       lunaris._stores['mass'] = _store;
       lunaris._stores['mass'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
@@ -792,7 +792,7 @@ describe('lunaris store', () => {
     });
 
     it('should insert a value and fire an error for update', done => {
-      var _store                                     = _initStore('store_insert_put');
+      var _store                                     = initStore('store_insert_put');
       lunaris._stores['store_insert_put']            = _store;
       lunaris._stores['store_insert_put'].primaryKey = 'id';
 
@@ -812,7 +812,7 @@ describe('lunaris store', () => {
     });
 
     it('should insert a value and fire an error for update when validating', done => {
-      var _store                                     = _initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
+      var _store                                     = initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
       lunaris._stores['store_insert_put']            = _store;
       lunaris._stores['store_insert_put'].primaryKey = 'id';
 
@@ -828,7 +828,7 @@ describe('lunaris store', () => {
     });
 
     it('should insert a value and fire an error for update when validating (ids)', done => {
-      var _store                                     = _initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
+      var _store                                     = initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
       lunaris._stores['store_insert_put']            = _store;
       lunaris._stores['store_insert_put'].primaryKey = 'id';
 
@@ -844,7 +844,7 @@ describe('lunaris store', () => {
     });
 
     it('should insert a value and add an error into lunarisErrors store : update', done => {
-      var _store                                     = _initStore('store_insert_put');
+      var _store                                     = initStore('store_insert_put');
       lunaris._stores['store_insert_put']            = _store;
       lunaris._stores['store_insert_put'].primaryKey = 'id';
 
@@ -903,7 +903,7 @@ describe('lunaris store', () => {
     it('should delete the value', () => {
       var _value = { _id : 1, id : 1, label : 'A', _version : [1] };
 
-      var _store = _initStore('store1');
+      var _store = initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql(_value);
@@ -912,7 +912,7 @@ describe('lunaris store', () => {
     });
 
     it('should fire an error for delete', done => {
-      var _store                              = _initStore('store_del');
+      var _store                              = initStore('store_del');
       lunaris._stores['store_del']            = _store;
       lunaris._stores['store_del'].primaryKey = 'id';
 
@@ -929,7 +929,7 @@ describe('lunaris store', () => {
     });
 
     it('should add an error into lunarisErrors store : delete', done => {
-      var _store                              = _initStore('store_del');
+      var _store                              = initStore('store_del');
       lunaris._stores['store_del']            = _store;
       lunaris._stores['store_del'].primaryKey = 'id';
 
@@ -958,7 +958,7 @@ describe('lunaris store', () => {
     it('should delete the value and execute the hooks : delete & deleted', done => {
       var _isDeleteHook                    = false;
       var _isDeletedHook                   = false;
-      var _store                           = _initStore('store1');
+      var _store                           = initStore('store1');
       var _expectedValue                   = { _id : 1, id : 2, label : 'A', _version : [1] };
       lunaris._stores['store1']            = _store;
       lunaris._stores['store1'].primaryKey = 'id';
@@ -994,7 +994,7 @@ describe('lunaris store', () => {
     it('should delete the value and execute the hook deleted', done => {
       var _isDeleteHook                    = false;
       var _isDeletedHook                   = false;
-      var _store                           = _initStore('store1');
+      var _store                           = initStore('store1');
       var _expectedValue                   = { _id : 1, id : 2, label : 'A', _version : [1] };
       lunaris._stores['store1']            = _store;
       lunaris._stores['store1'].primaryKey = 'id';
@@ -1024,7 +1024,7 @@ describe('lunaris store', () => {
     });
 
     it('should delete the value and execute the hook and return false if the value has not been deleted', () => {
-      var _store                = _initStore('store1');
+      var _store                = initStore('store1');
       var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [1] };
       lunaris._stores['store1'] = _store;
 
@@ -1057,7 +1057,7 @@ describe('lunaris store', () => {
     });
 
     it('should get the first value', () => {
-      var _store          = _initStore('store1');
+      var _store          = initStore('store1');
       var _expectedValues = [
         { _id : 1, id : 1, label : 'A', _version : [1] },
         { _id : 2, id : 2, label : 'B', _version : [2] }
@@ -1074,7 +1074,7 @@ describe('lunaris store', () => {
     });
 
     it('should get the identified value', () => {
-      var _store                = _initStore('store1');
+      var _store                = initStore('store1');
       lunaris._stores['store1'] = _store;
 
       lunaris.insert('@store1', { id : 1, label : 'A' });
@@ -1086,7 +1086,7 @@ describe('lunaris store', () => {
     });
 
     it('should get undefined if no value is in the collection', () => {
-      var _store                = _initStore('store1');
+      var _store                = initStore('store1');
       lunaris._stores['store1'] = _store;
       should(lunaris.getOne('@store1')).eql(undefined);
     });
@@ -1112,7 +1112,7 @@ describe('lunaris store', () => {
     });
 
     it('should get the values and execute the hook', done => {
-      var _store                = _initStore('store1');
+      var _store                = initStore('store1');
       lunaris._stores['store1'] = _store;
 
       lunaris.hook('get@store1', items => {
@@ -1133,7 +1133,7 @@ describe('lunaris store', () => {
     });
 
     it('should get the all the values of the colection and execute the hook if the store is local', done => {
-      var _store                        = _initStore('store1');
+      var _store                        = initStore('store1');
       lunaris._stores['store1']         = _store;
       lunaris._stores['store1'].isLocal = true;
       lunaris._stores['store1'].data.add({ id : 1});
@@ -1156,7 +1156,7 @@ describe('lunaris store', () => {
     });
 
     it('should get null if the store is object and it has no value', done => {
-      var _store                        = _initStore('store1', { id : ['<<int>>'] });
+      var _store                        = initStore('store1', { id : ['<<int>>'] });
       lunaris._stores['store1']         = _store;
       lunaris._stores['store1'].isLocal = true;
       lunaris._stores['store1'].data.add({ id : 1});
@@ -1175,7 +1175,7 @@ describe('lunaris store', () => {
     });
 
     it('should get a value if the store is object', done => {
-      var _store                        = _initStore('store1', { id : ['<<int>>'] });
+      var _store                        = initStore('store1', { id : ['<<int>>'] });
       lunaris._stores['store1']         = _store;
       lunaris._stores['store1'].isLocal = true;
 
@@ -1192,7 +1192,7 @@ describe('lunaris store', () => {
     });
 
     it('should fire the errorHttp event : HTTP error', done => {
-      var _store               = _initStore('store');
+      var _store               = initStore('store');
       lunaris._stores['store'] = _store;
 
       lunaris.hook('errorHttp@store', err => {
@@ -1207,7 +1207,7 @@ describe('lunaris store', () => {
     });
 
     it('should throw an error', done => {
-      var _store               = _initStore('pagination', { id : ['int'] });
+      var _store               = initStore('pagination', { id : ['int'] });
       lunaris._stores['pagination'] = _store;
 
       lunaris.get('@pagination');
@@ -1221,7 +1221,7 @@ describe('lunaris store', () => {
     });
 
     it('should add the error into lunarisErrors store', done => {
-      var _store               = _initStore('store');
+      var _store               = initStore('store');
       lunaris._stores['store'] = _store;
 
       lunaris.hook('errorHttp@store', () => {
@@ -1246,7 +1246,7 @@ describe('lunaris store', () => {
     });
 
     it('should fire the errorHttp event : application based error', done => {
-      var _store               = _initStore('store2');
+      var _store               = initStore('store2');
       lunaris._stores['store2'] = _store;
 
       lunaris.hook('errorHttp@store2', err => {
@@ -1259,7 +1259,7 @@ describe('lunaris store', () => {
 
     it('should get the values and execute the hook', done => {
       var _nbPages                  = 0;
-      var _store                    = _initStore('pagination');
+      var _store                    = initStore('pagination');
       lunaris._stores['pagination'] = _store;
 
       lunaris.hook('get@pagination', items => {
@@ -1299,12 +1299,12 @@ describe('lunaris store', () => {
 
     it('should filter the store by a required filter', done => {
       var _isFirstCall = true;
-      lunaris._stores['required.param.site']         = _initStore('required.param.site');
+      lunaris._stores['required.param.site']         = initStore('required.param.site');
       lunaris._stores['required.param.site'].isLocal = true;
       lunaris._stores['required.param.site'].data.add({
         site : 1
       });
-      lunaris._stores['required']                = _initStore('required');
+      lunaris._stores['required']                = initStore('required');
       lunaris._stores['required'].fakeAttributes = ['site'];
       lunaris._stores['required'].filters.push({
         source          : '@required.param.site',
@@ -1346,11 +1346,11 @@ describe('lunaris store', () => {
 
     it('should filter the store by a required filter and paginate', done => {
       var _nbPages                             = 0;
-      lunaris._stores['pagination2.param.site'] = _initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
-      lunaris._stores['pagination2']            = _initStore('pagination2');
+      lunaris._stores['pagination2']            = initStore('pagination2');
       lunaris._stores['pagination2'].filters    = [{
         source          : '@pagination2.param.site',
         sourceAttribute : 'site',
@@ -1405,11 +1405,11 @@ describe('lunaris store', () => {
     });
 
     it('should filter the store by an optional filter', done => {
-      lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
+      lunaris._stores['optional.param.site'] = initStore('optional.param.site');
       lunaris._stores['optional.param.site'].data.add({
         id : 1
       });
-      lunaris._stores['optional'] = _initStore('optional');
+      lunaris._stores['optional'] = initStore('optional');
       lunaris._stores['optional'].filters.push({
         source          : '@optional.param.site',
         sourceAttribute : 'id',
@@ -1433,15 +1433,15 @@ describe('lunaris store', () => {
     });
 
     it('should filter the store by two optional filters', done => {
-      lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
+      lunaris._stores['optional.param.site'] = initStore('optional.param.site');
       lunaris._stores['optional.param.site'].data.add({
         id : 1
       });
-      lunaris._stores['optional.param.category'] = _initStore('optional.param.category');
+      lunaris._stores['optional.param.category'] = initStore('optional.param.category');
       lunaris._stores['optional.param.category'].data.add({
         id : 2
       });
-      lunaris._stores['optional'] = _initStore('optional');
+      lunaris._stores['optional'] = initStore('optional');
       lunaris._stores['optional'].filters.push({
         source          : '@optional.param.site',
         sourceAttribute : 'id',
@@ -1471,8 +1471,8 @@ describe('lunaris store', () => {
     });
 
     it('should not filter the store if the optional filter is not set', done => {
-      lunaris._stores['optional.param.site']     = _initStore('optional.param.site');
-      lunaris._stores['optional']                = _initStore('optional');
+      lunaris._stores['optional.param.site']     = initStore('optional.param.site');
+      lunaris._stores['optional']                = initStore('optional');
       lunaris._stores['optional'].fakeAttributes = ['site'];
       lunaris._stores['optional'].filters.push({
         source          : '@optional.param.site',
@@ -1497,7 +1497,7 @@ describe('lunaris store', () => {
 
     it('should get the item identified by its id', done => {
       var _currentId = 1;
-      lunaris._stores['get'] = _initStore('get');
+      lunaris._stores['get'] = initStore('get');
       lunaris.hook('get@get', item => {
         if (_currentId === 1) {
           should(item).be.an.Object();
@@ -1528,11 +1528,11 @@ describe('lunaris store', () => {
     });
 
     it('should not filter the store by a required filter if the filer is not authorized for the current method', done => {
-      lunaris._stores['required.param.site'] = _initStore('required.param.site');
+      lunaris._stores['required.param.site'] = initStore('required.param.site');
       lunaris._stores['required.param.site'].data.add({
         site : 1
       });
-      lunaris._stores['methods']                = _initStore('methods');
+      lunaris._stores['methods']                = initStore('methods');
       lunaris._stores['methods'].fakeAttributes = ['site'];
       lunaris._stores['methods'].filters.push({
         source          : '@required.param.site',
@@ -1561,11 +1561,11 @@ describe('lunaris store', () => {
 
     describe('search', () => {
       it('should filter the store by an "=" filter', done => {
-        lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
+        lunaris._stores['optional.param.site'] = initStore('optional.param.site');
         lunaris._stores['optional.param.site'].data.add({
           id : 1
         });
-        lunaris._stores['optional'] = _initStore('optional');
+        lunaris._stores['optional'] = initStore('optional');
         lunaris._stores['optional'].filters.push({
           source          : '@optional.param.site',
           sourceAttribute : 'id',
@@ -1589,11 +1589,11 @@ describe('lunaris store', () => {
       });
 
       it('should filter the store by an "ILIKE" filter', done => {
-        lunaris._stores['optional.param.site'] = _initStore('optional.param.site');
+        lunaris._stores['optional.param.site'] = initStore('optional.param.site');
         lunaris._stores['optional.param.site'].data.add({
           id : 1
         });
-        lunaris._stores['optional'] = _initStore('optional');
+        lunaris._stores['optional'] = initStore('optional');
         lunaris._stores['optional'].filters.push({
           source          : '@optional.param.site',
           sourceAttribute : 'id',
@@ -1639,7 +1639,7 @@ describe('lunaris store', () => {
     });
 
     it('should clear the store', () => {
-      var _store = _initStore('store1');
+      var _store = initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A', _version : [1] });
@@ -1656,7 +1656,7 @@ describe('lunaris store', () => {
 
     it('should clear the store and enver trigger the hook', done => {
       var _hasFiredHook = false;
-      var _store        = _initStore('store1');
+      var _store        = initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A', _version : [1] });
@@ -1694,7 +1694,7 @@ describe('lunaris store', () => {
     });
 
     it('should rollback the store', done => {
-      var _store                                      = _initStore('store_insert_post');
+      var _store                                      = initStore('store_insert_post');
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
@@ -1717,7 +1717,7 @@ describe('lunaris store', () => {
 
     it('should retry : insert', done => {
       var _nbExecuted = 0;
-      var _store                                      = _initStore('store_insert_post');
+      var _store                                      = initStore('store_insert_post');
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
@@ -1763,7 +1763,7 @@ describe('lunaris store', () => {
 
     it('should retry : update', done => {
       var _nbExecuted = 0;
-      var _store                                     = _initStore('store_insert_put');
+      var _store                                     = initStore('store_insert_put');
       lunaris._stores['store_insert_put']            = _store;
       lunaris._stores['store_insert_put'].primaryKey = 'id';
 
@@ -1812,7 +1812,7 @@ describe('lunaris store', () => {
 
     it('should retry : get', done => {
       var _nbExecuted = 0;
-      var _store               = _initStore('store');
+      var _store               = initStore('store');
       lunaris._stores['store'] = _store;
 
       lunaris.hook('errorHttp@store', () => {
@@ -1857,7 +1857,7 @@ describe('lunaris store', () => {
 
     it('should retry : delete', done => {
       var _nbExecuted = 0;
-      var _store               = _initStore('store_del');
+      var _store               = initStore('store_del');
       lunaris._stores['store_del'] = _store;
 
       lunaris.hook('errorHttp@store_del', () => {
@@ -1916,12 +1916,12 @@ describe('lunaris store', () => {
     });
 
     it('should return an empty object if no map has been provided', () => {
-      lunaris._stores['store1'] = _initStore('store1');
+      lunaris._stores['store1'] = initStore('store1');
       should(lunaris.getDefaultValue('@store1')).eql({});
     });
 
     it('should return a default object', () => {
-      lunaris._stores['store1'] = _initStore('store1', [{
+      lunaris._stores['store1'] = initStore('store1', [{
         id    : ['<<int>>', 2],
         label : ['string'],
         menus : ['array', {
@@ -1937,7 +1937,7 @@ describe('lunaris store', () => {
     });
 
     it('should return a default object and not edit the base object', () => {
-      lunaris._stores['store1'] = _initStore('store1', [{
+      lunaris._stores['store1'] = initStore('store1', [{
         id    : ['<<int>>', 2],
         label : ['string'],
         menus : ['array', {
@@ -1965,7 +1965,7 @@ describe('lunaris store', () => {
     });
 
     it('should throw an error if value is an array and store is an object store', done => {
-      lunaris._stores['store'] = _initStore('store', {
+      lunaris._stores['store'] = initStore('store', {
         id    : ['<<int>>'],
         label : ['string']
       });
@@ -1979,7 +1979,7 @@ describe('lunaris store', () => {
     });
 
     it('should validate for insert', done => {
-      lunaris._stores['store'] = _initStore('store', {
+      lunaris._stores['store'] = initStore('store', {
         id    : ['<<int>>'],
         label : ['string']
       });
@@ -1991,7 +1991,7 @@ describe('lunaris store', () => {
     });
 
     it('should not validate for insert', done => {
-      lunaris._stores['store'] = _initStore('store', {
+      lunaris._stores['store'] = initStore('store', {
         id    : ['<<int>>'],
         label : ['string']
       });
@@ -2003,7 +2003,7 @@ describe('lunaris store', () => {
     });
 
     it('should validate for update', done => {
-      lunaris._stores['store'] = _initStore('store', {
+      lunaris._stores['store'] = initStore('store', {
         id    : ['<<int>>'],
         label : ['string']
       });
@@ -2015,7 +2015,7 @@ describe('lunaris store', () => {
     });
 
     it('should not validate primary key for update', done => {
-      lunaris._stores['store'] = _initStore('store', {
+      lunaris._stores['store'] = initStore('store', {
         id    : ['<<int>>'],
         label : ['string']
       });
@@ -2027,7 +2027,7 @@ describe('lunaris store', () => {
     });
 
     it('should not validate other keys for update', done => {
-      lunaris._stores['store'] = _initStore('store', {
+      lunaris._stores['store'] = initStore('store', {
         id    : ['<<int>>'],
         label : ['string']
       });
@@ -2040,27 +2040,6 @@ describe('lunaris store', () => {
   });
 
 });
-
-/**
- * Utils
- */
-
-function _initStore (name, map) {
-  var _store                   = {};
-  _store.name                  = name;
-  _store.primaryKey            = null;
-  _store.data                  = collection.collection();
-  _store.filters               = [];
-  _store.hooks                 = {};
-  _store.paginationLimit       = 50;
-  _store.paginationOffset      = 0;
-  _store.paginationCurrentPage = 1;
-  _store.map                   = map;
-  _store.meta                  = storeMap.analyzeDescriptor(map);
-  _store.validateFn            = validateMap.buildValidateFunction(_store.meta.compilation);
-  _store.isStoreObject         = !map ? false : !Array.isArray(map) ? true : false;
-  return _store;
-}
 
 function _startServer (callback) {
   server.use(compression());
