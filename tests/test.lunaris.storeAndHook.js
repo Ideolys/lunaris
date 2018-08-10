@@ -25,6 +25,8 @@ eval(buildLunaris({
 let server  = express();
 lunaris._stores.lunarisErrors.data = collection.collection();
 
+var nbCallsPagination2 = 0;
+
 describe('lunaris store', () => {
 
   before(done => {
@@ -2039,6 +2041,215 @@ describe('lunaris store', () => {
     });
   });
 
+  describe('cache', () => {
+
+    beforeEach(() => {
+      nbCallsPagination2 = 0;
+    });
+
+    it('should cache the values', done => {
+      var _nbPages                             = 0;
+      lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].data.add({
+        site : 1
+      });
+      lunaris._stores['pagination2']            = initStore('pagination2');
+      lunaris._stores['pagination2'].filters    = [{
+        source          : '@pagination2.param.site',
+        sourceAttribute : 'site',
+        localAttribute  : 'site',
+        isRequired      : true
+      }];
+
+      lunaris.hook('get@pagination2', items => {
+        _nbPages++;
+        if (_nbPages === 1) {
+          should(items).eql([
+            { _id : 1, id : 20, label : 'B', _version : [2] },
+            { _id : 2, id : 30, label : 'D', _version : [2] },
+            { _id : 3, id : 10, label : 'E', _version : [2] }
+          ]);
+          lunaris.setPagination('@pagination2', 1, 50);
+          lunaris.get('@pagination2');
+          return;
+        }
+
+        should(items).eql([
+          { _id : 1, id : 20, label : 'B', _version : [2] },
+          { _id : 2, id : 30, label : 'D', _version : [2] },
+          { _id : 3, id : 10, label : 'E', _version : [2] }
+        ]);
+
+        should(nbCallsPagination2).eql(1);
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@pagination2', err => {
+        done(err);
+      });
+
+      lunaris.get('@pagination2');
+    });
+
+    it('should unvalidate the cache if a value has been updated', done => {
+      var _nbPages                             = 0;
+      lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].data.add({
+        site : 1
+      });
+      lunaris._stores['pagination2']            = initStore('pagination2');
+      lunaris._stores['pagination2'].filters    = [{
+        source          : '@pagination2.param.site',
+        sourceAttribute : 'site',
+        localAttribute  : 'site',
+        isRequired      : true
+      }];
+
+      lunaris.hook('get@pagination2', items => {
+        _nbPages++;
+        if (_nbPages === 1) {
+          should(items).eql([
+            { _id : 1, id : 20, label : 'B', _version : [2] },
+            { _id : 2, id : 30, label : 'D', _version : [2] },
+            { _id : 3, id : 10, label : 'E', _version : [2] }
+          ]);
+          lunaris.setPagination('@pagination2', 1, 50);
+          lunaris.update('@pagination2', { _id : 3, id : 10, label : 'E-2'}, true);
+          lunaris.get('@pagination2');
+          return;
+        }
+
+
+        should(items).eql([
+          { _id : 4, id : 20, label : 'B', _version : [4] },
+          { _id : 5, id : 30, label : 'D', _version : [4] },
+          { _id : 6, id : 10, label : 'E', _version : [4] }
+        ]);
+
+        should(nbCallsPagination2).eql(2);
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@pagination2', err => {
+        done(err);
+      });
+
+      lunaris.get('@pagination2');
+    });
+
+    it('should unvalidate the cache id if it is deleted', done => {
+      var _nbPages                             = 0;
+      lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].data.add({
+        site : 1
+      });
+      lunaris._stores['pagination2']            = initStore('pagination2');
+      lunaris._stores['pagination2'].filters    = [{
+        source          : '@pagination2.param.site',
+        sourceAttribute : 'site',
+        localAttribute  : 'site',
+        isRequired      : true
+      }];
+
+      lunaris.hook('get@pagination2', items => {
+        _nbPages++;
+        if (_nbPages === 1) {
+          should(items).eql([
+            { _id : 1, id : 20, label : 'B', _version : [2] },
+            { _id : 2, id : 30, label : 'D', _version : [2] },
+            { _id : 3, id : 10, label : 'E', _version : [2] }
+          ]);
+          lunaris.setPagination('@pagination2', 1, 50);
+          lunaris.delete('@pagination2', { _id : 3, id : 10, label : 'E-2'}, null, true);
+          lunaris.get('@pagination2');
+          return;
+        }
+
+
+        should(items).eql([
+          { _id : 1, id : 20, label : 'B', _version : [2] },
+          { _id : 2, id : 30, label : 'D', _version : [2] },
+        ]);
+
+        should(nbCallsPagination2).eql(1);
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@pagination2', err => {
+        done(err);
+      });
+
+      lunaris.get('@pagination2');
+    });
+  });
+
+  describe('Set pagination', () => {
+    it('should reset the pagiantion : page 1', done => {
+      lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].data.add({
+        site : 1
+      });
+      lunaris._stores['pagination2']            = initStore('pagination2');
+      lunaris._stores['pagination2'].filters    = [{
+        source          : '@pagination2.param.site',
+        sourceAttribute : 'site',
+        localAttribute  : 'site',
+        isRequired      : true
+      }];
+
+      lunaris.hook('get@pagination2', () => {
+        should(lunaris._stores['pagination2'].paginationLimit).eql(50);
+        should(lunaris._stores['pagination2'].paginationCurrentPage).eql(2);
+        should(lunaris._stores['pagination2'].paginationOffset).eql(50);
+        lunaris.setPagination('@pagination2', 1, 20);
+        should(lunaris._stores['pagination2'].paginationLimit).eql(20);
+        should(lunaris._stores['pagination2'].paginationCurrentPage).eql(1);
+        should(lunaris._stores['pagination2'].paginationOffset).eql(0);
+        done();
+      });
+
+      lunaris.hook('errorHttp@pagination2', err => {
+        done(err);
+      });
+
+      lunaris.get('@pagination2');
+    });
+
+    it('should reset the pagiantion : page > 1', done => {
+      lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].data.add({
+        site : 1
+      });
+      lunaris._stores['pagination2']            = initStore('pagination2');
+      lunaris._stores['pagination2'].filters    = [{
+        source          : '@pagination2.param.site',
+        sourceAttribute : 'site',
+        localAttribute  : 'site',
+        isRequired      : true
+      }];
+
+      lunaris.hook('get@pagination2', () => {
+        should(lunaris._stores['pagination2'].paginationLimit).eql(50);
+        should(lunaris._stores['pagination2'].paginationCurrentPage).eql(2);
+        should(lunaris._stores['pagination2'].paginationOffset).eql(50);
+        lunaris.setPagination('@pagination2', 4, 20);
+        should(lunaris._stores['pagination2'].paginationLimit).eql(20);
+        should(lunaris._stores['pagination2'].paginationCurrentPage).eql(4);
+        should(lunaris._stores['pagination2'].paginationOffset).eql(80);
+        done();
+      });
+
+      lunaris.hook('errorHttp@pagination2', err => {
+        done(err);
+      });
+
+      lunaris.get('@pagination2');
+    });
+  });
+
 });
 
 function _startServer (callback) {
@@ -2093,6 +2304,7 @@ function _startServer (callback) {
   });
 
   server.get('/pagination2/site/:idSite', (req, res) => {
+    nbCallsPagination2++;
     if (req.query.limit === '50' && req.query.offset === '0' && req.params.idSite === '1') {
       return res.json({ success : true, error : null, message : req.params.id, data : [
         { id : 20, label : 'B' },

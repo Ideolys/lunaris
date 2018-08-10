@@ -508,8 +508,9 @@ function upsert (store, value, isLocal, retryOptions) {
  *   data,
  *   version
  * }
+ * @param {Boolean} isLocal
  */
-function deleteStore (store, value, retryOptions) {
+function deleteStore (store, value, retryOptions, isLocal) {
   try {
     if (retryOptions) {
       value = retryOptions.data;
@@ -536,7 +537,7 @@ function deleteStore (store, value, retryOptions) {
       _version = retryOptions.version;
     }
 
-    if (_store.isLocal) {
+    if (_store.isLocal || isLocal) {
       return;
     }
 
@@ -586,11 +587,11 @@ function setPagination (store, page, limit) {
   try {
     _checkArgs(store, null, true);
 
-    var _store      = _getStore(store);
+    var _store = _getStore(store);
 
-    _store.paginationLimit       = limit;
-    _store.paginationCurrentPage = page;
-    _store.paginationOffset      = _store.paginationLimit * store.paginationCurrentPage;
+    _store.paginationLimit       = limit || _store.paginationLimit;
+    _store.paginationCurrentPage = page  || 1;
+    _store.paginationOffset      = _store.paginationCurrentPage === 1 ? 0 : _store.paginationLimit * _store.paginationCurrentPage;
   }
   catch (e) {
     logger.warn(['lunaris.setPagination' + store], e);
