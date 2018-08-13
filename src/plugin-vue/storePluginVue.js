@@ -94,7 +94,7 @@ lunaris._vue = {
      * @param {Object} _this
      */
     function _setFormValue (store, _this) {
-      Object.defineProperty(_this, '$' + store + 'Form',  {
+      Object.defineProperty(_this, '_$' + store,  {
         get : function () {
           return lunaris._vue._vm.$data.$stores[store].form;
         }
@@ -402,14 +402,11 @@ lunaris._vue = {
          * @param {String} store
          */
         this.$clearForm = function clearForm (store) {
-          if (!this['$' + store]) {
-            return lunaris.logger.warn('vm.$clearForm', new Error('The form \"' + store + '\" has not been registered!'));
-          }
-          if (!/Form$/.test(store)) {
-            return lunaris.logger.warn('vm.$clearForm', new Error('\"' + store + '\" is not a form! Please, use \"' + store + 'Form' + '\" instead.'));
+          if (this['$' + store] === undefined) {
+            return lunaris.logger.warn('vm.$clearForm', new Error('The store \"' + store + '\" has not been registered!'));
           }
 
-          lunaris._vue._vm.$data.$stores[store.replace('Form', '')].form = lunaris.getDefaultValue('@' + store.replace('Form', ''));
+          lunaris._vue._vm.$data.$stores[store].form = lunaris.getDefaultValue('@' + store);
         };
       },
 

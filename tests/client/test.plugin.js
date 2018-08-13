@@ -363,9 +363,9 @@ describe('Store plugin', () => {
         el     : '#app',
         stores : ['test'],
       });
-      should(vm.$testForm).be.ok();
-      should(vm.$testForm).eql({});
-      should(Object.isFrozen(vm.$testForm)).eql(false);
+      should(vm._$test).be.ok();
+      should(vm._$test).eql({});
+      should(Object.isFrozen(vm._$test)).eql(false);
       vm.$destroy();
     });
 
@@ -374,9 +374,9 @@ describe('Store plugin', () => {
         el     : '#app',
         stores : ['testObject'],
       });
-      should(vm.$testObjectForm).be.ok();
-      should(vm.$testObjectForm).eql(lunaris._stores.testObject.meta.defaultValue);
-      should(Object.isFrozen(vm.$testObjectForm)).eql(false);
+      should(vm._$testObject).be.ok();
+      should(vm._$testObject).eql(lunaris._stores.testObject.meta.defaultValue);
+      should(Object.isFrozen(vm._$testObject)).eql(false);
       vm.$destroy();
     });
 
@@ -386,7 +386,7 @@ describe('Store plugin', () => {
         stores : ['testObject'],
       });
 
-      vm.$testObjectForm.id = 1;
+      vm._$testObject.id = 1;
       should(lunaris._vue._vm.$data.$stores.testObject.form.id).eql(1);
       vm.$destroy();
     });
@@ -410,21 +410,7 @@ describe('Store plugin', () => {
       vm.$clearForm('test');
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris warn] vm.$clearForm');
-      should(lastError[1]).eql(new Error('The form "test" has not been registered!'));
-
-      vm.$destroy();
-    });
-
-    it('clearForm should throw an error if the storeForm is given', () => {
-      const vm = new Vue({
-        el     : '#app',
-        stores : ['test']
-      });
-
-      vm.$clearForm('test');
-      should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] vm.$clearForm');
-      should(lastError[1]).eql(new Error('"test" is not a form! Please, use "testForm" instead.'));
+      should(lastError[1]).eql(new Error('The store "test" has not been registered!'));
 
       vm.$destroy();
     });
@@ -435,8 +421,8 @@ describe('Store plugin', () => {
         stores : ['test']
       });
 
-      vm.$testForm.id = 1;
-      vm.$clearForm('testForm');
+      vm._$test.id = 1;
+      vm.$clearForm('test');
       should(lunaris._vue._vm.$data.$stores.test.form).eql(lunaris.getDefaultValue('@test'));
       vm.$destroy();
     });
@@ -447,8 +433,8 @@ describe('Store plugin', () => {
         stores : ['testObject']
       });
 
-      vm.$testObjectForm.id = 1;
-      vm.$clearForm('testObjectForm');
+      vm._$testObject.id = 1;
+      vm.$clearForm('testObject');
       should(lunaris._vue._vm.$data.$stores.testObject.form).eql(lunaris.getDefaultValue('@testObject'));
       vm.$destroy();
     });
