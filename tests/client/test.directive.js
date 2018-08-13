@@ -64,6 +64,38 @@ describe('directive v-lunaris', () => {
     vm.$destroy();
   });
 
+  it('should throw an error and call the error function if the validation failed', () => {
+    var _fnHasBeenCalled = false;
+    const vm = new Vue({
+      template : `
+        <div>
+          <input id="input" v-lunaris="'@directive.id'" :lunaris-id="$directive.id" v-on:error="onError">
+        </div>
+      `,
+      stores  : ['directive'],
+      methods : {
+        onError : function () {
+          _fnHasBeenCalled = true;
+        }
+      },
+      created : function () {
+        lunaris.insert('@directive', { id : 1, label : 'Cat', children : [], type : { id : 1, label : 'A' } });
+      }
+    }).$mount();
+
+    var _input   = vm.$el.children.input;
+    _input.value = 'Dog';
+
+    _input.dispatchEvent(new Event('change', { bubbles : true }));
+    should(_fnHasBeenCalled).eql(true);
+
+    should(lastError.length).eql(2);
+    should(lastError[0]).eql('[Lunaris warn] v-lunaris');
+    should(lastError[1]).eql([{ value: 'Dog', field: 'id', error: 'must be an integer' }]);
+
+    vm.$destroy();
+  });
+
   it('should update an attribute value at root level', () => {
     const vm = new Vue({
       template : `

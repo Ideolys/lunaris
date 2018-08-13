@@ -7,16 +7,17 @@
  * Return handler for directive onChange input
  * @param {String} path see decodeObjectPath()
  * @param {Int} id current lunaris _id value
+ * @param {Obejct} vnode
  * @return {Function}
  */
-function getHandlerFn (path, id) {
+function getHandlerFn (path, id, vnode) {
   return function handler (val) {
     var _pathParts = path.split('.');
     var _store     = _pathParts.shift(); // dot not include store
     var _obj       = decodeObjectPath(_pathParts, val.target.value);
     _obj._id       = id;
 
-    _item = lunaris.getOne(_store, _obj._id);
+    var _item = lunaris.getOne(_store, _obj._id);
     if (!_item) {
       return;
     }
@@ -28,6 +29,10 @@ function getHandlerFn (path, id) {
       }
 
       lunaris.logger.warn('v-lunaris', err);
+
+      if (vnode.data && vnode.data.on && vnode.data.on.error) {
+        vnode.data.on.error(err);
+      }
     });
   };
 }
@@ -87,7 +92,7 @@ Vue.directive('lunaris', {
       return lunaris.logger.tip('v-lunaris', 'You must declare the directive as: v-lunaris="\'@<store>.attribute\'"');
     }
 
-    this.handler = getHandlerFn(_value, getId(el));
+    this.handler = getHandlerFn(_value, getId(el), vnode);
     el.addEventListener('change', this.handler);
   },
 
