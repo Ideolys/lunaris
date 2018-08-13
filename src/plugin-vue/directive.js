@@ -39,15 +39,15 @@ function getHandlerFn (path, id, vnode) {
 
 /**
  * Get lunaris id from el attributes
- * @param {Object} el
+ * @param {Object} vnode
  * @returns {Int}
  */
-function getId (el) {
-  if (!el.attributes['lunaris-id']) {
+function getId (vnode) {
+  if (!vnode.data.attrs || (vnode.data.attrs && !vnode.data.attrs['lunaris-id'])) {
     return lunaris.logger.warn('v-lunaris', new Error('The directive must have "lunaris-id" defined!'));
   }
 
-  return parseInt(el.attributes['lunaris-id'].value, 10);
+  return vnode.data.attrs['lunaris-id'];
 }
 
 /**
@@ -80,7 +80,7 @@ function decodeObjectPath (objectPathParts, value) {
 }
 
 Vue.directive('lunaris', {
-  bind: function (el, binding, vnode) {
+  bind : function (el, binding, vnode) {
     var _value = binding.value;
 
     if (!_value) {
@@ -92,7 +92,7 @@ Vue.directive('lunaris', {
       return lunaris.logger.tip('v-lunaris', 'You must declare the directive as: v-lunaris="\'@<store>.attribute\'"');
     }
 
-    this.handler = getHandlerFn(_value, getId(el), vnode);
+    this.handler = getHandlerFn(_value, getId(vnode), vnode);
     el.addEventListener('change', this.handler);
   },
 
