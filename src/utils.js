@@ -1,9 +1,19 @@
-exports.clone = function clone (value) {
+function clone (value) {
   return JSON.parse(JSON.stringify(value));
-};
-
-exports.freeze = function freeze (value) {
+}
+function freeze (value) {
   return Object.freeze(value);
+}
+
+exports.cloneAndFreeze = function cloneAndFreeze (value) {
+  if (!Array.isArray(value)) {
+    return freeze(clone(value));
+  }
+
+  for (var i = 0; i < value.length; i++) {
+    value[i] = freeze(clone(value[i]));
+  }
+  return value;
 };
 
 exports.OPERATIONS = {
@@ -35,3 +45,6 @@ exports.merge = function merge (parent, child) {
 
   return parent;
 };
+
+exports.clone  = clone;
+exports.freeze = freeze;

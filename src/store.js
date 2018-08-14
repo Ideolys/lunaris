@@ -356,10 +356,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
     }
 
     value = _collection.commit(_version);
-
-    for (var k = 0; k < value.length; k++) {
-      value[k] = utils.freeze(utils.clone(value[k]));
-    }
+    value = utils.cloneAndFreeze(value);
 
     if (!_isMultipleItems) {
       value = value[0];
@@ -421,17 +418,14 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
         }
       }
       value = _collection.commit(_version);
-
-      for (var k = 0; k < value.length; k++) {
-        value[k] = utils.freeze(utils.clone(value[k]));
-      }
+      value = utils.cloneAndFreeze(value);
     }
     else {
       value = utils.merge(data, value);
       value = _collection.upsert(value);
       // the value must have been deleted
       if (value) {
-        value = utils.freeze(utils.clone(value));
+        value = utils.cloneAndFreeze(value);
       }
       else {
         _isEvent = false;
@@ -660,7 +654,7 @@ function get (store, primaryKeyValue, retryOptions) {
       var _ids      = _cache.get(_cacheFilters);
 
       if (_ids.length) {
-        return hook.pushToHandlers(_store, 'get', _collection.getAll(_ids), true);
+        return hook.pushToHandlers(_store, 'get', utils.cloneAndFreeze(_collection.getAll(_ids)), true);
       }
     }
     else {
