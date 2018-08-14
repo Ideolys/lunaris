@@ -108,7 +108,9 @@ describe('lunaris store', () => {
           should(Object.isFrozen(updatedValue)).eql(true);
           return _isFirstInsertEvent = false;
         }
+      });
 
+      lunaris.hook('update@store1', updatedValue => {
         _isUpdateHook = true;
       });
 
@@ -638,7 +640,9 @@ describe('lunaris store', () => {
           }
           return _isFirstInsertEvent = false;
         }
+      });
 
+      lunaris.hook('update@mass', updatedValue => {
         _isUpdateHook = true;
       });
 

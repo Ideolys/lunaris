@@ -436,7 +436,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       return;
     }
 
-    hook.pushToHandlers(store, isUpdate ? 'update'  : 'insert'  , value);
+    hook.pushToHandlers(store, 'update', value);
     hook.pushToHandlers(store, isUpdate ? 'updated' : 'inserted', [
       value,
       _getSuccess(null, store, _method, false)
