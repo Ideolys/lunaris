@@ -497,6 +497,64 @@ describe('Validate', () => {
           should(_computedResult).eql(_expectedResult);
         });
 
+        it('should validate array with 2 objects and validate optional value', () => {
+          var _objectDescriptor = [{
+            id        : ['<<int>>'],
+            continent : ['string', 'optional']
+          }];
+          var _objectToCheck = [{
+            id        : 1,
+            continent : 'france'
+          },{
+            id        : null,
+            continent : null
+          }];
+          var _expectedResult     = [];
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _computedResult     = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck, null, false);
+          should(_computedResult).eql(_expectedResult);
+        });
+
+        it('should validate array with 2 objects and validate optional object value', () => {
+          var _objectDescriptor = [{
+            id        : ['<<int>>'],
+            continent : ['object', 'optional', {
+              id : ['int']
+            }]
+          }];
+          var _objectToCheck = [{
+            id        : 1,
+            continent : { id : 2 }
+          },{
+            id        : null,
+            continent : null
+          }];
+          var _expectedResult     = [];
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _computedResult     = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck, null, false);
+          should(_computedResult).eql(_expectedResult);
+        });
+
+        it('should validate array with 2 objects and validate empty array', () => {
+          var _objectDescriptor = [{
+            id         : ['<<int>>'],
+            continents : ['array', {
+              id : ['<<int>>']
+            }]
+          }];
+          var _objectToCheck = [{
+            id         : 1,
+            continents : [{ id : 2 }]
+          },{
+            id         : null,
+            continents : []
+          }];
+          var _expectedResult     = [];
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _computedResult     = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck, null, false);
+          should(_computedResult).eql(_expectedResult);
+        });
+
         it('should return an error if there is an error', () => {
           var _objectDescriptor = {
             id        : ['int'],
