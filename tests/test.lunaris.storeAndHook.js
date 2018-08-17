@@ -1350,6 +1350,35 @@ describe('lunaris store', () => {
       lunaris.get('@required');
     });
 
+    it('should not filter the store by a required filter if there is no value in the filter', done => {
+      var _hasBeenCalled = false;
+      lunaris._stores['required.param.site']         = initStore('required.param.site');
+      lunaris._stores['required.param.site'].isLocal = true;
+      lunaris._stores['required']                = initStore('required');
+      lunaris._stores['required'].fakeAttributes = ['site'];
+      lunaris._stores['required'].filters.push({
+        source          : '@required.param.site',
+        sourceAttribute : 'site',
+        localAttribute  : 'site',
+        isRequired      : true
+      });
+
+      lunaris.hook('get@required', items => {
+        _hasBeenCalled = true;
+      });
+
+      lunaris.hook('errorHttp@required', err => {
+        done(err);
+      });
+
+      lunaris.get('@required');
+
+      setTimeout(() => {
+        should(_hasBeenCalled).eql(false);
+        done();
+      }, 200);
+    });
+
     it('should filter the store by a required filter and paginate', done => {
       var _nbPages                             = 0;
       lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');

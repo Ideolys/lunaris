@@ -246,7 +246,7 @@ function _createUrl (store, method, primaryKeyValue) {
   var _filterValues  = _getFilterValuesHTTPRequest(store, method);
 
   if (!_filterValues.isRequiredOptionsFilled) {
-    throw new Error('Required filter values must be defined!');
+    return null;
   }
 
   _request.request += _filterValues.requiredOptions;
@@ -383,6 +383,10 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
 
   if (!retryOptions) {
     _request = _createUrl(store, _method, _getPrimaryKeyValue(store, value, !isUpdate || (isUpdate && _isMultipleItems)));
+    // required filters consition not fullfilled
+    if (!_request) {
+      return;
+    }
     _request = _request.request;
   }
   else {
@@ -542,6 +546,10 @@ function deleteStore (store, value, retryOptions, isLocal) {
     var _request = '/';
     if (!retryOptions) {
       _request = _createUrl(_store, 'DELETE', _getPrimaryKeyValue(_store, value));
+      // required filters consition not fullfilled
+      if (!_request) {
+        return;
+      }
       _request = _request.request;
     }
     else {
@@ -653,6 +661,10 @@ function get (store, primaryKeyValue, retryOptions) {
 
     if (!retryOptions) {
       _request      = _createUrl(_store, 'GET', primaryKeyValue);
+      // required filters consition not fullfilled
+      if (!_request) {
+        return;
+      }
       _cacheFilters = _request.cache;
       _request      = _request.request;
       var _ids      = _cache.get(_cacheFilters);
