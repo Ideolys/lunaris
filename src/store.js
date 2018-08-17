@@ -171,7 +171,11 @@ function _getSearchOption (filterValues) {
   var _search    = '';
   var _operators = {
     '='   : ':=',
-    ILIKE : ':'
+    ILIKE : ':',
+    '>'   : ':>',
+    '<'   : ':<',
+    '>='  : ':>=',
+    '<='  : ':<=',
   };
   for (var j = 0; j < filterValues.length; j++) {
     var _operator = ':=';
