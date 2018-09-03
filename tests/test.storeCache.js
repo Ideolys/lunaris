@@ -1,4 +1,4 @@
-const cache     = require('../src/store.cache.js');
+const cache     = require('../src/store/store.cache.js');
 const testUtils = require('./testUtils');
 const initStore = testUtils.initStore;
 

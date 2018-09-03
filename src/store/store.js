@@ -1,7 +1,7 @@
-var hook        = require('./hook.js');
-var utils       = require('./utils.js');
-var http        = require('./http.js');
-var logger      = require('./logger.js');
+var hook        = require('./store.hook.js');
+var utils       = require('../utils.js');
+var http        = require('../http.js');
+var logger      = require('../logger.js');
 var cache       = require('./store.cache.js');
 var emptyObject = {};
 
@@ -14,7 +14,7 @@ function _getStore (storeName) {
     storeName = storeName.split('@');
     storeName = storeName[storeName.length - 1];
   }
-  var lunarisExports = require('./exports.js');
+  var lunarisExports = require('../exports.js');
   var _store         = lunarisExports._stores[storeName];
   if (!_store) {
     throw new Error('The store "' + storeName + '" has not been defined');

@@ -207,6 +207,9 @@ function collection (startId) {
       this.commit(_version);
     },
 
+    /**
+     * Begin the collection transaction
+     */
     begin : function () {
       _transactions[currentVersionNumber] = [];
       return currentVersionNumber;

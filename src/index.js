@@ -1,5 +1,5 @@
-var hook           = require('./hook.js');
-var store          = require('./store.js');
+var hook           = require('./store/store.hook.js');
+var store          = require('./store/store.js');
 var lunarisExports = require('./exports.js');
 var collection     = require('./collection.js');
 var utils          = require('./utils.js');

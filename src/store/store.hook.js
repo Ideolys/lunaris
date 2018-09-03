@@ -1,4 +1,4 @@
-var logger = require('./logger.js');
+var logger = require('../logger.js');
 
 function _extractHookAndStore (hook) {
   var _hook = /(.*)@(.*)/.exec(hook);
@@ -27,7 +27,7 @@ function registerHook (hook, handler) {
   try {
     _isFunction(handler);
     var _hook          = _extractHookAndStore(hook);
-    var lunarisExports = require('./exports.js');
+    var lunarisExports = require('../exports.js');
     var _store         = lunarisExports._stores[_hook.store];
     if (!_store) {
       throw new Error('Cannot register hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
@@ -52,7 +52,7 @@ function removeHook (hook, handler) {
   try {
     _isFunction(handler);
     var _hook          = _extractHookAndStore(hook);
-    var lunarisExports = require('./exports.js');
+    var lunarisExports = require('../exports.js');
     var _store         = lunarisExports._stores[_hook.store];
     if (!_store) {
       throw new Error('Cannot remove hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
