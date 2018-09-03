@@ -19,7 +19,8 @@ exports.cloneAndFreeze = function cloneAndFreeze (value) {
 exports.OPERATIONS = {
   DELETE : 'DELETE',
   INSERT : 'POST',
-  UPDATE : 'PUT'
+  UPDATE : 'PUT',
+  LIST   : 'GET'
 };
 
 /**

@@ -466,6 +466,24 @@ describe('Store plugin', () => {
       vm.$destroy();
     });
 
+    it('should not throw an error if the method is GET and no data are provided', () => {
+      const vm = new Vue({
+        el     : '#app',
+        stores : ['test'],
+      });
+
+      lunaris.get('@test');
+      vm.$rollback({
+        storeName : 'test',
+        data      : null,
+        method    : 'GET',
+        version   : 1
+      });
+      should(lastError.length).eql(0);
+      vm.$destroy();
+      lunaris._resetVersionNumber();
+    });
+
     it('should rollback the inserted item', () => {
       const vm = new Vue({
         el     : '#app',

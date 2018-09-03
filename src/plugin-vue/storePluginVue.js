@@ -354,7 +354,7 @@ lunaris._vue = {
         this.$rollback = function rollback (lunarisError) {
           if (!lunarisError ||
               (lunarisError && !lunarisError.storeName) ||
-              (lunarisError && !lunarisError.data) ||
+              (lunarisError && !lunarisError.data && lunarisError.method && lunarisError.method !== lunaris.OPERATIONS.LIST) ||
               (lunarisError && !lunarisError.method) ||
               (lunarisError && !lunarisError.version)
           ) {
