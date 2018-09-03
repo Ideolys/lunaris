@@ -52,19 +52,13 @@ function getSuccess (message, store, method, isPlural) {
   }
 
   var _methods = {
+    GET    : '${loaded}',
     PUT    : '${edited}',
     POST   : '${created}',
     DELETE : '${deleted}'
   };
 
-  var _message = store.successTemplate;
-  _message = _message
-    .replace('$method'       , _methods[method])
-    .replace('$storeName'    , store.nameTranslated || store.name)
-    .replace('$pronounMale'  , isPlural ? '${thePlural}' : '${the}')
-    .replace('$pronounFemale', isPlural ? '${thePlural}' : '${theFemale}')
-  ;
-  return _message;
+  return _replaceTemplateWords(store, _methods[method], store.successTemplate, isPlural);
 }
 
 exports.getSuccess = getSuccess;
