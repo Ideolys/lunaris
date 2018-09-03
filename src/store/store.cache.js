@@ -8,11 +8,9 @@
 
 /**
  * Cache object
- * @param {Object} store
  * @return {Object}
  */
-function cache (store) {
-  var _store = store;
+function cache () {
   var _cache = [];
 
   /**
@@ -134,7 +132,7 @@ function cache (store) {
  * @param {Object} store
  */
 function _initCache (store) {
-  return store.cache = cache(store);
+  return store.cache = cache();
 }
 
 /**
