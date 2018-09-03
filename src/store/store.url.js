@@ -1,4 +1,5 @@
 var storeUtils = require('./store.utils.js');
+var utils      = require('../utils.js');
 
 /**
  * Get required params for HTTP request
@@ -40,10 +41,8 @@ function _getFilterValuesHTTPRequest (store, method) {
     var _sourceStore = storeUtils.getStore(_filter.source);
     var _sourceValue = storeUtils.getCollection(_sourceStore).getFirst();
     var _methods     = [];
-    if (_filter.httpMethods) {
-      if (Array.isArray(_filter.httpMethods)) {
-        _methods = _filter.httpMethods;
-      }
+    if (_filter.httpMethods && Array.isArray(_filter.httpMethods)) {
+      _methods = _filter.httpMethods;
     }
     else {
       _methods.push(method);
@@ -157,6 +156,11 @@ function createUrl (store, method, primaryKeyValue) {
     _request.request += '/' + primaryKeyValue;
   }
 
+  if (_isGet) {
+    _request.cache.limit  = store.paginationLimit;
+    _request.cache.offset = store.paginationOffset;
+  }
+
   var _filterValues  = _getFilterValuesHTTPRequest(store, method);
 
   if (!_filterValues.isRequiredOptionsFilled) {
@@ -166,12 +170,7 @@ function createUrl (store, method, primaryKeyValue) {
   _request.request += _filterValues.requiredOptions;
   _request.request += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues.optionalOptions);
 
-  if (_isGet) {
-    _filterValues.cache['limit']  = store.paginationLimit;
-    _filterValues.cache['offset'] = store.paginationOffset;
-  }
-
-  _request.cache = _filterValues.cache;
+  utils.merge(_request.cache, _filterValues.cache);
   return _request;
 }
 
