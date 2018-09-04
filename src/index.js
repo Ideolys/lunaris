@@ -1,7 +1,7 @@
 var hook           = require('./store/store.hook.js');
 var store          = require('./store/store.js');
 var lunarisExports = require('./exports.js');
-var collection     = require('./collection.js');
+var collection     = require('./store/store.collection.js');
 var utils          = require('./utils.js');
 var logger         = require('./logger.js');
 

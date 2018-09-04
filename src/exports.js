@@ -1,4 +1,4 @@
-var collection = require('./collection.js');
+var collection = require('./store/store.collection.js');
 
 exports._stores = {
   lunarisErrors : {
