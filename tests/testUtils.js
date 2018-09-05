@@ -1,6 +1,6 @@
 const storeMap    = require('../lib/_builder/store/schema');
 const validateMap = require('../lib/_builder/store/validate');
-const collection  = require('../src/collection');
+const collection  = require('../src/store/store.collection');
 /**
  * Utils
  */

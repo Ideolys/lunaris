@@ -1,4 +1,4 @@
-const collectionModule = require('../src/collection');
+const collectionModule = require('../src/store/store.collection');
 const collection       = collectionModule.collection;
 
 describe('lunaris internal collection', () => {

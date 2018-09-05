@@ -1,324 +1,12 @@
-var hook        = require('./hook.js');
-var utils       = require('./utils.js');
-var http        = require('./http.js');
-var logger      = require('./logger.js');
+var hook        = require('./store.hook.js');
+var utils       = require('../utils.js');
+var storeUtils  = require('./store.utils.js');
+var http        = require('../http.js');
+var logger      = require('../logger.js');
 var cache       = require('./store.cache.js');
+var url         = require('./store.url.js');
+var template    = require('./store.template.js');
 var emptyObject = {};
-
-/**
- * Get store
- * @param {String} storeName
- */
-function _getStore (storeName) {
-  if (/@/.test(storeName)) {
-    storeName = storeName.split('@');
-    storeName = storeName[storeName.length - 1];
-  }
-  var lunarisExports = require('./exports.js');
-  var _store         = lunarisExports._stores[storeName];
-  if (!_store) {
-    throw new Error('The store "' + storeName + '" has not been defined');
-  }
-
-  return lunarisExports._stores[storeName];
-}
-
-/**
- * Get store collection
- * @param {Object} store
- */
-function _getCollection (store) {
-  var _collection = store.data;
-
-  if (!_collection) {
-    throw new Error('"' + store + '" has not been defined!');
-  }
-
-  return _collection;
-}
-
-/**
- * Get primary key value for update and delete
- * @param {Object} store
- * @param {Object} value
- * @param {Boolean} isInsertOrMassiveUpdate
- * @returns {String}
- */
-function _getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
-  var _id = null;
-
-  if (isInsertOrMassiveUpdate) {
-    return _id;
-  }
-  if (!store.primaryKey) {
-    return value._id;
-  }
-
-  var _primaryKey = store.primaryKey;
-  if (Array.isArray(_primaryKey)) {
-    for (var i = 0; i < _primaryKey.length; i++) {
-      var _value = value[_primaryKey[i]];
-      if (_value) {
-        _id += _value + '-';
-      }
-    }
-
-    if (_id !== '') {
-      _id = _id.slice(0, _id.length - 1);
-    }
-  }
-
-  return value[store.primaryKey];
-}
-
-/**
- * Check arguments for upsert, get, deleteStore
- * @param {String} store
- * @param {*} value
- * @param {Boolean} isNotValue enable or not value check
- */
-function _checkArgs (store, value, isNotValue) {
-  if (value === undefined && !isNotValue) {
-    throw new Error('lunaris.<insert|update|delete>(<store>, <value>) must have a value, provided value: ' + value);
-  }
-  if (!store || typeof store !== 'string') {
-    throw new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>');
-  }
-}
-
-/**
- * Get required params for HTTP request
- * @param {Object} store
- * @param {Sting} method
- * @returns {object} {
- *  isRequiredOptionsFilled : {Boolean}
- *  requiredOptions         : {String}
- *  optionalOptions         : {Array}
- *  cache                   : {Object}
- * }
- */
-function _getFilterValuesHTTPRequest (store, method) {
-  var _filterValues            = {
-    isRequiredOptionsFilled : true,
-    requiredOptions         : '',
-    optionalOptions         : [],
-    cache                   : {}
-  };
-  var _nbRequiredFIlters       = 0;
-  var _nbRequiredFilledFilters = 0;
-  if (!store.filters.length) {
-    return _filterValues;
-  }
-
-  for (var i = 0; i < store.filters.length; i++) {
-    var _filter = store.filters[i];
-    var _value  = [];
-    if (!_filter.source) {
-      throw new Error('A filter must have a source defined as : filter.source = @<store>');
-    }
-    if (!_filter.sourceAttribute) {
-      throw new Error('A filter must have a source attribute defined as : filter.sourceAttribute = <attribute>');
-    }
-    if (!_filter.localAttribute) {
-      throw new Error('A filter must have a local attribute defined as : filter.localAttribute = <attribute>');
-    }
-
-    var _sourceStore = _getStore(_filter.source);
-    var _sourceValue = _getCollection(_sourceStore).getFirst();
-    var _methods     = [];
-    if (_filter.httpMethods) {
-      if (Array.isArray(_filter.httpMethods)) {
-        _methods = _filter.httpMethods;
-      }
-    }
-    else {
-      _methods.push(method);
-    }
-
-    if (_filter.isRequired && _methods.indexOf(method) !== -1) {
-      _nbRequiredFIlters++;
-    }
-
-    if (_sourceValue !== undefined) {
-      _value.push(_filter.localAttribute, _sourceValue[_filter.sourceAttribute], _filter.operator);
-
-      if (_methods.indexOf(method) !== -1) {
-        if (_filter.isRequired) {
-          _nbRequiredFilledFilters++;
-        }
-
-        if (_value[2]) {
-          _filterValues.optionalOptions.push(_value);
-        }
-        else {
-          _filterValues.requiredOptions += '/' + _value[0] + '/' + _value[1];
-        }
-
-        _filterValues.cache[_filter.source + ':' + _filter.sourceAttribute] = _value[1];
-      }
-    }
-  }
-
-  _filterValues.isRequiredOptionsFilled = _nbRequiredFIlters === _nbRequiredFilledFilters;
-  return _filterValues;
-}
-
-/**
- * Construct searhc options
- * @param {Array} filterValues
- */
-function _getSearchOption (filterValues) {
-  var _search    = '';
-  var _operators = {
-    '='   : ':=',
-    ILIKE : ':',
-    '>'   : ':>',
-    '<'   : ':<',
-    '>='  : ':>=',
-    '<='  : ':<=',
-  };
-  for (var j = 0; j < filterValues.length; j++) {
-    var _operator = ':=';
-    if (filterValues[j][2]) {
-      _operator = _operators[filterValues[j][2]] || _operator;
-    }
-    _search += filterValues[j][0] + encodeURIComponent(_operator) + encodeURIComponent(filterValues[j][1]) + encodeURIComponent('+');
-  }
-  _search = _search.slice(0, _search.length - encodeURIComponent('+').length);
-  return ['search', _search];
-}
-
-/**
- * Get and construct the url options
- * @param {Object} store
- * @param {Boolean} isPagination
- * @returns {String} ?option=optionvalue&...
- */
-function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
-  var _optionsStr = '';
-  var _options    = [];
-  filterValues    = filterValues || [];
-
-  // Pagination
-  if (isPagination) {
-    var _limit  = store.paginationLimit;
-    var _offset = store.paginationOffset;
-    _options.push(['limit' , _limit]);
-    _options.push(['offset', _offset]);
-    store.paginationOffset = _limit * store.paginationCurrentPage;
-    store.paginationCurrentPage++;
-  }
-
-  // _options = _options.concat(filterValues);
-  if (filterValues.length) {
-    _options.push(_getSearchOption(filterValues));
-  }
-
-  if (_options.length) {
-    _optionsStr += '?';
-  }
-  for (var i = 0; i < _options.length; i++) {
-    _optionsStr += _options[i][0] + '=' + _options[i][1] + '&';
-  }
-
-  _optionsStr = _optionsStr.slice(0, _optionsStr.length - 1);
-  return _optionsStr;
-}
-
-/**
- * Create URL for givens tore and action
- * @param {Object} store
- * @param {Boolean} isGET is GET HTTP me:thod ?
- * @param {*} primaryKeyValue
- * @returns {Object}
- */
-function _createUrl (store, method, primaryKeyValue) {
-  var _request = { request : '/', cache : {} };
-  var _isGet   = method === 'GET';
-  var _url     = store.url || store.name;
-
-  _request.request += _url;
-
-  if (primaryKeyValue) {
-    _request.request += '/' + primaryKeyValue;
-  }
-
-  var _filterValues  = _getFilterValuesHTTPRequest(store, method);
-
-  if (!_filterValues.isRequiredOptionsFilled) {
-    return null;
-  }
-
-  _request.request += _filterValues.requiredOptions;
-  _request.request += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues.optionalOptions);
-
-  if (_isGet) {
-    _filterValues.cache['limit']  = store.paginationLimit;
-    _filterValues.cache['offset'] = store.paginationOffset;
-  }
-
-  _request.cache = _filterValues.cache;
-  return _request;
-}
-
-function _replaceTemplateWords (store, method, message, isPlural) {
-  return message
-    .replace('$method'       , method)
-    .replace('$storeName'    , store.nameTranslated || store.name)
-    .replace('$pronounMale'  , isPlural ? '${thePlural}' : '${the}')
-    .replace('$pronounFemale', isPlural ? '${thePlural}' : '${theFemale}')
-  ;
-}
-
-/**
- * Construct error template
- * @param {*} err
- * @param {*} store
- * @param {*} method
- * @param {*} isPlural
- */
-function _getError (err, store, method, isPlural) {
-  if (!store.errorTemplate) {
-    return err.error + ' : ' + err.message;
-  }
-
-  var _methods = {
-    GET    : '${load}',
-    PUT    : '${edit}',
-    POST   : '${create}',
-    DELETE : '${delete}'
-  };
-
-  return _replaceTemplateWords(store, _methods[method], store.errorTemplate, isPlural);
-}
-
-/**
- * Construct validation template
- * @param {*} message
- * @param {*} store
- * @param {*} method
- * @param {*} isPlural
- */
-function _getSuccess (message, store, method, isPlural) {
-  if (!store.successTemplate) {
-    return message;
-  }
-
-  var _methods = {
-    PUT    : '${edited}',
-    POST   : '${created}',
-    DELETE : '${deleted}'
-  };
-
-  var _message = store.successTemplate;
-  _message = _message
-    .replace('$method'       , _methods[method])
-    .replace('$storeName'    , store.nameTranslated || store.name)
-    .replace('$pronounMale'  , isPlural ? '${thePlural}' : '${the}')
-    .replace('$pronounFemale', isPlural ? '${thePlural}' : '${theFemale}')
-  ;
-  return _message;
-}
 
 /**
  * Upsert a value in a store
@@ -329,7 +17,7 @@ function _getSuccess (message, store, method, isPlural) {
  * @param {Object} retryOptions
  */
 function _upsert (store, value, isLocal, isUpdate, retryOptions) {
-  var _collection = _getCollection(store);
+  var _collection = storeUtils.getCollection(store);
   var _cache      = cache.getCache(store);
 
   if (Object.isFrozen(value)) {
@@ -382,7 +70,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
   var _request = '/';
 
   if (!retryOptions) {
-    _request = _createUrl(store, _method, _getPrimaryKeyValue(store, value, !isUpdate || (isUpdate && _isMultipleItems)));
+    _request = url.create(store, _method, storeUtils.getPrimaryKeyValue(store, value, !isUpdate || (isUpdate && _isMultipleItems)));
     // required filters consition not fullfilled
     if (!_request) {
       return;
@@ -395,7 +83,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
 
   http.request(_method, _request, value, function (err, data) {
     if (err) {
-      var _error = _getError(err, store, _method, false);
+      var _error = template.getError(err, store, _method, false);
       upsert('@lunarisErrors', {
         version            : _version,
         data               : value,
@@ -447,7 +135,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
     hook.pushToHandlers(store, 'update', value);
     hook.pushToHandlers(store, isUpdate ? 'updated' : 'inserted', [
       value,
-      _getSuccess(null, store, _method, false)
+      template.getSuccess(null, store, _method, false)
     ]);
   });
 }
@@ -475,7 +163,7 @@ function upsert (store, value, isLocal, retryOptions) {
       value = retryOptions.data;
     }
 
-    _checkArgs(store, value);
+    storeUtils.checkArgs(store, value);
     if ((Array.isArray(value) && value[0]._id) || value._id) {
       _isUpdate = true;
     }
@@ -483,7 +171,7 @@ function upsert (store, value, isLocal, retryOptions) {
       _isUpdate = false;
     }
 
-    var _store = _getStore(store);
+    var _store = storeUtils.getStore(store);
     if (_store.validateFn) {
       return validate(store, value, _isUpdate, function (res) {
         if (!res) {
@@ -517,10 +205,10 @@ function deleteStore (store, value, retryOptions, isLocal) {
     if (retryOptions) {
       value = retryOptions.data;
     }
-    _checkArgs(store, value);
+    storeUtils.checkArgs(store, value);
 
-    var _store      = _getStore(store);
-    var _collection = _getCollection(_store);
+    var _store      = storeUtils.getStore(store);
+    var _collection = storeUtils.getCollection(_store);
     var _cache      = cache.getCache(_store);
 
     var _version;
@@ -545,7 +233,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
 
     var _request = '/';
     if (!retryOptions) {
-      _request = _createUrl(_store, 'DELETE', _getPrimaryKeyValue(_store, value));
+      _request = url.create(_store, 'DELETE', storeUtils.getPrimaryKeyValue(_store, value));
       // required filters consition not fullfilled
       if (!_request) {
         return;
@@ -557,7 +245,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
     }
     http.request('DELETE', _request, null, function (err, data) {
       if (err) {
-        var _error = _getError(err, _store, 'DELETE', false);
+        var _error = template.getError(err, _store, 'DELETE', false);
         upsert('@lunarisErrors', {
           version            : _version,
           data               : value,
@@ -574,7 +262,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
 
       hook.pushToHandlers(_store, 'deleted', [
         data,
-        _getSuccess(null, _store, 'DELETE', false)
+        template.getSuccess(null, _store, 'DELETE', false)
       ]);
     });
   }
@@ -591,9 +279,9 @@ function deleteStore (store, value, retryOptions, isLocal) {
  */
 function setPagination (store, page, limit) {
   try {
-    _checkArgs(store, null, true);
+    storeUtils.checkArgs(store, null, true);
 
-    var _store = _getStore(store);
+    var _store = storeUtils.getStore(store);
 
     _store.paginationLimit       = limit || _store.paginationLimit;
     _store.paginationCurrentPage = page  || 1;
@@ -611,10 +299,10 @@ function setPagination (store, page, limit) {
  */
 function clear (store, isSilent) {
   try {
-    _checkArgs(store, null, true);
+    storeUtils.checkArgs(store, null, true);
 
-    var _store      = _getStore(store);
-    var _collection = _getCollection(_store);
+    var _store      = storeUtils.getStore(store);
+    var _collection = storeUtils.getCollection(_store);
     var _cache      = cache.getCache(_store);
 
     _collection.clear();
@@ -641,10 +329,10 @@ function clear (store, isSilent) {
  */
 function get (store, primaryKeyValue, retryOptions) {
   try {
-    _checkArgs(store, null, true);
+    storeUtils.checkArgs(store, null, true);
 
-    var _store      = _getStore(store);
-    var _collection = _getCollection(_store);
+    var _store      = storeUtils.getStore(store);
+    var _collection = storeUtils.getCollection(_store);
     var _cache      = cache.getCache(_store);
 
     if (_store.isLocal) {
@@ -660,7 +348,7 @@ function get (store, primaryKeyValue, retryOptions) {
     var _cacheFilters =  {};
 
     if (!retryOptions) {
-      _request      = _createUrl(_store, 'GET', primaryKeyValue);
+      _request      = url.create(_store, 'GET', primaryKeyValue);
       // required filters consition not fullfilled
       if (!_request) {
         return;
@@ -679,7 +367,7 @@ function get (store, primaryKeyValue, retryOptions) {
 
     http.request('GET', _request, null, function (err, data) {
       if (err) {
-        var _error = _getError(err, _store, 'GET', true);
+        var _error = template.getError(err, _store, 'GET', true);
         upsert('@lunarisErrors', {
           version            : null,
           data               : null,
@@ -739,10 +427,10 @@ function get (store, primaryKeyValue, retryOptions) {
  */
 function getOne (store, id) {
   try {
-    _checkArgs(store, null, true);
+    storeUtils.checkArgs(store, null, true);
 
-    var _store      = _getStore(store);
-    var _collection = _getCollection(_store);
+    var _store      = storeUtils.getStore(store);
+    var _collection = storeUtils.getCollection(_store);
 
     var _item;
 
@@ -793,10 +481,10 @@ function retry (store, url, method, data, version) {
  */
 function rollback (store, version) {
   try {
-    _checkArgs(store, null, true);
+    storeUtils.checkArgs(store, null, true);
 
-    var _store      = _getStore(store);
-    var _collection = _getCollection(_store);
+    var _store      = storeUtils.getStore(store);
+    var _collection = storeUtils.getCollection(_store);
     _collection.rollback(version);
   }
   catch (e) {
@@ -811,9 +499,9 @@ function rollback (store, version) {
  */
 function getDefaultValue (store) {
   try {
-    _checkArgs(store, null, true);
+    storeUtils.checkArgs(store, null, true);
 
-    var _store = _getStore(store);
+    var _store = storeUtils.getStore(store);
     if (!_store.meta) {
       return emptyObject;
     }
@@ -835,7 +523,7 @@ function getDefaultValue (store) {
 function validate (store, value, isUpdate, callback) {
   try {
     var _isUpdate = isUpdate;
-    _checkArgs(store, value, true);
+    storeUtils.checkArgs(store, value, true);
 
     if (!callback) {
       callback  = isUpdate;
@@ -845,7 +533,7 @@ function validate (store, value, isUpdate, callback) {
       }
     }
 
-    var _store = _getStore(store);
+    var _store = storeUtils.getStore(store);
     if (_store.validateFn) {
       var _valueToValidate = value;
       if (_store.isStoreObject && Array.isArray(value)) {

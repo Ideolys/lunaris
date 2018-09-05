@@ -1,6 +1,6 @@
 const testUtils    = require('./testUtils');
 const initStore    = testUtils.initStore;
-const collection   = require('../src/collection');
+const collection   = require('../src/store/store.collection');
 const buildLunaris = require('../lib/builder').buildLunaris;
 const express      = require('express');
 const bodyParser   = require('body-parser');
