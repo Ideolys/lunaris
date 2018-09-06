@@ -1,7 +1,7 @@
 const testUtils      = require('./testUtils');
 const url            = require('../src/store/store.url');
 const exportsLunaris = require('../src/exports');
-const stores = {
+const stores         = {
   noFilter            : testUtils.initStore('noFilter'),
   'required.filter.A' : testUtils.initStore('required.filter.A'),
   'required.filter.B' : testUtils.initStore('required.filter.B'),
@@ -9,12 +9,14 @@ const stores = {
   requiredMultiple    : testUtils.initStore('requiredMultiple'),
   error               : testUtils.initStore('error'),
   'optional.filter.A' : testUtils.initStore('optional.filter.A'),
+  'optional.filter.B' : testUtils.initStore('optional.filter.B'),
   optional            : testUtils.initStore('optional'),
   optionalMultiple    : testUtils.initStore('optionalMultiple'),
-  mix                 : testUtils.initStore('mix')
+  mix                 : testUtils.initStore('mix'),
+  array               : testUtils.initStore('array')
 };
 const defaultStoresValue = JSON.parse(JSON.stringify(exportsLunaris._stores));
-const store = require('../src/store/store');
+const store              = require('../src/store/store');
 
 describe('store url', () => {
   before(() => {
@@ -25,7 +27,10 @@ describe('store url', () => {
       localAttribute  : 'label',
       isRequired      : true
     }];
-    stores.requiredMultiple.filters = [
+    stores['required.filter.A'].isStoreObject = true;
+    stores['required.filter.B'].isStoreObject = true;
+    stores['optional.filter.A'].isStoreObject = true;
+    stores.requiredMultiple.filters           = [
       {
         source          : '@required.filter.A',
         sourceAttribute : 'label',
@@ -42,8 +47,7 @@ describe('store url', () => {
       {
         source          : '@optional.filter.A',
         sourceAttribute : 'label',
-        localAttribute  : 'label',
-        operator        : ['=']
+        localAttribute  : 'label'
       }
     ];
     stores.optionalMultiple.filters = [
@@ -64,11 +68,13 @@ describe('store url', () => {
       {
         source          : '@required.filter.A',
         sourceAttribute : 'label',
-        localAttribute  : 'label'
+        localAttribute  : 'label',
+        isRequired      : true
       }, {
         source          : '@required.filter.B',
         sourceAttribute : 'label',
-        localAttribute  : 'label'
+        localAttribute  : 'label',
+        isRequired      : true
       }, {
         source          : '@optional.filter.A',
         sourceAttribute : 'label',
@@ -79,6 +85,13 @@ describe('store url', () => {
         sourceAttribute : 'label',
         localAttribute  : 'label',
         operator        : ['ILIKE']
+      }
+    ];
+    stores.array.filters = [
+      {
+        source          : '@optional.filter.B',
+        sourceAttribute : 'label',
+        localAttribute  : 'label'
       }
     ];
   });
@@ -153,10 +166,10 @@ describe('store url', () => {
     it('should throw an error if no source has been defined', () => {
       stores.error.filters = [{}];
       try {
-        url.create(stores.required, 'GET');
+        url.create(stores.error, 'GET');
       }
       catch (e) {
-        should(e).eql('A filter must have a source defined as : filter.source = @<store>');
+        should(e).eql(new Error('A filter must have a source defined as : filter.source = @<store>'));
       }
     });
 
@@ -165,10 +178,10 @@ describe('store url', () => {
         source : '@errorFilter'
       }];
       try {
-        url.create(stores.required, 'GET');
+        url.create(stores.error, 'GET');
       }
       catch (e) {
-        should(e).eql('A filter must have a source attribute defined as : filter.sourceAttribute = <attribute>');
+        should(e).eql(new Error('A filter must have a source attribute defined as : filter.sourceAttribute = <attribute>'));
       }
     });
 
@@ -178,10 +191,10 @@ describe('store url', () => {
         sourceAttribute : 'label'
       }];
       try {
-        url.create(stores.required, 'GET');
+        url.create(stores.error, 'GET');
       }
       catch (e) {
-        should(e).eql('A filter must have a local attribute defined as : filter.localAttribute = <attribute>');
+        should(e).eql(new Error('A filter must have a local attribute defined as : filter.localAttribute = <attribute>'));
       }
     });
 
@@ -259,7 +272,7 @@ describe('store url', () => {
       store.upsert('@optional.filter.A', { label : 'cat' });
       var _url = url.create(stores.optional, 'GET');
       var _expectedUrl = '/optional?limit=50&offset=0&search=label' +
-        encodeURIComponent(':=') +
+        encodeURIComponent(':') +
         encodeURIComponent('cat')
       ;
       should(_url.request).eql(_expectedUrl);
@@ -416,5 +429,27 @@ describe('store url', () => {
       encodeURIComponent('cat')
     ;
     should(_url.request).eql(_expectedUrl);
+  });
+
+  it('should create url with array filter', () => {
+    store.upsert('@optional.filter.B', [{ label : 'cat' }, { label : 'dog' }]);
+    var _url         = url.create(stores.array, 'GET');
+    var _expectedUrl = '/array?limit=50&offset=0&search=label' +
+      encodeURIComponent(':') +
+      encodeURIComponent('[cat,dog]')
+    ;
+
+    should(_url.request).eql(_expectedUrl);
+  });
+
+  it('should throw an error if operator is different from ILIKE', () => {
+    try {
+      stores.array.filters[0].operator = ['>'];
+      store.upsert('@optional.filter.B', [{ label : 'cat' }, { label : 'dog' }]);
+      url.create(stores.array, 'GET');
+    }
+    catch (e) {
+      should(e).eql(new Error('Array filter must declare ILIKE operator or nothing!'));
+    }
   });
 });

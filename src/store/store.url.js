@@ -1,17 +1,18 @@
 var storeUtils = require('./store.utils.js');
 var utils      = require('../utils.js');
 
+
 /**
- * Get required params for HTTP request
- * @param {Object} store
- * @param {Sting} method
- * @returns {object} {
- *  isRequiredOptionsFilled : {Boolean}
- *  requiredOptions         : {String}
- *  optionalOptions         : {Array}
- *  cache                   : {Object}
- * }
- */
+* Get required params for HTTP request
+* @param {Object} store
+* @param {Sting} method
+* @returns {object} {
+*  isRequiredOptionsFilled : {Boolean}
+*  requiredOptions         : {String}
+*  optionalOptions         : {Array}
+*  cache                   : {Object}
+* }
+*/
 function _getFilterValuesHTTPRequest (store, method) {
   var _filterValues            = {
     isRequiredOptionsFilled : true,
@@ -38,11 +39,14 @@ function _getFilterValuesHTTPRequest (store, method) {
       throw new Error('A filter must have a local attribute defined as : filter.localAttribute = <attribute>');
     }
 
+
     var _sourceStore = storeUtils.getStore(_filter.source);
-    var _sourceValue = storeUtils.getCollection(_sourceStore).getFirst();
+    var _sourceValue = storeUtils.getCollection(_sourceStore).getAll();
     var _methods     = [];
-    if (_filter.httpMethods && Array.isArray(_filter.httpMethods)) {
-      _methods = _filter.httpMethods;
+    if (_filter.httpMethods) {
+      if (Array.isArray(_filter.httpMethods)) {
+        _methods = _filter.httpMethods;
+      }
     }
     else {
       _methods.push(method);
@@ -52,18 +56,41 @@ function _getFilterValuesHTTPRequest (store, method) {
       _nbRequiredFIlters++;
     }
 
+    if (!_sourceStore.isStoreObject) {
+      if (_filter.operator && _filter.operator !== 'ILIKE') {
+        throw new Error('Array filter must declare ILIKE operator or nothing!');
+      }
+
+      for (var j = 0; j < _sourceValue.length; j++) {
+        _sourceValue[j] = _sourceValue[j][_filter.sourceAttribute];
+      }
+
+      if (!_sourceValue.length) {
+        _sourceValue = undefined;
+      }
+    }
+    else if (_sourceValue[0] !== undefined) {
+      _sourceValue = _sourceValue[0][_filter.sourceAttribute];
+    }
+    else {
+      _sourceValue = undefined;
+    }
+
     if (_sourceValue !== undefined) {
-      _value.push(_filter.localAttribute, _sourceValue[_filter.sourceAttribute], _filter.operator);
+      _value.push(_filter.localAttribute, _sourceValue, _filter.operator || 'ILIKE');
 
       if (_methods.indexOf(method) !== -1) {
         if (_filter.isRequired) {
           _nbRequiredFilledFilters++;
         }
 
-        if (_value[2]) {
+        if (_value[2] && !_filter.isRequired) {
           _filterValues.optionalOptions.push(_value);
         }
         else {
+          if (Array.isArray(_sourceValue)) {
+            throw new Error('A required filter must be a store object!');
+          }
           _filterValues.requiredOptions += '/' + _value[0] + '/' + _value[1];
         }
 
@@ -77,9 +104,9 @@ function _getFilterValuesHTTPRequest (store, method) {
 }
 
 /**
- * Construct searhc options
- * @param {Array} filterValues
- */
+* Construct searhc options
+* @param {Array} filterValues
+*/
 function _getSearchOption (filterValues) {
   var _search    = '';
   var _operators = {
@@ -95,18 +122,22 @@ function _getSearchOption (filterValues) {
     if (filterValues[j][2]) {
       _operator = _operators[filterValues[j][2]] || _operator;
     }
-    _search += filterValues[j][0] + encodeURIComponent(_operator) + encodeURIComponent(filterValues[j][1]) + encodeURIComponent('+');
+    var _value = filterValues[j][1];
+    if (Array.isArray(_value)) {
+      _value = '[' + _value.join(',') + ']';
+    }
+    _search += filterValues[j][0] + encodeURIComponent(_operator) + encodeURIComponent(_value) + encodeURIComponent('+');
   }
   _search = _search.slice(0, _search.length - encodeURIComponent('+').length);
   return ['search', _search];
 }
 
 /**
- * Get and construct the url options
- * @param {Object} store
- * @param {Boolean} isPagination
- * @returns {String} ?option=optionvalue&...
- */
+* Get and construct the url options
+* @param {Object} store
+* @param {Boolean} isPagination
+* @returns {String} ?option=optionvalue&...
+*/
 function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
   var _optionsStr = '';
   var _options    = [];

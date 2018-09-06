@@ -422,15 +422,17 @@ describe('lunaris store', () => {
       var _store                = initStore('store1');
       var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [3] };
       lunaris._stores['optional'] = initStore('optional');
+      lunaris._stores['optional'].isStoreObject = true;
       lunaris._stores['optional'].data.add({
         site : 2
       });
 
-      lunaris._stores['required'] = initStore('required');
+      lunaris._stores['required']               = initStore('required');
+      lunaris._stores['required'].isStoreObject = true;
       lunaris._stores['required'].data.add({
         category : 'A'
       });
-      lunaris._stores['store1'] = _store;
+      lunaris._stores['store1']                = _store;
       lunaris._stores['store1'].fakeAttributes = ['site'];
       lunaris._stores['store1'].filters.push({
         source          : '@required',
@@ -441,7 +443,8 @@ describe('lunaris store', () => {
       lunaris._stores['store1'].filters.push({
         source          : '@optional',
         sourceAttribute : 'site',
-        localAttribute  : 'site'
+        localAttribute  : 'site',
+        isRequired      : true
       });
 
       lunaris.hook('inserted@store1', data => {
@@ -540,21 +543,24 @@ describe('lunaris store', () => {
     });
 
     it('should insert and update the values and execute the hooks with authorized filters', done => {
-      var _isInsertedHook       = false;
-      var _isUpdatedHook        = false;
-      var _store                = initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [3] };
-      lunaris._stores['required'] = initStore('required');
+      var _isInsertedHook                       = false;
+      var _isUpdatedHook                        = false;
+      var _store                                = initStore('store1');
+      var _expectedValue                        = { _id : 1, id : 1, label : 'A', _version : [3] };
+      lunaris._stores['required']               = initStore('required');
+      lunaris._stores['required'].isStoreObject = true;
       lunaris._stores['required'].data.add({
         site : 2
       });
 
-      lunaris._stores['optional'] = initStore('optional');
+      lunaris._stores['optional']               = initStore('optional');
+      lunaris._stores['optional'].isStoreObject = true;
       lunaris._stores['optional'].data.add({
         category : 'A'
       });
-      lunaris._stores['store1'] = _store;
+      lunaris._stores['store1']                = _store;
       lunaris._stores['store1'].fakeAttributes = ['site'];
+      lunaris._stores['store1'].isStoreObject  = true;
       lunaris._stores['store1'].filters.push({
         source          : '@optional',
         sourceAttribute : 'category',
@@ -566,7 +572,8 @@ describe('lunaris store', () => {
         source          : '@required',
         sourceAttribute : 'site',
         localAttribute  : 'site',
-        httpMethods     : ['PUT']
+        httpMethods     : ['PUT'],
+        isRequired      : true
       });
 
       lunaris.hook('inserted@store1', data => {
@@ -1305,8 +1312,9 @@ describe('lunaris store', () => {
 
     it('should filter the store by a required filter', done => {
       var _isFirstCall = true;
-      lunaris._stores['required.param.site']         = initStore('required.param.site');
-      lunaris._stores['required.param.site'].isLocal = true;
+      lunaris._stores['required.param.site']               = initStore('required.param.site');
+      lunaris._stores['required.param.site'].isStoreObject = true;
+      lunaris._stores['required.param.site'].isLocal       = true;
       lunaris._stores['required.param.site'].data.add({
         site : 1
       });
@@ -1380,8 +1388,9 @@ describe('lunaris store', () => {
     });
 
     it('should filter the store by a required filter and paginate', done => {
-      var _nbPages                             = 0;
-      lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      var _nbPages                                            = 0;
+      lunaris._stores['pagination2.param.site']               = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].isStoreObject = true;
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
@@ -1440,7 +1449,8 @@ describe('lunaris store', () => {
     });
 
     it('should filter the store by an optional filter', done => {
-      lunaris._stores['optional.param.site'] = initStore('optional.param.site');
+      lunaris._stores['optional.param.site']               = initStore('optional.param.site');
+      lunaris._stores['optional.param.site'].isStoreObject = true;
       lunaris._stores['optional.param.site'].data.add({
         id : 1
       });
@@ -1491,11 +1501,13 @@ describe('lunaris store', () => {
     });
 
     it('should filter the store by two optional filters', done => {
-      lunaris._stores['optional.param.site'] = initStore('optional.param.site');
+      lunaris._stores['optional.param.site']               = initStore('optional.param.site');
+      lunaris._stores['optional.param.site'].isStoreObject = true;
       lunaris._stores['optional.param.site'].data.add({
         id : 1
       });
-      lunaris._stores['optional.param.category'] = initStore('optional.param.category');
+      lunaris._stores['optional.param.category']               = initStore('optional.param.category');
+      lunaris._stores['optional.param.category'].isStoreObject = true;
       lunaris._stores['optional.param.category'].data.add({
         id : 2
       });
@@ -1516,6 +1528,36 @@ describe('lunaris store', () => {
       lunaris.hook('get@optional', items => {
         should(items).eql([
           { _id : 1, limit : '50', offset : '0', search : 'id:=1+category:=2', _version : [3]}
+        ]);
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@optional', err => {
+        done(err);
+      });
+
+      lunaris.get('@optional');
+    });
+
+    it('should filter the store by an optional array filter', done => {
+      lunaris._stores['optional.param.site'] = initStore('optional.param.site');
+      lunaris._stores['optional.param.site'].data.add({
+        id : 1
+      });
+      lunaris._stores['optional.param.site'].data.add({
+        id : 2
+      });
+      lunaris._stores['optional'] = initStore('optional');
+      lunaris._stores['optional'].filters.push({
+        source          : '@optional.param.site',
+        sourceAttribute : 'id',
+        localAttribute  : 'id'
+      });
+
+      lunaris.hook('get@optional', items => {
+        should(items).eql([
+          { _id : 1, limit : '50', offset : '0', search : 'id:[1,2]', _version : [3]}
         ]);
 
         done();
@@ -1615,176 +1657,6 @@ describe('lunaris store', () => {
       });
 
       lunaris.get('@methods');
-    });
-
-    describe('search', () => {
-      it('should filter the store by an "=" filter', done => {
-        lunaris._stores['optional.param.site'] = initStore('optional.param.site');
-        lunaris._stores['optional.param.site'].data.add({
-          id : 1
-        });
-        lunaris._stores['optional'] = initStore('optional');
-        lunaris._stores['optional'].filters.push({
-          source          : '@optional.param.site',
-          sourceAttribute : 'id',
-          localAttribute  : 'id',
-          operator        : '='
-        });
-
-        lunaris.hook('get@optional', items => {
-          should(items).eql([
-            { _id : 1, limit : '50', offset : '0', search : 'id:=1', _version : [2]}
-          ]);
-
-          done();
-        });
-
-        lunaris.hook('errorHttp@optional', err => {
-          done(err);
-        });
-
-        lunaris.get('@optional');
-      });
-
-      it('should filter the store by an "ILIKE" filter', done => {
-        lunaris._stores['optional.param.site'] = initStore('optional.param.site');
-        lunaris._stores['optional.param.site'].data.add({
-          id : 1
-        });
-        lunaris._stores['optional'] = initStore('optional');
-        lunaris._stores['optional'].filters.push({
-          source          : '@optional.param.site',
-          sourceAttribute : 'id',
-          localAttribute  : 'id',
-          operator        : 'ILIKE'
-        });
-
-        lunaris.hook('get@optional', items => {
-          should(items).eql([
-            { _id : 1, limit : '50', offset : '0', search : 'id:1', _version : [2]}
-          ]);
-
-          done();
-        });
-
-        lunaris.hook('errorHttp@optional', err => {
-          done(err);
-        });
-
-        lunaris.get('@optional');
-      });
-
-      it('should filter the store by an ">" filter', done => {
-        lunaris._stores['optional.param.site'] = initStore('optional.param.site');
-        lunaris._stores['optional.param.site'].data.add({
-          id : 1
-        });
-        lunaris._stores['optional'] = initStore('optional');
-        lunaris._stores['optional'].filters.push({
-          source          : '@optional.param.site',
-          sourceAttribute : 'id',
-          localAttribute  : 'id',
-          operator        : '>'
-        });
-
-        lunaris.hook('get@optional', items => {
-          should(items).eql([
-            { _id : 1, limit : '50', offset : '0', search : 'id:>1', _version : [2]}
-          ]);
-
-          done();
-        });
-
-        lunaris.hook('errorHttp@optional', err => {
-          done(err);
-        });
-
-        lunaris.get('@optional');
-      });
-
-      it('should filter the store by an ">=" filter', done => {
-        lunaris._stores['optional.param.site'] = initStore('optional.param.site');
-        lunaris._stores['optional.param.site'].data.add({
-          id : 1
-        });
-        lunaris._stores['optional'] = initStore('optional');
-        lunaris._stores['optional'].filters.push({
-          source          : '@optional.param.site',
-          sourceAttribute : 'id',
-          localAttribute  : 'id',
-          operator        : '>='
-        });
-
-        lunaris.hook('get@optional', items => {
-          should(items).eql([
-            { _id : 1, limit : '50', offset : '0', search : 'id:>=1', _version : [2]}
-          ]);
-
-          done();
-        });
-
-        lunaris.hook('errorHttp@optional', err => {
-          done(err);
-        });
-
-        lunaris.get('@optional');
-      });
-
-      it('should filter the store by an "<" filter', done => {
-        lunaris._stores['optional.param.site'] = initStore('optional.param.site');
-        lunaris._stores['optional.param.site'].data.add({
-          id : 1
-        });
-        lunaris._stores['optional'] = initStore('optional');
-        lunaris._stores['optional'].filters.push({
-          source          : '@optional.param.site',
-          sourceAttribute : 'id',
-          localAttribute  : 'id',
-          operator        : '<'
-        });
-
-        lunaris.hook('get@optional', items => {
-          should(items).eql([
-            { _id : 1, limit : '50', offset : '0', search : 'id:<1', _version : [2]}
-          ]);
-
-          done();
-        });
-
-        lunaris.hook('errorHttp@optional', err => {
-          done(err);
-        });
-
-        lunaris.get('@optional');
-      });
-
-      it('should filter the store by an "<=" filter', done => {
-        lunaris._stores['optional.param.site'] = initStore('optional.param.site');
-        lunaris._stores['optional.param.site'].data.add({
-          id : 1
-        });
-        lunaris._stores['optional'] = initStore('optional');
-        lunaris._stores['optional'].filters.push({
-          source          : '@optional.param.site',
-          sourceAttribute : 'id',
-          localAttribute  : 'id',
-          operator        : '<='
-        });
-
-        lunaris.hook('get@optional', items => {
-          should(items).eql([
-            { _id : 1, limit : '50', offset : '0', search : 'id:<=1', _version : [2]}
-          ]);
-
-          done();
-        });
-
-        lunaris.hook('errorHttp@optional', err => {
-          done(err);
-        });
-
-        lunaris.get('@optional');
-      });
     });
   });
 
@@ -2216,8 +2088,9 @@ describe('lunaris store', () => {
     });
 
     it('should cache the values', done => {
-      var _nbPages                             = 0;
-      lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      var _nbPages                                            = 0;
+      lunaris._stores['pagination2.param.site']               = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].isStoreObject = true;
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
@@ -2261,8 +2134,9 @@ describe('lunaris store', () => {
     });
 
     it('should unvalidate the cache if a value has been updated', done => {
-      var _nbPages                             = 0;
-      lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      var _nbPages                                            = 0;
+      lunaris._stores['pagination2.param.site']               = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].isStoreObject = true;
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
@@ -2308,8 +2182,9 @@ describe('lunaris store', () => {
     });
 
     it('should unvalidate the cache id if it is deleted', done => {
-      var _nbPages                             = 0;
-      lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      var _nbPages                                            = 0;
+      lunaris._stores['pagination2.param.site']               = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].isStoreObject = true;
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
@@ -2357,6 +2232,7 @@ describe('lunaris store', () => {
   describe('Set pagination', () => {
     it('should reset the pagiantion : page 1', done => {
       lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].isStoreObject = true;
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
@@ -2388,6 +2264,7 @@ describe('lunaris store', () => {
 
     it('should reset the pagiantion : page > 1', done => {
       lunaris._stores['pagination2.param.site'] = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].isStoreObject = true;
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });

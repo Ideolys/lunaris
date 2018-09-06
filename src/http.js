@@ -21,6 +21,11 @@ function request (method, request, body, callback) {
       return Promise.reject({ error : response.status, message : response.statusText });
     }
 
+    // IE does not have window.origin
+    if (!window.origin) {
+      window.origin = '';
+    }
+
     // Redirection
     if (response.url !== window.origin + request) {
       window.location = response.url;
