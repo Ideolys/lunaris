@@ -8,66 +8,6 @@ var url         = require('./store.url.js');
 var template    = require('./store.template.js');
 var emptyObject = {};
 
-var isTransaction   = false;
-var actions         = [];
-var OPERATIONS      = utils.OPERATIONS;
-
-/**
- * Add an element to the transaction
- * @param {Int} transactionId
- * @param {Object} store
- * @param {String} operation
- * @param {Array} methodArguments
- */
-function addInTransaction (store, operation, methodArguments) {
-  if (!store.isLocal) {
-    throw new Error('Only a local store can be registered in a transaction!');
-  }
-
-  actions.push([operation,  Array.prototype.slice.call(methodArguments), store.isFilter]);
-}
-
-/**
- * Begin a transaction
- * @returns {Int} the transaction id
- */
-function begin () {
-  isTransaction = true;
-}
-
-/**
- * Commit a transaction
- * @param {Int} transactionId
- */
-function commit () {
-  if (!isTransaction || !actions) {
-    return;
-  }
-
-  isTransaction = false;
-
-  for (var i = 0; i < actions.length; i++) {
-    var _action           = actions[i];
-    if (actions[i + 1] && actions[i + 1][2] === true) {
-      _action[1].push(false);
-    }
-    else {
-      _action[1].push(true);
-    }
-
-    // if (_action[0] === OPERATIONS.LIST) {
-    //   store.get.apply(null, _action[1]);
-    // }
-    // if (_action[0] === OPERATIONS.DELETE) {
-    //   store.delete.apply(null, _action[1]);
-    // }
-
-    _upsert.apply(null, _action[1]);
-  }
-
-  actions = [];
-}
-
 /**
  * Upsert a value in a store
  * @param {Object} store
@@ -75,14 +15,8 @@ function commit () {
  * @param {Boolean} isLocal
  * @param {Boolean} isUpdate
  * @param {Object} retryOptions
- * @param {Boolean} isResetEventAvailable use for transaction to fire the collection refresh
  */
-function _upsert (store, value, isLocal, isUpdate, retryOptions, isResetEventAvailable) {
-  if (isTransaction) {
-    // We do not care if it is an update or an insert
-    return addInTransaction(store, utils.OPERATIONS.UPDATE, arguments);
-  }
-
+function _upsert (store, value, isLocal, isUpdate, retryOptions) {
   var _collection = storeUtils.getCollection(store);
   var _cache      = cache.getCache(store);
 
@@ -129,7 +63,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions, isResetEventAva
   }
 
   if (store.isLocal || isLocal) {
-    if (isResetEventAvailable !== false && store.isFilter) {
+    if (store.isFilter) {
       hook.pushToHandlers(store, 'filterUpdated');
     }
     return;
@@ -649,5 +583,3 @@ exports.getDefaultValue   = getDefaultValue;
 exports.validate          = validate;
 exports.setPagination     = setPagination;
 // exports.deleteFiltered = deleteFiltered;
-exports.begin             = begin;
-exports.commit            = commit;
