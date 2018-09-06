@@ -63,6 +63,9 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
   }
 
   if (store.isLocal || isLocal) {
+    if (store.isFilter) {
+      hook.pushToHandlers(store, 'filterUpdated');
+    }
     return;
   }
 
@@ -137,6 +140,9 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       value,
       template.getSuccess(null, store, _method, false)
     ]);
+    if (store.isFilter) {
+      hook.pushToHandlers(store, 'filterUpdated');
+    }
   });
 }
 
@@ -157,7 +163,8 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
  * }
  */
 function upsert (store, value, isLocal, retryOptions) {
-  var _isUpdate = false;
+  var _isUpdate  = false;
+  var _eventName = 'lunaris.' + (_isUpdate ? 'update' : 'insert') + store;
   try {
     if (retryOptions) {
       value = retryOptions.data;
@@ -179,13 +186,13 @@ function upsert (store, value, isLocal, retryOptions) {
         }
 
         _upsert(_store, value, isLocal, _isUpdate, retryOptions);
-      });
+      }, _eventName);
     }
 
     _upsert(_store, value, isLocal, _isUpdate, retryOptions);
   }
   catch (e) {
-    logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store], e);
+    logger.warn([_eventName], e);
   }
 }
 
@@ -519,8 +526,9 @@ function getDefaultValue (store) {
  * @param {Array/Object} value
  * @param {Boolean} isUpdate
  * @param {Function} callback
+ * @param {String} eventName internal arg to overwrite the validate error name
  */
-function validate (store, value, isUpdate, callback) {
+function validate (store, value, isUpdate, callback, eventName) {
   try {
     var _isUpdate = isUpdate;
     storeUtils.checkArgs(store, value, true);
@@ -556,7 +564,7 @@ function validate (store, value, isUpdate, callback) {
     }
   }
   catch (e) {
-    logger.warn(['lunaris.getDefaultValue' + store], e);
+    logger.warn([eventName || ('lunaris.validate' + store)], e);
   }
 }
 

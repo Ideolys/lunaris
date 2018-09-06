@@ -19,8 +19,14 @@ console.error = function () {
 
 var lunaris = {};
 eval(buildLunaris({
-  BASE_URL      : "'http://localhost:" + port + "'",
-  IS_PRODUCTION : false
+  BASE_URL           : "'http://localhost:" + port + "'",
+  IS_PRODUCTION      : false,
+  STORE_DEPENDENCIES : JSON.stringify({
+    transaction   : [],
+    transaction_1 : [],
+    transaction_A : ['transaction', 'transaction_1'],
+    transaction_B : ['transaction']
+  })
 }));
 let server  = express();
 lunaris._stores.lunarisErrors.data = collection.collection();
@@ -1477,6 +1483,29 @@ describe('lunaris store', () => {
       lunaris.get('@optional');
     });
 
+    it('should fire the event filterUpdated', done => {
+      lunaris._stores['optional.param.site']          = initStore('optional.param.site');
+      lunaris._stores['optional.param.site'].isLocal  = true;
+      lunaris._stores['optional.param.site'].isFilter = true;
+      lunaris._stores['optional'] = initStore('optional');
+      lunaris._stores['optional'].filters.push({
+        source          : '@optional.param.site',
+        sourceAttribute : 'id',
+        localAttribute  : 'id',
+        operator        : '='
+      });
+
+      lunaris.hook('filterUpdated@optional.param.site', () => {
+        done();
+      });
+
+      lunaris.hook('errorHttp@optional', err => {
+        done(err);
+      });
+
+      lunaris.insert('@optional.param.site', { id : 1 });
+    });
+
     it('should filter the store by two optional filters', done => {
       lunaris._stores['optional.param.site']               = initStore('optional.param.site');
       lunaris._stores['optional.param.site'].isStoreObject = true;
@@ -2270,6 +2299,98 @@ describe('lunaris store', () => {
 
       lunaris.get('@pagination2');
     });
+  });
+
+  describe('transaction', () => {
+
+    it('should add to the transaction only a local store', () => {
+      lunaris._stores['transaction_A']          = initStore('transaction_A');
+      lunaris._stores['transaction_A'].isLocal  = true;
+      lunaris._stores['transaction_A'].isFilter = true;
+
+      lunaris.hook('filterUpdated@transaction_A', () => {
+        return;
+      });
+
+      lunaris.begin();
+      lunaris.insert('@transaction_A', { id : 1 });
+      lunaris.commit();
+
+      should(lastError).have.lengthOf(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.insert@transaction_A');
+      should(lastError[1]).eql(new Error('Only a local store can be registered in a transaction!'));
+    });
+
+    it('should fire the event "filterUpdated"', done => {
+      lunaris._stores['transaction_A']               = initStore('transaction_A');
+      lunaris._stores['transaction_A'].isLocal       = true;
+      lunaris._stores['transaction_A'].isFilter      = true;
+      lunaris._stores['transaction_A'].isStoreObject = true;
+
+      lunaris.hook('filterUpdated@transaction_A', () => {
+        done();
+      });
+
+      lunaris.begin();
+      lunaris.insert('@transaction_A', { id : 1 });
+      lunaris.commit();
+    });
+
+    it('should fire the event "filterUpdated" once', done => {
+      lunaris._stores['transaction'] = initStore('transaction');
+      lunaris._stores['transaction'].filters[
+        {
+          source          : '@transaction_A',
+          sourceAttribute : 'label',
+          localAttribute  : 'label'
+        }, {
+          source          : '@transaction_B',
+          sourceAttribute : 'label',
+          localAttribute  : 'label'
+        }
+      ];
+      lunaris._stores['transaction_1'] = initStore('transaction_1');
+      lunaris._stores['transaction_1'].isStoreObject = true;
+
+      lunaris._stores['transaction_1'].filters[
+        {
+          source          : '@transaction_A',
+          sourceAttribute : 'label',
+          localAttribute  : 'label'
+        }
+      ];
+      lunaris._stores['transaction_A']               = initStore('transaction_A');
+      lunaris._stores['transaction_A'].isLocal       = true;
+      lunaris._stores['transaction_A'].isFilter      = true;
+      lunaris._stores['transaction_A'].isStoreObject = true;
+      lunaris._stores['transaction_B']               = initStore('transaction_B');
+      lunaris._stores['transaction_B'].isLocal       = true;
+      lunaris._stores['transaction_B'].isFilter      = true;
+      lunaris._stores['transaction_B'].isStoreObject = true;
+
+      var _hasBeenCalledA = 0;
+      var _hasBeenCalledB = 0;
+
+      lunaris.hook('filterUpdated@transaction_A', () => {
+        _hasBeenCalledA++;
+      });
+
+      lunaris.hook('filterUpdated@transaction_B', () => {
+        _hasBeenCalledB++;
+      });
+
+      lunaris.begin();
+      lunaris.insert('@transaction_A', { id : 1 });
+      lunaris.insert('@transaction_B', { id : 1 });
+      lunaris.commit();
+
+      setTimeout(() => {
+        should(_hasBeenCalledA).eql(0);
+        should(_hasBeenCalledB).eql(1);
+        done();
+      }, 40);
+    });
+
   });
 
 });

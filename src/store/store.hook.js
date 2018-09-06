@@ -1,4 +1,71 @@
-var logger = require('../logger.js');
+var logger           = require('../logger.js');
+var exportsLunaris   = require('../exports.js');
+var storeUtils       = require('./store.utils.js');
+var storeDependecies = exportsLunaris.storeDependencies;
+
+var events                 = {};
+var isTransaction          = false;
+var isCommitingTransaction = false;
+
+/**
+ * Begin a transaction
+ * @returns {Int} the transaction id
+ */
+function begin () {
+  isTransaction = true;
+}
+
+/**
+ * Commit a transaction
+ * @param {Int} transactionId
+ */
+function commit () {
+  isCommitingTransaction = true;
+  var _stores            = Object.keys(events);
+  var _eventByStores     = {};
+
+  for (var i = 0; i < _stores.length; i++) {
+    var _deps = storeDependecies[_stores[i]];
+    var _hasBeenAdded = false;
+
+    for (var j = 0; j < _deps.length; j++) {
+      if (!_eventByStores[_deps[j]]) {
+        _eventByStores[_deps[j]] = [];
+      }
+
+      if (!_hasBeenAdded) {
+        _eventByStores[_deps[j]].push(_stores[i]);
+        _hasBeenAdded = true;
+      }
+    }
+    _hasBeenAdded = false;
+  }
+
+  var _storesToUpdate = Object.keys(_eventByStores);
+  for (i = 0; i < _storesToUpdate.length; i++) {
+    var _storesUpdated = _eventByStores[_storesToUpdate[i]];
+
+    if (_storesUpdated.length) {
+      var _store = storeUtils.getStore(_storesUpdated[_storesUpdated.length - 1]);
+      pushToHandlers(_store, 'filterUpdated');
+    }
+  }
+
+  // Reset
+  isTransaction          = false;
+  isCommitingTransaction = false;
+  events                 = {};
+}
+
+/**
+ * Add event to send
+ * @param {Stirng} store name
+ * @param {String} event event
+ */
+function _addEvent (store, event) {
+  events[store] = event;
+}
+
 
 /**
  * Extract the store name and the event from the given string
@@ -96,6 +163,13 @@ function pushToHandlers (store, hook, payload, isMultipleArgsPayload) {
     return;
   }
 
+  if (isTransaction && !isCommitingTransaction && hook === 'filterUpdated') {
+    if (!store.isStoreObject) {
+      throw new Error('Only a local store can be registered in a transaction!');
+    }
+    return _addEvent(store.name, hook);
+  }
+
   if (!Array.isArray(payload)) {
     payload = [payload];
   }
@@ -113,3 +187,5 @@ function pushToHandlers (store, hook, payload, isMultipleArgsPayload) {
 exports.hook           = registerHook;
 exports.removeHook     = removeHook;
 exports.pushToHandlers = pushToHandlers;
+exports.begin         = begin;
+exports.commit        = commit;

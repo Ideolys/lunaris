@@ -118,4 +118,14 @@ describe('lunaris index', () => {
     should(index.setPagination).be.ok();
     should(index.setPagination).be.a.Function();
   });
+
+  it('begin() should be defined', () => {
+    should(index.begin).be.ok();
+    should(index.begin).be.a.Function();
+  });
+
+  it('commit() should be defined', () => {
+    should(index.commit).be.ok();
+    should(index.commit).be.a.Function();
+  });
 });

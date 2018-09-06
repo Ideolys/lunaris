@@ -30,6 +30,8 @@ module.exports = {
   getDefaultValue : store.getDefaultValue,
   validate        : store.validate,
   setPagination   : store.setPagination,
+  begin           : hook.begin,
+  commit          : hook.commit,
 
   OPERATIONS : utils.OPERATIONS
 };
