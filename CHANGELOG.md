@@ -2,7 +2,11 @@
 
 ## 1.3.0
 - Features:
-- Fix:
+  - Breaking changes! Filter values are based on store types:
+    + filters which have an array store source can only generate array based values.
+    + filters which have a store object source can generate all types of filters: =, ILIKE, >, >, >=, <=.
+
+    The default filter operator is 'ILIKE'.
 
 ## 1.2.2
 
