@@ -27,8 +27,8 @@ function request (method, request, body, callback) {
     }
 
     // Redirection
-    if (response.url !== window.origin + request) {
-      window.location = response.url;
+    if (response.url.indexOf(request) === -1) {
+      return window.location = response.url;
     }
 
     return response.json();
