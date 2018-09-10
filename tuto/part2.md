@@ -11,18 +11,18 @@ Tout d'abord il y a 2 dossiers importants:
 #### client-v2
 
 Contiens:
-* Un dossier "global-components" *Les **composants globaux**, vous pouvez vous en servir partout*
-* Un dossier "lang" *Pour les différentes **traductions***
-* Un dossier "modules" *Les modules contiennent les **vues** et les **controllers***
-* Un dossier "stores" *Pour les stores, ce sont les **sources de données***
+* Un dossier "global-components" *Les* ***composants globaux***, *vous pouvez vous en servir partout*
+* Un dossier "lang" *Pour les différentes* ***traductions***
+* Un dossier "modules" *Les modules contiennent les* ***vues*** *et les* ***controllers***
+* Un dossier "stores" *Pour les stores, ce sont les* ***sources de données***
 
 #### public-v2
 
 Contiens: 
-* Un dossier "css" *Pour le **css** compilé*
-* Un dossier "fonts" *Pour les **polices d'écritures***
-* Un dossier "images" *Pour les **images***
-* Un dossier "scss" *Pour le **scss** (Un préprocesseur css)*
+* Un dossier "css" *Pour le* ***css*** *compilé*
+* Un dossier "fonts" *Pour les* ***polices d'écritures***
+* Un dossier "images" *Pour les* ***images***
+* Un dossier "scss" *Pour le* ***scss*** *(Un préprocesseur css)*
  
 ## Créons notre premier module.
 
