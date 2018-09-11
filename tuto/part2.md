@@ -28,7 +28,7 @@ Contiens:
 
 ### Création de l'architecture du module.
 
-Nous allons commencer par se placer dans le dossier *client-v2/modules*. Ensuite nous allons créer 1 dossier qui porteras le nom de notre module (En l'occurence **tuto_scale**)
+Nous allons commencer par se placer dans le dossier *client-v2/modules*. Ensuite nous allons créer 1 dossier qui porteras le nom de notre module (En l'occurence **tuto_scales**)
 
 Ensuite il faudras créer 3 fichiers:
 
@@ -42,7 +42,7 @@ Ensuite il faudras créer 3 fichiers:
 ```json
 {
   "/tuto_scales" : {
-    "controller" : "index",
+    "controllers" : "index",
     "name" : "${Tuto scale}",
     "description" : "${Tuto scale}",
     "group" : [ "wastes-config", 0]
@@ -70,11 +70,12 @@ Analysons ce fichier:
 > Lunaris utilise `module.exports` et `exports` pour exporter des modules et ressources (à la manière de Nodejs), et `require` pour les imports.
 
 > Par défaut, un module easilys doit toujours être exporté via `module.exports`.
+> Voyez cet objet comme un objet Vue.js
 
 ```js
 module.exports = {
 ...
-}
+};
 ```
 
 Pour commencer il va falloir donner un nom à notre controller
@@ -85,7 +86,7 @@ Ainsi qu'un template (La vue lié à notre controller)
 module.exports = {
   name     : 'tuto_scales', // Nom du controller
   template : 'index.html'   // Nom du template (Fichier de vue créer plus tôt)
-}
+};
 ```
 
 **Maintenant on va aller ajouter du code à notre vue:**
@@ -114,3 +115,17 @@ Plusieurs choses:
   C'est un des éléments du layout ils se trouvent tous dans **client-v2/global-components/layout/layout.vue**
 * "${}" ça fais quoi ?
   C'est le système de traduction universel à tous easilys, tous ce qui se trouve dans cet élément seras traduit.
+
+
+Désormais on va pouvoir ajouter du contenus sur notre écran:
+
+```html
+...
+<div  slot="middle-panel-body-content">
+  <p>Ici se trouve le contenus de ma page</p>
+</div>
+...
+```
+## Suite
+
+[Tu va désormais pouvoir rentrer dans un fabuleux magasin !](part3.md)
