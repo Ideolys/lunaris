@@ -8,14 +8,21 @@ var lunarisExports = require('./exports.js');
  * @param {Function} callback
  */
 function request (method, request, body, callback) {
+  var _body    = null;
+  var _headers = {
+    'Content-Type' : 'application/json'
+  };
+
+  if (body) {
+    _headers['Content-Encoding'] = 'gzip';
+    _body                        = pako.gzip(JSON.stringify(body));
+  }
+
   fetch(lunarisExports.baseUrl + request, {
     method      : method,
     credentials : 'same-origin',
-    headers     : {
-      'Content-Type'    : 'application/json',
-      'Accept-Encoding' : 'gzip'
-    },
-    body : body ? JSON.stringify(body) : null
+    headers     : _headers,
+    body        : _body
   }).then(function (response) {
     if (response.status !== 200) {
       return Promise.reject({ error : response.status, message : response.statusText });

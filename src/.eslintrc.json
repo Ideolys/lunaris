@@ -9,6 +9,7 @@
     "fetch"   : true,
     "dayjs"   : true,
     "lunaris" : true,
-    "Vue"     : true
+    "Vue"     : true,
+    "pako"    : true
   }
 }

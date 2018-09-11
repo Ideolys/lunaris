@@ -3,9 +3,10 @@
 ## 1.4.0
 - Features :
   + Add transaction for local stores. Add functions `lunaris.begin()` and `lunaris.commit()`. The transaction system is designed to guarantee that the insert/update/upsert on local stores will perform one and only one event to update the dependent store(s).
+  + Add PAKO to compress HTTP requests with gzip
 
 - Fix:
-  + The redirection could fail. 
+  + The redirection could fail.
 
 ## 1.3.0
 - Features:

@@ -3,10 +3,11 @@ const initStore    = testUtils.initStore;
 const collection   = require('../src/store/store.collection');
 const buildLunaris = require('../lib/builder').buildLunaris;
 const express      = require('express');
+const compression  = require('compression')
 const bodyParser   = require('body-parser');
 const fetch        = require('node-fetch');
-const compression  = require('compression');
 const dayjs        = require('dayjs');
+const pako         = require('pako');
 
 const window = {};
 
@@ -39,10 +40,13 @@ describe('lunaris store', () => {
     _startServer(done);
   });
 
-  beforeEach(() => {
+  beforeEach(done => {
     lastError = [];
     lunaris._stores.lunarisErrors.data.clear();
-    collection.resetVersionNumber();
+    setTimeout(() => {
+      collection.resetVersionNumber();
+      done();
+    }, 10);
   });
 
   after(done => {
@@ -225,13 +229,16 @@ describe('lunaris store', () => {
       should(lastError[1]).eql({ error : 'must be a string', field : 'label', value : 1});
     });
 
-    it('should update a value', () => {
+    it('should update a value', done => {
       var _store = initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A', _version : [1] });
       lunaris.update('@store1', { _id : 1, id : 1, label : 'B'});
       should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'B', _version : [2] });
+      lunaris.hook('updated@store1', () => {
+        done();
+      });
     });
 
     it('should update the value and execute the hooks : update and updated', done => {
@@ -260,7 +267,7 @@ describe('lunaris store', () => {
           body     : { _id : 1, id : 1, label : 'B', _version : [ 2 ] },
           query    : {},
           params   : { id : '1' },
-          _version : [4]
+          _version : [3]
         }));
 
         should(message).eql('${the} store1 has been successfully ${edited}');
@@ -274,7 +281,7 @@ describe('lunaris store', () => {
         done(err);
       });
 
-      lunaris.insert('@store1', { id : 1, label : 'A' });
+      lunaris._stores['store1'].data.add({ id : 1, label : 'A' });
       lunaris.update('@store1', { _id : 1, id : 1, label : 'B'});
     });
 
@@ -617,7 +624,7 @@ describe('lunaris store', () => {
 
   describe('mass insert() / update()', () => {
 
-    it('should insert the values', () => {
+    it('should insert the values', (done) => {
       var _store = initStore('mass');
       lunaris._stores['mass'] = _store;
       lunaris.insert('@mass', [
@@ -629,6 +636,10 @@ describe('lunaris store', () => {
         { _id : 1, id : 1, label : 'A', _version : [1] },
         { _id : 2, id : 2, label : 'B', _version : [1] }
       ]);
+
+      lunaris.hook('inserted@mass', () => {
+        done();
+      });
     });
 
     it('should insert the value and execute the hooks : insert & inserted', done => {
@@ -680,7 +691,6 @@ describe('lunaris store', () => {
       lunaris.hook('errorHttp@mass', (err) => {
         done(err);
       });
-
 
       lunaris.insert('@mass', [
         { id : 1, label : 'A' },
@@ -758,28 +768,51 @@ describe('lunaris store', () => {
     });
 
     it('should update the value and execute the hooks : update and updated', done => {
-      var _isFirstUpdateEvent = true;
+      var _nbCalls            = 0;
       var _isUpdateHook       = false;
       var _isUpdatedHook      = false;
       var _store              = initStore('mass');
       lunaris._stores['mass'] = _store;
       lunaris._stores['mass'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
+      lunaris.hook('inserted@mass', () => {
+        lunaris.update('@mass', [
+          { _id : 1, id : 1, label : 'A-1' },
+          { _id : 2, id : 2, label : 'B-1' }
+        ]);
+      });
+
       lunaris.hook('update@mass', updatedValue => {
         _isUpdateHook = true;
-        if (_isFirstUpdateEvent) {
+        if (_nbCalls === 0) {
+          return _nbCalls++;
+        }
+
+        if (_nbCalls === 1) {
           should(updatedValue).be.an.Array();
           should(updatedValue).eql([
-            { _id : 1, id : 1, label : 'A-1', _version : [2] },
-            { _id : 2, id : 2, label : 'B-1', _version : [2] }
+            { _id : 1, id : 1, label : 'A-1', _version : [3] },
+            { _id : 2, id : 2, label : 'B-1', _version : [3] }
           ]);
 
           for (var i = 0; i < updatedValue.length; i++) {
             should(Object.isFrozen(updatedValue[i])).eql(true);
           }
-          _isFirstUpdateEvent = false;
-          return;
+          return _nbCalls++;
         }
+
+        if (_nbCalls === 2) {
+          should(updatedValue).be.an.Array();
+          should(updatedValue).eql([
+            { _id : 1, id : 1, label : 'A-1', _version : [4], put : true },
+            { _id : 2, id : 2, label : 'B-1', _version : [4], put : true }
+          ]);
+
+          for (var i = 0; i < updatedValue.length; i++) {
+            should(Object.isFrozen(updatedValue[i])).eql(true);
+          }
+        }
+        return _nbCalls++;
       });
 
       lunaris.hook('updated@mass', (data, message) => {
@@ -803,10 +836,6 @@ describe('lunaris store', () => {
       lunaris.insert('@mass', [
         { id : 1, label : 'A' },
         { id : 2, label : 'B' }
-      ]);
-      lunaris.update('@mass', [
-        { _id : 1, id : 1, label : 'A-1' },
-        { _id : 2, id : 2, label : 'B-1' }
       ]);
     });
 
@@ -1439,9 +1468,9 @@ describe('lunaris store', () => {
         }
 
         should(items).eql([
-          { _id : 7, id : 70, label : 'G', _version : [6] },
-          { _id : 8, id : 80, label : 'H', _version : [6] },
-          { _id : 9, id : 90, label : 'I', _version : [6] }
+          { _id : 7, id : 70, label : 'G', _version : [5] },
+          { _id : 8, id : 80, label : 'H', _version : [5] },
+          { _id : 9, id : 90, label : 'I', _version : [5] }
         ]);
 
         done();

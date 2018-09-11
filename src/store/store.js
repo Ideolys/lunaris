@@ -101,8 +101,9 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       return hook.pushToHandlers(store, 'errorHttp', [_error, value]);
     }
 
-    var _isEvent = true;
-    if (Array.isArray(data)) {
+    var _isEvent    = true;
+    var _isMultiple = Array.isArray(data);
+    if (_isMultiple) {
       if (store.isStoreObject) {
         throw new Error('The store "' + store.name + '" is a store object. The ' + _method + ' method tries to ' + (isUpdate ? 'update' : 'insert') + ' multiple elements!');
       }
@@ -135,7 +136,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       return;
     }
 
-    hook.pushToHandlers(store, 'update', value);
+    hook.pushToHandlers(store, 'update', value, _isMultiple);
     hook.pushToHandlers(store, isUpdate ? 'updated' : 'inserted', [
       value,
       template.getSuccess(null, store, _method, false)
