@@ -4,6 +4,7 @@
 - Features :
   + Add transaction for local stores. Add functions `lunaris.begin()` and `lunaris.commit()`. The transaction system is designed to guarantee that the insert/update/upsert on local stores will perform one and only one event to update the dependent store(s).
   + Add PAKO to compress HTTP requests with gzip
+  + Expose http module. New method available : `lunaris.http.request`.
 
 - Fix:
   + The redirection could fail.

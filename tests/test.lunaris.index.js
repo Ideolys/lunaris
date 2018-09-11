@@ -1,5 +1,6 @@
 const index = require('../src/index');
 const utils = require('../src/utils');
+const http  = require('../src/http');
 
 describe('lunaris index', () => {
   it('_stores should be defined', () => {
@@ -127,5 +128,10 @@ describe('lunaris index', () => {
   it('commit() should be defined', () => {
     should(index.commit).be.ok();
     should(index.commit).be.a.Function();
+  });
+
+  it('http should be defined', () => {
+    should(index.http).be.ok();
+    should(index.http).eql(http);
   });
 });
