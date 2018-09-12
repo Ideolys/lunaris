@@ -45,7 +45,7 @@ Ensuite, il faudra créer trois fichiers:
     "controllers" : "index",
     "name" : "${Tuto scale}",
     "description" : "${Tuto scale}",
-    "group" : [ "wastes-config", 0]
+    "group" : [ "wastes", 0]
   }
 }
 ```
@@ -60,8 +60,10 @@ Analysons ce fichier:
   Nom du module
 * `"description" : "${Tuto scale}",`
   Description du module
-* `"group" : [ "wastes-config", 0]`
+* `"group" : [ "wastes", 0]`
   Onglet dans lequel notre module se trouvera
+
+*Il faudra bien pensée à faire un ./easilys presync*
 
 ### Afficher une page: 
 
@@ -103,7 +105,7 @@ Nous allons donc créer notre vue entre ces balises
 ```html
 <layout ref="scales-ref">
   <div  slot="middle-panel-header-title">
-    ${Tasks logs}
+    ${Scales (tuto)}
   </div>
 </layout>
 ```
