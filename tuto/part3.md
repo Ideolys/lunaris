@@ -15,7 +15,7 @@ Nous allons simplement nous placer dans **client-v2/stores** et de créer un dos
 
 Dans ce dossier nous créerons différents fichiers de store.
 
-Vous pouvez d'ailleurs créer votre premier fichier de store qui se nommera en l’occurrence **tutoScales**
+Vous pouvez d'ailleurs créer votre premier fichier de store qui se nommera en l’occurrence **tutoScales.js**
 
 ### Quelques infos importante sur les stores
 
