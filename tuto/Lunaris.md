@@ -14,4 +14,4 @@ En définitive Lunaris ne possède qu'un but, permettre de développer des fonct
 
 ## Suite
 
-[Tu va désormais pouvoir commencer à rentrer dans le monde fabuleux de la V2](part1.md)
+[Tu vas désormais pouvoir commencer à rentrer dans le monde fabuleux de la V2](part1.md)

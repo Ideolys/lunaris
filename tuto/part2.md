@@ -4,7 +4,7 @@ Dans la V2 chaque écran dépendras d'un module, nous allons voir cela.
 
 ## Architecture de la V2
 
-Tout d'abord il y a 2 dossiers importants:
+Tout d'abord, il y a deux dossiers importants:
 * client-v2
 * public-v2
 
@@ -28,15 +28,15 @@ Contiens:
 
 ### Création de l'architecture du module.
 
-Nous allons commencer par se placer dans le dossier *client-v2/modules*. Ensuite nous allons créer 1 dossier qui porteras le nom de notre module (En l'occurence **tuto_scales**)
+Nous allons commencer par se placer dans le dossier *client-v2/modules*. Ensuite, nous allons créer un dossier qui portera le nom de notre module (En l'occurence **tuto_scales**)
 
-Ensuite il faudras créer 3 fichiers:
+Ensuite, il faudra créer trois fichiers:
 
 * index.html
 * index.js
 * routes.json
 
-### Ajoutons notre premiere route
+### Ajoutons notre première route
 
 *Fichier:* **routes.json**
 ```json
@@ -53,7 +53,7 @@ Analysons ce fichier:
 
 
 * `"/tuto_scales" : {`
-  C'est la route par laquelle on pourras accéder à notre écran. 
+  C'est la route par laquelle on pourra accéder à notre écran. 
 * `"controller" : "index",` 
   Nom du fichier du controller (Sans *.js*)
 * `"name" : "${Tuto scale}"`
@@ -61,7 +61,7 @@ Analysons ce fichier:
 * `"description" : "${Tuto scale}",`
   Description du module
 * `"group" : [ "wastes-config", 0]`
-  Onglet dans lequel notre module se trouveras
+  Onglet dans lequel notre module se trouvera
 
 ### Afficher une page: 
 
@@ -79,7 +79,7 @@ module.exports = {
 ```
 
 Pour commencer il va falloir donner un nom à notre controller
-Ainsi qu'un template (La vue lié à notre controller)
+Ainsi qu'un template (La vue liée à notre controller)
 
 *Fichier:* **index.js** 
 ```js
@@ -110,22 +110,22 @@ Nous allons donc créer notre vue entre ces balises
 
 Plusieurs choses:
 * "ref" c'est quoi ?
-  Ça permet ensuite depuis le controller d’accéder à différentes action sur notre vue.
+  Ça permet ensuite depuis le controller d’accéder à différentes actions sur notre vue.
 * Et le "slot" il sert à quoi ?
   C'est un des éléments du layout ils se trouvent tous dans **client-v2/global-components/layout/layout.vue**
-* "${}" ça fais quoi ?
-  C'est le système de traduction universel à tous easilys, tous ce qui se trouve dans cet élément seras traduit.
+* "${}" ça fait quoi ?
+  C'est le système de traduction universel à tous easilys, tout ce qui se trouve dans cet élément seras traduit.
 
 
-Désormais on va pouvoir ajouter du contenus sur notre écran:
+Désormais on va pouvoir ajouter du contenu sur notre écran:
 
 ```html
 ...
 <div  slot="middle-panel-body-content">
-  <p>Ici se trouve le contenus de ma page</p>
+  <p>Ici se trouve le contenu de ma page</p>
 </div>
 ...
 ```
 ## Suite
 
-[Tu va désormais pouvoir rentrer dans un fabuleux magasin !](part3.md)
+[Tu vas désormais pouvoir rentrer dans un fabuleux magasin !](part3.md)
