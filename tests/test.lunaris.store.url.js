@@ -13,7 +13,9 @@ const stores         = {
   optional            : testUtils.initStore('optional'),
   optionalMultiple    : testUtils.initStore('optionalMultiple'),
   mix                 : testUtils.initStore('mix'),
-  array               : testUtils.initStore('array')
+  array               : testUtils.initStore('array'),
+  where               : testUtils.initStore('where'),
+  whereObject         : testUtils.initStore('whereObject')
 };
 const defaultStoresValue = JSON.parse(JSON.stringify(exportsLunaris._stores));
 const store              = require('../src/store/store');
@@ -92,6 +94,23 @@ describe('store url', () => {
         source          : '@optional.filter.B',
         sourceAttribute : 'label',
         localAttribute  : 'label'
+      }
+    ];
+    stores.where.filters = [
+      {
+        source          : '@optional.filter.B',
+        sourceAttribute : 'label',
+        sourceWhere     : function (item) { return item.isChecked === true; },
+        localAttribute  : 'label'
+      }
+    ];
+    stores.whereObject.filters = [
+      {
+        source          : '@required.filter.B',
+        sourceAttribute : 'label',
+        sourceWhere     : function (item) { return item.isChecked === true; },
+        localAttribute  : 'label',
+        isRequired      : true
       }
     ];
   });
@@ -265,6 +284,24 @@ describe('store url', () => {
       });
       delete stores.requiredMultiple.filters[0].httpMethods;
     });
+
+    it('should create the url with a where function for required filter', () => {
+      store.upsert('@required.filter.B', { label : 'cat' , isChecked : true });
+      var _url         = url.create(stores.whereObject, 'GET');
+      var _expectedUrl = '/whereObject/label/cat?limit=50&offset=0';
+      should(_url.request).eql(_expectedUrl);
+      should(_url.cache).eql({
+        limit                      : 50,
+        offset                     : 0,
+        '@required.filter.B:label' : 'cat'
+      });
+    });
+
+    it('should return null if no value is return for the required filter with a where', () => {
+      store.upsert('@required.filter.B', { label : 'cat' , isChecked : false });
+      var _url = url.create(stores.whereObject, 'GET');
+      should(_url).eql(null);
+    });
   });
 
   describe('optional filters', () => {
@@ -411,6 +448,25 @@ describe('store url', () => {
         limit                      : 50,
         offset                     : 0,
         '@optional.filter.A:label' : 'cat'
+      });
+    });
+
+    it('should create the url with a where function for optional filter', () => {
+      store.upsert('@optional.filter.B', [
+        { label : 'cat' , isChecked : false },
+        { label : 'dog' , isChecked : true },
+        { label : 'lion', isChecked : true },
+      ]);
+      var _url         = url.create(stores.where, 'GET');
+      var _expectedUrl = '/where?limit=50&offset=0&search=label' +
+        encodeURIComponent(':') +
+        encodeURIComponent('[dog,lion]')
+      ;
+      should(_url.request).eql(_expectedUrl);
+      should(_url.cache).eql({
+        limit                      : 50,
+        offset                     : 0,
+        '@optional.filter.B:label' : ['dog', 'lion']
       });
     });
   });

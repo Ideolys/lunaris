@@ -1,6 +1,43 @@
 var storeUtils = require('./store.utils.js');
 var utils      = require('../utils.js');
+var logger     = require('../logger.js');
 
+/**
+ * Check filter object attributes
+ * @param {Object} filter { source : ,, sourceAttribute : , localAttribute :  }
+ */
+function _checkFilterObject (filter) {
+  if (!filter.source) {
+    throw new Error('A filter must have a source defined as : filter.source = @<store>');
+  }
+  if (!filter.sourceAttribute) {
+    throw new Error('A filter must have a source attribute defined as : filter.sourceAttribute = <attribute>');
+  }
+  if (!filter.localAttribute) {
+    throw new Error('A filter must have a local attribute defined as : filter.localAttribute = <attribute>');
+  }
+}
+
+/**
+ * Filter source value
+ * @param {Function} whereFn
+ * @param {Object} item
+ * @returns {Boolean}
+ */
+function _runWhereCondition (whereFn, item) {
+  if (typeof whereFn !== 'function') {
+    logger.tip('A filter where must be a function : filter.sourceWhere = function (item) { return Boolean }.');
+    return false;
+  }
+
+  var _res = whereFn.call(null, item);
+  if (typeof _res !== 'boolean') {
+    logger.tip('A filter where must return a boolean.');
+    return false;
+  }
+
+  return _res;
+}
 
 /**
 * Get required params for HTTP request
@@ -29,16 +66,7 @@ function _getFilterValuesHTTPRequest (store, method) {
   for (var i = 0; i < store.filters.length; i++) {
     var _filter = store.filters[i];
     var _value  = [];
-    if (!_filter.source) {
-      throw new Error('A filter must have a source defined as : filter.source = @<store>');
-    }
-    if (!_filter.sourceAttribute) {
-      throw new Error('A filter must have a source attribute defined as : filter.sourceAttribute = <attribute>');
-    }
-    if (!_filter.localAttribute) {
-      throw new Error('A filter must have a local attribute defined as : filter.localAttribute = <attribute>');
-    }
-
+    _checkFilterObject(_filter);
 
     var _sourceStore = storeUtils.getStore(_filter.source);
     var _sourceValue = storeUtils.getCollection(_sourceStore).getAll();
@@ -60,20 +88,23 @@ function _getFilterValuesHTTPRequest (store, method) {
       if (_filter.operator && _filter.operator !== 'ILIKE') {
         throw new Error('Array filter must declare ILIKE operator or nothing!');
       }
+    }
 
-      for (var j = 0; j < _sourceValue.length; j++) {
+    for (var j = _sourceValue.length - 1; j >= 0; j--) {
+      if (!_filter.sourceWhere || (_filter.sourceWhere && _runWhereCondition(_filter.sourceWhere, _sourceValue[j]))) {
         _sourceValue[j] = _sourceValue[j][_filter.sourceAttribute];
       }
-
-      if (!_sourceValue.length) {
-        _sourceValue = undefined;
+      else {
+        _sourceValue.splice(j, 1);
       }
     }
-    else if (_sourceValue[0] !== undefined) {
-      _sourceValue = _sourceValue[0][_filter.sourceAttribute];
-    }
-    else {
+
+    if (!_sourceValue.length) {
       _sourceValue = undefined;
+    }
+
+    if (_sourceStore.isStoreObject) {
+      _sourceValue = _sourceValue ? _sourceValue[0] : undefined;
     }
 
     if (_sourceValue !== undefined) {
