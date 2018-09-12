@@ -63,7 +63,7 @@ Analysons ce fichier:
 * `"group" : [ "wastes", 0]`
   Onglet dans lequel notre module se trouvera
 
-*Il faudra bien pensée à faire un ./easilys presync*
+*Il faudra bien pensée à faire un ./easilys presync et un ./easilys sync*
 
 ### Afficher une page: 
 
