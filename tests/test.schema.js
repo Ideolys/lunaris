@@ -876,7 +876,17 @@ describe('Schema', () => {
             'countries[][cities][][info][goodies][][info][temperature]' : 'goodieTemperature',
             'countries[][cities][][info][goodies][][info][language]'    : 'goodieLanguage'
           },
-          sortMandatory : ['idCountry', 'idCity', 'idGoodies']
+          sortMandatory : ['idCountry', 'idCity', 'idGoodies'],
+          primaryKey    : ['id']
+        },
+        getPrimaryKey : function getPrimaryKey (item) { var _pk = null;
+          if (!item['id']) {
+            return null;
+          }
+          _pk += item['id'] + '-';
+
+          _pk = _pk.slice(0, _pk.length - 1);
+          return _pk;
         },
         onValidate : {
           cities2_name : function () {
@@ -1062,7 +1072,17 @@ describe('Schema', () => {
             'countries[][info][temperature]' : 'goodieTemperature',
             'countries[][info][language]'    : 'goodieLanguage'
           },
-          sortMandatory : ['idContinent', 'idCountry', 'goodieLanguage']
+          sortMandatory : ['idContinent', 'idCountry', 'goodieLanguage'],
+          primaryKey    : ['id']
+        },
+        getPrimaryKey : function getPrimaryKey (item) { var _pk = null;
+          if (!item['id']) {
+            return null;
+          }
+          _pk += item['id'] + '-';
+
+          _pk = _pk.slice(0, _pk.length - 1);
+          return _pk;
         },
         onValidate  : {},
         onTransform : {},
@@ -1145,7 +1165,7 @@ describe('Schema', () => {
         }]
       }];
       var _computed = schema.analyzeDescriptor(_objectDescriptor);
-      should(_computed).eql(_expectedTreeDescriptor);
+      should(JSON.stringify(_computed)).eql(JSON.stringify(_expectedTreeDescriptor));
       done();
     });
 
@@ -1463,6 +1483,47 @@ describe('Schema', () => {
     catch (e) {
       should(e.message).eql('Lunaris.store.map: id is not an array. All properties key names should be defined as arrays (e.g. ["<id>"], ["object", {}], ["array", {}])');
     }
+  });
+
+
+  describe('getPrimaryKey', () => {
+
+    it('should retunr null if no primaryKey has been defined', () => {
+      var _objectDescriptor = {
+        id : ['id'],
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.getPrimaryKey({ id : 1})).eql(null);
+    });
+
+    it('should return the id', () => {
+      var _objectDescriptor = {
+        id    : ['<<int>>'],
+        label : ['string'],
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.getPrimaryKey({ id : 1, label : 'A'})).eql('1');
+    });
+
+    it('should return null if no value has been find', () => {
+      var _objectDescriptor = {
+        id    : ['<<int>>'],
+        label : ['string'],
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.getPrimaryKey({ id : null, label : 'A'})).eql(null);
+    });
+
+    it('should return the a composite id key', () => {
+      var _objectDescriptor = {
+        id    : ['<<int>>'],
+        label : ['string'],
+        type  : ['<<int>>']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.getPrimaryKey({ id : 1, label : 'A', type : 'B'})).eql('1-B');
+    });
+
   });
 
 });

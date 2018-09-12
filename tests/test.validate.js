@@ -1350,7 +1350,8 @@ describe('Validate', () => {
             meta : {
               jsonToSQL     : {},
               sortGroup     : {},
-              sortMandatory : []
+              sortMandatory : [],
+              primaryKey    : []
             },
             onValidate  : { },
             onTransform : {},
@@ -1377,6 +1378,7 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1385,7 +1387,8 @@ describe('Validate', () => {
             meta : {
               jsonToSQL     : {},
               sortGroup     : {},
-              sortMandatory : []
+              sortMandatory : [],
+              primaryKey    : []
             },
             onValidate  : { },
             onTransform : {},
@@ -1412,6 +1415,7 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1420,7 +1424,8 @@ describe('Validate', () => {
             meta : {
               jsonToSQL     : {},
               sortGroup     : {},
-              sortMandatory : []
+              sortMandatory : [],
+              primaryKey    : []
             },
             onValidate  : { },
             onTransform : {},
@@ -1447,6 +1452,7 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1459,7 +1465,8 @@ describe('Validate', () => {
               sortGroup : {
                 idMenu : 0
               },
-              sortMandatory : []
+              sortMandatory : [],
+              primaryKey    : ['id']
             },
             onValidate  : { },
             onTransform : {},
@@ -1486,6 +1493,7 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1499,7 +1507,8 @@ describe('Validate', () => {
               sortGroup : {
                 test : 1
               },
-              sortMandatory : [ 'test' ]
+              sortMandatory : [ 'test' ],
+              primaryKey    : []
             },
             onValidate  : { },
             onTransform : {},
@@ -1540,6 +1549,7 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1548,7 +1558,8 @@ describe('Validate', () => {
             meta : {
               jsonToSQL     : {},
               sortGroup     : {},
-              sortMandatory : []
+              sortMandatory : [],
+              primaryKey    : []
             },
             onValidate  : { },
             onTransform : {
@@ -1576,6 +1587,7 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1588,7 +1600,8 @@ describe('Validate', () => {
               sortGroup : {
                 idMenu : 0
               },
-              sortMandatory : []
+              sortMandatory : [],
+              primaryKey    : []
             },
             onValidate  : { },
             onTransform : {
@@ -1616,6 +1629,7 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1624,7 +1638,8 @@ describe('Validate', () => {
             meta : {
               jsonToSQL     : {},
               sortGroup     : {},
-              sortMandatory : []
+              sortMandatory : [],
+              primaryKey    : []
             },
             onValidate  : { },
             onTransform : {},
@@ -1650,6 +1665,7 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1658,7 +1674,8 @@ describe('Validate', () => {
             meta : {
               jsonToSQL     : {},
               sortGroup     : {},
-              sortMandatory : []
+              sortMandatory : [],
+              primaryKey    : []
             },
             onValidate  : { },
             onTransform : {},
@@ -1684,6 +1701,7 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1696,7 +1714,8 @@ describe('Validate', () => {
               sortGroup : {
                 idMenu : 0
               },
-              sortMandatory : []
+              sortMandatory : [],
+              primaryKey : []
             },
             onValidate  : { },
             onTransform : {},
@@ -1719,12 +1738,16 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<idMenu>']});
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<   idMenu>']});
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<  idMenu   >']});
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '   < idMenu   >  ']});
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1737,7 +1760,8 @@ describe('Validate', () => {
               sortGroup : {
                 idMenu : 0
               },
-              sortMandatory : []
+              sortMandatory : [],
+              primaryKey : ['obj']
             },
             onValidate  : { },
             onTransform : {},
@@ -1760,12 +1784,16 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<idMenu>>']});
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<   idMenu>>']});
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<  idMenu   >>']});
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '   << idMenu   >>  ']});
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1782,6 +1810,20 @@ describe('Validate', () => {
         it('should analyze a descriptor and return a flat description of the object with transform information', function (done) {
           var _expectedTreeDescriptor = {
             meta : {
+              sortGroup : {
+                idContinent       : 0,
+                continentName     : 0,
+                idCountry         : 1,
+                countryName       : 1,
+                idCity            : 2,
+                cityName          : 2,
+                temperature       : 2,
+                language          : 2,
+                idGoodies         : 3,
+                goodiesName       : 3,
+                goodieTemperature : 3,
+                goodieLanguage    : 3,
+              },
               jsonToSQL : {
                 continent                                                   : 'continentName',
                 'countries[][cities][][id]'                                 : 'idCity',
@@ -1796,25 +1838,12 @@ describe('Validate', () => {
                 'countries[][name]'                                         : 'countryName',
                 id                                                          : 'idContinent'
               },
-              sortGroup : {
-                cityName          : 2,
-                continentName     : 0,
-                countryName       : 1,
-                goodieLanguage    : 3,
-                goodieTemperature : 3,
-                goodiesName       : 3,
-                idCity            : 2,
-                idContinent       : 0,
-                idCountry         : 1,
-                idGoodies         : 3,
-                language          : 2,
-                temperature       : 2
-              },
               sortMandatory : [
                 'idCountry',
                 'idCity',
                 'idGoodies'
-              ]
+              ],
+              primaryKey : ['id']
             },
             onValidate : {
               cities2_name : function () {return 'test';}
@@ -1921,6 +1950,7 @@ describe('Validate', () => {
           };
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
+          delete _computed.getPrimaryKey;
           should(_computed).eql(_expectedTreeDescriptor);
           done();
         });
