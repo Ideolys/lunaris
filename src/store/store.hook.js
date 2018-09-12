@@ -98,8 +98,9 @@ function _isFunction (handler) {
  * Register a hook
  * @param {String} hook must be <action>@<store>
  * @param {Function} handler
+ * @param {Boolean} isUnique default false, if true, check if the handler already exists
  */
-function registerHook (hook, handler) {
+function registerHook (hook, handler, isUnique) {
   try {
     _isFunction(handler);
     var _hook          = _extractHookAndStore(hook);
@@ -112,6 +113,22 @@ function registerHook (hook, handler) {
     if (!_store.hooks[_hook.event]) {
       _store.hooks[_hook.event] = [];
     }
+
+    if (isUnique) {
+      var _handlers     = _store.hooks[_hook.event];
+      var _hasBeenFound = false;
+      for (var i = 0; i < _handlers.length; i++) {
+        if (_handlers[i].toString() === handler.toString()) {
+          _hasBeenFound = true;
+          break;
+        }
+      }
+
+      if (_hasBeenFound) {
+        return;
+      }
+    }
+
     _store.hooks[_hook.event].push(handler);
   }
   catch (e) {

@@ -56,13 +56,13 @@ describe('Store plugin', () => {
     should(lunaris._stores.test.hooks.errorHttp[0].name).eql('errorHttp');
 
     should(lunaris._stores.test.hooks.get).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.get[0].name).eql('get');
+    should(lunaris._stores.test.hooks.get[0].name).eql('update');
 
     should(lunaris._stores.test.hooks.reset).have.lengthOf(1);
     should(lunaris._stores.test.hooks.reset[0].name).eql('reset');
 
     should(lunaris._stores.test.hooks.insert).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.insert[0].name).eql('insert');
+    should(lunaris._stores.test.hooks.insert[0].name).eql('update');
 
     should(lunaris._stores.test.hooks.update).have.lengthOf(1);
     should(lunaris._stores.test.hooks.update[0].name).eql('update');
@@ -123,7 +123,7 @@ describe('Store plugin', () => {
       stores : ['test'],
     });
 
-    var _payload = [{ id : 1, label : 'A' }, { id : 2, label : 'B' }];
+    var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get', Object.freeze(_payload), true);
     should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(_payload);
 

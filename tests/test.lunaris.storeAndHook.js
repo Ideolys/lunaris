@@ -2615,6 +2615,18 @@ describe('Lunaris hooks', () => {
       should(lunaris._stores['store1'].hooks.get[1]).eql(_handler2);
       delete lunaris._stores['store1'];
     });
+
+    it('should not register multiple handlers for a hook if isUnique option is active', () => {
+      var _handler1 = function handler1 () {};
+      lunaris._stores['store1'] = { hooks : [] };
+      lunaris.hook('get@store1', _handler1, true);
+      lunaris.hook('get@store1', _handler1, true);
+      should(lunaris._stores['store1'].hooks).be.an.Array();
+      should(lunaris._stores['store1'].hooks.get).have.length(1);
+      should(lunaris._stores['store1'].hooks.get[0]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[0]).eql(_handler1);
+      delete lunaris._stores['store1'];
+    });
   });
 
   describe('remove hook', () => {

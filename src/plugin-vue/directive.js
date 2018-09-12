@@ -7,10 +7,11 @@
  * Return handler for directive onChange input
  * @param {String} path see decodeObjectPath()
  * @param {Int} id current lunaris _id value
+ * @param {Boolean} isLocal islocal update
  * @param {Obejct} vnode
  * @return {Function}
  */
-function getHandlerFn (path, id, vnode) {
+function getHandlerFn (path, id, isLocal, vnode) {
   return function handler (val) {
     var _pathParts = path.split('.');
     var _store     = _pathParts.shift(); // dot not include store
@@ -25,7 +26,7 @@ function getHandlerFn (path, id, vnode) {
 
     lunaris.validate(_store, _obj, function (isValid, err) {
       if (isValid) {
-        return lunaris.update(_store, _obj);
+        return lunaris.update(_store, _obj, isLocal);
       }
 
       lunaris.logger.warn('v-lunaris', err);
@@ -48,6 +49,20 @@ function getId (vnode) {
   }
 
   return vnode.data.attrs['lunaris-id'];
+}
+
+
+/**
+ * Get isLocal option
+ * @param {Object} vnode
+ * @return {Boolean}
+ */
+function getIsLocal (vnode) {
+  if (vnode.data.attrs && vnode.data.attrs['is-local']) {
+    return Boolean(vnode.data.attrs['is-local']);
+  }
+
+  return false;
 }
 
 /**
@@ -92,7 +107,7 @@ Vue.directive('lunaris', {
       return lunaris.logger.tip('v-lunaris', 'You must declare the directive as: v-lunaris="\'@<store>.attribute\'"');
     }
 
-    this.handler = getHandlerFn(_value, getId(vnode), vnode);
+    this.handler = getHandlerFn(_value, getId(vnode), getIsLocal(vnode), vnode);
     el.addEventListener('change', this.handler);
   },
 

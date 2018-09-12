@@ -102,24 +102,6 @@ lunaris._vue = {
     }
 
     /**
-     * Set _get hook handler
-     * @param {String} store
-     */
-    function _get (store) {
-      return function get (items) {
-        var _storeObj = lunaris._vue._vm.$data.$stores[store];
-
-        if (_storeObj.isStoreObject) {
-          return _storeObj.state = items;
-        }
-
-        for (var i = 0; i < items.length; i++) {
-          _storeObj.state.push(lunaris.clone(items[i]));
-        }
-      };
-    }
-
-    /**
      * Set _reset hook handler
      * @param {String} store
      */
@@ -134,28 +116,6 @@ lunaris._vue = {
         }
 
         lunaris.get('@' + store);
-      };
-    }
-
-    /**
-     * Set _insert hook handler
-     * @param {String} store
-     */
-    function _insert (store) {
-      return function insert (items) {
-        var _storeObj = lunaris._vue._vm.$data.$stores[store];
-
-        if (_storeObj.isStoreObject) {
-          return _storeObj.state = items;
-        }
-
-        if (!Array.isArray(items)) {
-          return _storeObj.state.push(items);
-        }
-
-        for (var i = 0; i < items.length; i++) {
-          _storeObj.state.push(items[i]);
-        }
       };
     }
 
@@ -266,18 +226,16 @@ lunaris._vue = {
           _this.$options.storeHooks = {};
         }
 
-        var _getFn     = _get(_store);
         var _resetFn   = _reset(_store);
-        var _insertFn  = _insert(_store);
         var _updateFn  = _update(_store);
         var _deleteFn  = _delete(_store);
 
         _this.$options.internalStoreHooks[_store] = [
-          ['get@'       + _store, _getFn],
-          ['reset@'     + _store, _resetFn],
-          ['insert@'    + _store, _insertFn],
-          ['update@'    + _store, _updateFn],
-          ['delete@'    + _store, _deleteFn]
+          ['get@'       + _store, _updateFn, true],
+          ['reset@'     + _store, _resetFn , true],
+          ['insert@'    + _store, _updateFn, true],
+          ['update@'    + _store, _updateFn, true],
+          ['delete@'    + _store, _deleteFn, true]
         ];
 
         for (var k = 0; k < _this.$options.internalStoreHooks[_store].length; k++) {
@@ -347,6 +305,9 @@ lunaris._vue = {
         _registerStores(this);
         _registerHooks(this);
 
+        this._registerStores = _registerStores;
+        this._registerHooks  = _registerHooks;
+
         /**
          * Set function to rollback lunarisError
          * @param {Object} lunarisError
@@ -393,7 +354,7 @@ lunaris._vue = {
             if (_data) {
               lunaris.freeze(lunaris.clone(_data));
             }
-            return _insert(lunarisError.storeName)(_data);
+            return _update(lunarisError.storeName)(_data);
           }
         };
 
