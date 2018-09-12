@@ -11,6 +11,7 @@
 
 - Fix:
   + The redirection could fail.
+  + Add parameter isUnique for `lunaris.hook(hook, handkler, isUnique)`. If true, the function will register unique handlers.
 
 ## 1.3.0
 - Features:
