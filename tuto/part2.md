@@ -103,7 +103,7 @@ module.exports = {
 
 Nous allons donc créer notre vue entre ces balises
 ```html
-<layout ref="scales-ref">
+<layout ref="scalesRef">
   <div  slot="middle-panel-header-title">
     ${Scales (tuto)}
   </div>
