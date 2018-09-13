@@ -13,6 +13,7 @@ describe('directive v-lunaris', () => {
     lastError = [];
     lastTip   = [];
     lunaris.clear('@directive');
+    lunaris.clear('@directiveCheckbox');
     lunaris._resetVersionNumber();
   });
 
@@ -216,6 +217,39 @@ describe('directive v-lunaris', () => {
       type     : { id : 1, label : 'A' },
       _id      : 1,
       _version : [2]
+    });
+
+    vm.$destroy();
+  });
+
+  it('should update an attribute value : checkbox', () => {
+    const vm = new Vue({
+      template : `
+        <div>
+          <input id="input" type="checkbox" v-lunaris="'@directiveCheckbox.isChecked'" :lunaris-id="$directiveCheckbox.id">
+        </div>
+      `,
+      stores  : ['directiveCheckbox'],
+      created : function () {
+        lunaris.insert('@directiveCheckbox', { id : 1, isChecked : false });
+      }
+    }).$mount();
+
+    var _input     = vm.$el.children.input;
+    _input.checked = true;
+
+    should(lunaris.getOne('@directiveCheckbox', 1)).eql({
+      id        : 1,
+      isChecked : false,
+      _id       : 1,
+      _version  : [1]
+    });
+    _input.dispatchEvent(new Event('change', { bubbles : true }));
+    should(lunaris.getOne('@directiveCheckbox', 1)).eql({
+      id        : 1,
+      isChecked : true,
+      _id       : 1,
+      _version  : [2]
     });
 
     vm.$destroy();
