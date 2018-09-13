@@ -154,7 +154,7 @@ function collection (startId, getPrimaryKeyFn) {
     // We upsert the last version of the object
     if (_search.found) {
       value._id = _indexes.id[1][_search.index];
-      upsert(value, versionNumber, false, true);
+      value     = upsert(value, versionNumber, false, true);
       return;
     }
 

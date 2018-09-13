@@ -13,9 +13,10 @@
  */
 function getHandlerFn (path, id, isLocal, vnode) {
   return function handler (val) {
+    var _value     = val.target.type === 'checkbox' ? val.target.checked : val.target.value;
     var _pathParts = path.split('.');
     var _store     = _pathParts.shift(); // dot not include store
-    var _obj       = decodeObjectPath(_pathParts, val.target.value);
+    var _obj       = decodeObjectPath(_pathParts, _value);
     _obj._id       = id;
 
     var _item = lunaris.getOne(_store, _obj._id);

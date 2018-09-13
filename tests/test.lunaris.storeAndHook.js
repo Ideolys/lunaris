@@ -3,7 +3,7 @@ const initStore    = testUtils.initStore;
 const collection   = require('../src/store/store.collection');
 const buildLunaris = require('../lib/builder').buildLunaris;
 const express      = require('express');
-const compression  = require('compression')
+const compression  = require('compression');
 const bodyParser   = require('body-parser');
 const fetch        = require('node-fetch');
 const dayjs        = require('dayjs');
@@ -120,7 +120,7 @@ describe('lunaris store', () => {
         }
       });
 
-      lunaris.hook('update@store1', updatedValue => {
+      lunaris.hook('update@store1', () => {
         _isUpdateHook = true;
       });
 
@@ -666,7 +666,7 @@ describe('lunaris store', () => {
         }
       });
 
-      lunaris.hook('update@mass', updatedValue => {
+      lunaris.hook('update@mass', () => {
         _isUpdateHook = true;
       });
 
@@ -808,7 +808,7 @@ describe('lunaris store', () => {
             { _id : 2, id : 2, label : 'B-1', _version : [4], put : true }
           ]);
 
-          for (var i = 0; i < updatedValue.length; i++) {
+          for (i = 0; i < updatedValue.length; i++) {
             should(Object.isFrozen(updatedValue[i])).eql(true);
           }
         }
@@ -1345,6 +1345,48 @@ describe('lunaris store', () => {
       lunaris.get('@pagination');
     });
 
+    it('should get the values without duplicating values', done => {
+      var _nbPages                  = 0;
+      var _store                    = initStore('pagination_duplicate');
+      _store.data = collection.collection(null, (item) => {
+        return item.id;
+      });
+      lunaris._stores['pagination_duplicate'] = _store;
+
+      lunaris.hook('get@pagination_duplicate', items => {
+        _nbPages++;
+        if (_nbPages === 1) {
+          should(items).eql([
+            { _id : 1, id : 20, label : 'B', _version : [1] },
+            { _id : 2, id : 30, label : 'D', _version : [1] },
+            { _id : 3, id : 10, label : 'E', _version : [1] }
+          ]);
+          for (var i = 0; i < items.length; i++) {
+            should(Object.isFrozen(items[i])).eql(true);
+          }
+          lunaris.get('@pagination_duplicate');
+          return;
+        }
+
+        should(items).eql([
+          { _id : 1, id : 20, label : 'A', _version : [2] },
+          { _id : 2, id : 30, label : 'D', _version : [2] },
+          { _id : 3, id : 10, label : 'C', _version : [2] }
+        ]);
+        for (i = 0; i < items.length; i++) {
+          should(Object.isFrozen(items[i])).eql(true);
+        }
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@pagination_duplicate', err => {
+        done(err);
+      });
+
+      lunaris.get('@pagination_duplicate');
+    });
+
     it('should filter the store by a required filter', done => {
       var _isFirstCall = true;
       lunaris._stores['required.param.site']               = initStore('required.param.site');
@@ -1406,7 +1448,7 @@ describe('lunaris store', () => {
         isRequired      : true
       });
 
-      lunaris.hook('get@required', items => {
+      lunaris.hook('get@required', () => {
         _hasBeenCalled = true;
       });
 
@@ -2452,6 +2494,25 @@ function _startServer (callback) {
         { id : 40, label : 'A' },
         { id : 50, label : 'C' },
         { id : 60, label : 'F' }
+      ]});
+    }
+
+    res.json({ success : false, error : 'Error', message : null, data : []});
+  });
+
+  server.get('/pagination_duplicate', (req, res) => {
+    if (req.query.limit === '50' && req.query.offset === '0') {
+      return res.json({ success : true, error : null, message : null, data : [
+        { id : 20, label : 'B' },
+        { id : 30, label : 'D' },
+        { id : 10, label : 'E' }
+      ]});
+    }
+    if (req.query.limit === '50' && req.query.offset === '50') {
+      return res.json({ success : true, error : null, message : null, data : [
+        { id : 20, label : 'A' },
+        { id : 30, label : 'D' },
+        { id : 10, label : 'C' }
       ]});
     }
 

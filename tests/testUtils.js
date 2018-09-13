@@ -17,7 +17,7 @@ exports.initStore = function initStore (name, map) {
   _store.map                   = map;
   _store.meta                  = storeMap.analyzeDescriptor(map);
   _store.validateFn            = validateMap.buildValidateFunction(_store.meta.compilation);
-  _store.getPrimaryKeyFn       = _store.meta.getPrimaryKey;
+  _store.getPrimaryKeyFn       = null;
   _store.isStoreObject         = !map ? false : !Array.isArray(map) ? true : false;
   return _store;
 };
