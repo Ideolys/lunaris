@@ -4,7 +4,13 @@
 
 ## Parties
 
-[Ecran actuel](#ecran-actuel)
+1. [Ecran actuel](#ecran-actuel)
+2. [Ameliorer l'affichage des balances](#améliorer-l'affichage-des-balances)
+3. [Ouvrir le panneau de droite avec les infos de base de la balance](#ouvrir-le-panneau-de-droite-avec-les-infos-de-base-de-la-balance)
+4. [Modifier et créer une balance](#modifier-et-créer-une-balance)
+5. [Ajouter un filtre](#ajouter-un-filtre)
+
+**[Quelques protips](#quelques-protips)**
 
 ## Ecran actuel
 
@@ -326,6 +332,7 @@ Plusieurs operateurs sont disponibles:
 ### **Résultat attendu**
 
 ![Filtre](images/Balance_step4-4.gif)
+
 
 ## Quelques protips
 
