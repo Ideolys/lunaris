@@ -1,6 +1,10 @@
 const collectionModule = require('../src/store/store.collection');
 const collection       = collectionModule.collection;
 
+function getPrimaryKey (value) {
+  return value.id;
+}
+
 describe('lunaris internal collection', () => {
   beforeEach(() => {
     collectionModule.resetVersionNumber();
@@ -30,25 +34,39 @@ describe('lunaris internal collection', () => {
     });
 
     it('should add one item to the collection', () => {
-      var _collection = collection();
+      var _collection = collection(null, getPrimaryKey);
       _collection.add({ id : 1 });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
       should(_values[0]).eql({ _id : 1, id : 1, _version : [1]});
+
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(1);
+      should(_index[0]).eql([1]);
+      should(_index[1]).have.lengthOf(1);
+      should(_index[1]).eql([1]);
     });
 
     it('should add multiple items to the collection', () => {
-      var _collection = collection();
+      var _collection = collection(null, getPrimaryKey);
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(2);
       should(_values[0]).eql({ _id : 1, id : 1, _version : [1]});
       should(_values[1]).eql({ _id : 2, id : 2, _version : [2]});
+
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(2);
+      should(_index[0]).eql([1, 2]);
+      should(_index[1]).have.lengthOf(2);
+      should(_index[1]).eql([1, 2]);
     });
 
-    it('should start the index generation from 6', () => {
-      var _collection = collection(6, 10);
+    it('should start the id generation from 6', () => {
+      var _collection = collection(6);
       _collection.add({ id : 1 });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
@@ -61,15 +79,27 @@ describe('lunaris internal collection', () => {
     });
 
     it('should clear the collection', () => {
-      var _collection = collection();
+      var _collection = collection(null, getPrimaryKey);
       _collection.add({ id : 1 });
       should(_collection._getAll()).be.an.Array().and.have.length(1);
 
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(1);
+      should(_index[0]).eql([1]);
+      should(_index[1]).have.lengthOf(1);
+      should(_index[1]).eql([1]);
+
       _collection.clear();
       should(_collection._getAll()).be.an.Array().and.have.length(0);
+
+      _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(0);
+      should(_index[1]).have.lengthOf(0);
     });
 
-    it('should clear the collection and the index', () => {
+    it('should clear the collection and the id', () => {
       var _collection = collection(6);
       _collection.add({ id : 1 });
       should(_collection._getAll()).be.an.Array().and.have.length(1);
@@ -84,6 +114,49 @@ describe('lunaris internal collection', () => {
       _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
       should(_values[0]).eql({ _id : 1, id : 2, _version : [2]});
+    });
+
+    it('should add the value to the collection if no getPrimaryKey Function', () => {
+      var _collection = collection();
+      _collection.add({ id : 1 });
+      var _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(1);
+      should(_values[0]).eql({ _id : 1, id : 1, _version : [1]});
+
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(0);
+      should(_index[1]).have.lengthOf(0);
+    });
+
+    it('should add the value to the collection if no id has been returned by the function getPrimaryKey', () => {
+      var _collection = collection();
+      _collection.add({ label : 'A' });
+      var _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(1);
+      should(_values[0]).eql({ _id : 1, label : 'A', _version : [1]});
+
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(0);
+      should(_index[1]).have.lengthOf(0);
+    });
+
+    it('should not duplicate values if the same id has been already used', () => {
+      var _collection = collection(null, getPrimaryKey);
+      _collection.add({ id : 2, label : 'A' });
+      _collection.add({ id : 2, label : 'B' });
+      var _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 2, label : 'A', _version : [1, 3]});
+      should(_values[1]).eql({ _id : 1, id : 2, label : 'B', _version : [3]});
+
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(1);
+      should(_index[0]).eql([2]);
+      should(_index[1]).have.lengthOf(1);
+      should(_index[1]).eql([1]);
     });
   });
 
@@ -238,11 +311,11 @@ describe('lunaris internal collection', () => {
       should(collection().getCurrentId).be.ok();
     });
 
-    it('should return the default index', () => {
+    it('should return the default id', () => {
       should(collection().getCurrentId()).eql(1);
     });
 
-    it('should return the next index after insert', () => {
+    it('should return the next id after insert', () => {
       var _collection = collection();
       should(_collection.getCurrentId()).eql(1);
       _collection.add({ id : 1, test : 1 });
@@ -255,15 +328,15 @@ describe('lunaris internal collection', () => {
       should(collection().getCurrentVersionNumber).be.ok();
     });
 
-    it('should return the default index', () => {
+    it('should return the default id', () => {
       should(collection().getCurrentVersionNumber()).be.a.Number();
     });
 
-    it('should return the default index', () => {
+    it('should return the default id', () => {
       should(collection().getCurrentVersionNumber()).eql(1);
     });
 
-    it('should return the next index after insert', () => {
+    it('should return the next id after insert', () => {
       var _collection = collection();
       should(_collection.getCurrentVersionNumber()).eql(1);
       _collection.add({ id : 1, test : 1 });
@@ -332,6 +405,45 @@ describe('lunaris internal collection', () => {
       should(_values[1]).eql({ _id : 1, id : 1, test : 'B', _version : [2, 3] });
       should(_values[2]).eql({ _id : 1, id : 1, test : 'A', _version : [3]    });
     });
+
+    it('should not duplicate values if the same id has been already used within a transaction', () => {
+      var _collection = collection(null, getPrimaryKey);
+      var _version    = _collection.begin();
+      _collection.add({ id : 2, label : 'A' }, _version);
+      _collection.add({ id : 2, label : 'B' }, _version);
+      _collection.commit(_version);
+      var _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(1);
+      should(_values[0]).eql({ _id : 1, id : 2, label : 'B', _version : [1]});
+
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(1);
+      should(_index[0]).eql([2]);
+      should(_index[1]).have.lengthOf(1);
+      should(_index[1]).eql([1]);
+    });
+
+    it('should not duplicate values if the same id has been already used in two different transactions', () => {
+      var _collection = collection(null, getPrimaryKey);
+      var _version    = _collection.begin();
+      _collection.add({ id : 2, label : 'A' }, _version);
+      _collection.commit(_version);
+      _version  = _collection.begin();
+      _collection.add({ id : 2, label : 'B' }, _version);
+      _collection.commit(_version);
+      var _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 2, label : 'A', _version : [1, 2]});
+      should(_values[1]).eql({ _id : 1, id : 2, label : 'B', _version : [2]});
+
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(1);
+      should(_index[0]).eql([2]);
+      should(_index[1]).have.lengthOf(1);
+      should(_index[1]).eql([1]);
+    });
   });
 
   describe('rollback()', () => {
@@ -374,7 +486,7 @@ describe('lunaris internal collection', () => {
       _collection.upsert({ _id : 2, id : 2, test : 2.2 }, _version);
       _collection.commit(_version);
 
-      var _values = _collection._getAll();
+      _values = _collection._getAll();
       should(_values).have.length(4);
       should(_values[0]).eql({ _id : 1, id : 1, test : 1,   _version : [1, 2] });
       should(_values[1]).eql({ _id : 2, id : 2, test : 2,   _version : [1, 2] });
@@ -382,7 +494,7 @@ describe('lunaris internal collection', () => {
       should(_values[3]).eql({ _id : 2, id : 2, test : 2.2, _version : [2]    });
 
       _collection.rollback(_version);
-      var _values = _collection._getAll();
+      _values = _collection._getAll();
       should(_values).have.length(6);
       should(_values[2]).eql({ _id : 1, id : 1, test : 1.1, _version : [2, 3]});
       should(_values[3]).eql({ _id : 2, id : 2, test : 2.2, _version : [2, 3]});

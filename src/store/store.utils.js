@@ -45,6 +45,9 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
   if (isInsertOrMassiveUpdate) {
     return _id;
   }
+  if (store.getPrimaryKeyFn) {
+    return store.getPrimaryKeyFn.call(null, value);
+  }
   if (!store.primaryKey) {
     return value._id;
   }
