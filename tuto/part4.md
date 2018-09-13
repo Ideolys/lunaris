@@ -2,7 +2,9 @@
 
 **Pour la suite il faudra bien penser à préfixer tous les noms de modules / stores par tuto, pour éviter tous conflits avec l'écran existant**
 
+## Parties
 
+[Ecran actuel](#ecran-actuel)
 
 ## Ecran actuel
 
