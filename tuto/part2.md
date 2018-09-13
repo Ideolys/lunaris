@@ -1,6 +1,6 @@
 # Votre premier module.
 
-Dans la V2 chaque écran dépendras d'un module, nous allons voir cela.
+Dans la V2 chaque écran dépend d'un module, nous allons voir cela.
 
 ## Architecture de la V2
 
@@ -74,6 +74,8 @@ Analysons ce fichier:
 > Par défaut, un module easilys doit toujours être exporté via `module.exports`.
 > Voyez cet objet comme un objet Vue.js
 
+> Voyez cet object comme une instance Vue [DOC Vue.js](https://vuejs.org/v2/guide/instance.html)
+
 ```js
 module.exports = {
 ...
@@ -115,6 +117,7 @@ Plusieurs choses:
   Ça permet ensuite depuis le controller d’accéder à différentes actions sur notre vue.
 * Et le "slot" il sert à quoi ?
   C'est un des éléments du layout ils se trouvent tous dans **client-v2/global-components/layout/layout.vue**
+  [DOC Vue.js](https://vuejs.org/v2/guide/components-slots.html#ad)
 * "${}" ça fait quoi ?
   C'est le système de traduction universel à tous easilys, tout ce qui se trouve dans cet élément seras traduit.
 

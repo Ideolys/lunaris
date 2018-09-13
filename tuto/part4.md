@@ -324,3 +324,48 @@ Plusieurs operateurs sont disponibles:
 ### **Résultat attendu**
 
 ![Filtre](images/Balance_step4-4.gif)
+
+## Quelques protips
+
+### **Les submodules**
+
+Il est possible de créer des submodules.
+
+Pour cela créer un dossier `modules` dans votre module et créer votre module.
+
+Toute la partie vue devras se trouver entre des balises `<template>`
+
+*Fichier:* **nomModule.vue**
+```html
+<template>
+  Ici votre vue
+</template>
+<script>
+module.exports = {
+  // Ici votre module
+}
+</script>
+```
+
+Il faudras aussi charger ce module dans votre controller:
+
+*Fichier:* **index.js**
+```js
+module.exports = {
+  ...
+  components : {
+    'nomModule' : require('modules/nomModule.vue')
+  },
+  ...
+}
+```
+
+Et pour l'utiliser dans votre vue c'est une simple balise:
+
+*Fichier:* **index.html**
+
+```html
+...
+<nomModule></nomModule>
+...
+```
