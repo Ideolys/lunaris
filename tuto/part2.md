@@ -1,4 +1,4 @@
-# I - Votre premier module.
+# Votre premier module.
 
 Dans la V2 chaque écran dépendras d'un module, nous allons voir cela.
 

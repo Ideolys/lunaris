@@ -2,6 +2,8 @@
 
 **Pour la suite il faudra bien penser à préfixer tous les noms de modules / stores par tuto, pour éviter tous conflits avec l'écran existant**
 
+
+
 ## Ecran actuel
 
 ![Ecran actuel](images/Screen_Balance_step3.png)

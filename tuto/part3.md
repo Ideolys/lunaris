@@ -1,4 +1,4 @@
-# Votre premier store.
+# Votre premier store
 
 Dans la V2 tout est store, c'est l'élément majeur de cette version.
 Voyez un store comme une base de donnée, ça stock des valeurs, et en plus c'est capable de pleins de choses.
