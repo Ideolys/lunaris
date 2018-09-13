@@ -1,0 +1,80 @@
+<layout ref="scalesRef"
+  v-bind:isNoHeaderSearchInput="true"
+  v-bind:hasRightPanelFooter="true">
+
+  <div slot="left-panel-body-content">
+    <filter-list
+      filterName="${Wastes}"
+      filterStore="@tutoScales.filter.waste"
+      searchBy="id"
+      v-bind:dataFilter="$tutoWastes"
+      storeFilterSearch="@tutoWastes.filter.label"
+    ></filter-list>
+  </div>
+
+  <div slot="middle-panel-header-title">
+    ${Scales (tuto)}
+  </div>
+  <div  slot="middle-panel-body-content">
+    <div v-if="$tutoScales">
+      <div class="b-table">
+        <div class="table-wrapper">
+          <table class="table is-striped is-narrow is-hoverable has-link-items">
+            <tbody>
+              <tr v-for="scale in $tutoScales" v-bind="scale.value" @click="toggleRightPanel(scale)">
+                <td data-label="Site">
+                  <article class="media">
+                    <figure class="media-left">
+                      <p class="image is-64x64">
+                        <img src="https://bulma.io/images/placeholders/128x128.png">
+                      </p>
+                    </figure>
+                    <div class="media-content">
+                      <div class="content">
+                        <p>
+                          <strong>{{scale.label}}</strong>
+                          <br>
+                          <small>{{scale.serialNumber}}</small>
+                        </p>
+                      </div>
+                    </div>
+                  </article>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div slot="middle-panel-header-actions">
+    <a class="button is-primary is-pulled-right" @click="openAddForm()">
+      <b-icon pack="fas" icon="plus"></b-icon>
+    </a>
+  </div>
+
+  <div slot="right-panel-header-close-button">
+    <button class="button is-white" @click="closeRightPanel">
+      <b-icon pack="fas" icon="times"></b-icon>
+    </button>
+  </div>
+
+  <div slot="right-panel-body-content">
+    <div v-if="currentOpenedScale">
+      <scale-details v-bind:scale="currentOpenedScale"></scale-details>
+    </div>
+    <div v-else-if="editScale">
+      <scale-form v-bind:scale="editScale" v-bind:wastes="$tutoWastes"></scale-form>
+    </div>
+  </div>
+
+  <div slot="right-panel-footer-content">
+    <div v-if="currentOpenedScale">
+      <a class="button is-warning" @click="openAddForm(currentOpenedScale)">${Edit}</a>
+    </div>
+    <div v-else-if="editScale">
+      <a class="button is-success" @click="saveOrUpdate">${Save}</a>
+    </div>
+  </div>
+</layout>

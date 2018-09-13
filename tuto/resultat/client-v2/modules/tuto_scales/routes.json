@@ -1,0 +1,8 @@
+{
+  "/tuto_scales" : {
+    "controllers" : "index",
+    "name" : "${Tuto scale}",
+    "description" : "${Tuto scale}",
+    "group" : ["wastes", 0]
+  }
+}
