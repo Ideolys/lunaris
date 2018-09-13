@@ -334,7 +334,7 @@ Plusieurs operateurs sont disponibles:
 ![Filtre](images/Balance_step4-4.gif)
 
 
-## Quelques protips
+## Quelques protips
 
 ### **Les submodules**
 
