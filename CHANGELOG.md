@@ -14,6 +14,7 @@
   + The redirection could fail.
   + Add parameter isUnique for `lunaris.hook(hook, handkler, isUnique)`. If true, the function will register unique handlers.
   + Fix data duplication in vue plugin if a store was registered in multiple components at the same time.
+  + Enable dayjs format plugin
 
 ## 1.3.0
 - Features:
