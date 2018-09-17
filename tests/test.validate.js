@@ -1351,7 +1351,8 @@ describe('Validate', () => {
               jsonToSQL     : {},
               sortGroup     : {},
               sortMandatory : [],
-              primaryKey    : []
+              primaryKey    : [],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1388,7 +1389,8 @@ describe('Validate', () => {
               jsonToSQL     : {},
               sortGroup     : {},
               sortMandatory : [],
-              primaryKey    : []
+              primaryKey    : [],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1425,7 +1427,8 @@ describe('Validate', () => {
               jsonToSQL     : {},
               sortGroup     : {},
               sortMandatory : [],
-              primaryKey    : []
+              primaryKey    : [],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1466,7 +1469,8 @@ describe('Validate', () => {
                 idMenu : 0
               },
               sortMandatory : [],
-              primaryKey    : ['id']
+              primaryKey    : ['id'],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1502,13 +1506,14 @@ describe('Validate', () => {
           var _expectedTreeDescriptor = {
             meta : {
               jsonToSQL : {
-                'obj[][test]' : 'test'
+                'obj.test' : 'test'
               },
               sortGroup : {
                 test : 1
               },
               sortMandatory : [ 'test' ],
-              primaryKey    : []
+              primaryKey    : [],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1559,7 +1564,8 @@ describe('Validate', () => {
               jsonToSQL     : {},
               sortGroup     : {},
               sortMandatory : [],
-              primaryKey    : []
+              primaryKey    : [],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {
@@ -1601,7 +1607,8 @@ describe('Validate', () => {
                 idMenu : 0
               },
               sortMandatory : [],
-              primaryKey    : []
+              primaryKey    : [],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {
@@ -1639,7 +1646,8 @@ describe('Validate', () => {
               jsonToSQL     : {},
               sortGroup     : {},
               sortMandatory : [],
-              primaryKey    : []
+              primaryKey    : [],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1675,7 +1683,8 @@ describe('Validate', () => {
               jsonToSQL     : {},
               sortGroup     : {},
               sortMandatory : [],
-              primaryKey    : []
+              primaryKey    : [],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1715,7 +1724,8 @@ describe('Validate', () => {
                 idMenu : 0
               },
               sortMandatory : [],
-              primaryKey : []
+              primaryKey    : [],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1761,7 +1771,8 @@ describe('Validate', () => {
                 idMenu : 0
               },
               sortMandatory : [],
-              primaryKey : ['obj']
+              primaryKey    : ['obj'],
+              aggregates    : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1825,25 +1836,26 @@ describe('Validate', () => {
                 goodieLanguage    : 3,
               },
               jsonToSQL : {
-                continent                                                   : 'continentName',
-                'countries[][cities][][id]'                                 : 'idCity',
-                'countries[][cities][][info][goodies][][id]'                : 'idGoodies',
-                'countries[][cities][][info][goodies][][info][language]'    : 'goodieLanguage',
-                'countries[][cities][][info][goodies][][info][temperature]' : 'goodieTemperature',
-                'countries[][cities][][info][goodies][][name]'              : 'goodiesName',
-                'countries[][cities][][info][language]'                     : 'language',
-                'countries[][cities][][info][temperature]'                  : 'temperature',
-                'countries[][cities][][name]'                               : 'cityName',
-                'countries[][id]'                                           : 'idCountry',
-                'countries[][name]'                                         : 'countryName',
-                id                                                          : 'idContinent'
+                continent                                        : 'continentName',
+                'countries.cities.id'                            : 'idCity',
+                'countries.cities.info.goodies.id'               : 'idGoodies',
+                'countries.cities.info.goodies.info.language'    : 'goodieLanguage',
+                'countries.cities.info.goodies.info.temperature' : 'goodieTemperature',
+                'countries.cities.info.goodies.name'             : 'goodiesName',
+                'countries.cities.info.language'                 : 'language',
+                'countries.cities.info.temperature'              : 'temperature',
+                'countries.cities.name'                          : 'cityName',
+                'countries.id'                                   : 'idCountry',
+                'countries.name'                                 : 'countryName',
+                id                                               : 'idContinent'
               },
               sortMandatory : [
                 'idCountry',
                 'idCity',
                 'idGoodies'
               ],
-              primaryKey : ['id']
+              primaryKey : ['id'],
+              aggregates : {}
             },
             onValidate : {
               cities2_name : function () {return 'test';}

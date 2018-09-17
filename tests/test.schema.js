@@ -1,4 +1,5 @@
-var schema = require('../lib/_builder/store/schema');
+const schema     = require('../lib/_builder/store/schema');
+const aggregates = require('../src/store/store.aggregate');
 
 describe('Schema', () => {
 
@@ -500,7 +501,7 @@ describe('Schema', () => {
       });
       should(_computed.meta.jsonToSQL).eql({
         id              : 'idMenu',
-        'menu[element]' : 'labelMenu'
+        'menu.element' : 'labelMenu'
       });
       _computed = schema.analyzeDescriptor({
         id   : ['<idMenu>'],
@@ -510,9 +511,9 @@ describe('Schema', () => {
         }]
       });
       should(_computed.meta.jsonToSQL).eql({
-        id              : 'idMenu',
-        'menu[element]' : 'labelMenu',
-        'menu[id]'      : 'idMenu'
+        id             : 'idMenu',
+        'menu.element' : 'labelMenu',
+        'menu.id'      : 'idMenu'
       });
     });
 
@@ -524,8 +525,8 @@ describe('Schema', () => {
         }]
       });
       should(_computed.meta.jsonToSQL).eql({
-        id                : 'idMenu',
-        'menu[][element]' : 'labelMenu'
+        id             : 'idMenu',
+        'menu.element' : 'labelMenu'
       });
       _computed = schema.analyzeDescriptor({
         id   : ['<idMenu>'],
@@ -535,9 +536,9 @@ describe('Schema', () => {
         }]
       });
       should(_computed.meta.jsonToSQL).eql({
-        id                : 'idMenu',
-        'menu[][id]'      : 'idMenu',
-        'menu[][element]' : 'labelMenu'
+        id             : 'idMenu',
+        'menu.id'      : 'idMenu',
+        'menu.element' : 'labelMenu'
       });
     });
 
@@ -552,9 +553,9 @@ describe('Schema', () => {
         }]
       });
       should(_computed.meta.jsonToSQL).eql({
-        id                 : 'idMenu',
-        'menu[][element]'  : 'labelMenu',
-        'menu[][dish][id]' : 'idDish'
+        id             : 'idMenu',
+        'menu.element' : 'labelMenu',
+        'menu.dish.id' : 'idDish'
       });
     });
 
@@ -572,10 +573,10 @@ describe('Schema', () => {
         }]
       });
       should(_computed.meta.jsonToSQL).eql({
-        id                   : 'idMenu',
-        'menu[][element]'    : 'labelMenu',
-        'menu[][dish][][id]' : 'idDish',
-        'menu[][meal][][id]' : 'idMeal'
+        id             : 'idMenu',
+        'menu.element' : 'labelMenu',
+        'menu.dish.id' : 'idDish',
+        'menu.meal.id' : 'idMeal'
       });
     });
 
@@ -863,21 +864,22 @@ describe('Schema', () => {
             goodieLanguage    : 3
           },
           jsonToSQL : {
-            id                                                          : 'idContinent',
-            continent                                                   : 'continentName',
-            'countries[][id]'                                           : 'idCountry',
-            'countries[][name]'                                         : 'countryName',
-            'countries[][cities][][id]'                                 : 'idCity',
-            'countries[][cities][][name]'                               : 'cityName',
-            'countries[][cities][][info][temperature]'                  : 'temperature',
-            'countries[][cities][][info][language]'                     : 'language',
-            'countries[][cities][][info][goodies][][id]'                : 'idGoodies',
-            'countries[][cities][][info][goodies][][name]'              : 'goodiesName',
-            'countries[][cities][][info][goodies][][info][temperature]' : 'goodieTemperature',
-            'countries[][cities][][info][goodies][][info][language]'    : 'goodieLanguage'
+            id                                               : 'idContinent',
+            continent                                        : 'continentName',
+            'countries.id'                                   : 'idCountry',
+            'countries.name'                                 : 'countryName',
+            'countries.cities.id'                            : 'idCity',
+            'countries.cities.name'                          : 'cityName',
+            'countries.cities.info.temperature'              : 'temperature',
+            'countries.cities.info.language'                 : 'language',
+            'countries.cities.info.goodies.id'               : 'idGoodies',
+            'countries.cities.info.goodies.name'             : 'goodiesName',
+            'countries.cities.info.goodies.info.temperature' : 'goodieTemperature',
+            'countries.cities.info.goodies.info.language'    : 'goodieLanguage'
           },
           sortMandatory : ['idCountry', 'idCity', 'idGoodies'],
-          primaryKey    : ['id']
+          primaryKey    : ['id'],
+          aggregates    : {}
         },
         getPrimaryKey : function getPrimaryKey (item) { var _pk = null;
           if (!item['id']) {
@@ -1065,15 +1067,16 @@ describe('Schema', () => {
             goodieLanguage    : 1
           },
           jsonToSQL : {
-            id                               : 'idContinent',
-            continent                        : 'continentName',
-            'countries[][id]'                : 'idCountry',
-            'countries[][name]'              : 'countryName',
-            'countries[][info][temperature]' : 'goodieTemperature',
-            'countries[][info][language]'    : 'goodieLanguage'
+            id                           : 'idContinent',
+            continent                    : 'continentName',
+            'countries.id'               : 'idCountry',
+            'countries.name'             : 'countryName',
+            'countries.info.temperature' : 'goodieTemperature',
+            'countries.info.language'    : 'goodieLanguage'
           },
           sortMandatory : ['idContinent', 'idCountry', 'goodieLanguage'],
-          primaryKey    : ['id']
+          primaryKey    : ['id'],
+          aggregates    : {}
         },
         getPrimaryKey : function getPrimaryKey (item) { var _pk = null;
           if (!item['id']) {
@@ -1524,6 +1527,400 @@ describe('Schema', () => {
       should(_schema.getPrimaryKey({ id : 1, label : 'A', type : 'B'})).eql('1-B');
     });
 
+  });
+
+  describe.only('aggregates', () => {
+    it('should throw an error if no attribute is defined after the aggregate', () => {
+      try {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          total    : ['sum'],
+          elements : ['array', {
+            id   : ['<<id>>'],
+            cost : ['number']
+          }]
+        };
+        schema.analyzeDescriptor(_objectDescriptor);
+      }
+      catch (e) {
+        should(e).eql(new Error('Lunaris.map: aggregate must have a valid object attribute!'));
+      }
+    });
+
+    it('should set the aggregate sum', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        total    : ['sum', 'elements.cost'],
+        elements : ['array', {
+          id   : ['<<id>>'],
+          cost : ['number']
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.aggregates).eql({
+        total : ['sum', 'elements.cost']
+      });
+      should(_schema.meta.aggregatesSort).eql(['total']);
+    });
+
+    it('should set multiple aggregate sum', () => {
+      var _objectDescriptor = {
+        id       : ['<<int>>'],
+        total    : ['sum', 'elements.total'],
+        elements : ['array', {
+          id    : ['<<int>>'],
+          total : ['sum', 'parts.cost'],
+          parts : ['array', {
+            id   : ['<<int>>'],
+            cost : ['number']
+          }]
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.aggregates).eql({
+        total            : ['sum', 'elements.total'],
+        'elements.total' : ['sum', 'elements.parts.cost']
+      });
+      should(_schema.meta.aggregatesSort).eql(['elements.total', 'total']);
+    });
+
+    it('should set a value even there is no elements to aggregate : insert (root level)', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        total    : ['sum', 'elements.cost'],
+        elements : ['array', {
+          id   : ['<<id>>'],
+          cost : ['number']
+        }]
+      };
+      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+      var _aggregateFn = _schema.getAggregateFn;
+
+      var _obj = {
+        id       : 1,
+        elements : []
+      };
+      _aggregateFn(_obj, null, aggregates.aggregates);
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(0);
+    });
+
+    it('should not crash if the attribute does not exist : attribute key', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        total    : ['sum', 'elements.cost'],
+        elements : ['array', {
+          id   : ['<<id>>'],
+          cost : ['number']
+        }]
+      };
+      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+      var _aggregateFn = _schema.getAggregateFn;
+
+      var _obj = {
+        id       : 1,
+        elements : [{
+          id : 2
+        }]
+      };
+      _aggregateFn(_obj, null, aggregates.aggregates);
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(0);
+    });
+
+    it('should not crash if the attribute does not exist : array to aggregate', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        total    : ['sum', 'elements.cost'],
+        elements : ['array', {
+          id   : ['<<id>>'],
+          cost : ['number']
+        }]
+      };
+      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+      var _aggregateFn = _schema.getAggregateFn;
+
+      var _obj = {
+        id : 1
+      };
+      _aggregateFn(_obj, null, aggregates.aggregates);
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(0);
+    });
+
+    it('should update the aggregate value : insert (root level)', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        total    : ['sum', 'elements.cost'],
+        elements : ['array', {
+          id   : ['<<id>>'],
+          cost : ['number']
+        }]
+      };
+      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+      var _aggregateFn = _schema.getAggregateFn;
+
+      var _obj = {
+        id       : 1,
+        elements : [
+          { id : 2, cost : 2 },
+          { id : 3, cost : 4 },
+          { id : 3, cost : 1 }
+        ]
+      };
+
+      _aggregateFn(_obj, null, aggregates.aggregates);
+      should(_obj.total).be.ok();
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(7);
+    });
+
+    it('should update aggregate values : insert (imbricated aggregate)', () => {
+      var _objectDescriptor = {
+        id       : ['<<int>>'],
+        total    : ['sum', 'elements.total'],
+        elements : ['array', {
+          id    : ['<<int>>'],
+          total : ['sum', 'parts.cost'],
+          parts : ['array', {
+            id   : ['<<int>>'],
+            cost : ['number']
+          }]
+        }]
+      };
+      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+      var _aggregateFn = _schema.getAggregateFn;
+
+      var _obj = {
+        id       : 1,
+        elements : [
+          {
+            id    : '1-1',
+            parts : [
+              { id : 2, cost : 3 },
+              { id : 3, cost : 4 },
+            ]
+          },
+          {
+            id    : '1-2',
+            parts : [
+              { id : 4, cost : 4 },
+              { id : 5, cost : 3 },
+              { id : 6, cost : 6 }
+            ]
+          }
+        ]
+      };
+      _aggregateFn(_obj, null, aggregates.aggregates);
+      should(_obj.total).be.ok();
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(20);
+      should(_obj.elements[0]['total']).be.ok();
+      should(_obj.elements[0]['total']).be.Number();
+      should(_obj.elements[0]['total']).eql(7);
+      should(_obj.elements[1]['total']).be.ok();
+      should(_obj.elements[1]['total']).be.Number();
+      should(_obj.elements[1]['total']).eql(13);
+    });
+
+    it('should set a value event there is no elements to aggregate : insert (imbricated aggregate)', () => {
+      var _objectDescriptor = {
+        id       : ['<<int>>'],
+        total    : ['sum', 'elements.total'],
+        elements : ['array', {
+          id    : ['<<int>>'],
+          total : ['sum', 'parts.cost'],
+          parts : ['array', {
+            id   : ['<<int>>'],
+            cost : ['number']
+          }]
+        }]
+      };
+      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+      var _aggregateFn = _schema.getAggregateFn;
+
+      var _obj = {
+        id       : 1,
+        elements : [
+          {
+            id    : '1-1',
+            parts : []
+          },
+          {
+            id    : '1-2',
+            parts : []
+          }
+        ]
+      };
+      _aggregateFn(_obj, null, aggregates.aggregates);
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(0);
+      should(_obj.elements[0]['total']).be.Number();
+      should(_obj.elements[0]['total']).eql(0);
+      should(_obj.elements[1]['total']).be.Number();
+      should(_obj.elements[1]['total']).eql(0);
+    });
+
+    it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
+      var _objectDescriptor = {
+        id       : ['<<int>>'],
+        total    : ['sum', 'elements.total'],
+        elements : ['array', {
+          id    : ['<<int>>'],
+          total : ['sum', 'costs.parts.cost'],
+          costs : ['array', {
+            id    : ['<<int>>'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        }]
+      };
+      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+      var _aggregateFn = _schema.getAggregateFn;
+
+      var _obj = {
+        id       : 1,
+        elements : [
+          {
+            id    : '1-1',
+            costs : [
+              {
+                id    : '1-1-1',
+                parts : [
+                  { id : 2, cost : 3 },
+                  { id : 3, cost : 4 },
+                ]
+              },
+              {
+                id    : '1-1-2',
+                parts : [
+                  { id : 3, cost : 1 },
+                ]
+              }
+            ]
+          },
+          {
+            id    : '1-2',
+            costs : [
+              {
+                id    : '1-2-1',
+                parts : [
+                  { id : 2, cost : 6 },
+                  { id : 3, cost : 1 },
+                ]
+              },
+              {
+                id    : '1-2-2',
+                parts : [
+                  { id : 3, cost : 1 },
+                  { id : 3, cost : 5 },
+                  { id : 3, cost : 4 },
+                ]
+              }
+            ]
+          }
+        ]
+      };
+      _aggregateFn(_obj, null, aggregates.aggregates);
+      should(_obj.total).be.ok();
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(25);
+      should(_obj.elements[0]['total']).be.ok();
+      should(_obj.elements[0]['total']).be.Number();
+      should(_obj.elements[0]['total']).eql(8);
+      should(_obj.elements[1]['total']).be.ok();
+      should(_obj.elements[1]['total']).be.Number();
+      should(_obj.elements[1]['total']).eql(17);
+    });
+
+    it('should update aggregate values : insert (deep imbrication)', () => {
+      var _objectDescriptor = {
+        id       : ['<<int>>'],
+        total    : ['sum', 'elements.total'],
+        elements : ['array', {
+          id    : ['<<int>>'],
+          total : ['sum', 'costs.parts.cost'],
+          costs : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        }]
+      };
+      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+      var _aggregateFn = _schema.getAggregateFn;
+
+      var _obj = {
+        id       : 1,
+        elements : [
+          {
+            id    : '1-1',
+            costs : [
+              {
+                id    : '1-1-1',
+                parts : [
+                  { id : 2, cost : 3 },
+                  { id : 3, cost : 4 },
+                ]
+              },
+              {
+                id    : '1-1-2',
+                parts : [
+                  { id : 3, cost : 1 },
+                ]
+              }
+            ]
+          },
+          {
+            id    : '1-2',
+            costs : [
+              {
+                id    : '1-2-1',
+                parts : [
+                  { id : 2, cost : 6 },
+                  { id : 3, cost : 1 },
+                ]
+              },
+              {
+                id    : '1-2-2',
+                parts : [
+                  { id : 3, cost : 1 },
+                  { id : 3, cost : 5 },
+                  { id : 3, cost : 4 },
+                ]
+              }
+            ]
+          }
+        ]
+      };
+      _aggregateFn(_obj, null, aggregates.aggregates);
+      should(_obj.total).be.ok();
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(25);
+      should(_obj.elements[0]['total']).be.ok();
+      should(_obj.elements[0]['total']).be.Number();
+      should(_obj.elements[0]['total']).eql(8);
+      should(_obj.elements[1]['total']).be.ok();
+      should(_obj.elements[1]['total']).be.Number();
+      should(_obj.elements[1]['total']).eql(17);
+      should(_obj.elements[0]['costs'][0]['total']).be.ok();
+      should(_obj.elements[0]['costs'][0]['total']).be.Number();
+      should(_obj.elements[0]['costs'][0]['total']).eql(7);
+      should(_obj.elements[0]['costs'][1]['total']).be.ok();
+      should(_obj.elements[0]['costs'][1]['total']).be.Number();
+      should(_obj.elements[0]['costs'][1]['total']).eql(1);
+      should(_obj.elements[1]['costs'][0]['total']).be.ok();
+      should(_obj.elements[1]['costs'][0]['total']).be.Number();
+      should(_obj.elements[1]['costs'][0]['total']).eql(7);
+      should(_obj.elements[1]['costs'][1]['total']).be.ok();
+      should(_obj.elements[1]['costs'][1]['total']).be.Number();
+      should(_obj.elements[1]['costs'][1]['total']).eql(10);
+    });
   });
 
 });
