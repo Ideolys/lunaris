@@ -106,8 +106,8 @@ module.exports = {
 Nous allons donc créer notre vue entre ces balises
 ```html
 <layout ref="scalesRef">
-  <div  slot="middle-panel-header-title">
-    ${Scales (tuto)}
+  <div  slot="middle-panel-body">
+    <p>${Content of the page}</p>
   </div>
 </layout>
 ```
@@ -122,15 +122,17 @@ Plusieurs choses:
   C'est le système de traduction universel à tous easilys, tout ce qui se trouve dans cet élément seras traduit.
 
 
-Désormais on va pouvoir ajouter du contenu sur notre écran:
+Désormais on va pouvoir ajouter un titre à notre écran:
 
 ```html
-...
-<div  slot="middle-panel-body-content">
-  <p>Ici se trouve le contenu de ma page</p>
-</div>
-...
+<layout ref="scalesRef"
+middlePanelTitle="${Filters}">
+  ...
+</layout>
 ```
+
+Si il te faut plus d'information pour la layout je t'invite à aller voir dans `client-v2/global-components/layout.vue`
+
 ## Suite
 
 [Tu vas désormais pouvoir rentrer dans un fabuleux magasin !](part3.md)

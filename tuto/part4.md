@@ -101,9 +101,17 @@ this.$refs.scalesRef.openRightPanel();
 
 Le slot pour le panneau de droite sont les suivants:
 
-* right-panel-header-title
-* right-panel-body-content
-* right-panel-footer-content
+* right-panel-header
+* right-panel-body
+* right-panel-footer
+
+Vous pouvez également définir le titre de cette fenetre graĉe à une propriété du layout:
+
+* `rightPanelTitle`
+
+Pour activer le "footer" du layout il faudras définir cette propriété a `true`:
+
+* `hasRightPanelFooter`
 
 ### **Résultat attendu**
 
