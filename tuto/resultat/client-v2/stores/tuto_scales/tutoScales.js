@@ -26,4 +26,5 @@ module.exports = {
       id : ['<<int>>', 'optional'],
     }]
   }],
+  primaryKey : 'id'
 };

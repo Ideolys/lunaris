@@ -160,6 +160,21 @@ L'ordre des éléments du tableau est le suivant:
 4. Contraintes
 5. ...
 
+**Clé primaire**
+
+Pour automatiquement savoir si la fonction `lunaris.upsert` (dont nous parleront un peu plus tard) doit insérer ou mettre à jour le store il faut indiquer à votre store un clé primaire.
+
+***exemple***
+```js
+module.exports = {
+  ...
+  map : [{
+    ...
+  }],
+  primaryKey : 'id'
+};
+```
+
 **Ajouts d'un filtre personalisé**
 
 Pour ce formulaire nous aurons besoins de la liste des déchets.

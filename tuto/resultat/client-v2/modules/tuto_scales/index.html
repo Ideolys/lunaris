@@ -1,8 +1,9 @@
 <layout ref="scalesRef"
-  v-bind:isNoHeaderSearchInput="true"
-  v-bind:hasRightPanelFooter="true">
+  v-bind:hasMiddlePanelHeader="true"
+  v-bind:hasRightPanelFooter="true"
+  rightPanelTitle="${Details}">
 
-  <div slot="left-panel-body-content">
+  <div slot="left-panel-body">
     <filter-list
       filterName="${Wastes}"
       filterStore="@tutoScales.filter.waste"
@@ -12,10 +13,33 @@
     ></filter-list>
   </div>
 
-  <div slot="middle-panel-header-title">
-    ${Scales (tuto)}
+  <div slot="middle-panel-header">
+    <div class="columns is-marginless is-mobile">
+      <div class="column is-paddingless is-narrow">
+        <div class="field has-addons is-pulled-left">
+          <a class="button" v-on:click="$refs.scalesRef.toggleLeftPanel()">
+            <span class="icon">
+              <i class="fas fa-filter"></i>
+            </span>
+          </a>
+        </div>
+      </div>
+      <div class="column is-paddingless">
+        <div class="field has-addons is-pulled-left">
+          <div class="title is-pulled-left">${Scales (tuto)}</div>
+        </div>
+      </div>
+      <div class="column is-paddingless is-narrow is-pulled-right">
+        <div class="field has-addons is-pulled-right">
+          <a class="button is-primary"
+            v-on:click="openAddForm()">
+            <b-icon pack="fas" icon="plus"></b-icon>
+          </a>
+        </div>
+      </div>
+    </div>
   </div>
-  <div  slot="middle-panel-body-content">
+  <div  slot="middle-panel-body">
     <div v-if="$tutoScales">
       <div class="b-table">
         <div class="table-wrapper">
@@ -48,19 +72,13 @@
     </div>
   </div>
 
-  <div slot="middle-panel-header-actions">
-    <a class="button is-primary is-pulled-right" @click="openAddForm()">
-      <b-icon pack="fas" icon="plus"></b-icon>
-    </a>
-  </div>
-
   <div slot="right-panel-header-close-button">
     <button class="button is-white" @click="closeRightPanel">
       <b-icon pack="fas" icon="times"></b-icon>
     </button>
   </div>
 
-  <div slot="right-panel-body-content">
+  <div slot="right-panel-body">
     <div v-if="currentOpenedScale">
       <scale-details v-bind:scale="currentOpenedScale"></scale-details>
     </div>
@@ -69,7 +87,7 @@
     </div>
   </div>
 
-  <div slot="right-panel-footer-content">
+  <div slot="right-panel-footer">
     <div v-if="currentOpenedScale">
       <a class="button is-warning" @click="openAddForm(currentOpenedScale)">${Edit}</a>
     </div>
