@@ -1584,102 +1584,20 @@ describe('Schema', () => {
       should(_schema.meta.aggregatesSort).eql(['elements.total', 'total']);
     });
 
-    it('should set a value even there is no elements to aggregate : insert (root level)', () => {
-      var _objectDescriptor = {
-        id       : ['<<id>>'],
-        total    : ['sum', 'elements.cost'],
-        elements : ['array', {
-          id   : ['<<id>>'],
-          cost : ['number']
-        }]
-      };
-      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-      var _aggregateFn = _schema.getAggregateFn;
-
-      var _obj = {
-        id       : 1,
-        elements : []
-      };
-      _aggregateFn(_obj, null, aggregates.aggregates);
-      should(_obj.total).be.Number();
-      should(_obj.total).eql(0);
-    });
-
-    it('should not crash if the attribute does not exist : attribute key', () => {
-      var _objectDescriptor = {
-        id       : ['<<id>>'],
-        total    : ['sum', 'elements.cost'],
-        elements : ['array', {
-          id   : ['<<id>>'],
-          cost : ['number']
-        }]
-      };
-      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-      var _aggregateFn = _schema.getAggregateFn;
-
-      var _obj = {
-        id       : 1,
-        elements : [{
-          id : 2
-        }]
-      };
-      _aggregateFn(_obj, null, aggregates.aggregates);
-      should(_obj.total).be.Number();
-      should(_obj.total).eql(0);
-    });
-
-    it('should not crash if the attribute does not exist : array to aggregate', () => {
-      var _objectDescriptor = {
-        id       : ['<<id>>'],
-        total    : ['sum', 'elements.cost'],
-        elements : ['array', {
-          id   : ['<<id>>'],
-          cost : ['number']
-        }]
-      };
-      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-      var _aggregateFn = _schema.getAggregateFn;
-
-      var _obj = {
-        id : 1
-      };
-      _aggregateFn(_obj, null, aggregates.aggregates);
-      should(_obj.total).be.Number();
-      should(_obj.total).eql(0);
-    });
-
-    it('should update the aggregate value : insert (root level)', () => {
-      var _objectDescriptor = {
-        id       : ['<<id>>'],
-        total    : ['sum', 'elements.cost'],
-        elements : ['array', {
-          id   : ['<<id>>'],
-          cost : ['number']
-        }]
-      };
-      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-      var _aggregateFn = _schema.getAggregateFn;
-
-      var _obj = {
-        id       : 1,
-        elements : [
-          { id : 2, cost : 2 },
-          { id : 3, cost : 4 },
-          { id : 3, cost : 1 }
-        ]
-      };
-
-      _aggregateFn(_obj, null, aggregates.aggregates);
-      should(_obj.total).be.ok();
-      should(_obj.total).be.Number();
-      should(_obj.total).eql(7);
-    });
-
-    it('should update aggregate values : insert (imbricated aggregate)', () => {
+    it('should set multiple aggregate sum at same level', () => {
       var _objectDescriptor = {
         id       : ['<<int>>'],
         total    : ['sum', 'elements.total'],
+        total2   : ['sum', 'elements2.total'],
         elements : ['array', {
+          id    : ['<<int>>'],
+          total : ['sum', 'parts.cost'],
+          parts : ['array', {
+            id   : ['<<int>>'],
+            cost : ['number']
+          }]
+        }],
+        elements2 : ['array', {
           id    : ['<<int>>'],
           total : ['sum', 'parts.cost'],
           parts : ['array', {
@@ -1688,161 +1606,113 @@ describe('Schema', () => {
           }]
         }]
       };
-      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-      var _aggregateFn = _schema.getAggregateFn;
-
-      var _obj = {
-        id       : 1,
-        elements : [
-          {
-            id    : '1-1',
-            parts : [
-              { id : 2, cost : 3 },
-              { id : 3, cost : 4 },
-            ]
-          },
-          {
-            id    : '1-2',
-            parts : [
-              { id : 4, cost : 4 },
-              { id : 5, cost : 3 },
-              { id : 6, cost : 6 }
-            ]
-          }
-        ]
-      };
-      _aggregateFn(_obj, null, aggregates.aggregates);
-      should(_obj.total).be.ok();
-      should(_obj.total).be.Number();
-      should(_obj.total).eql(20);
-      should(_obj.elements[0]['total']).be.ok();
-      should(_obj.elements[0]['total']).be.Number();
-      should(_obj.elements[0]['total']).eql(7);
-      should(_obj.elements[1]['total']).be.ok();
-      should(_obj.elements[1]['total']).be.Number();
-      should(_obj.elements[1]['total']).eql(13);
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.aggregates).eql({
+        total             : ['sum', 'elements.total'],
+        total2            : ['sum', 'elements2.total'],
+        'elements.total'  : ['sum', 'elements.parts.cost'],
+        'elements2.total' : ['sum', 'elements2.parts.cost'],
+      });
+      should(_schema.meta.aggregatesSort).eql(['elements2.total', 'elements.total', 'total2', 'total']);
     });
 
-    it('should set a value event there is no elements to aggregate : insert (imbricated aggregate)', () => {
-      var _objectDescriptor = {
-        id       : ['<<int>>'],
-        total    : ['sum', 'elements.total'],
-        elements : ['array', {
-          id    : ['<<int>>'],
-          total : ['sum', 'parts.cost'],
-          parts : ['array', {
-            id   : ['<<int>>'],
+    describe('insert', () => {
+      it('should set a value even there is no elements to aggregate : insert (root level)', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          total    : ['sum', 'elements.cost'],
+          elements : ['array', {
+            id   : ['<<id>>'],
             cost : ['number']
           }]
-        }]
-      };
-      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-      var _aggregateFn = _schema.getAggregateFn;
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
 
-      var _obj = {
-        id       : 1,
-        elements : [
-          {
-            id    : '1-1',
-            parts : []
-          },
-          {
-            id    : '1-2',
-            parts : []
-          }
-        ]
-      };
-      _aggregateFn(_obj, null, aggregates.aggregates);
-      should(_obj.total).be.Number();
-      should(_obj.total).eql(0);
-      should(_obj.elements[0]['total']).be.Number();
-      should(_obj.elements[0]['total']).eql(0);
-      should(_obj.elements[1]['total']).be.Number();
-      should(_obj.elements[1]['total']).eql(0);
-    });
+        var _obj = {
+          id       : 1,
+          elements : []
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(0);
+      });
 
-    it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
-      var _objectDescriptor = {
-        id       : ['<<int>>'],
-        total    : ['sum', 'elements.total'],
-        elements : ['array', {
-          id    : ['<<int>>'],
-          total : ['sum', 'costs.parts.cost'],
-          costs : ['array', {
-            id    : ['<<int>>'],
-            parts : ['array', {
-              id   : ['<<int>>'],
-              cost : ['number']
-            }]
+      it('should not crash if the attribute does not exist : attribute key', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          total    : ['sum', 'elements.cost'],
+          elements : ['array', {
+            id   : ['<<id>>'],
+            cost : ['number']
           }]
-        }]
-      };
-      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-      var _aggregateFn = _schema.getAggregateFn;
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
 
-      var _obj = {
-        id       : 1,
-        elements : [
-          {
-            id    : '1-1',
-            costs : [
-              {
-                id    : '1-1-1',
-                parts : [
-                  { id : 2, cost : 3 },
-                  { id : 3, cost : 4 },
-                ]
-              },
-              {
-                id    : '1-1-2',
-                parts : [
-                  { id : 3, cost : 1 },
-                ]
-              }
-            ]
-          },
-          {
-            id    : '1-2',
-            costs : [
-              {
-                id    : '1-2-1',
-                parts : [
-                  { id : 2, cost : 6 },
-                  { id : 3, cost : 1 },
-                ]
-              },
-              {
-                id    : '1-2-2',
-                parts : [
-                  { id : 3, cost : 1 },
-                  { id : 3, cost : 5 },
-                  { id : 3, cost : 4 },
-                ]
-              }
-            ]
-          }
-        ]
-      };
-      _aggregateFn(_obj, null, aggregates.aggregates);
-      should(_obj.total).be.ok();
-      should(_obj.total).be.Number();
-      should(_obj.total).eql(25);
-      should(_obj.elements[0]['total']).be.ok();
-      should(_obj.elements[0]['total']).be.Number();
-      should(_obj.elements[0]['total']).eql(8);
-      should(_obj.elements[1]['total']).be.ok();
-      should(_obj.elements[1]['total']).be.Number();
-      should(_obj.elements[1]['total']).eql(17);
-    });
+        var _obj = {
+          id       : 1,
+          elements : [{
+            id : 2
+          }]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(0);
+      });
 
-    it('should update aggregate values : insert (deep imbrication)', () => {
-      var _objectDescriptor = {
-        id       : ['<<int>>'],
-        total    : ['sum', 'elements.total'],
-        elements : ['array', {
-          id    : ['<<int>>'],
-          total : ['sum', 'costs.parts.cost'],
-          costs : ['array', {
+      it('should not crash if the attribute does not exist : array to aggregate', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          total    : ['sum', 'elements.cost'],
+          elements : ['array', {
+            id   : ['<<id>>'],
+            cost : ['number']
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+
+        var _obj = {
+          id : 1
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(0);
+      });
+
+      it('should update the aggregate value : insert (root level)', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          total    : ['sum', 'elements.cost'],
+          elements : ['array', {
+            id   : ['<<id>>'],
+            cost : ['number']
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+
+        var _obj = {
+          id       : 1,
+          elements : [
+            { id : 2, cost : 2 },
+            { id : 3, cost : 4 },
+            { id : 3, cost : 1 }
+          ]
+        };
+
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.ok();
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(7);
+      });
+
+      it('should update aggregate values : insert (imbricated aggregate)', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
             id    : ['<<int>>'],
             total : ['sum', 'parts.cost'],
             parts : ['array', {
@@ -1850,76 +1720,797 @@ describe('Schema', () => {
               cost : ['number']
             }]
           }]
-        }]
-      };
-      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-      var _aggregateFn = _schema.getAggregateFn;
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
 
-      var _obj = {
-        id       : 1,
-        elements : [
-          {
-            id    : '1-1',
-            costs : [
-              {
-                id    : '1-1-1',
-                parts : [
-                  { id : 2, cost : 3 },
-                  { id : 3, cost : 4 },
-                ]
-              },
-              {
-                id    : '1-1-2',
-                parts : [
-                  { id : 3, cost : 1 },
-                ]
-              }
-            ]
-          },
-          {
-            id    : '1-2',
-            costs : [
-              {
-                id    : '1-2-1',
-                parts : [
-                  { id : 2, cost : 6 },
-                  { id : 3, cost : 1 },
-                ]
-              },
-              {
-                id    : '1-2-2',
-                parts : [
-                  { id : 3, cost : 1 },
-                  { id : 3, cost : 5 },
-                  { id : 3, cost : 4 },
-                ]
-              }
-            ]
-          }
-        ]
-      };
-      _aggregateFn(_obj, null, aggregates.aggregates);
-      should(_obj.total).be.ok();
-      should(_obj.total).be.Number();
-      should(_obj.total).eql(25);
-      should(_obj.elements[0]['total']).be.ok();
-      should(_obj.elements[0]['total']).be.Number();
-      should(_obj.elements[0]['total']).eql(8);
-      should(_obj.elements[1]['total']).be.ok();
-      should(_obj.elements[1]['total']).be.Number();
-      should(_obj.elements[1]['total']).eql(17);
-      should(_obj.elements[0]['costs'][0]['total']).be.ok();
-      should(_obj.elements[0]['costs'][0]['total']).be.Number();
-      should(_obj.elements[0]['costs'][0]['total']).eql(7);
-      should(_obj.elements[0]['costs'][1]['total']).be.ok();
-      should(_obj.elements[0]['costs'][1]['total']).be.Number();
-      should(_obj.elements[0]['costs'][1]['total']).eql(1);
-      should(_obj.elements[1]['costs'][0]['total']).be.ok();
-      should(_obj.elements[1]['costs'][0]['total']).be.Number();
-      should(_obj.elements[1]['costs'][0]['total']).eql(7);
-      should(_obj.elements[1]['costs'][1]['total']).be.ok();
-      should(_obj.elements[1]['costs'][1]['total']).be.Number();
-      should(_obj.elements[1]['costs'][1]['total']).eql(10);
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              parts : [
+                { id : 2, cost : 3 },
+                { id : 3, cost : 4 },
+              ]
+            },
+            {
+              id    : '1-2',
+              parts : [
+                { id : 4, cost : 4 },
+                { id : 5, cost : 3 },
+                { id : 6, cost : 6 }
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.ok();
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(20);
+        should(_obj.elements[0]['total']).be.ok();
+        should(_obj.elements[0]['total']).be.Number();
+        should(_obj.elements[0]['total']).eql(7);
+        should(_obj.elements[1]['total']).be.ok();
+        should(_obj.elements[1]['total']).be.Number();
+        should(_obj.elements[1]['total']).eql(13);
+      });
+
+      it('should set a value event there is no elements to aggregate : insert (imbricated aggregate)', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              parts : []
+            },
+            {
+              id    : '1-2',
+              parts : []
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(0);
+        should(_obj.elements[0]['total']).be.Number();
+        should(_obj.elements[0]['total']).eql(0);
+        should(_obj.elements[1]['total']).be.Number();
+        should(_obj.elements[1]['total']).eql(0);
+      });
+
+      it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'costs.parts.cost'],
+            costs : ['array', {
+              id    : ['<<int>>'],
+              parts : ['array', {
+                id   : ['<<int>>'],
+                cost : ['number']
+              }]
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              costs : [
+                {
+                  id    : '1-1-1',
+                  parts : [
+                    { id : 2, cost : 3 },
+                    { id : 3, cost : 4 },
+                  ]
+                },
+                {
+                  id    : '1-1-2',
+                  parts : [
+                    { id : 3, cost : 1 },
+                  ]
+                }
+              ]
+            },
+            {
+              id    : '1-2',
+              costs : [
+                {
+                  id    : '1-2-1',
+                  parts : [
+                    { id : 2, cost : 6 },
+                    { id : 3, cost : 1 },
+                  ]
+                },
+                {
+                  id    : '1-2-2',
+                  parts : [
+                    { id : 3, cost : 1 },
+                    { id : 3, cost : 5 },
+                    { id : 3, cost : 4 },
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.ok();
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(25);
+        should(_obj.elements[0]['total']).be.ok();
+        should(_obj.elements[0]['total']).be.Number();
+        should(_obj.elements[0]['total']).eql(8);
+        should(_obj.elements[1]['total']).be.ok();
+        should(_obj.elements[1]['total']).be.Number();
+        should(_obj.elements[1]['total']).eql(17);
+      });
+
+      it('should update aggregate values : insert (deep imbrication)', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'costs.parts.cost'],
+            costs : ['array', {
+              id    : ['<<int>>'],
+              total : ['sum', 'parts.cost'],
+              parts : ['array', {
+                id   : ['<<int>>'],
+                cost : ['number']
+              }]
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              costs : [
+                {
+                  id    : '1-1-1',
+                  parts : [
+                    { id : 2, cost : 3 },
+                    { id : 3, cost : 4 },
+                  ]
+                },
+                {
+                  id    : '1-1-2',
+                  parts : [
+                    { id : 3, cost : 1 },
+                  ]
+                }
+              ]
+            },
+            {
+              id    : '1-2',
+              costs : [
+                {
+                  id    : '1-2-1',
+                  parts : [
+                    { id : 2, cost : 6 },
+                    { id : 3, cost : 1 },
+                  ]
+                },
+                {
+                  id    : '1-2-2',
+                  parts : [
+                    { id : 3, cost : 1 },
+                    { id : 3, cost : 5 },
+                    { id : 3, cost : 4 },
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.ok();
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(25);
+        should(_obj.elements[0]['total']).be.ok();
+        should(_obj.elements[0]['total']).be.Number();
+        should(_obj.elements[0]['total']).eql(8);
+        should(_obj.elements[1]['total']).be.ok();
+        should(_obj.elements[1]['total']).be.Number();
+        should(_obj.elements[1]['total']).eql(17);
+        should(_obj.elements[0]['costs'][0]['total']).be.ok();
+        should(_obj.elements[0]['costs'][0]['total']).be.Number();
+        should(_obj.elements[0]['costs'][0]['total']).eql(7);
+        should(_obj.elements[0]['costs'][1]['total']).be.ok();
+        should(_obj.elements[0]['costs'][1]['total']).be.Number();
+        should(_obj.elements[0]['costs'][1]['total']).eql(1);
+        should(_obj.elements[1]['costs'][0]['total']).be.ok();
+        should(_obj.elements[1]['costs'][0]['total']).be.Number();
+        should(_obj.elements[1]['costs'][0]['total']).eql(7);
+        should(_obj.elements[1]['costs'][1]['total']).be.ok();
+        should(_obj.elements[1]['costs'][1]['total']).be.Number();
+        should(_obj.elements[1]['costs'][1]['total']).eql(10);
+      });
+
+      it('should aggregate everywhere : insert', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          total2   : ['sum', 'elements2.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }],
+          elements2 : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+        var _obj         = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1-1',
+              parts : [
+                { id : 2, cost : 3 },
+                { id : 3, cost : 4 },
+              ]
+            },
+            {
+              id    : '1-2-1',
+              parts : [
+                { id : 2, cost : 6 },
+                { id : 3, cost : 1 },
+              ]
+            }
+          ],
+          elements2 : [
+            {
+              id    : '1-1-2',
+              parts : [
+                { id : 3, cost : 1 },
+                { id : 4, cost : 4 },
+              ]
+            },
+            {
+              id    : '1-2-1',
+              parts : [
+                { id : 2, cost : 3 },
+                { id : 3, cost : 1 },
+                { id : 3, cost : 2 },
+                { id : 3, cost : 2 },
+                { id : 3, cost : 6 },
+                { id : 3, cost : 2 },
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.ok();
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(14);
+        should(_obj.elements[0]['total']).be.ok();
+        should(_obj.elements[0]['total']).be.Number();
+        should(_obj.elements[0]['total']).eql(7);
+        should(_obj.elements[1]['total']).be.ok();
+        should(_obj.elements[1]['total']).be.Number();
+        should(_obj.elements[1]['total']).eql(7);
+        should(_obj.elements2[0]['total']).be.ok();
+        should(_obj.elements2[0]['total']).be.Number();
+        should(_obj.elements2[0]['total']).eql(5);
+        should(_obj.elements2[1]['total']).be.ok();
+        should(_obj.elements2[1]['total']).be.Number();
+        should(_obj.elements2[1]['total']).eql(16);
+      });
+    });
+
+    describe('upsert', () => {
+      it('should update the aggregate value : update (root level) by adding element', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          total    : ['sum', 'elements.cost'],
+          elements : ['array', {
+            id   : ['<<id>>'],
+            cost : ['number']
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+
+        var _obj = {
+          id       : 1,
+          elements : [
+            { id : 2, cost : 2 },
+            { id : 3, cost : 4 },
+            { id : 3, cost : 1 }
+          ]
+        };
+
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(7);
+
+        _obj.elements.push({ id : 1, cost : 3 });
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(10);
+      });
+
+      it('should update aggregate values : update (imbricated aggregate) by adding element', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              parts : [
+                { id : 2, cost : 3 },
+                { id : 3, cost : 4 },
+              ]
+            },
+            {
+              id    : '1-2',
+              parts : [
+                { id : 4, cost : 4 },
+                { id : 5, cost : 3 },
+                { id : 6, cost : 6 }
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(20);
+        should(_obj.elements[0]['total']).eql(7);
+
+        _obj.elements[0].parts.push({ id : 1, cost : 3 });
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.elements[0].total).eql(10);
+        should(_obj.total).eql(23);
+      });
+
+      it('should update aggregate values : update (imbricated aggregate) by delete element', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              parts : [
+                { id : 2, cost : 3 },
+                { id : 3, cost : 4 },
+              ]
+            },
+            {
+              id    : '1-2',
+              parts : [
+                { id : 4, cost : 4 },
+                { id : 5, cost : 3 },
+                { id : 6, cost : 6 }
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(20);
+        should(_obj.elements[0]['total']).eql(7);
+
+        _obj.elements[0].parts.splice(0, 1);
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.elements[0].total).eql(4);
+        should(_obj.total).eql(17);
+      });
+
+      it('should update aggregate values : update (imbricated aggregate) by update element', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              parts : [
+                { id : 2, cost : 3 },
+                { id : 3, cost : 4 },
+              ]
+            },
+            {
+              id    : '1-2',
+              parts : [
+                { id : 4, cost : 4 },
+                { id : 5, cost : 3 },
+                { id : 6, cost : 6 }
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(20);
+        should(_obj.elements[0]['total']).eql(7);
+
+        _obj.elements[0].parts[1].cost = 5;
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.elements[0].total).eql(8);
+        should(_obj.total).eql(21);
+      });
+
+      it('should set a value event there is no elements to aggregate : insert (imbricated aggregate)', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              parts : [{ id : 1, cost : 1 }]
+            },
+            {
+              id    : '1-2',
+              parts : [{ id : 1, cost : 1 }]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(2);
+        should(_obj.elements[0]['total']).eql(1);
+        should(_obj.elements[1]['total']).eql(1);
+
+        _obj.elements[0].parts = [];
+        _obj.elements[1].parts = [];
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(0);
+        should(_obj.elements[0]['total']).eql(0);
+        should(_obj.elements[1]['total']).eql(0);
+      });
+
+      it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'costs.parts.cost'],
+            costs : ['array', {
+              id    : ['<<int>>'],
+              parts : ['array', {
+                id   : ['<<int>>'],
+                cost : ['number']
+              }]
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              costs : [
+                {
+                  id    : '1-1-1',
+                  parts : [
+                    { id : 2, cost : 3 },
+                    { id : 3, cost : 4 },
+                  ]
+                },
+                {
+                  id    : '1-1-2',
+                  parts : [
+                    { id : 3, cost : 1 },
+                  ]
+                }
+              ]
+            },
+            {
+              id    : '1-2',
+              costs : [
+                {
+                  id    : '1-2-1',
+                  parts : [
+                    { id : 2, cost : 6 },
+                    { id : 3, cost : 1 },
+                  ]
+                },
+                {
+                  id    : '1-2-2',
+                  parts : [
+                    { id : 3, cost : 1 },
+                    { id : 3, cost : 5 },
+                    { id : 3, cost : 4 },
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(25);
+        should(_obj.elements[0]['total']).eql(8);
+        should(_obj.elements[1]['total']).eql(17);
+
+        _obj.elements[0].costs.push({ id : '1-1-3', parts : [{ id : 4, cost : 2 }] });
+        _obj.elements[0].costs[1].parts.push({ id : 4, cost : 3 });
+
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(30);
+        should(_obj.elements[0]['total']).eql(13);
+        should(_obj.elements[1]['total']).eql(17);
+      });
+
+      it('should update aggregate values : insert (deep imbrication)', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'costs.parts.cost'],
+            costs : ['array', {
+              id    : ['<<int>>'],
+              total : ['sum', 'parts.cost'],
+              parts : ['array', {
+                id   : ['<<int>>'],
+                cost : ['number']
+              }]
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              costs : [
+                {
+                  id    : '1-1-1',
+                  parts : [
+                    { id : 2, cost : 3 },
+                    { id : 3, cost : 4 },
+                  ]
+                },
+                {
+                  id    : '1-1-2',
+                  parts : [
+                    { id : 3, cost : 1 },
+                  ]
+                }
+              ]
+            },
+            {
+              id    : '1-2',
+              costs : [
+                {
+                  id    : '1-2-1',
+                  parts : [
+                    { id : 2, cost : 6 },
+                    { id : 3, cost : 1 },
+                  ]
+                },
+                {
+                  id    : '1-2-2',
+                  parts : [
+                    { id : 3, cost : 1 },
+                    { id : 3, cost : 5 },
+                    { id : 3, cost : 4 },
+                  ]
+                }
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(25);
+        should(_obj.elements[0]['total']).eql(8);
+        should(_obj.elements[1]['total']).eql(17);
+        should(_obj.elements[0]['costs'][0]['total']).eql(7);
+        should(_obj.elements[0]['costs'][1]['total']).eql(1);
+        should(_obj.elements[1]['costs'][0]['total']).eql(7);
+        should(_obj.elements[1]['costs'][1]['total']).eql(10);
+
+        _obj.elements[0].costs.push({ id : '1-1-3', parts : [{ id : 4, cost : 2 }] });
+        _obj.elements[0].costs[1].parts.push({ id : 4, cost : 3 });
+
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(30);
+        should(_obj.elements[0]['total']).eql(13);
+        should(_obj.elements[1]['total']).eql(17);
+        should(_obj.elements[0]['costs'][0]['total']).eql(7);
+        should(_obj.elements[0]['costs'][1]['total']).eql(4);
+        should(_obj.elements[0]['costs'][2]['total']).eql(2);
+      });
+
+      it('should aggregate everywhere : update', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          total2   : ['sum', 'elements2.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }],
+          elements2 : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.getAggregateFn;
+        var _obj         = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1-1',
+              parts : [
+                { id : 2, cost : 3 },
+                { id : 3, cost : 4 },
+              ]
+            },
+            {
+              id    : '1-2-1',
+              parts : [
+                { id : 2, cost : 6 },
+                { id : 3, cost : 1 },
+              ]
+            }
+          ],
+          elements2 : [
+            {
+              id    : '1-1-2',
+              parts : [
+                { id : 3, cost : 1 },
+                { id : 4, cost : 4 },
+              ]
+            },
+            {
+              id    : '1-2-1',
+              parts : [
+                { id : 2, cost : 3 },
+                { id : 3, cost : 1 },
+                { id : 3, cost : 2 },
+                { id : 3, cost : 2 },
+                { id : 3, cost : 6 },
+                { id : 3, cost : 2 },
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.ok();
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(14);
+        should(_obj.total2).be.ok();
+        should(_obj.total2).be.Number();
+        should(_obj.total2).eql(21);
+        should(_obj.elements[0]['total']).be.ok();
+        should(_obj.elements[0]['total']).be.Number();
+        should(_obj.elements[0]['total']).eql(7);
+        should(_obj.elements[1]['total']).be.ok();
+        should(_obj.elements[1]['total']).be.Number();
+        should(_obj.elements[1]['total']).eql(7);
+        should(_obj.elements2[0]['total']).be.ok();
+        should(_obj.elements2[0]['total']).be.Number();
+        should(_obj.elements2[0]['total']).eql(5);
+        should(_obj.elements2[1]['total']).be.ok();
+        should(_obj.elements2[1]['total']).be.Number();
+        should(_obj.elements2[1]['total']).eql(16);
+
+        _obj.elements[1].parts.push({ id : 2, cost : 3 });
+        _obj.elements[0].parts.splice(0, 1);
+
+        _obj.elements2[0].parts = [];
+        _obj.elements2[1].parts[2].cost = 10;
+
+
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(14);
+        should(_obj.total2).be.Number();
+        should(_obj.total2).eql(24);
+        should(_obj.elements[0]['total']).be.Number();
+        should(_obj.elements[0]['total']).eql(4);
+        should(_obj.elements[1]['total']).be.Number();
+        should(_obj.elements[1]['total']).eql(10);
+
+        should(_obj.elements2[0]['total']).be.Number();
+        should(_obj.elements2[0]['total']).eql(0);
+        should(_obj.elements2[1]['total']).be.Number();
+        should(_obj.elements2[1]['total']).eql(24);
+      });
     });
   });
 
