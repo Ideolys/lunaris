@@ -472,7 +472,7 @@ describe('Validate', () => {
             continent : 'england'
           }
           ];
-          var _expectedResult     = [{ value : 'bullshit', field : 'id', error : 'must be an integer' }];
+          var _expectedResult     = [{ value : 'bullshit', field : 'id', error : '${must be an integer}' }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult     = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck, null, true);
           should(_computedResult).eql(_expectedResult);
@@ -564,7 +564,7 @@ describe('Validate', () => {
             id        : 'wrongValue',
             continent : 'france'
           };
-          var _expectedResult = [{ value : 'wrongValue', field : 'id', error : 'must be an integer' }];
+          var _expectedResult = [{ value : 'wrongValue', field : 'id', error : '${must be an integer}' }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
           should(_computedResult).eql(_expectedResult);
@@ -606,7 +606,7 @@ describe('Validate', () => {
               temperature : '5degree'
             }]
           };
-          var _expectedResult = [{ value : [{ temperature : '5degree' }], field : 'info', error : 'must be an object' }];
+          var _expectedResult = [{ value : [{ temperature : '5degree' }], field : 'info', error : '${must be an object}' }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
           should(_computedResult).eql(_expectedResult);
@@ -627,7 +627,7 @@ describe('Validate', () => {
               temperature : 5
             }
           };
-          var _expectedResult = [{ value : 5, field : 'info[temperature]', error : 'must be a string' }];
+          var _expectedResult = [{ value : 5, field : 'info[temperature]', error : '${must be a string}' }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
           should(_computedResult).eql(_expectedResult);
@@ -1972,7 +1972,7 @@ describe('Validate', () => {
         it('should return the condition which test if it is an int', function (done) {
           var _expectedTreeDescriptor = {
             testStr      : 'typeof(myVariable) === "number" && myVariable % 1 === 0 && !isNaN(myVariable)',
-            errorMessage : 'must be an integer'
+            errorMessage : '${must be an integer}'
           };
           var _computed = validate.getConditionCode('myVariable', ['int']);
           should(_computed).eql(_expectedTreeDescriptor);
@@ -1982,7 +1982,7 @@ describe('Validate', () => {
         it('should return the condition which test if it is an array', function (done) {
           var _expectedTreeDescriptor = {
             testStr      : 'myVariable instanceof Array',
-            errorMessage : 'must be an array'
+            errorMessage : '${must be an array}'
           };
           var _computed = validate.getConditionCode('myVariable', ['array']);
           should(_computed).eql(_expectedTreeDescriptor);
@@ -1992,7 +1992,7 @@ describe('Validate', () => {
         it('should return the condition which test if it is an object', function (done) {
           var _expectedTreeDescriptor = {
             testStr      : '!(myVariable instanceof Array) && (myVariable instanceof Object) && (typeof myVariable !== "function")',
-            errorMessage : 'must be an object'
+            errorMessage : '${must be an object}'
           };
           var _computed = validate.getConditionCode('myVariable', ['object']);
           should(_computed).eql(_expectedTreeDescriptor);
@@ -2002,7 +2002,7 @@ describe('Validate', () => {
         it('should return the condition which test if it is a string', function (done) {
           var _expectedTreeDescriptor = {
             testStr      : 'typeof(myVariable) === "string"',
-            errorMessage : 'must be a string'
+            errorMessage : '${must be a string}'
           };
           var _computed = validate.getConditionCode('myVariable', ['string']);
           should(_computed).eql(_expectedTreeDescriptor);
