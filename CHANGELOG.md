@@ -11,6 +11,7 @@
   + Add index of map id in each collection. It allows to not duplicate values which have the same map id. If duplication, the duplicate value is merged with the previous one.
   + Directive v-lunaris supports ckeckbox input.
   + Translate validation error messages.
+  + lunaris.validate returns all the errors, not only the first one.
 - Fix:
   + The redirection could fail.
   + Add parameter isUnique for `lunaris.hook(hook, handkler, isUnique)`. If true, the function will register unique handlers.

@@ -606,9 +606,12 @@ describe('Validate', () => {
               temperature : '5degree'
             }]
           };
-          var _expectedResult = [{ value : [{ temperature : '5degree' }], field : 'info', error : '${must be an object}' }];
+          var _expectedResult = [
+            { value : [{ temperature : '5degree' }], field : 'info', error : '${must be an object}' }
+          ];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
+          should(_computedResult).have.lengthOf(1);
           should(_computedResult).eql(_expectedResult);
         });
 
@@ -894,7 +897,7 @@ describe('Validate', () => {
           should(_validateFunction({ id : [{ test : 2}, { test : 5}] }).length).eql(0);
           // errors
           should(_validateFunction({ id : [{ test : 2}, { test : 'bad' }] }).length).eql(1);
-          should(_validateFunction({ id : [1, 2] }).length).eql(1);
+          should(_validateFunction({ id : [1, 2] }).length).eql(2);
           should(_validateFunction({ id : '2' }).length).eql(1);
           should(_validateFunction({ id : 'grtgtrg' }).length).eql(1);
           should(_validateFunction({ id : '[]' }).length).eql(1);
@@ -919,7 +922,7 @@ describe('Validate', () => {
           should(_validateFunction({ id : [{test : 2}, {test : 5}, {test : 5}] }).length).eql(1);
           should(_validateFunction({ id : [] }).length).eql(1);
           should(_validateFunction({ id : [{test : 2}, {test : 'bad'}] }).length).eql(1);
-          should(_validateFunction({ id : [1, 2] }).length).eql(1);
+          should(_validateFunction({ id : [1, 2] }).length).eql(2);
           should(_validateFunction({ id : '2' }).length).eql(1);
           should(_validateFunction({ id : 'grtgtrg' }).length).eql(1);
           should(_validateFunction({ id : '[]' }).length).eql(1);
@@ -1053,6 +1056,55 @@ describe('Validate', () => {
           should(_validateFunction({ id : '9' }).length).eql(1);
           should(_validateFunction({ id : [] }).length).eql(1);
           should(_validateFunction({ id : {} }).length).eql(1);
+        });
+
+        it('should build a function which returns multiple errors', () => {
+          var _objectDescriptor = {
+            id    : ['int'],
+            label : ['string']
+          };
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_analyzedDescriptor.compilation);
+          // ok
+          should(_validateFunction({ id : 1, label : 'A' }).length).eql(0);
+          // errors
+          should(_validateFunction({ id : 'B', label : 'A' }).length).eql(1);
+          should(_validateFunction({ id : 'B', label : 1 }).length).eql(2);
+          should(_validateFunction({ id : 'B', label : 1 })).eql([
+            { value : 'B', field : 'id'   , error : '${must be an integer}' },
+            { value : 1  , field : 'label', error : '${must be a string}'   }
+          ]);
+        });
+
+        it('should build a function which returns multiple errors with array in error', () => {
+          var _objectDescriptor = {
+            id     : ['int'],
+            label  : ['string'],
+            prices : ['array', {
+              price : ['<<number>>']
+            }],
+            total : ['number']
+          };
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_analyzedDescriptor.compilation);
+          // errors
+          var _result = _validateFunction({
+            id     : 'B',
+            label  : 'A',
+            prices : { price : 1 },
+            total  : 'total'
+          });
+
+          should(_result).have.lengthOf(3);
+          should(_result).eql([
+            { value : 'B', field : 'id', error : '${must be an integer}' },
+            {
+              value : { price : 1 },
+              field : 'prices',
+              error : '${must be an array}'
+            },
+            { value : 'total', field : 'total', error : '${must be a number}'   }
+          ]);
         });
 
         it('should build a function which convert the binary to a real boolean if it is binary and if we add the filter "toBoolean"', () => {
