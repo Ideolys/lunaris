@@ -655,8 +655,8 @@ describe('lunaris store', () => {
         if (_isFirstInsertEvent) {
           should(updatedValue).be.an.Array();
           should(updatedValue).eql([
-            { _id : 1, id : 1, label : 'A', _version : [1] },
-            { _id : 2, id : 2, label : 'B', _version : [1] }
+            { _id : 1, id : null, label : 'A', _version : [1] },
+            { _id : 2, id : null, label : 'B', _version : [1] }
           ]);
 
           for (var i = 0; i < updatedValue.length; i++) {
@@ -674,8 +674,8 @@ describe('lunaris store', () => {
         _isUpdatedHook = true;
         should(data).be.an.Array();
         should(data).eql([
-          { _id : 1, id : 1, label : 'A', post : true, _version : [2] },
-          { _id : 2, id : 2, label : 'B', post : true, _version : [2] }
+          { _id : 1, id : 2, label : 'A', post : true, _version : [2] },
+          { _id : 2, id : 1, label : 'B', post : true, _version : [2] }
         ]);
 
         for (var i = 0; i < data.length; i++) {
@@ -693,8 +693,8 @@ describe('lunaris store', () => {
       });
 
       lunaris.insert('@mass', [
-        { id : 1, label : 'A' },
-        { id : 2, label : 'B' }
+        { id : null, label : 'A' },
+        { id : null, label : 'B' }
       ]);
     });
 
@@ -2592,6 +2592,7 @@ function _startServer (callback) {
   server.post('/mass', (req, res) => {
     req.body.reverse();
     for (var i = 0; i < req.body.length; i++) {
+      req.body[i].id   = i + 1;
       req.body[i].post = true;
     }
     res.json({ success : true, error : null, message : null, data : req.body });

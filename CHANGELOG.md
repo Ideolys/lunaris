@@ -20,6 +20,7 @@
   + Enable dayjs format plugin
   + Fix translations. In HTML files, the `'` was translated to `\'`.
   + Fix default values. Sub object is now null.
+  + Fix merge values POST / PUT.
 
 ## 1.3.0
 - Features:

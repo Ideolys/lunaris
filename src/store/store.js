@@ -110,7 +110,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       for (i = 0; i < value.length; i++) {
         for (var j = 0; j < data.length; j++) {
           if (value[i]._id === data[j]._id) {
-            value[i] = utils.merge(value[i], data[j]);
+            value[i] = utils.merge(lunaris.clone(value[i]), data[j]);
             _collection.upsert(value[i], _version);
           }
         }
@@ -119,7 +119,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       value = utils.cloneAndFreeze(value);
     }
     else {
-      value = utils.merge(value, data);
+      value = utils.merge(lunaris.clone(value), data);
       value = _collection.upsert(value);
       // the value must have been deleted
       if (value) {
