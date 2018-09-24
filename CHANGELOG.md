@@ -12,6 +12,7 @@
   + Directive v-lunaris supports ckeckbox input.
   + Translate validation error messages.
   + lunaris.validate returns all the errors, not only the first one.
+  + Add `$methodFemale` for store templates.
 - Fix:
   + The redirection could fail.
   + Add parameter isUnique for `lunaris.hook(hook, handkler, isUnique)`. If true, the function will register unique handlers.

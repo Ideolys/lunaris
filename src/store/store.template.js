@@ -2,12 +2,14 @@
  * Replace words in given template
  * @param {Object} store
  * @param {String} method
+ * @param {String} methodFemale
  * @param {String} template
  * @param {Boolean} isPlural
  * @returns {String}
  */
-function _replaceTemplateWords (store, method, template, isPlural) {
+function _replaceTemplateWords (store, method, methodFemale, template, isPlural) {
   return template
+    .replace('$methodFemale' , methodFemale)
     .replace('$method'       , method)
     .replace('$storeName'    , store.nameTranslated || store.name)
     .replace('$pronounMale'  , isPlural ? '${thePlural}' : '${the}')
@@ -34,8 +36,14 @@ function getError (err, store, method, isPlural) {
     POST   : '${create}',
     DELETE : '${delete}'
   };
+  var _methodsFemale = {
+    GET    : '${loadFemale}',
+    PUT    : '${editFemale}',
+    POST   : '${createFemale}',
+    DELETE : '${deleteFemale}'
+  };
 
-  return _replaceTemplateWords(store, _methods[method], store.errorTemplate, isPlural);
+  return _replaceTemplateWords(store, _methods[method], _methodsFemale[method], store.errorTemplate, isPlural);
 }
 
 /**
@@ -57,8 +65,14 @@ function getSuccess (message, store, method, isPlural) {
     POST   : '${created}',
     DELETE : '${deleted}'
   };
+  var _methodsFemale = {
+    GET    : '${loadedFemale}',
+    PUT    : '${editedFemale}',
+    POST   : '${createdFemale}',
+    DELETE : '${deletedFemale}'
+  };
 
-  return _replaceTemplateWords(store, _methods[method], store.successTemplate, isPlural);
+  return _replaceTemplateWords(store, _methods[method], _methodsFemale[method], store.successTemplate, isPlural);
 }
 
 exports.getSuccess = getSuccess;
