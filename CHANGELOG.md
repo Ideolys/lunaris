@@ -1,7 +1,10 @@
 # Lunaris
 
-## 1.4.0
+## 1.5.0
 *2018-XX-XX*
+
+## 1.4.0
+*2018-09-24*
 
 - Features :
   + Add transaction for local stores. Add functions `lunaris.begin()` and `lunaris.commit()`. The transaction system is designed to guarantee that the insert/update/upsert on local stores will perform one and only one event to update the dependent store(s).
