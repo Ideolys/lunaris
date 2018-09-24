@@ -19,6 +19,7 @@
   + Fix data duplication in vue plugin if a store was registered in multiple components at the same time.
   + Enable dayjs format plugin
   + Fix translations. In HTML files, the `'` was translated to `\'`.
+  + Fix default values. Sub object is now null.
 
 ## 1.3.0
 - Features:
