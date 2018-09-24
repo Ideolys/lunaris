@@ -20,10 +20,6 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
   var _collection = storeUtils.getCollection(store);
   var _cache      = cache.getCache(store);
 
-  if (Object.isFrozen(value)) {
-    value = utils.clone(value);
-  }
-
   var _isMultipleItems = Array.isArray(value);
   var _version;
   var _ids = [];
@@ -32,11 +28,13 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
 
     if (_isMultipleItems) {
       for (var i = 0; i < value.length; i++) {
+        value[i] = utils.clone(value[i]);
         _collection.upsert(value[i], _version);
         _ids.push(value[i]._id);
       }
     }
     else {
+      value = utils.clone(value);
       if (store.isStoreObject) {
         // we always should update the same value for object store
         var _value = _collection.getAll()[0];
@@ -112,7 +110,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       for (i = 0; i < value.length; i++) {
         for (var j = 0; j < data.length; j++) {
           if (value[i]._id === data[j]._id) {
-            value[i] = utils.merge(data[j], value[i]);
+            value[i] = utils.merge(value[i], data[j]);
             _collection.upsert(value[i], _version);
           }
         }
@@ -121,7 +119,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       value = utils.cloneAndFreeze(value);
     }
     else {
-      value = utils.merge(data, value);
+      value = utils.merge(value, data);
       value = _collection.upsert(value);
       // the value must have been deleted
       if (value) {
