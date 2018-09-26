@@ -1,5 +1,8 @@
 # Lunaris
 
+## 1.5.0
+*2018-XX-XX*
+
 ## 1.4.1
 *2018-09-26*
 - Fix : replace ES6 variables definition by var.
