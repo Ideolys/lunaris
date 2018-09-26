@@ -76,10 +76,10 @@ var index = {
    * @returns {Object} { found : Boolean, index : Int }
    */
   binarySearch : function binarySearch (array, value) {
-    let lo = 0;
-    let hi = array.length;
-    let compared;
-    let mid;
+    var lo = 0;
+    var hi = array.length;
+    var compared;
+    var mid;
 
     while (lo < hi) {
       mid = ((lo + hi) / 2) | 0;
