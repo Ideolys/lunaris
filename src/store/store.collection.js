@@ -106,13 +106,26 @@ var index = {
 /**
  * @param {Int} startId from where to start id generation, default 1
  * @param {Function} getPrimaryKeyFn function built at app build step for the store
+ * @param {Boolean} isStoreObject
+ * @param {Object} joinsDescriptor {
+ *  joins   : {Object} from schema parsing,
+ *  joinFns : {Object} {
+ *    set@(obj, { store1: val, storeN ... }),
+ *    store1 : { insert@(obj, val), delete@(obj, value) },
+ *    storeN : ...
+ *  }
+ *  collections : {Object} key / value (store / value to store)
+ * }
  */
-function collection (startId, getPrimaryKeyFn) {
+function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
   var _data                     = [];
   var _currentId                = startId && typeof startId === 'number' ? startId : 1;
   var _transactions             = {};
   var _isTransactionCommit      = false;
   var _transactionVersionNumber = null;
+  var _isStoreObject            = isStoreObject   || false;
+  var _joinsDescriptor          = joinsDescriptor || {};
+  var _joins                    = joinsDescriptor ? Object.keys(_joinsDescriptor.joins) : [];
   var _getPrimaryKey            = getPrimaryKeyFn;
   /**
    * id : [[id], [_id]]
@@ -131,6 +144,23 @@ function collection (startId, getPrimaryKeyFn) {
     }
 
     _transactions[versionNumber].push([versionNumber, data, operation]);
+  }
+
+  /**
+   * Complete current object with join values
+   * @param {Object} value
+   */
+  function _setJoinValues (value) {
+    if (!_joins.length) {
+      return;
+    }
+
+    var _joinValues = {};
+    for (var i = 0; i < _joins.length; i++) {
+      _joinValues[_joins[i]] = _joinsDescriptor.collections[_joins[i]].getAll();
+    }
+
+    _joinsDescriptor.joinFns.set(value, _joinValues);
   }
 
   /**
@@ -178,6 +208,8 @@ function collection (startId, getPrimaryKeyFn) {
       _addTransaction(versionNumber, value, OPERATIONS.INSERT);
       return;
     }
+
+    _setJoinValues(value);
 
     if (!(value._id && isFromUpsert)) {
       value._id = _currentId;
@@ -374,16 +406,51 @@ function collection (startId, getPrimaryKeyFn) {
     return _res;
   }
 
+  /**
+   * Propagate operation from joins
+   * @param {String} store
+   * @param {Object} data object to delete or insert
+   * @param {String} operation
+   */
+  function propagate (store, data, operation) {
+    if (!_joinsDescriptor.joinFns[store]) {
+      return;
+    }
+
+    var _version = begin();
+    for (var i = 0; i < _data.length; i++) {
+      var _item         = _data[i];
+      var _lowerVersion = _item._version[0];
+      var _upperVersion = _item._version[1];
+      if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
+        // Remember, we cannot directly edit a value from the collection (clone)
+        if (operation === OPERATIONS.INSERT) {
+          upsert(_joinsDescriptor.joinFns[store].insert(utils.clone(_item), data), _version);
+        }
+        if (operation === OPERATIONS.DELETE) {
+          upsert(_joinsDescriptor.joinFns[store].delete(utils.clone(_item), data), _version);
+        }
+        if (operation === OPERATIONS.UPDATE) {
+          upsert(_joinsDescriptor.joinFns[store].delete(utils.clone(_item), data), _version);
+          upsert(_joinsDescriptor.joinFns[store].insert(utils.clone(_item), data), _version);
+        }
+      }
+    }
+
+    return commit(_version);
+  }
+
   return {
-    get      : get,
-    add      : add,
-    upsert   : upsert,
-    remove   : remove,
-    clear    : clear,
-    getFirst : getFirst,
-    begin    : begin,
-    commit   : commit,
-    rollback : rollback,
+    get       : get,
+    add       : add,
+    upsert    : upsert,
+    remove    : remove,
+    clear     : clear,
+    getFirst  : getFirst,
+    begin     : begin,
+    commit    : commit,
+    rollback  : rollback,
+    propagate : propagate,
 
     _getIndexId : function () {
       return _indexes.id;
@@ -417,6 +484,11 @@ function collection (startId, getPrimaryKeyFn) {
           }
         }
       }
+
+      if (_isStoreObject) {
+        return _items.length ? _items[0] : null;
+      }
+
       return _items;
     },
 

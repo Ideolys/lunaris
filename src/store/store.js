@@ -9,6 +9,32 @@ var template    = require('./store.template.js');
 var emptyObject = {};
 
 /**
+ * Propagate store actions to the dependent stores (joins)
+ * @param {Object} store
+ * @param {String} operation
+ * @param {Object} data
+ */
+// function propagate (store, operation, data) {
+//   if (!store.storesToPropagate.length) {
+//     return;
+//   }
+//
+//   for (var i = 0; i < store.storesToPropagate.length; i++) {
+//     var _storeToPropagate = store.storesToPropagate[i];
+//
+//     if (operation === utils.OPERATIONS.INSERT) {
+//
+//     }
+//     else if (operation === utils.OPERATIONS.UPDATE) {
+//
+//     }
+//     else if (operation === utils.OPERATIONS.DELETE) {
+//
+//     }
+//   }
+// }
+
+/**
  * Upsert a value in a store
  * @param {Object} store
  * @param {Array/Object} value
@@ -37,7 +63,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       value = utils.clone(value);
       if (store.isStoreObject) {
         // we always should update the same value for object store
-        var _value = _collection.getAll()[0];
+        var _value = _collection.getAll();
         var _id    = _value ? _value._id : null;
         value._id  = _id;
       }
@@ -343,10 +369,6 @@ function get (store, primaryKeyValue, retryOptions) {
 
     if (_store.isLocal) {
       var _collectionValues = _collection.getAll();
-      if (_store.isStoreObject) {
-        return hook.pushToHandlers(_store, 'get', (_collectionValues[0] || null));
-      }
-
       return hook.pushToHandlers(_store, 'get', _collectionValues, true);
     }
 

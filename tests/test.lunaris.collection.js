@@ -1,5 +1,6 @@
 const collectionModule = require('../src/store/store.collection');
 const collection       = collectionModule.collection;
+const schema           = require('../lib/_builder/store/schema');
 
 function getPrimaryKey (value) {
   return value.id;
@@ -157,6 +158,76 @@ describe('lunaris internal collection', () => {
       should(_index[0]).eql([2]);
       should(_index[1]).have.lengthOf(1);
       should(_index[1]).eql([1]);
+    });
+
+    describe.only('join / propagate', () => {
+      it('should join a store', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(null, getPrimaryKey, false, {
+          joins       : _schema.meta.joins,
+          joinFns     : _schema.getJoinFns,
+          collections : {
+            elements : _elements
+          }
+        });
+
+        _elements.add({ id : 1, cost : 1 });
+        _elements.add({ id : 2, cost : 2 });
+
+        _elementsOverview.add({ id : 1 });
+        should(_elementsOverview._getAll()).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 1, cost : 1, _id : 1, _version : [1]},
+              { id : 2, cost : 2, _id : 2, _version : [2]}
+            ],
+            _id      : 1,
+            _version : [3]
+          }
+        ]);
+      });
+
+      it('should join a store object', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+        var _elements         = collection(null, getPrimaryKey, true , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(null, getPrimaryKey, false, {
+          joins       : _schema.meta.joins,
+          joinFns     : _schema.getJoinFns,
+          collections : {
+            elements : _elements
+          }
+        });
+
+        _elements.add({ id : 1, cost : 1 });
+
+        _elementsOverview.add({ id : 1 });
+        should(_elementsOverview._getAll()).eql([
+          {
+            id       : 1,
+            elements : { id : 1, cost : 1, _id : 1, _version : [1] },
+            _id      : 1,
+            _version : [2]
+          }
+        ]);
+      });
+
+      it('propagate should be defined', () => {
+        var _elements         = collection(null, getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}});
+        should(_elements.propagate).be.a.Function();
+      });
+
     });
   });
 

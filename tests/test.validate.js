@@ -1400,11 +1400,13 @@ describe('Validate', () => {
         it('should analyze a descriptor and return a flat description of the object and accept that an array has no descriptions', () => {
           var _expectedTreeDescriptor = {
             meta : {
-              jsonToSQL     : {},
-              sortGroup     : {},
-              sortMandatory : [],
-              primaryKey    : [],
-              aggregates    : {}
+              jsonToSQL      : {},
+              sortGroup      : {},
+              sortMandatory  : [],
+              primaryKey     : [],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1438,11 +1440,13 @@ describe('Validate', () => {
         it('should analyze a descriptor and return a flat description of the object and accept that an object has no descriptions', () => {
           var _expectedTreeDescriptor = {
             meta : {
-              jsonToSQL     : {},
-              sortGroup     : {},
-              sortMandatory : [],
-              primaryKey    : [],
-              aggregates    : {}
+              jsonToSQL      : {},
+              sortGroup      : {},
+              sortMandatory  : [],
+              primaryKey     : [],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1476,11 +1480,13 @@ describe('Validate', () => {
         it('should analyze a descriptor and return a flat description of the object and accept multtiple paramaters in the array descriptions', () => {
           var _expectedTreeDescriptor = {
             meta : {
-              jsonToSQL     : {},
-              sortGroup     : {},
-              sortMandatory : [],
-              primaryKey    : [],
-              aggregates    : {}
+              jsonToSQL      : {},
+              sortGroup      : {},
+              sortMandatory  : [],
+              primaryKey     : [],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1520,9 +1526,11 @@ describe('Validate', () => {
               sortGroup : {
                 idMenu : 0
               },
-              sortMandatory : [],
-              primaryKey    : ['id'],
-              aggregates    : {}
+              sortMandatory  : [],
+              primaryKey     : ['id'],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1563,9 +1571,11 @@ describe('Validate', () => {
               sortGroup : {
                 test : 1
               },
-              sortMandatory : [ 'test' ],
-              primaryKey    : [],
-              aggregates    : {}
+              sortMandatory  : [ 'test' ],
+              primaryKey     : [],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1613,11 +1623,13 @@ describe('Validate', () => {
         it('should analyze a descriptor and return a flat description of the object and accept transform functions', () => {
           var _expectedTreeDescriptor = {
             meta : {
-              jsonToSQL     : {},
-              sortGroup     : {},
-              sortMandatory : [],
-              primaryKey    : [],
-              aggregates    : {}
+              jsonToSQL      : {},
+              sortGroup      : {},
+              sortMandatory  : [],
+              primaryKey     : [],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {
@@ -1658,9 +1670,11 @@ describe('Validate', () => {
               sortGroup : {
                 idMenu : 0
               },
-              sortMandatory : [],
-              primaryKey    : [],
-              aggregates    : {}
+              sortMandatory  : [],
+              primaryKey     : [],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {
@@ -1695,11 +1709,13 @@ describe('Validate', () => {
         it('should analyze a descriptor and return a flat description of the object and accept integer values on Transform', () => {
           var _expectedTreeDescriptor = {
             meta : {
-              jsonToSQL     : {},
-              sortGroup     : {},
-              sortMandatory : [],
-              primaryKey    : [],
-              aggregates    : {}
+              jsonToSQL      : {},
+              sortGroup      : {},
+              sortMandatory  : [],
+              primaryKey     : [],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1732,11 +1748,13 @@ describe('Validate', () => {
         it('should analyze a descriptor and return a flat description of the object and accept integer values on Transform', () => {
           var _expectedTreeDescriptor = {
             meta : {
-              jsonToSQL     : {},
-              sortGroup     : {},
-              sortMandatory : [],
-              primaryKey    : [],
-              aggregates    : {}
+              jsonToSQL      : {},
+              sortGroup      : {},
+              sortMandatory  : [],
+              primaryKey     : [],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1775,9 +1793,11 @@ describe('Validate', () => {
               sortGroup : {
                 idMenu : 0
               },
-              sortMandatory : [],
-              primaryKey    : [],
-              aggregates    : {}
+              sortMandatory  : [],
+              primaryKey     : [],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1822,9 +1842,11 @@ describe('Validate', () => {
               sortGroup : {
                 idMenu : 0
               },
-              sortMandatory : [],
-              primaryKey    : ['obj'],
-              aggregates    : {}
+              sortMandatory  : [],
+              primaryKey     : ['obj'],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1906,8 +1928,10 @@ describe('Validate', () => {
                 'idCity',
                 'idGoodies'
               ],
-              primaryKey : ['id'],
-              aggregates : {}
+              primaryKey     : ['id'],
+              aggregates     : {},
+              aggregatesSort : [],
+              joins          : {}
             },
             onValidate : {
               cities2_name : function () {return 'test';}
