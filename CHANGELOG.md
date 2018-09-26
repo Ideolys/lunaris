@@ -1,7 +1,10 @@
 # Lunaris
 
-## 1.4.0
+## 1.5.0
 *2018-XX-XX*
+
+## 1.4.0
+*2018-09-24*
 
 - Features :
   + Add transaction for local stores. Add functions `lunaris.begin()` and `lunaris.commit()`. The transaction system is designed to guarantee that the insert/update/upsert on local stores will perform one and only one event to update the dependent store(s).
@@ -10,11 +13,17 @@
   + Add attribute sourceWhere for filters in order to filter the filter's data.
   + Add index of map id in each collection. It allows to not duplicate values which have the same map id. If duplication, the duplicate value is merged with the previous one.
   + Directive v-lunaris supports ckeckbox input.
+  + Translate validation error messages.
+  + lunaris.validate returns all the errors, not only the first one.
+  + Add `$methodFemale` for store templates.
 - Fix:
   + The redirection could fail.
   + Add parameter isUnique for `lunaris.hook(hook, handkler, isUnique)`. If true, the function will register unique handlers.
   + Fix data duplication in vue plugin if a store was registered in multiple components at the same time.
   + Enable dayjs format plugin
+  + Fix translations. In HTML files, the `'` was translated to `\'`.
+  + Fix default values. Sub object is now null.
+  + Fix merge values POST / PUT.
 
 ## 1.3.0
 - Features:

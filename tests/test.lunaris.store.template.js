@@ -40,6 +40,43 @@ describe('store templates', () => {
       should(_res).eql('${deleted}');
     });
 
+    it('should replace $methodFemale : GET', () => {
+      var _store = {
+        nameTranslated  : 'test',
+        successTemplate : '$methodFemale'
+      };
+      var _res = template.getSuccess('Default template', _store, 'GET');
+      should(_res).eql('${loadedFemale}');
+    });
+
+    it('should replace $methodFemale : POST', () => {
+      var _store = {
+        nameTranslated  : 'test',
+        successTemplate : '$methodFemale'
+      };
+      var _res = template.getSuccess('Default template', _store, 'POST');
+      should(_res).eql('${createdFemale}');
+    });
+
+    it('should replace $methodFemale : PUT', () => {
+      var _store = {
+        nameTranslated  : 'test',
+        successTemplate : '$methodFemale'
+      };
+      var _res = template.getSuccess('Default template', _store, 'PUT');
+      should(_res).eql('${editedFemale}');
+    });
+
+    it('should replace $methodFemale : DELETE', () => {
+      var _store = {
+        nameTranslated  : 'test',
+        successTemplate : '$methodFemale'
+      };
+      var _res = template.getSuccess('Default template', _store, 'DELETE');
+      should(_res).eql('${deletedFemale}');
+    });
+
+
     it('should replace $storeName : default name', () => {
       var _store = {
         name            : 'test',
@@ -145,6 +182,42 @@ describe('store templates', () => {
       };
       var _res = template.getError('Default template', _store, 'DELETE');
       should(_res).eql('${delete}');
+    });
+
+    it('should replace $methodFemale : GET', () => {
+      var _store = {
+        nameTranslated : 'test',
+        errorTemplate  : '$methodFemale'
+      };
+      var _res = template.getError('Default template', _store, 'GET');
+      should(_res).eql('${loadFemale}');
+    });
+
+    it('should replace $methodFemale : POST', () => {
+      var _store = {
+        nameTranslated : 'test',
+        errorTemplate  : '$methodFemale'
+      };
+      var _res = template.getError('Default template', _store, 'POST');
+      should(_res).eql('${createFemale}');
+    });
+
+    it('should replace $methodFemale : PUT', () => {
+      var _store = {
+        nameTranslated : 'test',
+        errorTemplate  : '$methodFemale'
+      };
+      var _res = template.getError('Default template', _store, 'PUT');
+      should(_res).eql('${editFemale}');
+    });
+
+    it('should replace $methodFemale : DELETE', () => {
+      var _store = {
+        nameTranslated : 'test',
+        errorTemplate  : '$methodFemale'
+      };
+      var _res = template.getError('Default template', _store, 'DELETE');
+      should(_res).eql('${deleteFemale}');
     });
 
     it('should replace $storeName : default name', () => {

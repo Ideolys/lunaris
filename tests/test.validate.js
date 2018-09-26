@@ -472,7 +472,7 @@ describe('Validate', () => {
             continent : 'england'
           }
           ];
-          var _expectedResult     = [{ value : 'bullshit', field : 'id', error : 'must be an integer' }];
+          var _expectedResult     = [{ value : 'bullshit', field : 'id', error : '${must be an integer}' }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult     = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck, null, true);
           should(_computedResult).eql(_expectedResult);
@@ -564,7 +564,7 @@ describe('Validate', () => {
             id        : 'wrongValue',
             continent : 'france'
           };
-          var _expectedResult = [{ value : 'wrongValue', field : 'id', error : 'must be an integer' }];
+          var _expectedResult = [{ value : 'wrongValue', field : 'id', error : '${must be an integer}' }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
           should(_computedResult).eql(_expectedResult);
@@ -606,9 +606,12 @@ describe('Validate', () => {
               temperature : '5degree'
             }]
           };
-          var _expectedResult = [{ value : [{ temperature : '5degree' }], field : 'info', error : 'must be an object' }];
+          var _expectedResult = [
+            { value : [{ temperature : '5degree' }], field : 'info', error : '${must be an object}' }
+          ];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
+          should(_computedResult).have.lengthOf(1);
           should(_computedResult).eql(_expectedResult);
         });
 
@@ -627,7 +630,7 @@ describe('Validate', () => {
               temperature : 5
             }
           };
-          var _expectedResult = [{ value : 5, field : 'info[temperature]', error : 'must be a string' }];
+          var _expectedResult = [{ value : 5, field : 'info[temperature]', error : '${must be a string}' }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
           should(_computedResult).eql(_expectedResult);
@@ -894,7 +897,7 @@ describe('Validate', () => {
           should(_validateFunction({ id : [{ test : 2}, { test : 5}] }).length).eql(0);
           // errors
           should(_validateFunction({ id : [{ test : 2}, { test : 'bad' }] }).length).eql(1);
-          should(_validateFunction({ id : [1, 2] }).length).eql(1);
+          should(_validateFunction({ id : [1, 2] }).length).eql(2);
           should(_validateFunction({ id : '2' }).length).eql(1);
           should(_validateFunction({ id : 'grtgtrg' }).length).eql(1);
           should(_validateFunction({ id : '[]' }).length).eql(1);
@@ -919,7 +922,7 @@ describe('Validate', () => {
           should(_validateFunction({ id : [{test : 2}, {test : 5}, {test : 5}] }).length).eql(1);
           should(_validateFunction({ id : [] }).length).eql(1);
           should(_validateFunction({ id : [{test : 2}, {test : 'bad'}] }).length).eql(1);
-          should(_validateFunction({ id : [1, 2] }).length).eql(1);
+          should(_validateFunction({ id : [1, 2] }).length).eql(2);
           should(_validateFunction({ id : '2' }).length).eql(1);
           should(_validateFunction({ id : 'grtgtrg' }).length).eql(1);
           should(_validateFunction({ id : '[]' }).length).eql(1);
@@ -1053,6 +1056,55 @@ describe('Validate', () => {
           should(_validateFunction({ id : '9' }).length).eql(1);
           should(_validateFunction({ id : [] }).length).eql(1);
           should(_validateFunction({ id : {} }).length).eql(1);
+        });
+
+        it('should build a function which returns multiple errors', () => {
+          var _objectDescriptor = {
+            id    : ['int'],
+            label : ['string']
+          };
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_analyzedDescriptor.compilation);
+          // ok
+          should(_validateFunction({ id : 1, label : 'A' }).length).eql(0);
+          // errors
+          should(_validateFunction({ id : 'B', label : 'A' }).length).eql(1);
+          should(_validateFunction({ id : 'B', label : 1 }).length).eql(2);
+          should(_validateFunction({ id : 'B', label : 1 })).eql([
+            { value : 'B', field : 'id'   , error : '${must be an integer}' },
+            { value : 1  , field : 'label', error : '${must be a string}'   }
+          ]);
+        });
+
+        it('should build a function which returns multiple errors with array in error', () => {
+          var _objectDescriptor = {
+            id     : ['int'],
+            label  : ['string'],
+            prices : ['array', {
+              price : ['<<number>>']
+            }],
+            total : ['number']
+          };
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_analyzedDescriptor.compilation);
+          // errors
+          var _result = _validateFunction({
+            id     : 'B',
+            label  : 'A',
+            prices : { price : 1 },
+            total  : 'total'
+          });
+
+          should(_result).have.lengthOf(3);
+          should(_result).eql([
+            { value : 'B', field : 'id', error : '${must be an integer}' },
+            {
+              value : { price : 1 },
+              field : 'prices',
+              error : '${must be an array}'
+            },
+            { value : 'total', field : 'total', error : '${must be a number}'   }
+          ]);
         });
 
         it('should build a function which convert the binary to a real boolean if it is binary and if we add the filter "toBoolean"', () => {
@@ -1984,7 +2036,7 @@ describe('Validate', () => {
         it('should return the condition which test if it is an int', function (done) {
           var _expectedTreeDescriptor = {
             testStr      : 'typeof(myVariable) === "number" && myVariable % 1 === 0 && !isNaN(myVariable)',
-            errorMessage : 'must be an integer'
+            errorMessage : '${must be an integer}'
           };
           var _computed = validate.getConditionCode('myVariable', ['int']);
           should(_computed).eql(_expectedTreeDescriptor);
@@ -1994,7 +2046,7 @@ describe('Validate', () => {
         it('should return the condition which test if it is an array', function (done) {
           var _expectedTreeDescriptor = {
             testStr      : 'myVariable instanceof Array',
-            errorMessage : 'must be an array'
+            errorMessage : '${must be an array}'
           };
           var _computed = validate.getConditionCode('myVariable', ['array']);
           should(_computed).eql(_expectedTreeDescriptor);
@@ -2004,7 +2056,7 @@ describe('Validate', () => {
         it('should return the condition which test if it is an object', function (done) {
           var _expectedTreeDescriptor = {
             testStr      : '!(myVariable instanceof Array) && (myVariable instanceof Object) && (typeof myVariable !== "function")',
-            errorMessage : 'must be an object'
+            errorMessage : '${must be an object}'
           };
           var _computed = validate.getConditionCode('myVariable', ['object']);
           should(_computed).eql(_expectedTreeDescriptor);
@@ -2014,7 +2066,7 @@ describe('Validate', () => {
         it('should return the condition which test if it is a string', function (done) {
           var _expectedTreeDescriptor = {
             testStr      : 'typeof(myVariable) === "string"',
-            errorMessage : 'must be a string'
+            errorMessage : '${must be a string}'
           };
           var _computed = validate.getConditionCode('myVariable', ['string']);
           should(_computed).eql(_expectedTreeDescriptor);

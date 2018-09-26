@@ -466,6 +466,41 @@ describe('Test vue compilation', () => {
         should(_render[1]).eql(_expectedCode);
       });
 
+      it('should compile vue file with condition and translate a l\'', () => {
+        var _file = `
+          <template>
+            <ul class="bla bloop">
+              {{# GET /vue}}
+                <li v-for="item in items">{{ item.id }}</li>
+              {{#}}
+              \${the other}
+            </ul>
+          </template>
+
+          <script>
+            exports.default = {
+              props : ['items']
+            }
+          </script>
+        `;
+
+        var _template = '<ul class="bla bloop">l\'autre</ul>';
+        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.vue'), _file, {
+          langPath : path.join(__dirname, 'datasets', 'lang'),
+          lang     : 'fr'
+        });
+
+        should(/template/.test(_compiled)).eql(false);
+        should(/render/.test(_compiled)).eql(true);
+        should(/staticRenderFns/.test(_compiled)).eql(true);
+
+        var _render = /render\s*:\s*(.*),/.exec(_compiled);
+
+        should(_render.length).eql(2);
+        var _expectedCode = 'function render () {' + vueCompiler.compile(_template).render + '}';
+        should(_render[1]).eql(_expectedCode);
+      });
+
       it('should compile vue file : regex \\n', () => {
         var _file = `
           Vue.component('list-cars', {
@@ -534,6 +569,35 @@ describe('Test vue compilation', () => {
 
         var _template = '<ul class="bla bloop"><li v-for="item in items">{{ item.id ? \'1\' : \'2\' }}</li></ul>';
         var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : false });
+
+        should(/template/.test(_compiled)).eql(false);
+        should(/render/.test(_compiled)).eql(true);
+        should(/staticRenderFns/.test(_compiled)).eql(true);
+
+        var _render = /render\s*:\s*(.*),/.exec(_compiled);
+
+        should(_render.length).eql(2);
+        var _expectedCode = 'function render () {' + vueCompiler.compile(_template).render + '}';
+        should(_render[1]).eql(_expectedCode);
+      });
+
+      it('should compile and translate', () => {
+        var _file = `
+          exports.default = {
+            template : './translate.html',
+            data     : function () {
+              return {};
+            },
+            props    : ['test']
+          }
+        `;
+
+        var _template = '<div>l\'autre</div>';
+        var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, {
+          isProduction : false,
+          langPath     : path.join(__dirname, 'datasets', 'lang'),
+          lang         : 'fr'
+        });
 
         should(/template/.test(_compiled)).eql(false);
         should(/render/.test(_compiled)).eql(true);
@@ -649,4 +713,4 @@ describe('Test vue compilation', () => {
     // todo negation
 
   });
-})
+});

@@ -226,7 +226,7 @@ describe('lunaris store', () => {
 
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post Error when validating data');
-      should(lastError[1]).eql({ error : 'must be a string', field : 'label', value : 1});
+      should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 1});
     });
 
     it('should update a value', done => {
@@ -314,7 +314,7 @@ describe('lunaris store', () => {
         lunaris.update('@store_insert_put', { _id : 1, id : 1, label : 2 });
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put Error when validating data');
-        should(lastError[1]).eql({ error : 'must be a string', field : 'label', value : 2});
+        should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 2});
         done();
       });
 
@@ -655,8 +655,8 @@ describe('lunaris store', () => {
         if (_isFirstInsertEvent) {
           should(updatedValue).be.an.Array();
           should(updatedValue).eql([
-            { _id : 1, id : 1, label : 'A', _version : [1] },
-            { _id : 2, id : 2, label : 'B', _version : [1] }
+            { _id : 1, id : null, label : 'A', _version : [1] },
+            { _id : 2, id : null, label : 'B', _version : [1] }
           ]);
 
           for (var i = 0; i < updatedValue.length; i++) {
@@ -674,8 +674,8 @@ describe('lunaris store', () => {
         _isUpdatedHook = true;
         should(data).be.an.Array();
         should(data).eql([
-          { _id : 1, id : 1, label : 'A', post : true, _version : [2] },
-          { _id : 2, id : 2, label : 'B', post : true, _version : [2] }
+          { _id : 1, id : 2, label : 'A', post : true, _version : [2] },
+          { _id : 2, id : 1, label : 'B', post : true, _version : [2] }
         ]);
 
         for (var i = 0; i < data.length; i++) {
@@ -693,8 +693,8 @@ describe('lunaris store', () => {
       });
 
       lunaris.insert('@mass', [
-        { id : 1, label : 'A' },
-        { id : 2, label : 'B' }
+        { id : null, label : 'A' },
+        { id : null, label : 'B' }
       ]);
     });
 
@@ -749,7 +749,7 @@ describe('lunaris store', () => {
 
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post Error when validating data');
-      should(lastError[1]).eql({ error : 'must be a string', field : 'label', value : 1});
+      should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 1});
     });
 
     it('should update a value', () => {
@@ -868,7 +868,7 @@ describe('lunaris store', () => {
         lunaris.update('@store_insert_put', [{ _id : 1, id : 1, label : '1' }, { _id : 2, id : 2, label : 2 }]);
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put Error when validating data');
-        should(lastError[1]).eql({ error : 'must be a string', field : 'label', value : 2});
+        should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 2});
         done();
       });
 
@@ -884,7 +884,7 @@ describe('lunaris store', () => {
         lunaris.update('@store_insert_put', [{ _id : 1, id : 1, label : '1' }, { _id : 2, id : null, label : '2' }]);
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put Error when validating data');
-        should(lastError[1]).eql({ error : 'must be an integer', field : 'id', value : null});
+        should(lastError[1]).eql({ error : '${must be an integer}', field : 'id', value : null});
         done();
       });
 
@@ -2092,7 +2092,7 @@ describe('lunaris store', () => {
       lunaris.validate('@store', { id : 1, label : 1 }, true, () => {
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris warn] lunaris.update@store Error when validating data');
-        should(lastError[1]).eql({ value : 1, field : 'label', error : 'must be a string' });
+        should(lastError[1]).eql({ value : 1, field : 'label', error : '${must be a string}' });
         done();
       });
     });
@@ -2592,6 +2592,7 @@ function _startServer (callback) {
   server.post('/mass', (req, res) => {
     req.body.reverse();
     for (var i = 0; i < req.body.length; i++) {
+      req.body[i].id   = i + 1;
       req.body[i].post = true;
     }
     res.json({ success : true, error : null, message : null, data : req.body });
