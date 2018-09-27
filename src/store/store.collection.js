@@ -157,7 +157,13 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
 
     var _joinValues = {};
     for (var i = 0; i < _joins.length; i++) {
-      _joinValues[_joins[i]] = _joinsDescriptor.collections[_joins[i]].getAll();
+      var _collection = _joinsDescriptor.collections[_joins[i]];
+      if (_collection) {
+        _joinValues[_joins[i]] = _collection.getAll();
+      }
+      else {
+        _joinValues[_joins[i]] = null;
+      }
     }
 
     _joinsDescriptor.joinFns.set(value, _joinValues);
@@ -209,7 +215,10 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
       return;
     }
 
-    _setJoinValues(value);
+    // The propagation only uses upsert method
+    if (!isFromUpsert) {
+      _setJoinValues(value);
+    }
 
     if (!(value._id && isFromUpsert)) {
       value._id = _currentId;
@@ -237,7 +246,6 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
     if (!value._id && !isRemove) {
       return add(value, versionNumber);
     }
-
 
     if (versionNumber && !_isTransactionCommit) {
       _addTransaction(versionNumber, value, OPERATIONS.UPDATE, isFromIndex);
@@ -409,12 +417,29 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
   /**
    * Propagate operation from joins
    * @param {String} store
-   * @param {Object} data object to delete or insert
+   * @param {Object/Array} data object to delete or insert
    * @param {String} operation
    */
   function propagate (store, data, operation) {
     if (!_joinsDescriptor.joinFns[store]) {
       return;
+    }
+
+    if (data && !Array.isArray(data)) {
+      data = [data];
+    }
+
+    function _updateObject (object, data, operation) {
+      if (operation === OPERATIONS.INSERT) {
+        return _joinsDescriptor.joinFns[store].insert(object, data);
+      }
+      else if (operation === OPERATIONS.DELETE) {
+        return _joinsDescriptor.joinFns[store].delete(object, data);
+      }
+      else if (operation === OPERATIONS.UPDATE) {
+        _joinsDescriptor.joinFns[store].delete(object, data);
+        return _joinsDescriptor.joinFns[store].insert(object, data);
+      }
     }
 
     var _version = begin();
@@ -424,16 +449,16 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
       var _upperVersion = _item._version[1];
       if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
         // Remember, we cannot directly edit a value from the collection (clone)
-        if (operation === OPERATIONS.INSERT) {
-          upsert(_joinsDescriptor.joinFns[store].insert(utils.clone(_item), data), _version);
+        var _obj = utils.clone(_item);
+        if (data && data.length) {
+          for (var j = 0; j < data.length; j++) {
+            _obj = _updateObject(_obj, data[j], operation);
+          }
         }
-        if (operation === OPERATIONS.DELETE) {
-          upsert(_joinsDescriptor.joinFns[store].delete(utils.clone(_item), data), _version);
+        else {
+          _obj = _updateObject(_obj, null, operation);
         }
-        if (operation === OPERATIONS.UPDATE) {
-          upsert(_joinsDescriptor.joinFns[store].delete(utils.clone(_item), data), _version);
-          upsert(_joinsDescriptor.joinFns[store].insert(utils.clone(_item), data), _version);
-        }
+        upsert(_obj, _version);
       }
     }
 

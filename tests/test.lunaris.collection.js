@@ -1,6 +1,7 @@
 const collectionModule = require('../src/store/store.collection');
 const collection       = collectionModule.collection;
 const schema           = require('../lib/_builder/store/schema');
+const utils            = require('../src/utils');
 
 function getPrimaryKey (value) {
   return value.id;
@@ -160,18 +161,19 @@ describe('lunaris internal collection', () => {
       should(_index[1]).eql([1]);
     });
 
-    describe.only('join / propagate', () => {
+    describe('join / propagate', () => {
       it('should join a store', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
           elements : ['@elements']
         };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
+        var _schema  = schema.analyzeDescriptor(_objectDescriptor);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
 
         var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(null, getPrimaryKey, false, {
           joins       : _schema.meta.joins,
-          joinFns     : _schema.getJoinFns,
+          joinFns     : _joinFns,
           collections : {
             elements : _elements
           }
@@ -199,12 +201,13 @@ describe('lunaris internal collection', () => {
           id       : ['<<id>>'],
           elements : ['@elements']
         };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
+        var _schema  = schema.analyzeDescriptor(_objectDescriptor);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
 
         var _elements         = collection(null, getPrimaryKey, true , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(null, getPrimaryKey, false, {
           joins       : _schema.meta.joins,
-          joinFns     : _schema.getJoinFns,
+          joinFns     : _joinFns,
           collections : {
             elements : _elements
           }
@@ -226,6 +229,299 @@ describe('lunaris internal collection', () => {
       it('propagate should be defined', () => {
         var _elements         = collection(null, getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}});
         should(_elements.propagate).be.a.Function();
+      });
+
+      it('should join a store and propagate insert', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema  = schema.analyzeDescriptor(_objectDescriptor);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
+        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(null, getPrimaryKey, false, {
+          joins       : _schema.meta.joins,
+          joinFns     : _joinFns,
+          collections : {
+            elements : _elements
+          }
+        });
+
+        _elements.add({ id : 1, cost : 1 });
+        _elements.add({ id : 2, cost : 2 });
+
+        _elementsOverview.add({ id : 1 });
+        should(_elementsOverview._getAll()).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 1, cost : 1, _id : 1, _version : [1]},
+              { id : 2, cost : 2, _id : 2, _version : [2]}
+            ],
+            _id      : 1,
+            _version : [3]
+          }
+        ]);
+
+        var _res = _elementsOverview.propagate('elements', { _id : 3, id : 3, cost : 3 }, utils.OPERATIONS.INSERT);
+        should(_elementsOverview.getAll()).eql(_res);
+        should(_res).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 1, cost : 1, _id : 1, _version : [1]},
+              { id : 2, cost : 2, _id : 2, _version : [2]},
+              { id : 3, cost : 3, _id : 3 }
+            ],
+            _id      : 1,
+            _version : [4]
+          }
+        ]);
+      });
+
+      it('should join a store and propagate insert : multiple data', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema  = schema.analyzeDescriptor(_objectDescriptor);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
+        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(null, getPrimaryKey, false, {
+          joins       : _schema.meta.joins,
+          joinFns     : _joinFns,
+          collections : {
+            elements : _elements
+          }
+        });
+
+        _elements.add({ id : 1, cost : 1 });
+        _elements.add({ id : 2, cost : 2 });
+
+        _elementsOverview.add({ id : 1 });
+        should(_elementsOverview._getAll()).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 1, cost : 1, _id : 1, _version : [1]},
+              { id : 2, cost : 2, _id : 2, _version : [2]}
+            ],
+            _id      : 1,
+            _version : [3]
+          }
+        ]);
+
+        var _res = _elementsOverview.propagate('elements', [
+          { _id : 3, id : 3, cost : 3 },
+          { _id : 4, id : 4, cost : 4 }
+        ], utils.OPERATIONS.INSERT);
+        should(_elementsOverview.getAll()).eql(_res);
+        should(_res).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 1, cost : 1, _id : 1, _version : [1]},
+              { id : 2, cost : 2, _id : 2, _version : [2]},
+              { id : 3, cost : 3, _id : 3 },
+              { id : 4, cost : 4, _id : 4 }
+            ],
+            _id      : 1,
+            _version : [4]
+          }
+        ]);
+      });
+
+      it('should join a store and propagate update', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema  = schema.analyzeDescriptor(_objectDescriptor);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
+        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(null, getPrimaryKey, false, {
+          joins       : _schema.meta.joins,
+          joinFns     : _joinFns,
+          collections : {
+            elements : _elements
+          }
+        });
+
+        _elements.add({ id : 1, cost : 1 });
+        _elements.add({ id : 2, cost : 2 });
+
+        _elementsOverview.add({ id : 1 });
+        should(_elementsOverview._getAll()).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 1, cost : 1, _id : 1, _version : [1]},
+              { id : 2, cost : 2, _id : 2, _version : [2]}
+            ],
+            _id      : 1,
+            _version : [3]
+          }
+        ]);
+
+        var _res = _elementsOverview.propagate('elements', { _id : 2, id : 2, cost : 3 }, utils.OPERATIONS.UPDATE);
+        should(_elementsOverview.getAll()).eql(_res);
+        should(_res).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 1, cost : 1, _id : 1, _version : [1]},
+              { id : 2, cost : 3, _id : 2}
+            ],
+            _id      : 1,
+            _version : [4]
+          }
+        ]);
+      });
+
+      it('should join a store and propagate update : multiple data', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema  = schema.analyzeDescriptor(_objectDescriptor);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
+        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(null, getPrimaryKey, false, {
+          joins       : _schema.meta.joins,
+          joinFns     : _joinFns,
+          collections : {
+            elements : _elements
+          }
+        });
+
+        _elements.add({ id : 1, cost : 1 });
+        _elements.add({ id : 2, cost : 2 });
+
+        _elementsOverview.add({ id : 1 });
+        should(_elementsOverview._getAll()).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 1, cost : 1, _id : 1, _version : [1]},
+              { id : 2, cost : 2, _id : 2, _version : [2]}
+            ],
+            _id      : 1,
+            _version : [3]
+          }
+        ]);
+
+        var _res = _elementsOverview.propagate('elements', [
+          { _id : 2, id : 2, cost : 3 },
+          { _id : 1, id : 1, cost : 2 }
+        ], utils.OPERATIONS.UPDATE);
+        should(_elementsOverview.getAll()).eql(_res);
+        should(_res).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 2, cost : 3, _id : 2},
+              { id : 1, cost : 2, _id : 1},
+            ],
+            _id      : 1,
+            _version : [4]
+          }
+        ]);
+      });
+
+      it('should join a store and propagate delete', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema  = schema.analyzeDescriptor(_objectDescriptor);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
+        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(null, getPrimaryKey, false, {
+          joins       : _schema.meta.joins,
+          joinFns     : _joinFns,
+          collections : {
+            elements : _elements
+          }
+        });
+
+        _elements.add({ id : 1, cost : 1 });
+        _elements.add({ id : 2, cost : 2 });
+
+        _elementsOverview.add({ id : 1 });
+        should(_elementsOverview._getAll()).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 1, cost : 1, _id : 1, _version : [1]},
+              { id : 2, cost : 2, _id : 2, _version : [2]}
+            ],
+            _id      : 1,
+            _version : [3]
+          }
+        ]);
+
+        var _res = _elementsOverview.propagate('elements', { _id : 1 }, utils.OPERATIONS.DELETE);
+        should(_elementsOverview.getAll()).eql(_res);
+        should(_res).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 2, cost : 2, _id : 2, _version : [2]}
+            ],
+            _id      : 1,
+            _version : [4]
+          }
+        ]);
+      });
+
+      it('should join a store and propagate delete : multiple data', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema  = schema.analyzeDescriptor(_objectDescriptor);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
+        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(null, getPrimaryKey, false, {
+          joins       : _schema.meta.joins,
+          joinFns     : _joinFns,
+          collections : {
+            elements : _elements
+          }
+        });
+
+        _elements.add({ id : 1, cost : 1 });
+        _elements.add({ id : 2, cost : 2 });
+
+        _elementsOverview.add({ id : 1 });
+        should(_elementsOverview._getAll()).eql([
+          {
+            id       : 1,
+            elements : [
+              { id : 1, cost : 1, _id : 1, _version : [1]},
+              { id : 2, cost : 2, _id : 2, _version : [2]}
+            ],
+            _id      : 1,
+            _version : [3]
+          }
+        ]);
+
+        var _res = _elementsOverview.propagate('elements', [{ _id : 1 }, { _id : 2 }], utils.OPERATIONS.DELETE);
+        should(_elementsOverview.getAll()).eql(_res);
+        should(_res).eql([
+          {
+            id       : 1,
+            elements : [],
+            _id      : 1,
+            _version : [4]
+          }
+        ]);
       });
 
     });

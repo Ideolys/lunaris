@@ -2,6 +2,7 @@ const testUtils    = require('./testUtils');
 const initStore    = testUtils.initStore;
 const collection   = require('../src/store/store.collection');
 const buildLunaris = require('../lib/builder').buildLunaris;
+const schema       = require('../lib/_builder/store/schema');
 const express      = require('express');
 const compression  = require('compression');
 const bodyParser   = require('body-parser');
@@ -328,12 +329,12 @@ describe('lunaris store', () => {
 
       lunaris.hook('insert@storeObject', () => {
         lunaris.update('@storeObject', { _id : 2, id : 1, label : 'string' });
-        should(lunaris._stores['storeObject'].data.getAll()).eql([{
+        should(lunaris._stores['storeObject'].data.getAll()).eql({
           _id      : 1,
           id       : 1,
           label    : 'string',
           _version : [2]
-        }]);
+        });
         done();
       });
 
@@ -558,7 +559,7 @@ describe('lunaris store', () => {
     it('should insert and update the values and execute the hooks with authorized filters', done => {
       var _isInsertedHook                       = false;
       var _isUpdatedHook                        = false;
-      var _store                                = initStore('store1');
+      var _store                                = initStore('store1', {});
       var _expectedValue                        = { _id : 1, id : 1, label : 'A', _version : [3] };
       lunaris._stores['required']               = initStore('required');
       lunaris._stores['required'].isStoreObject = true;
@@ -615,6 +616,7 @@ describe('lunaris store', () => {
       });
 
       lunaris.hook('errorHttp@store1', (err) => {
+        console.log(err);
         done(err);
       });
 
@@ -1389,7 +1391,7 @@ describe('lunaris store', () => {
 
     it('should filter the store by a required filter', done => {
       var _isFirstCall = true;
-      lunaris._stores['required.param.site']               = initStore('required.param.site');
+      lunaris._stores['required.param.site']               = initStore('required.param.site', {});
       lunaris._stores['required.param.site'].isStoreObject = true;
       lunaris._stores['required.param.site'].isLocal       = true;
       lunaris._stores['required.param.site'].data.add({
@@ -1466,7 +1468,7 @@ describe('lunaris store', () => {
 
     it('should filter the store by a required filter and paginate', done => {
       var _nbPages                                            = 0;
-      lunaris._stores['pagination2.param.site']               = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site']               = initStore('pagination2.param.site', {});
       lunaris._stores['pagination2.param.site'].isStoreObject = true;
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
@@ -2464,17 +2466,646 @@ describe('lunaris store', () => {
 
   });
 
+  describe('propagation', () => {
+
+    it('should propagate to a store object : GET', done => {
+      var _store                = initStore('store1', null, null, ['propagate']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = {
+        id           : ['<<int>>'],
+        store1Values : ['@store1']
+      };
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.insert('@propagate', { id : 1 });
+      lunaris.get('@store1');
+      lunaris.hook('update@propagate', res => {
+        should(res).eql({
+          _id          : 1,
+          id           : 1,
+          store1Values : [
+            { _id : 1, id : 20, label : 'B', _version : [2] },
+            { _id : 2, id : 30, label : 'D', _version : [2] },
+            { _id : 3, id : 10, label : 'E', _version : [2] }
+          ],
+          _version : [3]
+        });
+        done();
+      });
+    });
+
+    it('should propagate to a store : GET', done => {
+      var _store                = initStore('store1', null, null, ['propagate']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = [{
+        id           : ['<<int>>'],
+        store1Values : ['@store1']
+      }];
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.insert('@propagate', [{ id : 1 }, { id : 2 }]);
+      lunaris.get('@store1');
+
+      lunaris.hook('update@propagate', res => {
+        should(res).eql([
+          {
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              { _id : 1, id : 20, label : 'B', _version : [2] },
+              { _id : 2, id : 30, label : 'D', _version : [2] },
+              { _id : 3, id : 10, label : 'E', _version : [2] }
+            ],
+            _version : [3]
+          },
+          {
+            _id          : 2,
+            id           : 2,
+            store1Values : [
+              { _id : 1, id : 20, label : 'B', _version : [2] },
+              { _id : 2, id : 30, label : 'D', _version : [2] },
+              { _id : 3, id : 10, label : 'E', _version : [2] }
+            ],
+            _version : [3]
+          }
+        ]);
+        done();
+      });
+    });
+
+    it('should propagate to a store : CLEAR', done => {
+      var _nbCalled             = 0;
+      var _store                = initStore('store1', null, null, ['propagate']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = [{
+        id           : ['<<int>>'],
+        store1Values : ['@store1']
+      }];
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.insert('@propagate', [{ id : 1 }, { id : 2 }]);
+      lunaris.get('@store1');
+
+      lunaris.hook('update@propagate', res => {
+        _nbCalled++;
+
+        if (_nbCalled === 1) {
+          should(res).eql([
+            {
+              _id          : 1,
+              id           : 1,
+              store1Values : [
+                { _id : 1, id : 20, label : 'B', _version : [2] },
+                { _id : 2, id : 30, label : 'D', _version : [2] },
+                { _id : 3, id : 10, label : 'E', _version : [2] }
+              ],
+              _version : [3]
+            },
+            {
+              _id          : 2,
+              id           : 2,
+              store1Values : [
+                { _id : 1, id : 20, label : 'B', _version : [2] },
+                { _id : 2, id : 30, label : 'D', _version : [2] },
+                { _id : 3, id : 10, label : 'E', _version : [2] }
+              ],
+              _version : [3]
+            }
+          ]);
+          return lunaris.clear('@store1');
+        }
+
+        should(res).eql([
+          {
+            _id          : 1,
+            id           : 1,
+            store1Values : [],
+            _version     : [4]
+          },
+          {
+            _id          : 2,
+            id           : 2,
+            store1Values : [],
+            _version     : [4]
+          }
+        ]);
+
+        done();
+      });
+    });
+
+    it('should propagate to a store object : CLEAR', done => {
+      var _nbCalled             = 0;
+      var _store                = initStore('store1', null, null, ['propagate']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = {
+        id           : ['<<int>>'],
+        store1Values : ['@store1']
+      };
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.insert('@propagate', { id : 1 });
+      lunaris.get('@store1');
+
+      lunaris.hook('update@propagate', res => {
+        _nbCalled++;
+
+        if (_nbCalled === 1) {
+          should(res).eql({
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              { _id : 1, id : 20, label : 'B', _version : [2] },
+              { _id : 2, id : 30, label : 'D', _version : [2] },
+              { _id : 3, id : 10, label : 'E', _version : [2] }
+            ],
+            _version : [3]
+          });
+
+          return lunaris.clear('@store1');
+        }
+
+        should(res).eql({
+          _id          : 1,
+          id           : 1,
+          store1Values : [],
+          _version     : [4]
+        });
+        done();
+      });
+    });
+
+    it('should propagate to a store : DELETE', done => {
+      var _nbCalled             = 0;
+      var _store                = initStore('store1', null, null, ['propagate']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = [{
+        id           : ['<<int>>'],
+        store1Values : ['@store1']
+      }];
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.insert('@propagate', [{ id : 1 }, { id : 2 }]);
+      lunaris.get('@store1');
+
+      lunaris.hook('update@propagate', res => {
+        _nbCalled++;
+        if (_nbCalled === 1) {
+          should(res).eql([
+            {
+              _id          : 1,
+              id           : 1,
+              store1Values : [
+                { _id : 1, id : 20, label : 'B', _version : [2] },
+                { _id : 2, id : 30, label : 'D', _version : [2] },
+                { _id : 3, id : 10, label : 'E', _version : [2] }
+              ],
+              _version : [3]
+            },
+            {
+              _id          : 2,
+              id           : 2,
+              store1Values : [
+                { _id : 1, id : 20, label : 'B', _version : [2] },
+                { _id : 2, id : 30, label : 'D', _version : [2] },
+                { _id : 3, id : 10, label : 'E', _version : [2] }
+              ],
+              _version : [3]
+            }
+          ]);
+
+          return lunaris.delete('@store1', { _id : 1});
+        }
+
+        should(res).eql([
+          {
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              { _id : 2, id : 30, label : 'D', _version : [2] },
+              { _id : 3, id : 10, label : 'E', _version : [2] }
+            ],
+            _version : [5]
+          },
+          {
+            _id          : 2,
+            id           : 2,
+            store1Values : [
+              { _id : 2, id : 30, label : 'D', _version : [2] },
+              { _id : 3, id : 10, label : 'E', _version : [2] }
+            ],
+            _version : [5]
+          }
+        ]);
+        done();
+      });
+    });
+
+    it('should propagate to a store object : DELETE', done => {
+      var _nbCalled             = 0;
+      var _store                = initStore('store1', null, null, ['propagate']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = {
+        id           : ['<<int>>'],
+        store1Values : ['@store1']
+      };
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.insert('@propagate', { id : 1 });
+      lunaris.get('@store1');
+
+      lunaris.hook('update@propagate', res => {
+        _nbCalled++;
+        if (_nbCalled === 1) {
+          should(res).eql({
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              { _id : 1, id : 20, label : 'B', _version : [2] },
+              { _id : 2, id : 30, label : 'D', _version : [2] },
+              { _id : 3, id : 10, label : 'E', _version : [2] }
+            ],
+            _version : [3]
+          });
+
+          return lunaris.delete('@store1', { _id : 1});
+        }
+
+        should(res).eql({
+          _id          : 1,
+          id           : 1,
+          store1Values : [
+            { _id : 2, id : 30, label : 'D', _version : [2] },
+            { _id : 3, id : 10, label : 'E', _version : [2] }
+          ],
+          _version : [5]
+        });
+        done();
+      });
+    });
+
+    it('should propagate to a store object : INSERT', done => {
+      var _store                = initStore('store1', null, null, ['propagate']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = {
+        id           : ['<<int>>'],
+        store1Values : ['@store1']
+      };
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.insert('@propagate', { id : 1 });
+      lunaris.insert('@store1', [{ id : 1, label : 'A' }, { id : 2, label : 'B' }]);
+
+      lunaris.hook('update@propagate', res => {
+        should(res).eql({
+          _id          : 1,
+          id           : 1,
+          store1Values : [
+            { _id : 1, id : 1, label : 'A', _version : [2] },
+            { _id : 2, id : 2, label : 'B', _version : [2] },
+          ],
+          _version : [5]
+        });
+        done();
+      });
+    });
+
+    it('should propagate to a store : INSERT', done => {
+      var _store                = initStore('store1', null, null, ['propagate']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = [{
+        id           : ['<<int>>'],
+        store1Values : ['@store1']
+      }];
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.insert('@propagate', [{ id : 1 }, { id : 2 }]);
+      lunaris.insert('@store1', [{ id : 1, label : 'A' }, { id : 2, label : 'B' }]);
+
+      lunaris.hook('update@propagate', res => {
+        should(res).eql([
+          {
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              { _id : 1, id : 1, label : 'A', _version : [2] },
+              { _id : 2, id : 2, label : 'B', _version : [2] },
+            ],
+            _version : [5]
+          },
+          {
+            _id          : 2,
+            id           : 2,
+            store1Values : [
+              { _id : 1, id : 1, label : 'A', _version : [2] },
+              { _id : 2, id : 2, label : 'B', _version : [2] },
+            ],
+            _version : [5]
+          }
+        ]);
+        done();
+      });
+    });
+
+    it('should propagate to a store object : UPDATE', done => {
+      var _nbCalled             = 0;
+      var _store                = initStore('store1', null, null, ['propagate']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = {
+        id           : ['<<int>>'],
+        store1Values : ['@store1']
+      };
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.hook('update@propagate', res => {
+        _nbCalled++;
+        if (_nbCalled ===1 ) {
+          return;
+        }
+        if (_nbCalled === 2) {
+          should(res).eql({
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              { _id : 1, id : 1, label : 'A', _version : [2] },
+              { _id : 2, id : 2, label : 'B', _version : [2] },
+            ],
+            _version : [5]
+          });
+
+          return lunaris.update('@store1', { _id : 1, id : 1, label : 'A-1' });
+        }
+
+        if (_nbCalled === 3) {
+          should(res).eql({
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              { _id : 2, id : 2, label : 'B'  , _version : [2] },
+              {
+                _id      : 1,
+                id       : 1,
+                label    : 'A-1',
+                _version : [6],
+              },
+            ],
+            _version : [7]
+          });
+
+          return;
+        }
+
+        should(res).eql({
+          _id          : 1,
+          id           : 1,
+          store1Values : [
+            { _id : 2, id : 2, label : 'B'  , _version : [2] },
+            {
+              _id      : 1,
+              id       : 1,
+              label    : 'A-1',
+              _version : [8],
+              body     : {
+                _id      : 1,
+                id       : 1,
+                label    : 'A-1',
+                _version : [6],
+              },
+              params : { id : '1' },
+              query  : {}
+            },
+          ],
+          _version : [9]
+        });
+        done();
+      });
+
+      lunaris.insert('@propagate', { id : 1 });
+      lunaris.insert('@store1', [{ id : 1, label : 'A' }, { id : 2, label : 'B' }]);
+    });
+
+    it('should propagate to a store : UPDATE', done => {
+      var _store                = initStore('store1', null, null, ['propagate']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = [{
+        id           : ['<<int>>'],
+        store1Values : ['@store1']
+      }];
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.insert('@propagate', [{ id : 1 }, { id : 2 }]);
+      lunaris.insert('@store1', [{ id : 1, label : 'A' }, { id : 2, label : 'B' }]);
+      lunaris.update('@store1', { _id : 2, id : 2, label : 'B-2' });
+
+      setTimeout(() => {
+        should(_storeToPropagate.data.getAll()).eql([
+          {
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              { _id : 1, id : 1, label : 'A', _version : [2] },
+              {
+                _id      : 2,
+                id       : 2,
+                label    : 'B-2',
+                _version : [8],
+                body     : {
+                  _id      : 2,
+                  id       : 2,
+                  label    : 'B-2',
+                  _version : [4],
+                },
+                params : { id : '2' },
+                query  : {}
+              },
+            ],
+            _version : [9]
+          },
+          {
+            _id          : 2,
+            id           : 2,
+            store1Values : [
+              { _id : 1, id : 1, label : 'A', _version : [2] },
+              {
+                _id      : 2,
+                id       : 2,
+                label    : 'B-2',
+                _version : [8],
+                body     : {
+                  _id      : 2,
+                  id       : 2,
+                  label    : 'B-2',
+                  _version : [4],
+                },
+                params : { id : '2' },
+                query  : {}
+              },
+            ],
+            _version : [9]
+          }
+        ]);
+        done();
+      }, 50);
+    });
+
+  });
+
 });
 
 function _startServer (callback) {
   server.use(compression());
   server.use(bodyParser.json());
   server.get('/store1', (req, res) => {
-    res.json({ success : true, error : null, message : null, data : [
-      { id : 20, label : 'B' },
-      { id : 30, label : 'D' },
-      { id : 10, label : 'E' }
-    ]});
+    res.json({
+      success : true,
+      error   : null,
+      message : null,
+      data    : [
+        { id : 20, label : 'B' },
+        { id : 30, label : 'D' },
+        { id : 10, label : 'E' }
+      ]
+    });
   });
 
   server.get('/store2', (req, res) => {

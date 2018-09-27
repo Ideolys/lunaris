@@ -11,28 +11,28 @@ var emptyObject = {};
 /**
  * Propagate store actions to the dependent stores (joins)
  * @param {Object} store
- * @param {String} operation
  * @param {Object} data
+ * @param {String} operation
  */
-// function propagate (store, operation, data) {
-//   if (!store.storesToPropagate.length) {
-//     return;
-//   }
-//
-//   for (var i = 0; i < store.storesToPropagate.length; i++) {
-//     var _storeToPropagate = store.storesToPropagate[i];
-//
-//     if (operation === utils.OPERATIONS.INSERT) {
-//
-//     }
-//     else if (operation === utils.OPERATIONS.UPDATE) {
-//
-//     }
-//     else if (operation === utils.OPERATIONS.DELETE) {
-//
-//     }
-//   }
-// }
+function _propagate (store, data, operation) {
+  if (!store.storesToPropagate.length) {
+    return;
+  }
+
+  for (var i = 0; i < store.storesToPropagate.length; i++) {
+    var _storeToPropagate = store.storesToPropagate[i];
+    var _store            = storeUtils.getStore('@' + _storeToPropagate);
+    var _collection       = storeUtils.getCollection(_store);
+    var _res              = _collection.propagate(store.name, data, operation);
+    if (_res) {
+      if (_store.isStoreObject && _res.length) {
+        _res = _res[0];
+      }
+      _res = utils.cloneAndFreeze(_res);
+      hook.pushToHandlers(_store, 'update', _res, Array.isArray(_res));
+    }
+  }
+}
 
 /**
  * Upsert a value in a store
@@ -81,6 +81,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
     _cache.invalidate(_ids, true);
 
     hook.pushToHandlers(store, isUpdate ? 'update' : 'insert', value, _isMultipleItems);
+    _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT);
   }
   else {
     _version = retryOptions.version;
@@ -168,6 +169,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
     if (store.isFilter) {
       hook.pushToHandlers(store, 'filterUpdated');
     }
+    _propagate(store, value, utils.OPERATIONS.UPDATE);
   });
 }
 
@@ -253,6 +255,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
         throw new Error('You cannot delete a value not in the store!');
       }
       hook.pushToHandlers(_store, 'delete', value);
+      _propagate(_store, value, utils.OPERATIONS.DELETE);
       _cache.invalidate(value._id);
     }
     else {
@@ -344,6 +347,7 @@ function clear (store, isSilent) {
     if (!isSilent) {
       hook.pushToHandlers(_store, 'reset');
     }
+    _propagate(_store, null, utils.OPERATIONS.DELETE);
   }
   catch (e) {
     logger.warn(['lunaris.clear' + store], e);
@@ -369,7 +373,7 @@ function get (store, primaryKeyValue, retryOptions) {
 
     if (_store.isLocal) {
       var _collectionValues = _collection.getAll();
-      return hook.pushToHandlers(_store, 'get', _collectionValues, true);
+      return hook.pushToHandlers(_store, 'get', _collectionValues, Array.isArray(_collectionValues));
     }
 
     var _request      = '/';
@@ -441,6 +445,7 @@ function get (store, primaryKeyValue, retryOptions) {
 
       _cache.add(_cacheFilters, _ids);
       hook.pushToHandlers(_store, 'get', data, _isArray);
+      _propagate(_store, data, utils.OPERATIONS.INSERT);
     });
   }
   catch (e) {

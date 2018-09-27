@@ -1509,22 +1509,27 @@ describe('Schema', () => {
           elements : 'elements'
         });
 
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
           { _id : 2, id : 2, cost : 2 }
         ];
         var _joinValues = { elements : _expectedValues };
         var _obj        = { id : 1 };
-        _schema.getJoinFns.set(_obj, _joinValues);
+        _joinFns.set(_obj, _joinValues);
         should(_obj.elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _schema.getJoinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
         should(_obj.elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.splice(1, 1);
-        _schema.getJoinFns.elements.delete(_obj, { _id : 2 });
+        _joinFns.elements.delete(_obj, { _id : 2 });
         should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+
+        _joinFns.elements.delete(_obj, null);
+        should(_obj.elements).be.an.Array().and.have.lengthOf(0);
       });
 
       it('should find a join and define join functions for a store object', () => {
@@ -1537,17 +1542,19 @@ describe('Schema', () => {
           elements : 'elements'
         });
 
+        var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true } }, _schema.compilation, _schema.meta.joins);
+
         var _expectedValues = { _id : 1, id : 1, cost : 1 };
         var _joinValues     = { elements : _expectedValues };
         var _obj            = { id : 1 };
-        _schema.getJoinFns.set(_obj, _joinValues);
+        _joinFns.set(_obj, _joinValues);
         should(_obj.elements).be.an.Object().and.eql(_expectedValues);
 
         _expectedValues.cost = 2;
-        _schema.getJoinFns.elements.insert(_obj, _expectedValues);
+        _joinFns.elements.insert(_obj, _expectedValues);
         should(_obj.elements).be.an.Object().and.eql(_expectedValues);
 
-        _schema.getJoinFns.elements.delete(_obj);
+        _joinFns.elements.delete(_obj);
         should(_obj.elements).be.eql(null);
       });
 
@@ -1563,6 +1570,8 @@ describe('Schema', () => {
           elements2 : 'elements2'
         });
 
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
           { _id : 2, id : 2, cost : 2 }
@@ -1573,21 +1582,21 @@ describe('Schema', () => {
         ];
         var _joinValues = { elements : _expectedValues, elements2 : _expectedValues2 };
         var _obj        = { id : 1 };
-        _schema.getJoinFns.set(_obj, _joinValues);
+        _joinFns.set(_obj, _joinValues);
         should(_obj.elementsJoin).be.an.Array().and.eql(_expectedValues);
         should(_obj.elements2).be.an.Array().and.eql(_expectedValues2);
 
         _expectedValues.push({ _id : 3, id : 3, cost : 3 });
         _expectedValues2.push({ _id : 3, id : 3, price : 3 });
-        _schema.getJoinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
-        _schema.getJoinFns.elements2.insert(_obj, { _id : 3, id : 3, price : 3 });
+        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+        _joinFns.elements2.insert(_obj, { _id : 3, id : 3, price : 3 });
         should(_obj.elementsJoin).be.an.Array().and.eql(_expectedValues);
         should(_obj.elements2).be.an.Array().and.eql(_expectedValues2);
 
         _expectedValues.splice(1, 1);
         _expectedValues2.splice(1, 1);
-        _schema.getJoinFns.elements.delete(_obj, { _id : 2 });
-        _schema.getJoinFns.elements2.delete(_obj, { _id : 2 });
+        _joinFns.elements.delete(_obj, { _id : 2 });
+        _joinFns.elements2.delete(_obj, { _id : 2 });
         should(_obj.elementsJoin).be.an.Array().and.eql(_expectedValues);
         should(_obj.elements2).be.an.Array().and.eql(_expectedValues2);
       });
@@ -1604,21 +1613,23 @@ describe('Schema', () => {
           elements : 'object.elements',
         });
 
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
           { _id : 2, id : 2, cost : 2 }
         ];
         var _joinValues = { elements : _expectedValues };
         var _obj        = { id : 1, object : {} };
-        _schema.getJoinFns.set(_obj, _joinValues);
+        _joinFns.set(_obj, _joinValues);
         should(_obj.object.elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _schema.getJoinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
         should(_obj.object.elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.splice(1, 1);
-        _schema.getJoinFns.elements.delete(_obj, { _id : 2 });
+        _joinFns.elements.delete(_obj, { _id : 2 });
         should(_obj.object.elements).be.an.Array().and.eql(_expectedValues);
       });
 
@@ -1635,23 +1646,25 @@ describe('Schema', () => {
           elements : 'objects.elements',
         });
 
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
           { _id : 2, id : 2, cost : 2 }
         ];
         var _joinValues = { elements : _expectedValues };
         var _obj        = { id : 1, objects : [{ id : 1}, { id : 2 }]};
-        _schema.getJoinFns.set(_obj, _joinValues);
+        _joinFns.set(_obj, _joinValues);
         should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
         should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _schema.getJoinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
         should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
         should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.splice(1, 1);
-        _schema.getJoinFns.elements.delete(_obj, { _id : 2 });
+        _joinFns.elements.delete(_obj, { _id : 2 });
         should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
         should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
       });
@@ -1669,21 +1682,23 @@ describe('Schema', () => {
           total : ['sum', 'join_elements.cost']
         });
 
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
           { _id : 2, id : 2, cost : 2 }
         ];
         var _joinValues = { elements : _expectedValues };
         var _obj        = { id : 1 };
-        _schema.getJoinFns.set(_obj, _joinValues);
+        _joinFns.set(_obj, _joinValues);
         should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _schema.getJoinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
         should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.splice(1, 1);
-        _schema.getJoinFns.elements.delete(_obj, { _id : 2 });
+        _joinFns.elements.delete(_obj, { _id : 2 });
         should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
       });
 
@@ -1703,6 +1718,8 @@ describe('Schema', () => {
           total2 : ['sum', 'join_elements2.price']
         });
 
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
           { _id : 2, id : 2, cost : 2 }
@@ -1713,21 +1730,21 @@ describe('Schema', () => {
         ];
         var _joinValues = { elements : _expectedValues, elements2 : _expectedValues2 };
         var _obj        = { id : 1 };
-        _schema.getJoinFns.set(_obj, _joinValues);
+        _joinFns.set(_obj, _joinValues);
         should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
         should(_obj.join_elements2).be.an.Array().and.eql(_expectedValues2);
 
         _expectedValues.push({ _id : 3, id : 3, cost : 3 });
         _expectedValues2.push({ _id : 3, id : 3, price : 3 });
-        _schema.getJoinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
-        _schema.getJoinFns.elements2.insert(_obj, { _id : 3, id : 3, price : 3 });
+        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+        _joinFns.elements2.insert(_obj, { _id : 3, id : 3, price : 3 });
         should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
         should(_obj.join_elements2).be.an.Array().and.eql(_expectedValues2);
 
         _expectedValues.splice(1, 1);
         _expectedValues2.splice(1, 1);
-        _schema.getJoinFns.elements.delete(_obj, { _id : 2 });
-        _schema.getJoinFns.elements2.delete(_obj, { _id : 2 });
+        _joinFns.elements.delete(_obj, { _id : 2 });
+        _joinFns.elements2.delete(_obj, { _id : 2 });
         should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
         should(_obj.join_elements2).be.an.Array().and.eql(_expectedValues2);
       });
@@ -1747,21 +1764,23 @@ describe('Schema', () => {
           'object.total' : ['sum', 'object.join_elements.cost'],
         });
 
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
           { _id : 2, id : 2, cost : 2 }
         ];
         var _joinValues = { elements : _expectedValues };
         var _obj        = { id : 1, object : {} };
-        _schema.getJoinFns.set(_obj, _joinValues);
+        _joinFns.set(_obj, _joinValues);
         should(_obj.object.join_elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _schema.getJoinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
         should(_obj.object.join_elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.splice(1, 1);
-        _schema.getJoinFns.elements.delete(_obj, { _id : 2 });
+        _joinFns.elements.delete(_obj, { _id : 2 });
         should(_obj.object.join_elements).be.an.Array().and.eql(_expectedValues);
       });
 
@@ -1781,23 +1800,25 @@ describe('Schema', () => {
           'objects.total' : ['sum', 'objects.join_elements.price'],
         });
 
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins);
+
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
           { _id : 2, id : 2, cost : 2 }
         ];
         var _joinValues = { elements : _expectedValues };
         var _obj        = { id : 1, objects : [{ id : 1}, { id : 2 }]};
-        _schema.getJoinFns.set(_obj, _joinValues);
+        _joinFns.set(_obj, _joinValues);
         should(_obj.objects[0].join_elements).be.an.Array().and.eql(_expectedValues);
         should(_obj.objects[1].join_elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _schema.getJoinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
         should(_obj.objects[0].join_elements).be.an.Array().and.eql(_expectedValues);
         should(_obj.objects[1].join_elements).be.an.Array().and.eql(_expectedValues);
 
         _expectedValues.splice(1, 1);
-        _schema.getJoinFns.elements.delete(_obj, { _id : 2 });
+        _joinFns.elements.delete(_obj, { _id : 2 });
         should(_obj.objects[0].join_elements).be.an.Array().and.eql(_expectedValues);
         should(_obj.objects[1].join_elements).be.an.Array().and.eql(_expectedValues);
       });

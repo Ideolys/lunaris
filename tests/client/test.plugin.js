@@ -504,7 +504,7 @@ describe('Store plugin', () => {
       });
       should(lunaris.clone(vm.$test)).eql([]);
       vm.$destroy();
-      lunaris._stores.test.data = lunaris._collection();
+      lunaris._stores.test.data.clear();
       lunaris._resetVersionNumber();
     });
 
@@ -524,7 +524,7 @@ describe('Store plugin', () => {
       });
       should(lunaris.clone(vm.$testObject)).eql(null);
       vm.$destroy();
-      lunaris._stores.testObject.data = lunaris._collection();
+      lunaris._stores.testObject.data.clear();
       lunaris._resetVersionNumber();
     });
 
@@ -550,7 +550,7 @@ describe('Store plugin', () => {
       });
       should(lunaris.clone(vm.$test)).eql([]);
       vm.$destroy();
-      lunaris._stores.test.data = lunaris._collection();
+      lunaris._stores.test.data.clear();
       lunaris._resetVersionNumber();
     });
 
@@ -576,7 +576,7 @@ describe('Store plugin', () => {
         { _id : 1, id : 1, _version : [3] }
       ]);
       vm.$destroy();
-      lunaris._stores.test.data = lunaris._collection();
+      lunaris._stores.test.data.clear()
       lunaris._resetVersionNumber();
     });
 
@@ -598,7 +598,7 @@ describe('Store plugin', () => {
       });
       should(lunaris.clone(vm.$testObject)).eql({ id : 1, _id : 1, _version : [3] });
       vm.$destroy();
-      lunaris._stores.testObject.data = lunaris._collection();
+      lunaris._stores.testObject.data.clear();
       lunaris._resetVersionNumber();
     });
 
@@ -631,7 +631,7 @@ describe('Store plugin', () => {
         { _id : 2, id : 2, _version : [3] }
       ]);
       vm.$destroy();
-      lunaris._stores.test.data = lunaris._collection();
+      lunaris._stores.test.data.clear();
       lunaris._resetVersionNumber();
     });
 
@@ -650,13 +650,16 @@ describe('Store plugin', () => {
         method    : 'DELETE',
         version   : 2
       });
-      should(lunaris.clone(vm.$test)).eql([{ _id : 1, id : 1, _version : [3] }]);
-      vm.$destroy();
-      lunaris._stores.test.data = lunaris._collection();
-      lunaris._resetVersionNumber();
+      setTimeout(done => {
+        should(lunaris.clone(vm.$test)).eql([{ _id : 1, id : 1, _version : [3] }]);
+        vm.$destroy();
+        lunaris._stores.test.data.clear();
+        lunaris._resetVersionNumber();
+        done();
+      }, 50);
     });
 
-    it('should rollback the inserted item : store object', () => {
+    it('should rollback the inserted item : store object', done => {
       const vm = new Vue({
         el     : '#app',
         stores : ['testObject'],
@@ -671,10 +674,13 @@ describe('Store plugin', () => {
         method    : 'DELETE',
         version   : 2
       });
-      should(lunaris.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [3] });
-      vm.$destroy();
-      lunaris._stores.testObject.data = lunaris._collection();
-      lunaris._resetVersionNumber();
+      setTimeout(() => {
+        should(lunaris.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [3] });
+        vm.$destroy();
+        lunaris._stores.testObject.data.clear();
+        lunaris._resetVersionNumber();
+        done();
+      }, 50);
     });
 
   });
