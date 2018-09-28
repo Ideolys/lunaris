@@ -650,16 +650,13 @@ describe('Store plugin', () => {
         method    : 'DELETE',
         version   : 2
       });
-      setTimeout(done => {
-        should(lunaris.clone(vm.$test)).eql([{ _id : 1, id : 1, _version : [3] }]);
-        vm.$destroy();
-        lunaris._stores.test.data.clear();
-        lunaris._resetVersionNumber();
-        done();
-      }, 50);
+      should(lunaris.clone(vm.$test)).eql([{ _id : 1, id : 1, _version : [3] }]);
+      vm.$destroy();
+      lunaris._stores.test.data.clear();
+      lunaris._resetVersionNumber();
     });
 
-    it('should rollback the inserted item : store object', done => {
+    it('should rollback the inserted item : store object', () => {
       const vm = new Vue({
         el     : '#app',
         stores : ['testObject'],
@@ -674,13 +671,10 @@ describe('Store plugin', () => {
         method    : 'DELETE',
         version   : 2
       });
-      setTimeout(() => {
-        should(lunaris.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [3] });
-        vm.$destroy();
-        lunaris._stores.testObject.data.clear();
-        lunaris._resetVersionNumber();
-        done();
-      }, 50);
+      should(lunaris.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [3] });
+      vm.$destroy();
+      lunaris._stores.testObject.data.clear();
+      lunaris._resetVersionNumber();
     });
 
   });

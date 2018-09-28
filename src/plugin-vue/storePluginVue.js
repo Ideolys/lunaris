@@ -353,7 +353,7 @@ lunaris._vue = {
             _data = lunaris._stores[lunarisError.storeName].data.get(lunarisError.data._id);
             if (_data) {
               lunaris.freeze(lunaris.clone(_data));
-              return _update(lunarisError.storeName)(_data);
+              _update(lunarisError.storeName)(_data);
             }
           }
         };

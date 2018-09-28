@@ -68,7 +68,10 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
         value._id  = _id;
       }
       _collection.upsert(value, _version);
-      _ids.push(value._id);
+
+      if (_ids) {
+        _ids.push(value._id);
+      }
     }
 
     value = _collection.commit(_version);

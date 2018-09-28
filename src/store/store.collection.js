@@ -200,6 +200,19 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
   }
 
   /**
+   * Remove a value from the id index
+   * @param {Int} _id
+   */
+  function _removeFromIndex (_id) {
+    var _arrayIdValues = _indexes.id[0];
+    var _search        = index.binarySearch(_arrayIdValues, _id);
+    if (_search.found) {
+      index.removeAt(_arrayIdValues, _search.index);
+      index.removeAt(_indexes.id[1], _search.index);
+    }
+  }
+
+  /**
    * Add some values to the collection
    * @param {*} values
    * @param {Int} versionNumber force versionNumber (must call begin() first)
@@ -252,7 +265,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
       return;
     }
 
-    for (var i = 0; i <_data.length; i++) {
+    for (var i = 0; i < _data.length; i++) {
       var _version      = _transactionVersionNumber || currentVersionNumber;
       var _lowerVersion = _data[i]._version[0];
       var _upperVersion = _data[i]._version[1] || _version;
@@ -305,6 +318,8 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
       _addTransaction(versionNumber, { _id : id }, OPERATIONS.DELETE);
       return;
     }
+
+    _removeFromIndex(id);
     return upsert({ _id : id }, versionNumber, true);
   }
 
@@ -429,6 +444,12 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
       data = [data];
     }
 
+    /**
+     * Update current object joins
+     * @param {Object} object
+     * @param {Object}} data
+     * @param {String} operation
+     */
     function _updateObject (object, data, operation) {
       if (operation === OPERATIONS.INSERT) {
         return _joinsDescriptor.joinFns[store].insert(object, data);
