@@ -576,7 +576,7 @@ describe('Store plugin', () => {
         { _id : 1, id : 1, _version : [3] }
       ]);
       vm.$destroy();
-      lunaris._stores.test.data.clear()
+      lunaris._stores.test.data.clear();
       lunaris._resetVersionNumber();
     });
 
