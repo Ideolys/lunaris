@@ -11,7 +11,8 @@ exports._stores = {
     paginationCurrentPage : 1,
     hooks                 : {},
     nameTranslated        : '${store.lunarisErrors}',
-    isLocal               : true
+    isLocal               : true,
+    storesToPropagate     : []
   }
 };
 // exports.baseUrl is only designed for tests in order to perform HTTP requests
