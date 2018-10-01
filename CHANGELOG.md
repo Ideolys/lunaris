@@ -2,6 +2,8 @@
 
 ## 1.5.0
 *2018-XX-XX*
+- Features :
+  + A store can be joined with another store. Use `@storeToJoin` in the map. The stores must have a map.
 
 ## 1.4.1
 *2018-09-26*

@@ -228,12 +228,8 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
       return;
     }
 
-    // The propagation only uses upsert method
-    if (!isFromUpsert) {
-      _setJoinValues(value);
-    }
-
     if (!(value._id && isFromUpsert)) {
+      _setJoinValues(value);
       value._id = _currentId;
       _currentId++;
     }

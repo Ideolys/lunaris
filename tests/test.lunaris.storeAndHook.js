@@ -2481,7 +2481,7 @@ describe('lunaris store', () => {
         joins       : _schema.meta.joins,
         joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
         collections : {
-          store1 : _store
+          store1 : _store.data
         }
       });
       _storeToPropagate.isLocal    = true;
@@ -2521,7 +2521,7 @@ describe('lunaris store', () => {
         joins       : _schema.meta.joins,
         joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
         collections : {
-          store1 : _store
+          store1 : _store.data
         }
       });
       _storeToPropagate.isLocal    = true;
@@ -2575,7 +2575,7 @@ describe('lunaris store', () => {
         joins       : _schema.meta.joins,
         joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
         collections : {
-          store1 : _store
+          store1 : _store.data
         }
       });
       _storeToPropagate.isLocal    = true;
@@ -2650,7 +2650,7 @@ describe('lunaris store', () => {
         joins       : _schema.meta.joins,
         joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
         collections : {
-          store1 : _store
+          store1 : _store.data
         }
       });
       _storeToPropagate.isLocal    = true;
@@ -2705,7 +2705,7 @@ describe('lunaris store', () => {
         joins       : _schema.meta.joins,
         joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
         collections : {
-          store1 : _store
+          store1 : _store.data
         }
       });
       _storeToPropagate.isLocal    = true;
@@ -2785,7 +2785,7 @@ describe('lunaris store', () => {
         joins       : _schema.meta.joins,
         joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
         collections : {
-          store1 : _store
+          store1 : _store.data
         }
       });
       _storeToPropagate.isLocal    = true;
@@ -2841,7 +2841,7 @@ describe('lunaris store', () => {
         joins       : _schema.meta.joins,
         joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
         collections : {
-          store1 : _store
+          store1 : _store.data
         }
       });
       _storeToPropagate.isLocal    = true;
@@ -2881,7 +2881,7 @@ describe('lunaris store', () => {
         joins       : _schema.meta.joins,
         joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
         collections : {
-          store1 : _store
+          store1 : _store.data
         }
       });
       _storeToPropagate.isLocal    = true;
@@ -2933,7 +2933,7 @@ describe('lunaris store', () => {
         joins       : _schema.meta.joins,
         joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
         collections : {
-          store1 : _store
+          store1 : _store.data
         }
       });
       _storeToPropagate.isLocal    = true;
@@ -3023,7 +3023,7 @@ describe('lunaris store', () => {
         joins       : _schema.meta.joins,
         joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
         collections : {
-          store1 : _store
+          store1 : _store.data
         }
       });
       _storeToPropagate.isLocal    = true;
@@ -3085,6 +3085,81 @@ describe('lunaris store', () => {
           }
         ]);
         done();
+      }, 50);
+    });
+
+    it('should propagate to a store with multiple joins', done => {
+      var _store                = initStore('store1', null, null, ['propagate']);
+      _store.isLocal            = true;
+      lunaris._stores['store1'] = _store;
+      var _store2               = initStore('store2', null, null, ['propagate']);
+      _store2.isLocal           = true;
+      lunaris._stores['store2'] = _store2;
+
+      var _objectDescriptor     = [{
+        id           : ['<<int>>'],
+        store1Values : ['@store1'],
+        store2Values : ['@store2']
+      }];
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        collections : {
+          store1 : _store.data,
+          store2 : _store2.data
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      lunaris.insert('@store1', { id : 1, label : 'A-1' });
+      lunaris.insert('@propagate', [{ id : 1 }]);
+
+      setTimeout(() => {
+        should(_storeToPropagate.data.getAll()).eql([
+          {
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              {
+                _id      : 1,
+                id       : 1,
+                label    : 'A-1',
+                _version : [1]
+              },
+            ],
+            store2Values : [],
+            _version     : [3]
+          }
+        ]);
+
+        lunaris.insert('@store2', { id : 1, label : 'A-2' });
+        setTimeout(() => {
+          should(_storeToPropagate.data.getAll()).eql([
+            {
+              _id          : 1,
+              id           : 1,
+              store1Values : [
+                {
+                  _id      : 1,
+                  id       : 1,
+                  label    : 'A-1',
+                  _version : [1],
+                },
+              ],
+              store2Values : [
+                { _id : 1, id : 1, label : 'A-2', _version : [4] }
+              ],
+              _version : [5]
+            }
+          ]);
+          done();
+        }, 20);
       }, 50);
     });
 

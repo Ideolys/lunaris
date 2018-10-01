@@ -24,8 +24,8 @@ function _propagate (store, data, operation) {
     var _store            = storeUtils.getStore('@' + _storeToPropagate);
     var _collection       = storeUtils.getCollection(_store);
     var _res              = _collection.propagate(store.name, data, operation);
-    if (_res) {
-      if (_store.isStoreObject && _res.length) {
+    if (_res && _res.length) {
+      if (_store.isStoreObject) {
         _res = _res[0];
       }
       _res = utils.cloneAndFreeze(_res);
