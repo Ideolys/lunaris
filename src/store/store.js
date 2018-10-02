@@ -363,8 +363,11 @@ function get (store, primaryKeyValue, retryOptions) {
       _request      = _request.request;
       var _ids      = _cache.get(_cacheFilters);
 
-      if (_ids.length) {
-        return hook.pushToHandlers(_store, 'get', utils.cloneAndFreeze(_collection.getAll(_ids)), true);
+      if (_ids) {
+        if (_ids.length) {
+          return hook.pushToHandlers(_store, 'get', utils.cloneAndFreeze(_collection.getAll(_ids)), true);
+        }
+        return hook.pushToHandlers(_store, 'get', [], true);
       }
     }
     else {

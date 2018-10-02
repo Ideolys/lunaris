@@ -4,6 +4,7 @@
 *2018-XX-XX*
 - Fix :
   + Change vue component hook to remove hooks.
+  + Empty arrays were not considarated as correct values in cache. As a consequence, HTTP requests were fired.
 
 ## 1.4.1
 *2018-09-26*

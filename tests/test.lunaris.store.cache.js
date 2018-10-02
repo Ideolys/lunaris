@@ -92,9 +92,25 @@ describe('store cache', () => {
 
   describe('get', () => {
 
+    it('should return null if no cached values', () => {
+      var _store = initStore('store');
+      var _cache = cache.getCache(_store);
+      should(_cache.get({
+        offset : 0,
+        limit  : 2,
+      })).eql(null);
+    });
+
     it('should return an array', () => {
       var _store = initStore('store');
       var _cache = cache.getCache(_store);
+
+      _cache.add({
+        offset : 0,
+        limit  : 2,
+      },
+      []);
+
       should(_cache.get({
         offset : 0,
         limit  : 2,
