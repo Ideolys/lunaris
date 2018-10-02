@@ -2,6 +2,8 @@
 
 ## 1.5.0
 *2018-XX-XX*
+- Fix :
+  + Change vue component hook to remove hooks.
 
 ## 1.4.1
 *2018-09-26*

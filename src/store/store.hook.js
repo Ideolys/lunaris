@@ -130,6 +130,7 @@ function registerHook (hook, handler, isUnique) {
     }
 
     _store.hooks[_hook.event].push(handler);
+    console.log(_store.name, 'register', hook);
   }
   catch (e) {
     logger.warn(['lunaris.hook:' + hook], e);
@@ -159,6 +160,7 @@ function removeHook (hook, handler) {
     for (var i = 0; i < _handlers.length; i++) {
       if (_handlers[i] === handler) {
         _handlers.splice(i, 1);
+        console.log(_store.name, 'remove', hook);
       }
     }
   }
@@ -190,6 +192,8 @@ function pushToHandlers (store, hook, payload, isMultipleArgsPayload) {
   if (!Array.isArray(payload)) {
     payload = [payload];
   }
+
+  console.log(2, new Date(), store.name, hook, payload);
 
   for (var i = 0; i < _storeHooks.length; i++) {
     if (isMultipleArgsPayload) {
