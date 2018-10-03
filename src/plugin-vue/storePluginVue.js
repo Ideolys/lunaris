@@ -207,12 +207,12 @@ lunaris._vue = {
         }
 
         // re-initialize current store
-        if (Array.isArray(lunaris._vue._vm.$data.$stores[_store].state)) {
-          lunaris._vue._vm.$data.$stores[_store].state.splice(0);
-        }
-        else {
-          lunaris._vue._vm.$data.$stores[_store].state = null;
-        }
+        // if (Array.isArray(lunaris._vue._vm.$data.$stores[_store].state)) {
+        //   lunaris._vue._vm.$data.$stores[_store].state.splice(0);
+        // }
+        // else {
+        //   lunaris._vue._vm.$data.$stores[_store].state = null;
+        // }
 
         if (lunaris._stores[_store]) {
           lunaris._stores[_store].paginationCurrentPage = 1;
@@ -371,8 +371,9 @@ lunaris._vue = {
         };
       },
 
-      beforeDestroy : function () {
+      beforeRouteLeave : function (to, from, next) {
         _removeHooks(this);
+        next();
       }
     });
   }

@@ -19,7 +19,6 @@ function cache () {
    * @param {Boolean} isUpdate  default false
    */
   function _getOrUpdateIds (filterValues, ids) {
-    var _res                 = [];
     var _reducedCachedValues = [];
     var _filterValueKeys     = Object.keys(filterValues);
 
@@ -58,7 +57,7 @@ function cache () {
       }
     }
 
-    return _res;
+    return null;
   }
 
   return {
@@ -75,7 +74,7 @@ function cache () {
 
       var _res = _getOrUpdateIds(filterValues, ids);
 
-      if (!_res.length) {
+      if (!_res) {
         _cache.push([filterValues, ids]);
       }
     },

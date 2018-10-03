@@ -4,6 +4,12 @@
 *2018-XX-XX*
 - Features :
   + A store can be joined with another store. Use `@storeToJoin` in the map. The stores must have a map.
+- Fix :
+  + Change vue component hook to remove hooks.
+  + Empty arrays were not considarated as correct values in cache. As a consequence, HTTP requests were fired.
+  + Add vue-color dependency https://github.com/xiaokaike/vue-color as color piker.
+  + Fix all version from package.json.
+  + Fix rights.
 
 ## 1.4.1
 *2018-09-26*

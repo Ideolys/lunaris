@@ -720,7 +720,10 @@ describe('Schema', () => {
       var _expectedDefaultValue = {
         id    : null,
         label : null,
-        obj   : null
+        obj   : {
+          dishes : [],
+          meals  : []
+        }
       };
 
       should(_computed.compilation.main0.level).eql(0);
@@ -769,7 +772,15 @@ describe('Schema', () => {
       var _expectedDefaultValue = {
         id    : null,
         label : null,
-        obj   : null
+        obj   : {
+          dishes : [],
+          info   : {
+            subinfo : {
+              meals  : [],
+              diners : []
+            }
+          }
+        }
       };
 
       // not very good because javascript does not guarantee object attribute order
@@ -1463,38 +1474,6 @@ describe('Schema', () => {
         };
         var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.compilation).eql(_expectedCompilationDescriptor);
-        should(_computed.defaultValue).eql(_expectedDefaultValue);
-      });
-
-      it('should set null for an object', () => {
-        var _expectedDefaultValue = {
-          id  : 4,
-          obj : null
-        };
-
-        var _objectDescriptor = {
-          id  : ['<<int>>', 4],
-          obj : ['object', {
-            label : ['string']
-          }]
-        };
-        var _computed = schema.analyzeDescriptor(_objectDescriptor);
-        should(_computed.defaultValue).eql(_expectedDefaultValue);
-      });
-
-      it('should set [] for an array', () => {
-        var _expectedDefaultValue = {
-          id  : 4,
-          obj : []
-        };
-
-        var _objectDescriptor = {
-          id  : ['<<int>>', 4],
-          obj : ['array', {
-            label : ['<<string>>']
-          }]
-        };
-        var _computed = schema.analyzeDescriptor(_objectDescriptor);
         should(_computed.defaultValue).eql(_expectedDefaultValue);
       });
     });
