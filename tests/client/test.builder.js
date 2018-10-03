@@ -21,7 +21,6 @@ describe('builder', () => {
 
     it('should propagate update', done => {
       lunaris.hook('update@child', item => {
-        console.log(item);
         should(item).eql([{
           _id      : 1,
           id       : 1,

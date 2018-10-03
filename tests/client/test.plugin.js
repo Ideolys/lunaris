@@ -12,6 +12,7 @@ describe('Store plugin', () => {
   afterEach(() => {
     lastError = [];
     lastTip   = [];
+    lunaris._vue._vm.$data.$stores['test'].state.splice(0); // reset
   });
 
   it('store define state in vue data', () => {
@@ -19,7 +20,10 @@ describe('Store plugin', () => {
     should(lunaris._vue._vm.$data.$stores).be.ok();
     should(lunaris._vue._vm.$data.$stores.test).be.ok();
     should(lunaris.clone(lunaris._vue._vm.$data.$stores.test)).eql({
-      silent : true, state : [], isStoreObject : false, form : {}
+      silent        : true,
+      state         : [],
+      isStoreObject : false,
+      form          : {}
     });
   });
 
@@ -95,6 +99,7 @@ describe('Store plugin', () => {
 
     should(lunaris._stores.test.hooks.errorHttp).have.lengthOf(1);
     should(lunaris._stores.test.hooks.errorHttp[0].name).eql('errorHttp');
+    vm.$destroy();
   });
 
   it('other hooks must be not destroyed when component is', () => {
@@ -130,21 +135,22 @@ describe('Store plugin', () => {
     vm.$destroy();
   });
 
-  it('should reset the state if another component require the same store', () => {
+  it('should not reset the state if another component requires the same store', () => {
     const vm = new Vue({
       el     : '#app',
       stores : ['test'],
     });
 
-    var _payload = [{ id : 1, label : 'A' }, { id : 2, label : 'B' }];
+    var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get', Object.freeze(_payload), true);
+    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(lunaris.clone(_payload));
 
     const vm2 = new Vue({
       el     : '#app',
       stores : ['test'],
     });
 
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([]);
+    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(lunaris.clone(_payload));
     vm.$destroy();
     vm2.$destroy();
   });
@@ -155,7 +161,7 @@ describe('Store plugin', () => {
       stores : ['testObject'],
     });
 
-    var _payload = { id : 1, label : 'A' };
+    var _payload = { _id : 1, id : 1, label : 'A' };
     lunaris.pushToHandlers(lunaris._stores.testObject, 'get', Object.freeze(_payload));
     should(lunaris.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql(_payload);
 

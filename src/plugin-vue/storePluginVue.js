@@ -371,6 +371,10 @@ lunaris._vue = {
         };
       },
 
+      beforeDestroy : function () {
+        _removeHooks(this);
+      },
+
       beforeRouteLeave : function (to, from, next) {
         _removeHooks(this);
         next();
