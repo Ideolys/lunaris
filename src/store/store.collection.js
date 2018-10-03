@@ -1,5 +1,6 @@
 var utils      = require('../utils.js');
 var OPERATIONS = utils.OPERATIONS;
+var aggregates = require('./store.aggregate.js').aggregates;
 
 /**
  * Version number :
@@ -166,7 +167,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
       }
     }
 
-    _joinsDescriptor.joinFns.set(value, _joinValues);
+    _joinsDescriptor.joinFns.set(value, _joinValues, aggregates);
   }
 
   /**
@@ -448,14 +449,14 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
      */
     function _updateObject (object, data, operation) {
       if (operation === OPERATIONS.INSERT) {
-        return _joinsDescriptor.joinFns[store].insert(object, data);
+        return _joinsDescriptor.joinFns[store].insert(object, data, aggregates);
       }
       else if (operation === OPERATIONS.DELETE) {
-        return _joinsDescriptor.joinFns[store].delete(object, data);
+        return _joinsDescriptor.joinFns[store].delete(object, data, aggregates);
       }
       else if (operation === OPERATIONS.UPDATE) {
         _joinsDescriptor.joinFns[store].delete(object, data);
-        return _joinsDescriptor.joinFns[store].insert(object, data);
+        return _joinsDescriptor.joinFns[store].insert(object, data, aggregates);
       }
     }
 

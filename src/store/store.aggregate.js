@@ -11,6 +11,10 @@ var aggregates = {
 
     remove : function (prevValue, value) {
       return (prevValue || this.init.start) - (value || this.init.start);
+    },
+
+    getStartValue : function () {
+      return this.init.start;
     }
   }
 };

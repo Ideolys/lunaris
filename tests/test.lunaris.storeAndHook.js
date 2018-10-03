@@ -2479,7 +2479,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data
         }
@@ -2519,7 +2519,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data
         }
@@ -2573,7 +2573,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data
         }
@@ -2648,7 +2648,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data
         }
@@ -2703,7 +2703,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data
         }
@@ -2783,7 +2783,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data
         }
@@ -2839,7 +2839,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data
         }
@@ -2879,7 +2879,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data
         }
@@ -2931,7 +2931,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data
         }
@@ -3021,7 +3021,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data
         }
@@ -3104,7 +3104,7 @@ describe('lunaris store', () => {
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('propagate', _objectDescriptor, {
         joins       : _schema.meta.joins,
-        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins),
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates),
         collections : {
           store1 : _store.data,
           store2 : _store2.data
