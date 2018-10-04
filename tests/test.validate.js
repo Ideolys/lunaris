@@ -1424,7 +1424,8 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               id : []
             }
           };
@@ -1465,7 +1466,8 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               id : null
             }
           };
@@ -1506,7 +1508,8 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               id : []
             }
           };
@@ -1551,7 +1554,8 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               id : null
             }
           };
@@ -1610,7 +1614,8 @@ describe('Validate', () => {
                 keys : [ 'test' ]
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               obj : []
             }
           };
@@ -1654,7 +1659,8 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               obj : []
             }
           };
@@ -1700,7 +1706,8 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               obj : []
             }
           };
@@ -1740,7 +1747,8 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               obj : []
             }
           };
@@ -1780,7 +1788,8 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               obj : []
             }
           };
@@ -1824,7 +1833,8 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               obj : []
             }
           };
@@ -1874,7 +1884,8 @@ describe('Validate', () => {
                 objTrans   : {obj : 'idMenu'},
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               obj : []
             }
           };
@@ -2017,7 +2028,8 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            defaultValue : {
+            virtualCompilation : {},
+            defaultValue       : {
               id        : null,
               continent : null,
               countries : []
@@ -2055,6 +2067,145 @@ describe('Validate', () => {
           done();
         });
 
+        it('should validate a custom join : object', () => {
+          var _objectDescriptor = {
+            id    : ['<<id>>'],
+            total : ['sum', '@elements.cost']
+          };
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2, join_elements : [] })).eql([]);
+        });
+
+        it('should validate a custom join : array', () => {
+          var _objectDescriptor = [{
+            id    : ['<<id>>'],
+            total : ['sum', '@elements.cost']
+          }];
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2, join_elements : [] })).eql([]);
+        });
+
+        it('should validate a join : array', () => {
+          var _objectDescriptor = [{
+            id       : ['<<id>>'],
+            total    : ['sum', 'elements.cost'],
+            elements : ['@elements']
+          }];
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2, elements : [] })).eql([]);
+        });
+
+        it('should validate a join : object', () => {
+          var _objectDescriptor = {
+            id       : ['<<id>>'],
+            total    : ['sum', 'elements.cost'],
+            elements : ['@elements']
+          };
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2, elements : [] })).eql([]);
+        });
+
+        it('should validate a join : object', () => {
+          var _objectDescriptor = {
+            id       : ['<<id>>'],
+            elements : ['@elements'],
+            total    : ['sum', 'elements.cost']
+          };
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2, elements : [] })).eql([]);
+        });
+
+        it('should validate a join : array', () => {
+          var _objectDescriptor = [{
+            id       : ['<<id>>'],
+            elements : ['@elements'],
+            total    : ['sum', 'elements.cost']
+          }];
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2, elements : [] })).eql([]);
+        });
+
+        it('should validate a custom join : object && undefined', () => {
+          var _objectDescriptor = {
+            id    : ['<<id>>'],
+            total : ['sum', '@elements.cost']
+          };
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2 })).eql([]);
+        });
+
+        it('should validate a custom join : array && undefined', () => {
+          var _objectDescriptor = [{
+            id    : ['<<id>>'],
+            total : ['sum', '@elements.cost']
+          }];
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2 })).eql([]);
+        });
+
+        it('should validate a join : array && undefined', () => {
+          var _objectDescriptor = [{
+            id       : ['<<id>>'],
+            total    : ['sum', 'elements.cost'],
+            elements : ['@elements']
+          }];
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2 })).eql([]);
+        });
+
+        it('should validate a join : object && undefined', () => {
+          var _objectDescriptor = {
+            id       : ['<<id>>'],
+            total    : ['sum', 'elements.cost'],
+            elements : ['@elements']
+          };
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2 })).eql([]);
+        });
+
+        it('should validate a join : object && undefined', () => {
+          var _objectDescriptor = {
+            id       : ['<<id>>'],
+            elements : ['@elements'],
+            total    : ['sum', 'elements.cost']
+          };
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2 })).eql([]);
+        });
+
+        it('should validate a join : array && undefined', () => {
+          var _objectDescriptor = [{
+            id       : ['<<id>>'],
+            elements : ['@elements'],
+            total    : ['sum', 'elements.cost']
+          }];
+          var _schema = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_schema.compilation);
+
+          should(_validateFunction({ id : 2, total : 2 })).eql([]);
+        });
 
       }); /* end describe test */
     });

@@ -1019,7 +1019,8 @@ describe('Schema', () => {
             keys  : []
           }
         },
-        defaultValue : {
+        virtualCompilation : {},
+        defaultValue       : {
           id        : null,
           continent : null,
           countries : []
@@ -1154,7 +1155,8 @@ describe('Schema', () => {
             keys  : [],
           }
         },
-        defaultValue : {
+        virtualCompilation : {},
+        defaultValue       : {
           id        : null,
           continent : null,
           countries : []
@@ -1490,7 +1492,7 @@ describe('Schema', () => {
           elements : 'elements'
         });
 
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
@@ -1523,7 +1525,7 @@ describe('Schema', () => {
           elements : 'elements'
         });
 
-        var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true } }, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true } }, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = { _id : 1, id : 1, cost : 1 };
         var _joinValues     = { elements : _expectedValues };
@@ -1551,7 +1553,7 @@ describe('Schema', () => {
           elements2 : 'elements2'
         });
 
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
@@ -1594,7 +1596,7 @@ describe('Schema', () => {
           elements : 'object.elements',
         });
 
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
@@ -1627,7 +1629,7 @@ describe('Schema', () => {
           elements : 'objects.elements',
         });
 
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
@@ -1656,6 +1658,7 @@ describe('Schema', () => {
           total : ['sum', '@elements.cost']
         };
         var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
         should(_schema.meta.joins).eql({
           elements : 'join_elements'
         });
@@ -1663,7 +1666,7 @@ describe('Schema', () => {
           elements : ['sum', 'total', 'join_elements.cost']
         });
 
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
@@ -1702,7 +1705,7 @@ describe('Schema', () => {
           elements2 : ['sum', 'total2', 'join_elements2.price']
         });
 
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
@@ -1754,7 +1757,7 @@ describe('Schema', () => {
           elements : ['sum', 'object.total', 'object.join_elements.cost'],
         });
 
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = [
           { _id : 1, id : 1, cost : 1 },
@@ -1793,7 +1796,7 @@ describe('Schema', () => {
           elements : ['sum', 'objects.total', 'objects.join_elements.price'],
         });
 
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = [
           { _id : 1, id : 1, price : 1 },
@@ -1839,7 +1842,7 @@ describe('Schema', () => {
           elements : ['sum', 'objects.total', 'objects.elements.price'],
         });
 
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = [
           { _id : 1, id : 1, price : 1 },
@@ -1885,7 +1888,7 @@ describe('Schema', () => {
           elements : ['sum', 'objects.total', 'objects.elements.price'],
         });
 
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _expectedValues = [
           { _id : 1, id : 1, price : 1 },
@@ -1930,7 +1933,7 @@ describe('Schema', () => {
             elements : ['sum', 'total', 'elements.cost'],
           });
 
-          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
           var _obj = {
             id       : 1,
@@ -1957,7 +1960,7 @@ describe('Schema', () => {
             elements : ['sum', 'total', 'elements.cost'],
           });
 
-          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
           var _obj = {
             id       : 1,
@@ -1990,7 +1993,7 @@ describe('Schema', () => {
             parts : ['sum', 'elements.total', 'elements.costs.parts.cost'],
           });
 
-          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
           var _obj = {
             id       : 1,
@@ -2061,7 +2064,7 @@ describe('Schema', () => {
             parts : ['sum', 'elements.total', 'elements.costs.parts.cost'],
           });
 
-          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
           var _obj = {
             id       : 1,

@@ -168,7 +168,7 @@ describe('lunaris internal collection', () => {
           elements : ['@elements']
         };
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true }}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(null, getPrimaryKey, false, {
@@ -202,7 +202,7 @@ describe('lunaris internal collection', () => {
           elements : ['@elements']
         };
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
-        var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true }}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true }}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _elements         = collection(null, getPrimaryKey, true , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(null, getPrimaryKey, false, {
@@ -237,7 +237,7 @@ describe('lunaris internal collection', () => {
           elements : ['@elements']
         };
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(null, getPrimaryKey, false, {
@@ -286,7 +286,7 @@ describe('lunaris internal collection', () => {
           elements : ['@elements']
         };
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(null, getPrimaryKey, false, {
@@ -339,7 +339,7 @@ describe('lunaris internal collection', () => {
           elements : ['@elements']
         };
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(null, getPrimaryKey, false, {
@@ -387,7 +387,7 @@ describe('lunaris internal collection', () => {
           elements : ['@elements']
         };
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(null, getPrimaryKey, false, {
@@ -438,7 +438,7 @@ describe('lunaris internal collection', () => {
           elements : ['@elements']
         };
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(null, getPrimaryKey, false, {
@@ -485,7 +485,7 @@ describe('lunaris internal collection', () => {
           elements : ['@elements']
         };
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
         var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(null, getPrimaryKey, false, {

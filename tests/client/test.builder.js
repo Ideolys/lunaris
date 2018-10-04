@@ -1,9 +1,16 @@
 describe('builder', () => {
 
+  beforeEach(() => {
+    lunaris.clear('@child');
+    lunaris.clear('@childAggregate');
+    lunaris.clear('@parent');
+    lunaris._resetVersionNumber();
+  });
+
   describe('joins', () => {
 
     it('should have found joins', () => {
-      should(lunaris._stores.parent.storesToPropagate).eql(['child']);
+      should(lunaris._stores.parent.storesToPropagate).eql(['child', 'childAggregate']);
       should(lunaris._stores.child.joins.joins).eql({ parent : 'parent' });
     });
 
@@ -15,8 +22,6 @@ describe('builder', () => {
         _version : [1],
         parent   : []
       }]);
-      lunaris.clear('@child');
-      lunaris._resetVersionNumber();
     });
 
     it('should propagate update', done => {
@@ -36,6 +41,35 @@ describe('builder', () => {
 
       lunaris.insert('@child' , { id : 1 });
       lunaris.insert('@parent', { id : 1 });
+    });
+
+    it('should propagate update and calculate aggregate', done => {
+      lunaris.hook('update@childAggregate', item => {
+        should(item).eql([{
+          _id      : 1,
+          _version : [4],
+          id       : 1,
+          total    : 4,
+          parent   : [
+            {
+              _id      : 1,
+              id       : 1,
+              price    : 1,
+              _version : [2]
+            },
+            {
+              _id      : 2,
+              id       : 2,
+              price    : 3,
+              _version : [2]
+            }
+          ]
+        }]);
+        done();
+      });
+
+      lunaris.insert('@childAggregate' , { id : 1 });
+      lunaris.insert('@parent', [{ id : 1, price : 1 }, { id : 2, price : 3 }]);
     });
 
 
