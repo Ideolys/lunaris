@@ -4,6 +4,7 @@
 *2018-XX-XX*
 - Features :
   + A store can be joined with another store. Use `@storeToJoin` in the map. The stores must have a map.
+  + Add support for aggregates for joins.
 - Fix :
   + Change vue component hook to remove hooks.
   + Empty arrays were not considarated as correct values in cache. As a consequence, HTTP requests were fired.
