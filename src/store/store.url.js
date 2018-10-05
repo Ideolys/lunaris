@@ -70,10 +70,13 @@ function _getFilterValuesHTTPRequest (store, method) {
 
     var _sourceStore = storeUtils.getStore(_filter.source);
     var _sourceValue = storeUtils.getCollection(_sourceStore).getAll();
-    if (!Array.isArray(_sourceValue)) {
+    if (_sourceValue && !Array.isArray(_sourceValue)) {
       _sourceValue = [_sourceValue];
     }
-    var _methods     = [];
+    else {
+      _sourceValue = [];
+    }
+    var _methods = [];
     if (_filter.httpMethods) {
       if (Array.isArray(_filter.httpMethods)) {
         _methods = _filter.httpMethods;
