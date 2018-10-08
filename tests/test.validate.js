@@ -1436,6 +1436,7 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1478,6 +1479,7 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1520,6 +1522,7 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1566,6 +1569,7 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1627,6 +1631,7 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1670,6 +1675,7 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1717,6 +1723,7 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1758,6 +1765,7 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1799,6 +1807,7 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1841,15 +1850,19 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<idMenu>']});
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<   idMenu>']});
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<  idMenu   >']});
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '   < idMenu   >  ']});
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1892,15 +1905,19 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<idMenu>>']});
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<   idMenu>>']});
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<  idMenu   >>']});
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '   << idMenu   >>  ']});
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -2063,6 +2080,7 @@ describe('Validate', () => {
           // Compute the result
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
+          delete _computed.aggregateFn;
           should(_computed).eql(_expectedTreeDescriptor);
           done();
         });

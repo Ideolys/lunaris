@@ -2150,7 +2150,7 @@ describe('Schema', () => {
 
   });
 
-  describe.skip('aggregates', () => {
+  describe('aggregates', () => {
 
     describe('set', () => {
       it('should throw an error if no attribute is defined after the aggregate', () => {
@@ -2251,7 +2251,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -2272,7 +2272,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -2295,7 +2295,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id : 1
@@ -2315,7 +2315,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -2346,7 +2346,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -2394,7 +2394,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -2435,7 +2435,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -2510,7 +2510,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -2602,7 +2602,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
         var _obj         = {
           id       : 1,
           elements : [
@@ -2672,7 +2672,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -2705,7 +2705,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
         var _obj = {
           id       : 1,
           elements : [
@@ -2750,7 +2750,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
         var _obj = {
           id       : 1,
           elements : [
@@ -2795,7 +2795,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
         var _obj = {
           id       : 1,
           elements : [
@@ -2840,7 +2840,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -2887,7 +2887,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -2964,7 +2964,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
 
         var _obj = {
           id       : 1,
@@ -3053,7 +3053,7 @@ describe('Schema', () => {
           }]
         };
         var _schema      = schema.analyzeDescriptor(_objectDescriptor);
-        var _aggregateFn = schema.getAggregateFn({ test : _schema }, _schema.compilation, _schema.meta.aggregates, _schema.meta.aggregatesSort, _schema.meta.joins);
+        var _aggregateFn = _schema.aggregateFn;
         var _obj         = {
           id       : 1,
           elements : [
@@ -3134,6 +3134,136 @@ describe('Schema', () => {
         should(_obj.elements2[0]['total']).eql(0);
         should(_obj.elements2[1]['total']).be.Number();
         should(_obj.elements2[1]['total']).eql(24);
+      });
+    });
+
+    describe('delete', () => {
+      it('should update the aggregate value : update (root level) by delete element', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          total    : ['sum', 'elements.cost'],
+          elements : ['array', {
+            id   : ['<<id>>'],
+            cost : ['number']
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.aggregateFn;
+
+        var _obj = {
+          id       : 1,
+          elements : [
+            { id : 2, cost : 2 },
+            { id : 3, cost : 4 },
+            { id : 3, cost : 1 }
+          ]
+        };
+
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(7);
+
+        _obj.elements.push({ id : 1, cost : 3 });
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(10);
+
+        _obj.elements.splice(1, 1);
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(6);
+      });
+
+      it('should update aggregate values : update (imbricated aggregate) by delete element', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.aggregateFn;
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              parts : [
+                { id : 2, cost : 3 },
+                { id : 3, cost : 4 },
+              ]
+            },
+            {
+              id    : '1-2',
+              parts : [
+                { id : 4, cost : 4 },
+                { id : 5, cost : 3 },
+                { id : 6, cost : 6 }
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(20);
+        should(_obj.elements[0]['total']).eql(7);
+
+        _obj.elements[0].parts.push({ id : 1, cost : 3 });
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.elements[0].total).eql(10);
+        should(_obj.total).eql(23);
+
+        _obj.elements[0].parts.splice(0, 1);
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.elements[0].total).eql(7);
+        should(_obj.total).eql(20);
+      });
+
+      it('should update aggregate values : update (imbricated aggregate) by delete element', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          total    : ['sum', 'elements.total'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sum', 'parts.cost'],
+            parts : ['array', {
+              id   : ['<<int>>'],
+              cost : ['number']
+            }]
+          }]
+        };
+        var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+        var _aggregateFn = _schema.aggregateFn;
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              parts : [
+                { id : 2, cost : 3 },
+                { id : 3, cost : 4 },
+              ]
+            },
+            {
+              id    : '1-2',
+              parts : [
+                { id : 4, cost : 4 },
+                { id : 5, cost : 3 },
+                { id : 6, cost : 6 }
+              ]
+            }
+          ]
+        };
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.total).eql(20);
+        should(_obj.elements[0]['total']).eql(7);
+
+        _obj.elements[0].parts.splice(0, 1);
+        _aggregateFn(_obj, aggregates.aggregates);
+        should(_obj.elements[0].total).eql(4);
+        should(_obj.total).eql(17);
       });
     });
   });

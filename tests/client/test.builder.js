@@ -72,7 +72,39 @@ describe('builder', () => {
       lunaris.insert('@parent', [{ id : 1, price : 1 }, { id : 2, price : 3 }]);
     });
 
+    it('should calculate aggregate value', () => {
+      lunaris.insert('@childAggregateSum' , {
+        id       : 1,
+        total    : 4,
+        parent   : [
+          {
+            id   : 1,
+            cost : 1,
+          },
+          {
+            id   : 2,
+            cost : 3,
+          }
+        ]
+      });
 
+      should(lunaris._stores.childAggregateSum.data.getAll()).eql([{
+        _id      : 1,
+        _version : [1],
+        id       : 1,
+        total    : 4,
+        parent   : [
+          {
+            id   : 1,
+            cost : 1,
+          },
+          {
+            id   : 2,
+            cost : 3,
+          }
+        ]
+      }]);
+    });
   });
 
 });

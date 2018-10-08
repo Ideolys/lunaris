@@ -117,8 +117,9 @@ var index = {
  *  }
  *  collections : {Object} key / value (store / value to store)
  * }
+ * @param {Function} aggregateFn function to set aggregate values
  */
-function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
+function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn) {
   var _data                     = [];
   var _currentId                = startId && typeof startId === 'number' ? startId : 1;
   var _transactions             = {};
@@ -128,6 +129,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
   var _joinsDescriptor          = joinsDescriptor || {};
   var _joins                    = joinsDescriptor ? Object.keys(_joinsDescriptor.joins) : [];
   var _getPrimaryKey            = getPrimaryKeyFn;
+  var _aggregateFn              = aggregateFn;
   /**
    * id : [[id], [_id]]
    */
@@ -231,6 +233,9 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor) {
 
     if (!(value._id && isFromUpsert)) {
       _setJoinValues(value);
+      if (_aggregateFn) {
+        _aggregateFn(value, aggregates);
+      }
       value._id = _currentId;
       _currentId++;
     }

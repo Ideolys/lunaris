@@ -161,7 +161,7 @@ describe('lunaris internal collection', () => {
       should(_index[1]).eql([1]);
     });
 
-    describe('join / propagate', () => {
+    describe('join / propagate / aggregate', () => {
       it('should join a store', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
@@ -520,6 +520,101 @@ describe('lunaris internal collection', () => {
             elements : [],
             _id      : 1,
             _version : [4]
+          }
+        ]);
+      });
+
+      it('should set aggregate values', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          sum      : ['sum', 'elements.cost'],
+          elements : ['array', {
+            id   : ['<<int>>'],
+            cost : ['number']
+          }]
+        };
+        var _schema   = schema.analyzeDescriptor(_objectDescriptor);
+        var _elements = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, _schema.aggregateFn);
+
+        _elements.add({
+          id       : 1,
+          elements : [
+            { id : 1, cost : 1 },
+            { id : 2, cost : 2 },
+            { id : 3, cost : 6 },
+          ]
+        });
+
+        should(_elements._getAll()).eql([
+          {
+            id       : 1,
+            sum      : 9,
+            elements : [
+              { id : 1, cost : 1 },
+              { id : 2, cost : 2 },
+              { id : 3, cost : 6 },
+            ],
+            _id      : 1,
+            _version : [1]
+          }
+        ]);
+      });
+
+      it('should set aggregate values and join values', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          sum      : ['sum', 'elements.cost'],
+          elements : ['array', {
+            id   : ['<<int>>'],
+            cost : ['number']
+          }],
+          total : ['sum', '@elements.cost']
+        };
+        var _schema   = schema.analyzeDescriptor(_objectDescriptor);
+        var _joinFns  = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(
+          null,
+          getPrimaryKey,
+          false,
+          {
+            joins       : _schema.meta.joins,
+            joinFns     : _joinFns,
+            collections : {
+              elements : _elements
+            }
+          },
+          _schema.aggregateFn
+        );
+
+        _elements.add({ id : 1, cost : 1 });
+        _elements.add({ id : 2, cost : 2 });
+
+        _elementsOverview.add({
+          id       : 1,
+          elements : [
+            { id : 1, cost : 1 },
+            { id : 2, cost : 2 },
+            { id : 3, cost : 6 },
+          ]
+        });
+
+        should(_elementsOverview._getAll()).eql([
+          {
+            id       : 1,
+            sum      : 9,
+            elements : [
+              { id : 1, cost : 1 },
+              { id : 2, cost : 2 },
+              { id : 3, cost : 6 },
+            ],
+            total         : 3,
+            join_elements : [
+              { id : 1, cost : 1 , _id : 1, _version : [1]},
+              { id : 2, cost : 2 , _id : 2, _version : [2]},
+            ],
+            _id      : 1,
+            _version : [3]
           }
         ]);
       });
