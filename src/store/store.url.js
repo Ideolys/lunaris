@@ -73,7 +73,7 @@ function _getFilterValuesHTTPRequest (store, method) {
     if (_sourceValue && !Array.isArray(_sourceValue)) {
       _sourceValue = [_sourceValue];
     }
-    else {
+    else if (!_sourceValue) {
       _sourceValue = [];
     }
     var _methods = [];
