@@ -226,7 +226,7 @@ describe('lunaris store', () => {
 
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post Error when validating data');
-      should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 1});
+      should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 1, index : 0});
     });
 
     it('should update a value', done => {
@@ -749,7 +749,7 @@ describe('lunaris store', () => {
 
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post Error when validating data');
-      should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 1});
+      should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 1, index : 1});
     });
 
     it('should update a value', () => {
