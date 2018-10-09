@@ -73,7 +73,6 @@ describe('builder', () => {
 
       lunaris.insert('@childAggregate' , { id : 1 });
       lunaris.insert('@parent', [{ id : 1, price : 1 }, { id : 2, price : 3 }]);
-      console.log(lastError);
     });
 
     it('should calculate aggregate value', () => {

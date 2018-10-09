@@ -92,7 +92,7 @@ describe('directive v-lunaris', () => {
 
     should(lastError.length).eql(2);
     should(lastError[0]).eql('[Lunaris warn] v-lunaris');
-    should(lastError[1]).eql([{ value: 'Dog', field: 'id', error: 'must be an integer' }]);
+    should(lastError[1]).eql([{ value: 'Dog', field: 'id', error: 'must be an integer', index : null }]);
 
     vm.$destroy();
   });
