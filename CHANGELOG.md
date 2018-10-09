@@ -9,6 +9,7 @@
       - MAX
       - COUNT
       - AVG
+
     Two types of aggregate are supported : external and internal. External aggregate depends on a joined store whereas internal aggregate does not.
 - Fix :
   + Change vue component hook to remove hooks.
