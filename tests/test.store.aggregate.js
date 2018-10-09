@@ -150,4 +150,114 @@ describe.only('aggregate', () => {
       should(_avg).eql({ value : 4, count : 1 });
     });
   });
+
+  describe('min', () => {
+
+    it('should start at 0', () => {
+      var _aggregate = aggregates.min;
+      should(_aggregate.init.start).eql(null);
+    });
+
+    it('getStartValue should return 0', () => {
+      var _aggregate = aggregates.min;
+      should(_aggregate.getStartValue()).eql(null);
+    });
+
+    it('should set min value and return the min', () => {
+      var _aggregate = aggregates.min;
+      var _min       = _aggregate.add(null, 2);
+      should(_min).eql({ value : 2, values : [2] });
+      _min = _aggregate.add({ value : 2, values : [2] }, 1);
+      should(_min).eql({ value : 1, values : [1, 2] });
+    });
+
+    it('should not alter the init value', () => {
+      var _aggregate = aggregates.min;
+      var _min       = _aggregate.add(null, 2);
+      should(_min).eql({ value : 2, values : [2] });
+      should(_aggregate.init.start).eql(null);
+      should(_aggregate.init.values).eql([]);
+    });
+
+    it('should take undefined in paramters', () => {
+      var _aggregate = aggregates.min;
+      var _min       = _aggregate.add(null, undefined);
+      should(_min).eql({ value : null, values : [] });
+    });
+
+    it('should remove value and return the min', () => {
+      var _aggregate = aggregates.min;
+      var _min       = _aggregate.add(null, 2);
+      should(_min).eql({ value : 2, values : [2] });
+      _min = _aggregate.add({ value : 2, values : [2] }, 4);
+      should(_min).eql({ value : 2, values : [2, 4] });
+      _min = _aggregate.remove({ value : 2, values : [2, 4] }, 2);
+      should(_min).eql({ value : 4, values : [4] });
+    });
+
+    it('should do not crash if the values does not exist', () => {
+      var _aggregate = aggregates.min;
+      var _min       = _aggregate.add(null, 2);
+      should(_min).eql({ value : 2, values : [2] });
+      _min = _aggregate.add({ value : 2, values : [2] }, 4);
+      should(_min).eql({ value : 2, values : [2, 4] });
+      _min = _aggregate.remove({ value : 2, values : [2, 4] }, 5);
+      should(_min).eql({ value : 2, values : [2, 4] });
+    });
+  });
+
+  describe('max', () => {
+
+    it('should start at 0', () => {
+      var _aggregate = aggregates.max;
+      should(_aggregate.init.start).eql(null);
+    });
+
+    it('getStartValue should return 0', () => {
+      var _aggregate = aggregates.max;
+      should(_aggregate.getStartValue()).eql(null);
+    });
+
+    it('should set max value and return the max', () => {
+      var _aggregate = aggregates.max;
+      var _max       = _aggregate.add(null, 2);
+      should(_max).eql({ value : 2, values : [2] });
+      _max = _aggregate.add({ value : 2, values : [2] }, 1);
+      should(_max).eql({ value : 2, values : [1, 2] });
+    });
+
+    it('should not alter the init value', () => {
+      var _aggregate = aggregates.max;
+      var _max       = _aggregate.add(null, 2);
+      should(_max).eql({ value : 2, values : [2] });
+      should(_aggregate.init.start).eql(null);
+      should(_aggregate.init.values).eql([]);
+    });
+
+    it('should take undefined in paramters', () => {
+      var _aggregate = aggregates.max;
+      var _max       = _aggregate.add(null, undefined);
+      should(_max).eql({ value : null, values : [] });
+    });
+
+    it('should remove value and return the max', () => {
+      var _aggregate = aggregates.max;
+      var _max       = _aggregate.add(null, 2);
+      should(_max).eql({ value : 2, values : [2] });
+      _max = _aggregate.add({ value : 2, values : [2] }, 4);
+      should(_max).eql({ value : 4, values : [2, 4] });
+      _max = _aggregate.remove({ value : 4, values : [2, 4] }, 4);
+      should(_max).eql({ value : 2, values : [2] });
+    });
+
+    it('should do not crash if the values does not exist', () => {
+      var _aggregate = aggregates.max;
+      var _max       = _aggregate.add(null, 2);
+      should(_max).eql({ value : 2, values : [2] });
+      _max = _aggregate.add({ value : 2, values : [2] }, 4);
+      should(_max).eql({ value : 4, values : [2, 4] });
+      _max = _aggregate.remove({ value : 4, values : [2, 4] }, 5);
+      should(_max).eql({ value : 4, values : [2, 4] });
+    });
+  });
 });

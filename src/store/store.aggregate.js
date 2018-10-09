@@ -42,6 +42,98 @@ var count = {
   }
 };
 
+var min = {
+  type : '*',
+  init : {
+    start  : null,
+    values : []
+  },
+  add : function (prevState, value) {
+    if (!prevState) {
+      prevState = {
+        value  : this.init.start,
+        values : []
+      };
+    }
+
+    if (!value) {
+      return prevState;
+    }
+
+    prevState.values.push(value);
+    prevState.values.sort();
+    prevState.value = prevState.values[0];
+    return prevState;
+  },
+  remove : function (prevState, value) {
+    if (!prevState) {
+      prevState = { value : this.init.start, values : [] };
+    }
+
+    if (!prevState.value) {
+      return prevState;
+    }
+
+    var _index = prevState.values.indexOf(value);
+    if (_index !== -1) {
+      prevState.values.splice(_index, 1);
+      prevState.values.sort();
+      prevState.value = prevState.values[0];
+    }
+
+    return prevState;
+  },
+  getStartValue : function () {
+    return this.init.start;
+  }
+};
+
+var max = {
+  type : '*',
+  init : {
+    start  : null,
+    values : []
+  },
+  add : function (prevState, value) {
+    if (!prevState) {
+      prevState = {
+        value  : this.init.start,
+        values : []
+      };
+    }
+
+    if (!value) {
+      return prevState;
+    }
+
+    prevState.values.push(value);
+    prevState.values.sort();
+    prevState.value = prevState.values[prevState.values.length - 1];
+    return prevState;
+  },
+  remove : function (prevState, value) {
+    if (!prevState) {
+      prevState = { value : this.init.start, values : [] };
+    }
+
+    if (!prevState.value) {
+      return prevState;
+    }
+
+    var _index = prevState.values.indexOf(value);
+    if (_index !== -1) {
+      prevState.values.splice(_index, 1);
+      prevState.values.sort();
+      prevState.value = prevState.values[prevState.values.length - 1];
+    }
+
+    return prevState;
+  },
+  getStartValue : function () {
+    return this.init.start;
+  }
+};
+
 var avg = {
   type : 'number',
   init : {
@@ -89,6 +181,8 @@ var aggregates = {
   sum   : sum,
   count : count,
   avg   : avg,
+  min   : min,
+  max   : max
 };
 
 exports.aggregates = aggregates;
