@@ -46,10 +46,13 @@ describe('builder', () => {
     it('should propagate update and calculate aggregate', done => {
       lunaris.hook('update@childAggregate', item => {
         should(item).eql([{
-          _id      : 1,
-          _version : [4],
-          id       : 1,
-          total    : 4,
+          _id          : 1,
+          _version     : [4],
+          id           : 1,
+          total        : 4,
+          _total_state : {
+            value : 4
+          },
           parent   : [
             {
               _id      : 1,
@@ -70,6 +73,7 @@ describe('builder', () => {
 
       lunaris.insert('@childAggregate' , { id : 1 });
       lunaris.insert('@parent', [{ id : 1, price : 1 }, { id : 2, price : 3 }]);
+      console.log(lastError);
     });
 
     it('should calculate aggregate value', () => {
