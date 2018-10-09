@@ -4,8 +4,12 @@
 *2018-XX-XX*
 - Features :
   + A store can be joined with another store. Use `@storeToJoin` in the map. The stores must have a map.
-  + Add support for aggregates for joins.
-  + Add support for in-store aggregates.
+  + Add support for aggregates :
+    - MIN
+    - MAX
+    - COUNT
+    - AVG
+    Two types of aggregate or supported : external and internal. External aggregate depends on a joined store whereas internal aggregate does not.
 - Fix :
   + Change vue component hook to remove hooks.
   + Empty arrays were not considarated as correct values in cache. As a consequence, HTTP requests were fired.

@@ -1,6 +1,6 @@
 const aggregates = require('../src/store/store.aggregate').aggregates;
 
-describe.only('aggregate', () => {
+describe('aggregate', () => {
 
   it('should be an object', () => {
     should(aggregates).be.an.Object();
