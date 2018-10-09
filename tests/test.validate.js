@@ -466,13 +466,13 @@ describe('Validate', () => {
           }];
           var _objectToCheck = [{
             id        : 1,
-            continent : 'france'
+            continent : 'france',
           },{
             id        : 'bullshit',
-            continent : 'england'
+            continent : 'england',
           }
           ];
-          var _expectedResult     = [{ value : 'bullshit', field : 'id', error : '${must be an integer}' }];
+          var _expectedResult     = [{ value : 'bullshit', field : 'id', index: 1, error : '${must be an integer}' }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult     = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck, null, true);
           should(_computedResult).eql(_expectedResult);
@@ -564,7 +564,7 @@ describe('Validate', () => {
             id        : 'wrongValue',
             continent : 'france'
           };
-          var _expectedResult = [{ value : 'wrongValue', field : 'id', error : '${must be an integer}' }];
+          var _expectedResult = [{ value : 'wrongValue', field : 'id', error : '${must be an integer}', index : null }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
           should(_computedResult).eql(_expectedResult);
@@ -607,7 +607,7 @@ describe('Validate', () => {
             }]
           };
           var _expectedResult = [
-            { value : [{ temperature : '5degree' }], field : 'info', error : '${must be an object}' }
+            { value : [{ temperature : '5degree' }], field : 'info', error : '${must be an object}', index : null }
           ];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
@@ -630,7 +630,7 @@ describe('Validate', () => {
               temperature : 5
             }
           };
-          var _expectedResult = [{ value : 5, field : 'info[temperature]', error : '${must be a string}' }];
+          var _expectedResult = [{ value : 5, field : 'info[temperature]', error : '${must be a string}', index : null }];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
           var _computedResult = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck);
           should(_computedResult).eql(_expectedResult);
@@ -1071,8 +1071,8 @@ describe('Validate', () => {
           should(_validateFunction({ id : 'B', label : 'A' }).length).eql(1);
           should(_validateFunction({ id : 'B', label : 1 }).length).eql(2);
           should(_validateFunction({ id : 'B', label : 1 })).eql([
-            { value : 'B', field : 'id'   , error : '${must be an integer}' },
-            { value : 1  , field : 'label', error : '${must be a string}'   }
+            { value : 'B', field : 'id'   , error : '${must be an integer}', index : null },
+            { value : 1  , field : 'label', error : '${must be a string}', index : null   }
           ]);
         });
 
@@ -1097,13 +1097,14 @@ describe('Validate', () => {
 
           should(_result).have.lengthOf(3);
           should(_result).eql([
-            { value : 'B', field : 'id', error : '${must be an integer}' },
+            { value : 'B', field : 'id', error : '${must be an integer}', index : null },
             {
               value : { price : 1 },
               field : 'prices',
-              error : '${must be an array}'
+              error : '${must be an array}',
+              index : null
             },
-            { value : 'total', field : 'total', error : '${must be a number}'   }
+            { value : 'total', field : 'total', error : '${must be a number}', index : null   }
           ]);
         });
 
