@@ -547,8 +547,11 @@ describe('lunaris internal collection', () => {
 
         should(_elements._getAll()).eql([
           {
-            id       : 1,
-            sum      : 9,
+            id         : 1,
+            sum        : 9,
+            _sum_state : {
+              value : 9
+            },
             elements : [
               { id : 1, cost : 1 },
               { id : 2, cost : 2 },
@@ -601,14 +604,20 @@ describe('lunaris internal collection', () => {
 
         should(_elementsOverview._getAll()).eql([
           {
-            id       : 1,
-            sum      : 9,
+            id         : 1,
+            sum        : 9,
+            _sum_state : {
+              value : 9
+            },
             elements : [
               { id : 1, cost : 1 },
               { id : 2, cost : 2 },
               { id : 3, cost : 6 },
             ],
-            total         : 3,
+            total        : 3,
+            _total_state : {
+              value : 3
+            },
             join_elements : [
               { id : 1, cost : 1 , _id : 1, _version : [1]},
               { id : 2, cost : 2 , _id : 2, _version : [2]},
