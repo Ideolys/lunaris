@@ -11,6 +11,7 @@
       - AVG
 
     Two types of aggregate are supported : external and internal. External aggregate depends on a joined store whereas internal aggregate does not.
+  + Add details in validation error messages when using `min` and/or `max`.
 - Fix :
   + Change vue component hook to remove hooks.
   + Empty arrays were not considarated as correct values in cache. As a consequence, HTTP requests were fired.

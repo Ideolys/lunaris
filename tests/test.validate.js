@@ -1058,6 +1058,41 @@ describe('Validate', () => {
           should(_validateFunction({ id : {} }).length).eql(1);
         });
 
+        it('should build a function which and concatenate erorr messages', () => {
+          var _objectDescriptor = {
+            id  : ['int', 'min', 1],
+            id2 : ['int', 'min', 1, 'max', 3],
+            id3 : ['numeric', 'min', 1],
+            id4 : ['numeric', 'min', 1, 'max', 3],
+            id5 : ['decimal', 'min', 1],
+            id6 : ['decimal', 'min', 1, 'max', 3],
+            id7 : ['string', 'min', 1],
+            id8 : ['string', 'min', 1, 'max', 3]
+          };
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction   = validate.buildValidateFunction(_analyzedDescriptor.compilation);
+          var _objToValidate      = {
+            id  : 0,
+            id2 : 4,
+            id3 : 0,
+            id4 : 4,
+            id5 : 0,
+            id6 : 4,
+            id7 : '',
+            id8 : 'abcd',
+          };
+          should(_validateFunction(_objToValidate)).eql([
+            { value : 0     , field : 'id' , index : null, error : '${must be an integer} ${and must be superior or equal to} 1'},
+            { value : 4     , field : 'id2', index : null, error : '${must be an integer} ${and must be superior or equal to} 1 ${and must be inferior or equal to} 3'},
+            { value : 0     , field : 'id3', index : null, error : '${must be a numeric value} ${and must be superior or equal to} 1'},
+            { value : 4     , field : 'id4', index : null, error : '${must be a numeric value} ${and must be superior or equal to} 1 ${and must be inferior or equal to} 3'},
+            { value : 0     , field : 'id5', index : null, error : '${must be a decimal} ${and must be superior or equal to} 1'},
+            { value : 4     , field : 'id6', index : null, error : '${must be a decimal} ${and must be superior or equal to} 1 ${and must be inferior or equal to} 3'},
+            { value : ''    , field : 'id7', index : null, error : '${must be a string} ${and the length must be superior or equal to} 1'},
+            { value : 'abcd', field : 'id8', index : null, error : '${must be a string} ${and the length must be superior or equal to} 1 ${and the length must be inferior or equal to} 3'},
+          ]);
+        });
+
         it('should build a function which returns multiple errors', () => {
           var _objectDescriptor = {
             id    : ['int'],
