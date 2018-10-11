@@ -3318,28 +3318,24 @@ describe('lunaris store', () => {
       _store.data.add(_childObj2);
       _store.data.add(_childObj3);
 
-      var _nbCalled = 0;
       lunaris.hook('update@store1', res => {
-        _nbCalled++;
-        if (_nbCalled === 1) {
-          should(res).eql([
-            {
-              id       : 2,
-              label    : 'A-1',
-              parent   : null,
-              _id      : 2,
-              _version : [6]
-            },
-            {
-              id       : 3,
-              label    : 'A-2',
-              parent   : null,
-              _id      : 3,
-              _version : [6]
-            }
-          ]);
-          done();
-        }
+        should(res).eql([
+          {
+            id       : 2,
+            label    : 'A-1',
+            parent   : null,
+            _id      : 2,
+            _version : [6]
+          },
+          {
+            id       : 3,
+            label    : 'A-2',
+            parent   : null,
+            _id      : 3,
+            _version : [6]
+          }
+        ]);
+        done();
       });
 
       lunaris.delete('@store1', {

@@ -1,9 +1,10 @@
-describe.only('builder', () => {
+describe('builder', () => {
 
   beforeEach(() => {
     lunaris.clear('@child');
     lunaris.clear('@childAggregate');
     lunaris.clear('@parent');
+    lunaris.clear('@childParent');
     lunaris._resetVersionNumber();
   });
 
@@ -109,16 +110,14 @@ describe.only('builder', () => {
       }]);
     });
 
-    it.only('should propagate reflexive update', done => {
+    it('should propagate reflexive update', done => {
       var _parentObj = {
-        _id    : 1,
         id     : 1,
         label  : 'A',
         parent : null
       };
 
       var _childObj = {
-        _id    : 2,
         id     : 2,
         label  : 'A-1',
         parent : {
@@ -129,7 +128,6 @@ describe.only('builder', () => {
       };
 
       var _childObj2 = {
-        _id    : 3,
         id     : 3,
         label  : 'A-2',
         parent : {
@@ -140,7 +138,6 @@ describe.only('builder', () => {
       };
 
       var _childObj3 = {
-        _id    : 4,
         id     : 4,
         label  : 'C',
         parent : null
@@ -154,24 +151,99 @@ describe.only('builder', () => {
       var _nbCalled = 0;
       lunaris.hook('update@childParent', items => {
         _nbCalled++;
-        console.log(items);
-        if (_nbCalled === 1) {
-          should(items).eql([{
-            _id      : 1,
-            id       : 1,
-            _version : [3],
-            parent   : [{
-              _id      : 1,
-              id       : 1,
-              _version : [2]
-            }]
-          }]);
+        if (_nbCalled === 2) {
+          should(items).eql([
+            {
+              id     : 2,
+              label  : 'A-1',
+              parent : {
+                id       : 1,
+                label    : 'B',
+                _id      : 1,
+                _version : [5]
+              },
+              _id      : 2,
+              _version : [6]
+            },
+            {
+              id     : 3,
+              label  : 'A-2',
+              parent : {
+                id       : 1,
+                label    : 'B',
+                _id      : 1,
+                _version : [5]
+              },
+              _id      : 3,
+              _version : [6]
+            }
+          ]);
           done();
         }
       });
 
       lunaris.update('@childParent', { _id : 1, id : 1, label : 'B' });
-      console.log(lastError);
+    });
+
+    it('should propagate reflexive delete', done => {
+      var _parentObj = {
+        id     : 1,
+        label  : 'A',
+        parent : null
+      };
+
+      var _childObj = {
+        id     : 2,
+        label  : 'A-1',
+        parent : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj2 = {
+        id     : 3,
+        label  : 'A-2',
+        parent : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj3 = {
+        id     : 4,
+        label  : 'C',
+        parent : null
+      };
+
+      lunaris.insert('@childParent', _parentObj);
+      lunaris.insert('@childParent', _childObj);
+      lunaris.insert('@childParent', _childObj2);
+      lunaris.insert('@childParent', _childObj3);
+
+      lunaris.hook('update@childParent', items => {
+        should(items).eql([
+          {
+            id       : 2,
+            label    : 'A-1',
+            parent   : null,
+            _id      : 2,
+            _version : [6]
+          },
+          {
+            id       : 3,
+            label    : 'A-2',
+            parent   : null,
+            _id      : 3,
+            _version : [6]
+          }
+        ]);
+        done();
+      });
+
+      lunaris.delete('@childParent', { _id : 1 });
     });
   });
 

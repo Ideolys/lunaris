@@ -11,6 +11,7 @@
       - AVG
 
     Two types of aggregate are supported : external and internal. External aggregate depends on a joined store whereas internal aggregate does not.
+  + Store reflexive relasionships are supported. Use `@storeName` in the map to reference the relation.
   + Add details in validation error messages when using `min` and/or `max`.
 - Fix :
   + Change vue component hook to remove hooks.
