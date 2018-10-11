@@ -631,6 +631,163 @@ describe('lunaris internal collection', () => {
     });
   });
 
+  describe('propagateReflexive', () => {
+    it ('should be defined', () => {
+      var _elements         = collection(null, getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}});
+      should(_elements.propagateReflexive).be.a.Function();
+    });
+
+    it('should update objects : update', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+
+      var _parentObj = {
+        _id     : 1,
+        id      : 1,
+        label   : 'B',
+        element : null
+      };
+
+      var _childObj = {
+        _id     : 2,
+        id      : 2,
+        label   : 'A-1',
+        element : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj2 = {
+        _id     : 3,
+        id      : 3,
+        label   : 'A-2',
+        element : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj3 = {
+        _id     : 4,
+        id      : 4,
+        label   : 'C',
+        element : null
+      };
+
+      var elements = collection(null, _schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
+      elements.add(_parentObj);
+      elements.add(_childObj);
+      elements.add(_childObj2);
+      elements.add(_childObj3);
+
+      var _res = elements.propagateReflexive(_parentObj, utils.OPERATIONS.UPDATE);
+      should(_res.length).eql(2);
+      should(_res).eql([
+        {
+          id      : 2,
+          label   : 'A-1',
+          element : {
+            id       : 1,
+            label    : 'B',
+            _id      : 1,
+            _version : [1]
+          },
+          _id      : 2,
+          _version : [5]
+        },
+        {
+          id      : 3,
+          label   : 'A-2',
+          element : {
+            id       : 1,
+            label    : 'B',
+            _id      : 1,
+            _version : [1]
+          },
+          _id      : 3,
+          _version : [5]
+        }
+      ]);
+    });
+
+    it('should update objects : delete', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+
+      var _parentObj = {
+        _id     : 1,
+        id      : 1,
+        label   : 'B',
+        element : null
+      };
+
+      var _childObj = {
+        _id     : 2,
+        id      : 2,
+        label   : 'A-1',
+        element : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj2 = {
+        _id     : 3,
+        id      : 3,
+        label   : 'A-2',
+        element : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj3 = {
+        _id     : 4,
+        id      : 4,
+        label   : 'C',
+        element : null
+      };
+
+      var elements = collection(null, _schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
+      elements.add(_parentObj);
+      elements.add(_childObj);
+      elements.add(_childObj2);
+      elements.add(_childObj3);
+
+      var _res = elements.propagateReflexive(_parentObj, utils.OPERATIONS.DELETE);
+      should(_res.length).eql(2);
+      should(_res).eql([
+        {
+          id       : 2,
+          label    : 'A-1',
+          element  : null,
+          _id      : 2,
+          _version : [5]
+        },
+        {
+          id       : 3,
+          label    : 'A-2',
+          element  : null,
+          _id      : 3,
+          _version : [5]
+        }
+      ]);
+    });
+  });
+
   describe('remove()', () => {
     it('should remove the item', () => {
       var _collection = collection(null, getPrimaryKey);

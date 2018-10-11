@@ -118,8 +118,9 @@ var index = {
  *  collections : {Object} key / value (store / value to store)
  * }
  * @param {Function} aggregateFn function to set aggregate values
+ * @param {Object} reflexiveFns { update : {Function}, delete : {Function} }
  */
-function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn) {
+function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, reflexiveFns) {
   var _data                     = [];
   var _currentId                = startId && typeof startId === 'number' ? startId : 1;
   var _transactions             = {};
@@ -130,6 +131,8 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
   var _joins                    = joinsDescriptor ? Object.keys(_joinsDescriptor.joins) : [];
   var _getPrimaryKey            = getPrimaryKeyFn;
   var _aggregateFn              = aggregateFn;
+  var _reflexiveUpdateFn        = reflexiveFns ? reflexiveFns.update : null;
+  var _reflexiveDeleteFn        = reflexiveFns ? reflexiveFns.delete : null;
   /**
    * id : [[id], [_id]]
    */
@@ -488,17 +491,53 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
     return commit(_version);
   }
 
+  /**
+   * Propagate reflexive update
+   * @param {String} store
+   * @param {Object/Array} data object to delete or insert
+   * @param {String} operation
+   */
+  function propagateReflexive (objParent, operation) {
+    if (!_reflexiveUpdateFn) {
+      return;
+    }
+
+    var _version = begin();
+    for (var i = 0; i < _data.length; i++) {
+      var _item         = _data[i];
+      var _lowerVersion = _item._version[0];
+      var _upperVersion = _item._version[1];
+      if (_lowerVersion <= currentVersionNumber && !_upperVersion && _item._id !== objParent._id) {
+        // Remember, we cannot directly edit a value from the collection (clone)
+        var _obj = utils.clone(_item);
+        if (operation === OPERATIONS.DELETE) {
+          _obj = _reflexiveDeleteFn(_getPrimaryKey, objParent, _obj);
+        }
+        else if (operation === OPERATIONS.UPDATE) {
+          _obj = _reflexiveUpdateFn(_getPrimaryKey, objParent, _obj);
+        }
+
+        if (_obj) {
+          upsert(_obj, _version);
+        }
+      }
+    }
+
+    return commit(_version);
+  }
+
   return {
-    get       : get,
-    add       : add,
-    upsert    : upsert,
-    remove    : remove,
-    clear     : clear,
-    getFirst  : getFirst,
-    begin     : begin,
-    commit    : commit,
-    rollback  : rollback,
-    propagate : propagate,
+    get                : get,
+    add                : add,
+    upsert             : upsert,
+    remove             : remove,
+    clear              : clear,
+    getFirst           : getFirst,
+    begin              : begin,
+    commit             : commit,
+    rollback           : rollback,
+    propagate          : propagate,
+    propagateReflexive : propagateReflexive,
 
     _getIndexId : function () {
       return _indexes.id;

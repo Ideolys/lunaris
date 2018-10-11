@@ -882,7 +882,8 @@ describe('Schema', () => {
           externalAggregates : {},
           aggregates         : {},
           aggregatesSort     : [],
-          joins              : {}
+          joins              : {},
+          reflexive          : null
         },
         getPrimaryKey : function getPrimaryKey (item) { var _pk = null;
           if (!item['id']) {
@@ -1024,7 +1025,8 @@ describe('Schema', () => {
           id        : null,
           continent : null,
           countries : []
-        }
+        },
+        reflexiveFn : null
       };
 
       var _objectDescriptor = {
@@ -1083,7 +1085,8 @@ describe('Schema', () => {
           externalAggregates : {},
           aggregates         : {},
           aggregatesSort     : [],
-          joins              : {}
+          joins              : {},
+          reflexive          : null
         },
         getPrimaryKey : function getPrimaryKey (item) { var _pk = null;
           if (!item['id']) {
@@ -1160,7 +1163,8 @@ describe('Schema', () => {
           id        : null,
           continent : null,
           countries : []
-        }
+        },
+        reflexiveFn : null
       };
 
       var _objectDescriptor = [{
@@ -2091,6 +2095,268 @@ describe('Schema', () => {
         });
       });
 
+    });
+
+    describe('reflexive', () => {
+      it ('should find a reflexive', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'elements');
+        should(_schema.meta.joins).eql({});
+        should(_schema.meta.reflexive).eql('elements');
+      });
+
+      it ('should not find a reflexive', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element1');
+        should(_schema.meta.joins).eql({
+          elements : 'elements'
+        });
+        should(_schema.meta.reflexive).eql(null);
+      });
+
+      it ('should find a reflexive and build reflexiveFn', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'elements');
+        should(_schema.meta.joins).eql({});
+        should(_schema.meta.reflexive).eql('elements');
+        should(_schema.reflexiveFn).be.an.Object();
+        should(_schema.reflexiveFn.update).be.a.Function();
+        should(_schema.reflexiveFn.delete).be.a.Function();
+      });
+
+      it ('reflexiveFn should find and replace the object if id === id', () => {
+        var _objectDescriptor = {
+          id      : ['<<id>>'],
+          label   : ['string'],
+          element : ['@element']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+        var _parentObj = {
+          id      : 1,
+          label   : 'B',
+          element : null
+        };
+
+        var _childObj = {
+          id      : 2,
+          label   : 'A',
+          element : {
+            id    : 1,
+            label : 'A'
+          }
+        };
+
+        _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
+        should(_childObj.element).eql(
+          {
+            id    : 1,
+            label : 'B'
+          }
+        );
+      });
+
+      it ('reflexiveFn should return null if id !== id', () => {
+        var _objectDescriptor = {
+          id      : ['<<id>>'],
+          label   : ['string'],
+          element : ['@element']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+        var _parentObj = {
+          id      : 1,
+          label   : 'B',
+          element : null
+        };
+
+        var _childObj = {
+          id      : 2,
+          label   : 'A',
+          element : {
+            id    : 3,
+            label : 'A'
+          }
+        };
+
+        _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
+        should(_childObj).eql(null);
+      });
+
+      it ('reflexiveFn should find and replace the object if _id === _id', () => {
+        var _objectDescriptor = {
+          id      : ['<<id>>'],
+          label   : ['string'],
+          element : ['@element']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+        var _parentObj = {
+          _id     : 1,
+          id      : null,
+          label   : 'B',
+          element : null
+        };
+
+        var _childObj = {
+          _id     : 2,
+          id      : null,
+          label   : 'A',
+          element : {
+            _id   : 1,
+            id    : null,
+            label : 'A'
+          }
+        };
+
+        _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
+        should(_childObj.element.label).eql('B');
+      });
+
+      it ('reflexiveFn should return null if _id !== _id', () => {
+        var _objectDescriptor = {
+          id      : ['<<id>>'],
+          label   : ['string'],
+          element : ['@element']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+        var _parentObj = {
+          _id     : 1,
+          id      : null,
+          label   : 'B',
+          element : null
+        };
+
+        var _childObj = {
+          _id     : 2,
+          id      : null,
+          label   : 'A',
+          element : {
+            _id   : 3,
+            id    : null,
+            label : 'A'
+          }
+        };
+
+        _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
+        should(_childObj).eql(null);
+      });
+
+      it ('reflexiveFn should delete the object if _id === _id', () => {
+        var _objectDescriptor = {
+          id      : ['<<id>>'],
+          label   : ['string'],
+          element : ['@element']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+        var _parentObj = {
+          _id     : 1,
+          id      : null,
+          label   : 'B',
+          element : null
+        };
+
+        var _childObj = {
+          _id     : 2,
+          id      : null,
+          label   : 'A',
+          element : {
+            _id   : 1,
+            id    : null,
+            label : 'A'
+          }
+        };
+
+        _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
+        should(_childObj.element).eql(null);
+      });
+
+      it ('reflexiveFn should delete the object if id === id', () => {
+        var _objectDescriptor = {
+          id      : ['<<id>>'],
+          label   : ['string'],
+          element : ['@element']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+        var _parentObj = {
+          id      : 1,
+          label   : 'B',
+          element : null
+        };
+
+        var _childObj = {
+          id      : 2,
+          label   : 'A',
+          element : {
+            id    : 1,
+            label : 'A'
+          }
+        };
+
+        _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
+        should(_childObj.element).eql(null);
+      });
+
+      it ('reflexiveFn should return null if _id !== _id', () => {
+        var _objectDescriptor = {
+          id      : ['<<id>>'],
+          label   : ['string'],
+          element : ['@element']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+        var _parentObj = {
+          _id     : 1,
+          id      : null,
+          label   : 'B',
+          element : null
+        };
+
+        var _childObj = {
+          _id     : 2,
+          id      : null,
+          label   : 'A',
+          element : {
+            _id   : 3,
+            id    : null,
+            label : 'A'
+          }
+        };
+
+        _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
+        should(_childObj).eql(null);
+      });
+
+      it ('reflexiveFn should return null if id !== id', () => {
+        var _objectDescriptor = {
+          id      : ['<<id>>'],
+          label   : ['string'],
+          element : ['@element']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+        var _parentObj = {
+          id      : 1,
+          label   : 'B',
+          element : null
+        };
+
+        var _childObj = {
+          id      : 2,
+          label   : 'A',
+          element : {
+            id    : 3,
+            label : 'A'
+          }
+        };
+
+        _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
+        should(_childObj).eql(null);
+      });
     });
 
   });

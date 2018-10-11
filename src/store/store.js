@@ -9,6 +9,22 @@ var template    = require('./store.template.js');
 var emptyObject = {};
 
 /**
+ * Push commit res objects to handlers
+ * @param {Object} store
+ * @param {String} hookKey
+ * @param {Array} res
+ */
+function _pushCommitResToHandlers (store, hookKey, res) {
+  if (res && res.length) {
+    if (store.isStoreObject) {
+      res = res[0];
+    }
+    res = utils.cloneAndFreeze(res);
+    hook.pushToHandlers(store, hookKey, res, Array.isArray(res));
+  }
+}
+
+/**
  * Propagate store actions to the dependent stores (joins)
  * @param {Object} store
  * @param {Object} data
@@ -24,14 +40,24 @@ function _propagate (store, data, operation) {
     var _store            = storeUtils.getStore('@' + _storeToPropagate);
     var _collection       = storeUtils.getCollection(_store);
     var _res              = _collection.propagate(store.name, data, operation);
-    if (_res && _res.length) {
-      if (_store.isStoreObject) {
-        _res = _res[0];
-      }
-      _res = utils.cloneAndFreeze(_res);
-      hook.pushToHandlers(_store, 'update', _res, Array.isArray(_res));
-    }
+    _pushCommitResToHandlers(_store, 'update', _res);
   }
+}
+
+/**
+ * Update reflexive deps
+ * @param {Object} store
+ * @param {Object} collection
+ * @param {Object} obj parent object
+ * @param {String} operation
+ */
+function _propagateReflexive (store, collection, obj, operation) {
+  if (!store.meta || (store.meta && !store.meta.meta.reflexive)) {
+    return;
+  }
+
+  var _res = collection.propagateReflexive(obj, operation);
+  _pushCommitResToHandlers(store, 'update', _res);
 }
 
 /**
@@ -85,6 +111,9 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
 
     hook.pushToHandlers(store, isUpdate ? 'update' : 'insert', value, _isMultipleItems);
     _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT);
+    if (isUpdate) {
+      _propagateReflexive(store, _collection, utils.clone(value),  utils.OPERATIONS.UPDATE);
+    }
   }
   else {
     _version = retryOptions.version;
@@ -173,6 +202,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       hook.pushToHandlers(store, 'filterUpdated');
     }
     _propagate(store, value, utils.OPERATIONS.UPDATE);
+    _propagateReflexive(store, _collection, utils.clone(value), utils.OPERATIONS.UPDATE);
   });
 }
 
@@ -259,6 +289,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
       }
       hook.pushToHandlers(_store, 'delete', value);
       _propagate(_store, value, utils.OPERATIONS.DELETE);
+      _propagateReflexive(_store, _collection, utils.clone(value), utils.OPERATIONS.DELETE);
       _cache.invalidate(value._id);
     }
     else {

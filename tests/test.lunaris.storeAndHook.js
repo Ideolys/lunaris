@@ -3165,6 +3165,194 @@ describe('lunaris store', () => {
 
   });
 
+  describe('propagateReflexive', () => {
+
+    it('should update objects : update', done => {
+      var _objectDescriptor = [{
+        id     : ['<<id>>'],
+        label  : ['string'],
+        parent : ['@store1']
+      }];
+
+      var _store                = initStore('store1', _objectDescriptor);
+      lunaris._stores['store1'] = _store;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+
+      var _parentObj = {
+        _id    : 1,
+        id     : 1,
+        label  : 'A',
+        parent : null
+      };
+
+      var _childObj = {
+        _id    : 2,
+        id     : 2,
+        label  : 'A-1',
+        parent : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj2 = {
+        _id    : 3,
+        id     : 3,
+        label  : 'A-2',
+        parent : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj3 = {
+        _id    : 4,
+        id     : 4,
+        label  : 'C',
+        parent : null
+      };
+
+      _store.data.add(_parentObj);
+      _store.data.add(_childObj);
+      _store.data.add(_childObj2);
+      _store.data.add(_childObj3);
+
+      var _nbCalled = 0;
+      lunaris.hook('update@store1', res => {
+        _nbCalled++;
+        if (_nbCalled === 2) {
+          should(res).eql([
+            {
+              id     : 2,
+              label  : 'A-1',
+              parent : {
+                id       : 1,
+                label    : 'B',
+                _id      : 1,
+                _version : [5]
+              },
+              _id      : 2,
+              _version : [6]
+            },
+            {
+              id     : 3,
+              label  : 'A-2',
+              parent : {
+                id       : 1,
+                label    : 'B',
+                _id      : 1,
+                _version : [5]
+              },
+              _id      : 3,
+              _version : [6]
+            }
+          ]);
+          done();
+        }
+      });
+
+      lunaris.update('@store1', {
+        _id    : 1,
+        id     : 1,
+        label  : 'B',
+        parent : null
+      });
+    });
+
+    it('should update objects : delete', done => {
+      var _objectDescriptor = [{
+        id     : ['<<id>>'],
+        label  : ['string'],
+        parent : ['@store1']
+      }];
+
+      var _store                = initStore('store1', _objectDescriptor);
+      lunaris._stores['store1'] = _store;
+
+      lunaris.hook('errorHttp@store1', err => {
+        done(err);
+      });
+
+      var _parentObj = {
+        _id    : 1,
+        id     : 1,
+        label  : 'A',
+        parent : null
+      };
+
+      var _childObj = {
+        _id    : 2,
+        id     : 2,
+        label  : 'A-1',
+        parent : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj2 = {
+        _id    : 3,
+        id     : 3,
+        label  : 'A-2',
+        parent : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj3 = {
+        _id    : 4,
+        id     : 4,
+        label  : 'C',
+        parent : null
+      };
+
+      _store.data.add(_parentObj);
+      _store.data.add(_childObj);
+      _store.data.add(_childObj2);
+      _store.data.add(_childObj3);
+
+      var _nbCalled = 0;
+      lunaris.hook('update@store1', res => {
+        _nbCalled++;
+        if (_nbCalled === 1) {
+          should(res).eql([
+            {
+              id       : 2,
+              label    : 'A-1',
+              parent   : null,
+              _id      : 2,
+              _version : [6]
+            },
+            {
+              id       : 3,
+              label    : 'A-2',
+              parent   : null,
+              _id      : 3,
+              _version : [6]
+            }
+          ]);
+          done();
+        }
+      });
+
+      lunaris.delete('@store1', {
+        _id    : 1,
+        id     : 1,
+        label  : 'B',
+        parent : null
+      });
+    });
+  });
+
 });
 
 function _startServer (callback) {
