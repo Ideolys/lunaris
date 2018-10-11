@@ -77,7 +77,6 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
   var _ids = [];
   if (!retryOptions) {
     _version = _collection.begin();
-
     if (_isMultipleItems) {
       for (var i = 0; i < value.length; i++) {
         value[i] = utils.clone(value[i]);
@@ -178,8 +177,13 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       value = utils.cloneAndFreeze(value);
     }
     else {
-      value = utils.merge(lunaris.clone(value), data);
-      value = _collection.upsert(value);
+      value    = utils.merge(lunaris.clone(value), data);
+      _version = _collection.begin();
+      _collection.upsert(value, _version);
+      value = _collection.commit(_version);
+      if (value.length) {
+        value = value[0];
+      }
       // the value must have been deleted
       if (value) {
         value = utils.cloneAndFreeze(value);

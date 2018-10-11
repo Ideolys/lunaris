@@ -128,7 +128,7 @@ describe('lunaris store', () => {
       lunaris.hook('inserted@store1', (data, message) => {
         _isUpdatedHook = true;
         should(data).eql(Object.assign(_expectedValue, {
-          body     : { _id : 1, id : 2, label : 'A', _version : [ 1 ] },
+          body     : { _id : 1, id : 2, label : 'A' },
           query    : {},
           params   : {},
           _version : [2]
@@ -265,7 +265,7 @@ describe('lunaris store', () => {
       lunaris.hook('updated@store1', (data, message) => {
         _isUpdatedHook = true;
         should(data).eql(Object.assign(_expectedValue, {
-          body     : { _id : 1, id : 1, label : 'B', _version : [ 2 ] },
+          body     : { _id : 1, id : 1, label : 'B'},
           query    : {},
           params   : { id : '1' },
           _version : [3]
@@ -434,7 +434,7 @@ describe('lunaris store', () => {
       var _isInsertedHook       = false;
       var _isUpdatedHook        = false;
       var _store                = initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [3] };
+      var _expectedValue        = { _id : 1, id : 1, label : 'A' };
       lunaris._stores['optional'] = initStore('optional');
       lunaris._stores['optional'].isStoreObject = true;
       lunaris._stores['optional'].data.add({
@@ -479,7 +479,7 @@ describe('lunaris store', () => {
         should(data.params).eql({ id : '1', idSite : '2' });
         should(data.query).eql({ search : 'category:=A' });
         should(data.body).be.ok();
-        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [5] });
+        should(data.body).eql({ _id : 1, id : 1, label : 'A' });
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -497,7 +497,7 @@ describe('lunaris store', () => {
       var _isInsertedHook       = false;
       var _isUpdatedHook        = false;
       var _store                = initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [3] };
+      var _expectedValue        = { _id : 1, id : 1, label : 'A' };
       lunaris._stores['optional'] = initStore('optional');
       lunaris._stores['optional'].data.add({
         site : 2
@@ -542,7 +542,7 @@ describe('lunaris store', () => {
         should(data.params).eql({ id : '1'});
         should(data.query).eql({});
         should(data.body).be.ok();
-        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [5] });
+        should(data.body).eql({ _id : 1, id : 1, label : 'A' });
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -560,7 +560,7 @@ describe('lunaris store', () => {
       var _isInsertedHook                       = false;
       var _isUpdatedHook                        = false;
       var _store                                = initStore('store1', {});
-      var _expectedValue                        = { _id : 1, id : 1, label : 'A', _version : [3] };
+      var _expectedValue                        = { _id : 1, id : 1, label : 'A' };
       lunaris._stores['required']               = initStore('required');
       lunaris._stores['required'].isStoreObject = true;
       lunaris._stores['required'].data.add({
@@ -608,7 +608,7 @@ describe('lunaris store', () => {
         should(data.params).eql({ id : '1', idSite : '2'});
         should(data.query).eql({});
         should(data.body).be.ok();
-        should(data.body).eql({ _id : 1, id : 1, label : 'A', _version : [5] });
+        should(data.body).eql({ _id : 1, id : 1, label : 'A'});
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -2994,8 +2994,7 @@ describe('lunaris store', () => {
               body     : {
                 _id      : 1,
                 id       : 1,
-                label    : 'A-1',
-                _version : [6],
+                label    : 'A-1'
               },
               params : { id : '1' },
               query  : {}
@@ -3037,6 +3036,7 @@ describe('lunaris store', () => {
       lunaris.insert('@store1', [{ id : 1, label : 'A' }, { id : 2, label : 'B' }]);
       lunaris.update('@store1', { _id : 2, id : 2, label : 'B-2' });
 
+
       setTimeout(() => {
         should(_storeToPropagate.data.getAll()).eql([
           {
@@ -3050,10 +3050,9 @@ describe('lunaris store', () => {
                 label    : 'B-2',
                 _version : [8],
                 body     : {
-                  _id      : 2,
-                  id       : 2,
-                  label    : 'B-2',
-                  _version : [4],
+                  _id   : 2,
+                  id    : 2,
+                  label : 'B-2',
                 },
                 params : { id : '2' },
                 query  : {}
@@ -3072,10 +3071,9 @@ describe('lunaris store', () => {
                 label    : 'B-2',
                 _version : [8],
                 body     : {
-                  _id      : 2,
-                  id       : 2,
-                  label    : 'B-2',
-                  _version : [4],
+                  _id   : 2,
+                  id    : 2,
+                  label : 'B-2',
                 },
                 params : { id : '2' },
                 query  : {}
@@ -3469,6 +3467,8 @@ function _startServer (callback) {
   });
 
   var _postPutDelHandler = (req, res) => {
+    delete req.body._version;
+
     return res.json({ success : true, error : null, message : null, data : {
       body   : req.body,
       query  : req.query,
@@ -3488,6 +3488,7 @@ function _startServer (callback) {
     for (var i = 0; i < req.body.length; i++) {
       req.body[i].id   = i + 1;
       req.body[i].post = true;
+      delete req.body[i]._version;
     }
     res.json({ success : true, error : null, message : null, data : req.body });
   });
@@ -3495,6 +3496,7 @@ function _startServer (callback) {
     req.body.reverse();
     for (var i = 0; i < req.body.length; i++) {
       req.body[i].put = true;
+      delete req.body[i]._version;
     }
     res.json({ success : true, error : null, message : null, data : req.body });
   });

@@ -18,6 +18,7 @@
   + Add vue-color dependency https://github.com/xiaokaike/vue-color as color piker.
   + Fix all version from package.json.
   + Fix rights.
+  + Fix PUT/POST callback wen upserting collection with one object by using COMMIT/BEGIN.
 
 ## 1.4.1
 *2018-09-26*
