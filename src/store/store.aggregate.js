@@ -42,6 +42,39 @@ var count = {
   }
 };
 
+var countBoolTrue = {
+  type : 'int',
+  init : {
+    start : 0
+  },
+  add : function (prevState, value) {
+    if (!prevState) {
+      prevState = { value : this.init.start };
+    }
+
+    if (value === true) {
+      prevState.value = prevState.value + 1;
+    }
+
+    return prevState;
+  },
+  remove : function (prevState, value) {
+    if (!prevState) {
+      prevState = { value : this.init.start };
+    }
+
+    if (value !== true || prevState.value === 0) {
+      return prevState;
+    }
+
+    prevState.value = prevState.value - 1;
+    return prevState;
+  },
+  getStartValue : function () {
+    return this.init.start;
+  }
+};
+
 var min = {
   type : '*',
   init : {
@@ -178,11 +211,12 @@ var avg = {
 };
 
 var aggregates = {
-  sum   : sum,
-  count : count,
-  avg   : avg,
-  min   : min,
-  max   : max
+  sum           : sum,
+  count         : count,
+  avg           : avg,
+  min           : min,
+  max           : max,
+  countBoolTrue : countBoolTrue
 };
 
 exports.aggregates = aggregates;

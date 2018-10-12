@@ -104,6 +104,58 @@ describe('aggregate', () => {
     });
   });
 
+  describe('countBoolTrue', () => {
+
+    it('should start at 0', () => {
+      var _aggregate = aggregates.countBoolTrue;
+      should(_aggregate.init.start).be.a.Number();
+      should(_aggregate.init.start).eql(0);
+    });
+
+    it('getStartValue should return 0', () => {
+      var _aggregate = aggregates.countBoolTrue;
+      should(_aggregate.getStartValue()).be.a.Number();
+      should(_aggregate.getStartValue()).eql(0);
+    });
+
+    it('should increment value and return the countBoolTrue', () => {
+      var _aggregate    =  aggregates.countBoolTrue;
+      var countBoolTrue = _aggregate.add(null, true);
+      should(countBoolTrue).eql({ value : 1 });
+      countBoolTrue = _aggregate.add({ value : 1 }, true);
+      should(countBoolTrue).eql({ value : 2 });
+      countBoolTrue = _aggregate.add({ value : 2 }, false);
+      should(countBoolTrue).eql({ value : 2 });
+    });
+
+    it('should not increment the init value', () => {
+      var _aggregate    = aggregates.countBoolTrue;
+      var countBoolTrue = _aggregate.add(null, true);
+      should(countBoolTrue).eql({ value : 1 });
+      should(_aggregate.init.start).eql(0);
+    });
+
+    it('should take undefined in paramters', () => {
+      var _aggregate    = aggregates.countBoolTrue;
+      var countBoolTrue = _aggregate.add(null, undefined);
+      should(countBoolTrue).eql({ value : 0 });
+    });
+
+    it('should remove value and return the countBoolTrue', () => {
+      var _aggregate    = aggregates.countBoolTrue;
+      var countBoolTrue = _aggregate.add(null, true);
+      should(countBoolTrue).eql({ value : 1 });
+      countBoolTrue = _aggregate.remove({ value : 1 }, true);
+      should(countBoolTrue).eql({ value : 0 });
+    });
+
+    it('should not crash if currentValue is 0', () => {
+      var _aggregate    = aggregates.countBoolTrue;
+      var countBoolTrue = _aggregate.add(null, false);
+      should(countBoolTrue).eql({ value : 0 });
+    });
+  });
+
   describe('avg', () => {
 
     it('should start at 0', () => {
