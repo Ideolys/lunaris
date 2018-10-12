@@ -14,11 +14,32 @@
  */
 function getHandlerFn (store, path, id, isLocal, vnode) {
   return function handler (val) {
-    var _value     = val.target.type === 'checkbox' ? val.target.checked : val.target.value;
+    var _value;
+    if (val.target.type === 'checkbox' || val.target.type === 'radio') {
+      _value = val.target.checked;
+    }
+    else {
+      _value = val.target.value;
+    }
     var _pathParts = path.split('.');
     var _obj       = decodeObjectPath(_pathParts, _value);
     _obj._id       = id;
 
+    if (val.target.type === 'radio') {
+      if (!lunaris._stores[store.replace('@', '')]) {
+        return lunaris.logger.warn('The store "' + store + '" does not exist!');
+      }
+
+      var _radioValues = lunaris._stores[store.replace('@', '')].data.getAll();
+
+      for (var i = 0; i < _radioValues.length; i++) {
+        if (_radioValues[i].isChecked === true) {
+          var _val       = lunaris.clone(_radioValues[i]);
+          _val.isChecked = false;
+          lunaris.update(store, _val);
+        }
+      }
+    }
 
     var _item = lunaris.getOne(store, _obj._id);
     if (!_item) {

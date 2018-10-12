@@ -14,6 +14,7 @@ describe('directive v-lunaris', () => {
     lastTip   = [];
     lunaris.clear('@directive');
     lunaris.clear('@directiveCheckbox');
+    lunaris.clear('@directiveRadio');
     lunaris._resetVersionNumber();
   });
 
@@ -251,6 +252,60 @@ describe('directive v-lunaris', () => {
       isChecked : true,
       _id       : 1,
       _version  : [2]
+    });
+    vm.$destroy();
+  });
+
+  it('should update an attribute value : radio', () => {
+    const vm = new Vue({
+      template : `
+        <div>
+          <input
+            v-for="obj in $directiveRadio" :key="obj._id"
+            :id="'input' + obj._id"
+            type="radio"
+            v-lunaris="'isChecked'"
+            lunaris-store="@directiveRadio"
+            :lunaris-id="obj._id"
+          >
+        </div>
+      `,
+      stores  : ['directiveRadio'],
+      created : function () {
+        lunaris.insert('@directiveRadio', [
+          { id : 1, isChecked : true  },
+          { id : 2, isChecked : false }
+        ]);
+      }
+    }).$mount();
+
+    var _input     = vm.$el.children.input2;
+    _input.checked = true;
+
+    should(lunaris.getOne('@directiveRadio', 1)).eql({
+      id        : 1,
+      isChecked : true,
+      _id       : 1,
+      _version  : [1]
+    });
+    should(lunaris.getOne('@directiveRadio', 2)).eql({
+      id        : 2,
+      isChecked : false,
+      _id       : 2,
+      _version  : [1]
+    });
+    _input.dispatchEvent(new Event('change', { bubbles : true }));
+    should(lunaris.getOne('@directiveRadio', 1)).eql({
+      id        : 1,
+      isChecked : false,
+      _id       : 1,
+      _version  : [2]
+    });
+    should(lunaris.getOne('@directiveRadio', 2)).eql({
+      id        : 2,
+      isChecked : true,
+      _id       : 2,
+      _version  : [3]
     });
 
     vm.$destroy();
