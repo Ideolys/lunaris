@@ -21,6 +21,7 @@
   + Fix rights.
   + Fix PUT/POST callback wen upserting collection with one object by using COMMIT/BEGIN.
   + Fix builder crash when building stores.
+  + Fix cache when comparing array values.
 
 ## 1.4.1
 *2018-09-26*

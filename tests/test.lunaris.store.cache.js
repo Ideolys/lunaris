@@ -117,6 +117,20 @@ describe('store cache', () => {
       })).eql([]);
     });
 
+    it('should compare arrays', () => {
+      var _store = initStore('store');
+      var _cache = cache.getCache(_store);
+
+      _cache.add({
+        offset : [false],
+      },
+      [1]);
+
+      should(_cache.get({
+        offset : [false],
+      })).eql([1]);
+    });
+
     it('should return the cached ids', () => {
       var _store = initStore('store');
       var _cache = cache.getCache(_store);
