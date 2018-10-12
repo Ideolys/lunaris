@@ -452,19 +452,18 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
     /**
      * Update current object joins
      * @param {Object} object
-     * @param {Object}} data
+     * @param {Object} data
      * @param {String} operation
      */
     function _updateObject (object, data, operation) {
-      if (operation === OPERATIONS.INSERT) {
+      // For INSERT, we cannot garantie that the store will propagate multiple times an INSERT
+      // Only the collection has a sytem to avoid duplicate values (based on primary key values)
+      if (operation === OPERATIONS.INSERT || operation === OPERATIONS.UPDATE) {
+        _joinsDescriptor.joinFns[store].delete(object, data, aggregates);
         return _joinsDescriptor.joinFns[store].insert(object, data, aggregates);
       }
       else if (operation === OPERATIONS.DELETE) {
         return _joinsDescriptor.joinFns[store].delete(object, data, aggregates);
-      }
-      else if (operation === OPERATIONS.UPDATE) {
-        _joinsDescriptor.joinFns[store].delete(object, data);
-        return _joinsDescriptor.joinFns[store].insert(object, data, aggregates);
       }
     }
 
@@ -484,6 +483,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
         else {
           _obj = _updateObject(_obj, null, operation);
         }
+
         upsert(_obj, _version);
       }
     }

@@ -2561,6 +2561,56 @@ describe('lunaris store', () => {
       });
     });
 
+    it('should not propagate to a store if values = [] : GET', done => {
+      var _store                = initStore('emptyArray', null, null, ['propagate']);
+      lunaris._stores['emptyArray'] = _store;
+
+      var _objectDescriptor     = [{
+        id           : ['<<int>>'],
+        store1Values : ['@emptyArray']
+      }];
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('propagate', _objectDescriptor, {
+        joins       : _schema.meta.joins,
+        joinFns     : schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates),
+        collections : {
+          emptyArray : _store.data
+        }
+      });
+      _storeToPropagate.isLocal    = true;
+      lunaris._stores['propagate'] = _storeToPropagate;
+
+      lunaris.hook('errorHttp@emptyArray', err => {
+        done(err);
+      });
+
+      lunaris.insert('@propagate', [{ id : 1 }, { id : 2 }]);
+      lunaris.get('@emptyArray');
+
+      var _hasBeenCalled = false;
+      lunaris.hook('update@propagate', res => {
+        _hasBeenCalled = true;
+      });
+
+      setTimeout(() => {
+        should(_hasBeenCalled).eql(false);
+        should(_storeToPropagate.data.getAll()).eql([
+          {
+            _id          : 1,
+            id           : 1,
+            store1Values : [],
+            _version     : [1]
+          }, {
+            _id          : 2,
+            id           : 2,
+            store1Values : [],
+            _version     : [1]
+          },
+        ]);
+        done();
+      }, 30);
+    });
+
     it('should propagate to a store : CLEAR', done => {
       var _nbCalled             = 0;
       var _store                = initStore('store1', null, null, ['propagate']);
@@ -3495,6 +3545,10 @@ function _startServer (callback) {
       delete req.body[i]._version;
     }
     res.json({ success : true, error : null, message : null, data : req.body });
+  });
+
+  server.get('/emptyArray', (req, res) => {
+    res.json({ success : true, error : null, message : null, data : [] });
   });
 
   server = server.listen(port, callback);
