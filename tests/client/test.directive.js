@@ -32,29 +32,11 @@ describe('directive v-lunaris', () => {
     vm.$destroy();
   });
 
-  it('should throw an error if the there is no store', () => {
-    const vm = new Vue({
-      template : `
-        <div>
-          <input v-lunaris="'id'">
-        </div>
-      `,
-      stores : ['directive']
-    }).$mount();
-    should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] v-lunaris');
-    should(lastError[1]).eql(new Error('The directive must reference a store!'));
-    should(lastTip.length).eql(2);
-    should(lastTip[0]).eql('[Lunaris tip] v-lunaris');
-    should(lastTip[1]).eql('You must declare the directive as: v-lunaris="\'@<store>.attribute\'"');
-    vm.$destroy();
-  });
-
   it('should throw an error if the there is no lunaris-id', () => {
     const vm = new Vue({
       template : `
         <div>
-          <input v-lunaris="'@directive.label'">
+          <input v-lunaris="'label'">
         </div>
       `,
       stores : ['directive']
@@ -65,12 +47,27 @@ describe('directive v-lunaris', () => {
     vm.$destroy();
   });
 
+  it('should throw an error if the there is no lunaris-store', () => {
+    const vm = new Vue({
+      template : `
+        <div>
+          <input v-lunaris="'label'" :lunaris-id="1">
+        </div>
+      `,
+      stores : ['directive']
+    }).$mount();
+    should(lastError.length).eql(2);
+    should(lastError[0]).eql('[Lunaris warn] v-lunaris');
+    should(lastError[1]).eql(new Error('The directive must have "lunaris-store" defined!'));
+    vm.$destroy();
+  });
+
   it('should throw an error and call the error function if the validation failed', () => {
     var _fnHasBeenCalled = false;
     const vm = new Vue({
       template : `
         <div>
-          <input id="input" v-lunaris="'@directive.id'" :lunaris-id="$directive.id" v-on:error="onError">
+          <input id="input" v-lunaris="'id'" lunaris-store="@directive" :lunaris-id="$directive.id" v-on:error="onError">
         </div>
       `,
       stores  : ['directive'],
@@ -101,7 +98,7 @@ describe('directive v-lunaris', () => {
     const vm = new Vue({
       template : `
         <div>
-          <input id="input" v-lunaris="'@directive.label'" :lunaris-id="$directive.id">
+          <input id="input" v-lunaris="'label'" lunaris-store="@directive" :lunaris-id="$directive.id">
         </div>
       `,
       stores  : ['directive'],
@@ -138,7 +135,7 @@ describe('directive v-lunaris', () => {
     const vm = new Vue({
       template : `
         <div>
-          <input id="input" v-lunaris="'@directive.type.label'" :lunaris-id="$directive.id">
+          <input id="input" v-lunaris="'type.label'" lunaris-store="@directive" :lunaris-id="$directive.id">
         </div>
       `,
       stores  : ['directive'],
@@ -175,7 +172,11 @@ describe('directive v-lunaris', () => {
     const vm = new Vue({
       template : `
         <div>
-          <input id="input" v-lunaris="'@directive.children[1].type.label'" :lunaris-id="$directive.id">
+          <input id="input"
+            v-lunaris="'children[1].type.label'"
+            lunaris-store="@directive"
+            :lunaris-id="$directive._id"
+          >
         </div>
       `,
       stores  : ['directive'],
@@ -226,7 +227,7 @@ describe('directive v-lunaris', () => {
     const vm = new Vue({
       template : `
         <div>
-          <input id="input" type="checkbox" v-lunaris="'@directiveCheckbox.isChecked'" :lunaris-id="$directiveCheckbox.id">
+          <input id="input" type="checkbox" v-lunaris="'isChecked'" lunaris-store="@directiveCheckbox" :lunaris-id="$directiveCheckbox.id">
         </div>
       `,
       stores  : ['directiveCheckbox'],

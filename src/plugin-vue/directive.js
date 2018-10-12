@@ -1,33 +1,34 @@
 /**
  * How to use it ?
- * <input v-lunaris="'@store.attribute'" :lunaris-id="$store.attribute">
+ * <input v-lunaris="'attribute'" :lunaris-id="$store.attribute" :lunaris-store="@store">
  */
 
 /**
  * Return handler for directive onChange input
+ * @param {Store} store
  * @param {String} path see decodeObjectPath()
  * @param {Int} id current lunaris _id value
  * @param {Boolean} isLocal islocal update
  * @param {Obejct} vnode
  * @return {Function}
  */
-function getHandlerFn (path, id, isLocal, vnode) {
+function getHandlerFn (store, path, id, isLocal, vnode) {
   return function handler (val) {
     var _value     = val.target.type === 'checkbox' ? val.target.checked : val.target.value;
     var _pathParts = path.split('.');
-    var _store     = _pathParts.shift(); // dot not include store
     var _obj       = decodeObjectPath(_pathParts, _value);
     _obj._id       = id;
 
-    var _item = lunaris.getOne(_store, _obj._id);
+
+    var _item = lunaris.getOne(store, _obj._id);
     if (!_item) {
       return;
     }
-    _obj = lunaris.merge(lunaris.clone(_item), _obj);
+    _obj = lunaris.merge(_item, _obj);
 
-    lunaris.validate(_store, _obj, function (isValid, err) {
+    lunaris.validate(store, _obj, function (isValid, err) {
       if (isValid) {
-        return lunaris.update(_store, _obj, isLocal);
+        return lunaris.update(store, _obj, isLocal);
       }
 
       lunaris.logger.warn('v-lunaris', err);
@@ -50,6 +51,19 @@ function getId (vnode) {
   }
 
   return vnode.data.attrs['lunaris-id'];
+}
+
+/**
+ * Get store option
+ * @param {Object} vnode
+ * @return {String}
+ */
+function getStore (vnode) {
+  if (!vnode.data.attrs || (vnode.data.attrs && !vnode.data.attrs['lunaris-store'])) {
+    return lunaris.logger.warn('v-lunaris', new Error('The directive must have "lunaris-store" defined!'));
+  }
+
+  return vnode.data.attrs['lunaris-store'];
 }
 
 
@@ -103,12 +117,7 @@ Vue.directive('lunaris', {
       return lunaris.logger.warn('v-lunaris', new Error('The directive must have a value!'));
     }
 
-    if (!/@.*\./.test(_value)) {
-      lunaris.logger.warn('v-lunaris', new Error('The directive must reference a store!'));
-      return lunaris.logger.tip('v-lunaris', 'You must declare the directive as: v-lunaris="\'@<store>.attribute\'"');
-    }
-
-    this.handler = getHandlerFn(_value, getId(vnode), getIsLocal(vnode), vnode);
+    this.handler = getHandlerFn(getStore(vnode), _value, getId(vnode), getIsLocal(vnode), vnode);
     el.addEventListener('change', this.handler);
   },
 
