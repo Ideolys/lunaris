@@ -1,12 +1,13 @@
-var hook        = require('./store.hook.js');
-var utils       = require('../utils.js');
-var storeUtils  = require('./store.utils.js');
-var http        = require('../http.js');
-var logger      = require('../logger.js');
-var cache       = require('./store.cache.js');
-var url         = require('./store.url.js');
-var template    = require('./store.template.js');
-var emptyObject = {};
+var hook            = require('./store.hook.js');
+var utils           = require('../utils.js');
+var storeUtils      = require('./store.utils.js');
+var http            = require('../http.js');
+var logger          = require('../logger.js');
+var cache           = require('./store.cache.js');
+var url             = require('./store.url.js');
+var template        = require('./store.template.js');
+var emptyObject     = {};
+var getRequestQueue = {};
 
 /**
  * Push commit res objects to handlers
@@ -32,6 +33,10 @@ function _pushCommitResToHandlers (store, hookKey, res) {
  */
 function _propagate (store, data, operation) {
   if (!store.storesToPropagate.length) {
+    return;
+  }
+
+  if ((!data && operation !== utils.OPERATIONS.DELETE) || (data && Array.isArray(data) && !data.length)) {
     return;
   }
 
@@ -208,6 +213,130 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
     _propagate(store, value, utils.OPERATIONS.UPDATE);
     _propagateReflexive(store, _collection, utils.clone(value), utils.OPERATIONS.UPDATE);
   });
+}
+
+/**
+ * Process next get request in queue
+ * @param {String} store
+ */
+function _processNextGetRequest (store) {
+  var _getRequest = getRequestQueue[store].shift();
+
+  if (!_getRequest) {
+    return;
+  }
+
+  _getRequest.push(_processNextGetRequest);
+  _get.apply(null, _getRequest);
+}
+
+/**
+ * Make get
+ * @param {String} store
+ * @param {*} primaryKeyValue
+ * @param {Object} retryOptions {
+ *   url,
+ * }
+ * @param {function} callback _processNextGetRequest(store)
+ */
+function _get (store, primaryKeyValue, retryOptions, callback) {
+  try {
+    storeUtils.checkArgs(store, null, true);
+
+    var _store      = storeUtils.getStore(store);
+    var _collection = storeUtils.getCollection(_store);
+    var _cache      = cache.getCache(_store);
+
+    if (_store.isLocal) {
+      var _collectionValues = _collection.getAll();
+      hook.pushToHandlers(_store, 'get', _collectionValues, Array.isArray(_collectionValues));
+      return callback(store);
+    }
+
+    var _request      = '/';
+    var _cacheFilters =  {};
+
+    if (!retryOptions) {
+      _request      = url.create(_store, 'GET', primaryKeyValue);
+      // required filters consition not fullfilled
+      if (!_request) {
+        return callback(store);
+      }
+      _cacheFilters = _request.cache;
+      _request      = _request.request;
+      var _ids      = _cache.get(_cacheFilters);
+
+      if (_ids) {
+        if (_ids.length) {
+          hook.pushToHandlers(_store, 'get', utils.cloneAndFreeze(_collection.getAll(_ids)), true);
+          return callback(store);
+        }
+        hook.pushToHandlers(_store, 'get', [], true);
+        return callback(store);
+      }
+    }
+    else {
+      _request = retryOptions.url || '/';
+    }
+
+    http.request('GET', _request, null, function (err, data) {
+      if (err) {
+        var _error = template.getError(err, _store, 'GET', true);
+        upsert('@lunarisErrors', {
+          version            : null,
+          data               : null,
+          url                : _request,
+          method             : 'GET',
+          storeName          : _store.name,
+          date               : dayjs(),
+          messageError       : _error,
+          messageErrorServer : err
+        });
+        logger.warn(['lunaris.get' + store], err);
+        hook.pushToHandlers(_store, 'errorHttp', _error);
+        return callback(store);
+      }
+
+      var _version = _collection.begin();
+      if (Array.isArray(data)) {
+        if (_store.isStoreObject) {
+          logger.warn(
+            ['lunaris.get' + store],
+            new Error('The store "' + _store.name + '" is an object store. The GET method cannot return multiple elements!')
+          );
+          return callback(store);
+        }
+
+        for (var i = 0; i < data.length; i++) {
+          _collection.upsert(data[i], _version);
+        }
+
+        if (primaryKeyValue && data.length) {
+          data = data[0];
+        }
+      }
+      else {
+        _collection.upsert(data, _version);
+      }
+
+      var _isArray = Array.isArray(data);
+      data         = _collection.commit(_version);
+      var _ids     = [];
+      for (i = 0; i < data.length; i++) {
+        _ids.push(data[i]._id);
+        data[i] = utils.freeze(utils.clone(data[i]));
+      }
+
+      _cache.add(_cacheFilters, _ids);
+
+      hook.pushToHandlers(_store, 'get', data, _isArray);
+      _propagate(_store, data, utils.OPERATIONS.INSERT);
+    });
+  }
+  catch (e) {
+    logger.warn(['lunaris.get' + store], e);
+  }
+  callback(store);
 }
 
 /** =================================================  *
@@ -396,101 +525,19 @@ function clear (store, isSilent) {
  * Get values
  * @param {String} store
  * @param {*} primaryKeyValue
- * @param {*} value
  * @param {Object} retryOptions {
  *   url,
  * }
  */
 function get (store, primaryKeyValue, retryOptions) {
-  try {
-    storeUtils.checkArgs(store, null, true);
-
-    var _store      = storeUtils.getStore(store);
-    var _collection = storeUtils.getCollection(_store);
-    var _cache      = cache.getCache(_store);
-
-    if (_store.isLocal) {
-      var _collectionValues = _collection.getAll();
-      return hook.pushToHandlers(_store, 'get', _collectionValues, Array.isArray(_collectionValues));
-    }
-
-    var _request      = '/';
-    var _cacheFilters =  {};
-
-    if (!retryOptions) {
-      _request      = url.create(_store, 'GET', primaryKeyValue);
-      // required filters consition not fullfilled
-      if (!_request) {
-        return;
-      }
-      _cacheFilters = _request.cache;
-      _request      = _request.request;
-      var _ids      = _cache.get(_cacheFilters);
-
-      if (_ids) {
-        if (_ids.length) {
-          return hook.pushToHandlers(_store, 'get', utils.cloneAndFreeze(_collection.getAll(_ids)), true);
-        }
-        return hook.pushToHandlers(_store, 'get', [], true);
-      }
-    }
-    else {
-      _request = retryOptions.url || '/';
-    }
-
-    http.request('GET', _request, null, function (err, data) {
-      if (err) {
-        var _error = template.getError(err, _store, 'GET', true);
-        upsert('@lunarisErrors', {
-          version            : null,
-          data               : null,
-          url                : _request,
-          method             : 'GET',
-          storeName          : _store.name,
-          date               : dayjs(),
-          messageError       : _error,
-          messageErrorServer : err
-        });
-        logger.warn(['lunaris.get' + store], err);
-        return hook.pushToHandlers(_store, 'errorHttp', _error);
-      }
-
-      var _version = _collection.begin();
-      if (Array.isArray(data)) {
-        if (_store.isStoreObject) {
-          return logger.warn(
-            ['lunaris.get' + store],
-            new Error('The store "' + _store.name + '" is an object store. The GET method cannot return multiple elements!')
-          );
-        }
-
-        for (var i = 0; i < data.length; i++) {
-          _collection.upsert(data[i], _version);
-        }
-
-        if (primaryKeyValue && data.length) {
-          data = data[0];
-        }
-      }
-      else {
-        _collection.upsert(data, _version);
-      }
-
-      var _isArray = Array.isArray(data);
-      data         = _collection.commit(_version);
-      var _ids     = [];
-      for (i = 0; i < data.length; i++) {
-        _ids.push(data[i]._id);
-        data[i] = utils.freeze(utils.clone(data[i]));
-      }
-
-      _cache.add(_cacheFilters, _ids);
-      hook.pushToHandlers(_store, 'get', data, _isArray);
-      _propagate(_store, data, utils.OPERATIONS.INSERT);
-    });
+  if (!getRequestQueue[store]) {
+    getRequestQueue[store] = [];
   }
-  catch (e) {
-    logger.warn(['lunaris.get' + store], e);
+
+  getRequestQueue[store].push([store, primaryKeyValue, retryOptions]);
+
+  if (getRequestQueue[store].length === 1) {
+    _processNextGetRequest(store);
   }
 }
 
