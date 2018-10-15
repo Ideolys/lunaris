@@ -1,3 +1,5 @@
+var logger = require('../logger.js');
+
 /**
  * Get store
  * @param {String} storeName
@@ -49,6 +51,10 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
     return store.getPrimaryKeyFn.call(null, value);
   }
   if (!store.primaryKey) {
+    logger.tip(
+      'No primary key has been dound, fallback to lunaris _id.',
+      'To declare a primary key, use the notation [\'<<int>>\'] in the map or add the \'primaryKey\' attribute in the store descrption.'
+    );
     return value._id;
   }
 

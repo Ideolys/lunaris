@@ -14,6 +14,7 @@
   + Store reflexive relasionships are supported. Use `@storeName` in the map to reference the relation.
   + Add details in validation error messages when using `min` and/or `max`.
   + `v-lunaris` directive supports radio inputs.
+  + Add a tip when fallback to _id when using function getPrimaryKey().
 - Fix :
   + Change vue component hook to remove hooks.
   + Empty arrays were not considarated as correct values in cache. As a consequence, HTTP requests were fired.

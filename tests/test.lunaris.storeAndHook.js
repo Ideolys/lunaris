@@ -18,6 +18,10 @@ var lastError = [];
 console.error = function () {
   lastError = [arguments[0], arguments[1]];
 };
+var lastTip = [];
+console.warn = function () {
+  lastTip = [arguments[0], arguments[1]];
+};
 
 var lunaris = {};
 eval(buildLunaris({
@@ -43,6 +47,7 @@ describe('lunaris store', () => {
 
   beforeEach(done => {
     lastError = [];
+    lastTip   = [];
     lunaris._stores.lunarisErrors.data.clear();
     setTimeout(() => {
       collection.resetVersionNumber();
@@ -1028,6 +1033,44 @@ describe('lunaris store', () => {
         should(message).eql('${the} store1 has been successfully ${deleted}');
 
         if (_isDeletedHook && _isDeleteHook) {
+          done();
+        }
+      });
+
+      lunaris.hook('errorHttp@store1', (err) => {
+        done(err);
+      });
+
+      lunaris.insert('@store1', { id : 2, label : 'A' });
+      should(_store.data.get(1)).eql(_expectedValue);
+      lunaris.delete('@store1', _expectedValue);
+    });
+
+    it('should delete the value aand display the tip : no primary key', done => {
+      var _isDeleteHook                    = false;
+      var _isDeletedHook                   = false;
+      var _store                           = initStore('store1');
+      var _expectedValue                   = { _id : 1, id : 2, label : 'A', _version : [1] };
+      lunaris._stores['store1']            = _store;
+      lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
+
+      lunaris.hook('delete@store1', () => {
+        _isDeleteHook = true;
+      });
+
+      lunaris.hook('deleted@store1', (data, message) => {
+        _isDeletedHook = true;
+        should(data.query).be.ok();
+        should(data.params).be.ok();
+        should(data.query).eql({});
+        should(data.params).eql({ id : '1' });
+
+        should(message).eql('${the} store1 has been successfully ${deleted}');
+
+        if (_isDeletedHook && _isDeleteHook) {
+          should(lastTip.length).eql(2);
+          should(lastTip[0]).eql('[Lunaris tip] No primary key has been dound, fallback to lunaris _id.');
+          should(lastTip[1]).eql('To declare a primary key, use the notation [\'<<int>>\'] in the map or add the \'primaryKey\' attribute in the store descrption.');
           done();
         }
       });
