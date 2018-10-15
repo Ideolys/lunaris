@@ -114,11 +114,11 @@ describe('Store plugin', () => {
       'inserted', 'updated', 'deleted', 'errorHttp', 'get', 'reset', 'insert', 'update', 'delete'
     ]);
 
-    should(lunaris._stores.test.hooks.get).have.lengthOf(0);
-    should(lunaris._stores.test.hooks.reset).have.lengthOf(0);
-    should(lunaris._stores.test.hooks.insert).have.lengthOf(0);
-    should(lunaris._stores.test.hooks.update).have.lengthOf(0);
-    should(lunaris._stores.test.hooks.delete).have.lengthOf(0);
+    should(lunaris._stores.test.hooks.get).have.lengthOf(1);
+    should(lunaris._stores.test.hooks.reset).have.lengthOf(1);
+    should(lunaris._stores.test.hooks.insert).have.lengthOf(1);
+    should(lunaris._stores.test.hooks.update).have.lengthOf(1);
+    should(lunaris._stores.test.hooks.delete).have.lengthOf(1);
     vm.$destroy();
   });
 

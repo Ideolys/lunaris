@@ -291,13 +291,13 @@ lunaris._vue = {
         return;
       }
 
-      var _internalHookKeys = Object.keys(_internalHooks);
-      for (i = 0; i < _internalHookKeys.length; i++) {
-        _hooks = _internalHooks[_internalHookKeys[i]];
-        for (var j = 0; j < _hooks.length; j++) {
-          lunaris.removeHook.apply(null, _hooks[j]);
-        }
-      }
+      // var _internalHookKeys = Object.keys(_internalHooks);
+      // for (i = 0; i < _internalHookKeys.length; i++) {
+      //   _hooks = _internalHooks[_internalHookKeys[i]];
+      //   for (var j = 0; j < _hooks.length; j++) {
+      //     lunaris.removeHook.apply(null, _hooks[j]);
+      //   }
+      // }
     }
 
     Vue.mixin({
