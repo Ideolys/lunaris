@@ -136,7 +136,7 @@ function _getFilterValuesHTTPRequest (store, method) {
           if (Array.isArray(_sourceValue)) {
             throw new Error('A required filter must be a store object!');
           }
-          _filterValues.requiredOptions += '/' + _value[0] + '/' + _value[1];
+          _filterValues.requiredOptions += '/' + _value[0] + '/' + fixedEncodeURIComponent(_value[1]);
         }
 
         _filterValues.cache[_filter.source + ':' + _filter.sourceAttribute] = _value[1];

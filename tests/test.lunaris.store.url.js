@@ -234,6 +234,17 @@ describe('store url', () => {
       });
     });
 
+    it('should create the url for one required filter and encode the value', () => {
+      store.upsert('@required.filter.A', { label : 'cat\'s' });
+      var _url = url.create(stores.required, 'GET');
+      should(_url.request).eql('/required/label/cat%27s?limit=50&offset=0');
+      should(_url.cache).eql({
+        limit                      : 50,
+        offset                     : 0,
+        '@required.filter.A:label' : 'cat\'s'
+      });
+    });
+
     it('should conserve the pagination in the cache', () => {
       store.upsert('@required.filter.A', { label : 'cat' });
       var _url = url.create(stores.required, 'GET');
