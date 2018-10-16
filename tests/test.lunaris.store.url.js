@@ -20,6 +20,12 @@ const stores         = {
 const defaultStoresValue = JSON.parse(JSON.stringify(exportsLunaris._stores));
 const store              = require('../src/store/store');
 
+function fixedEncodeURIComponent(str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+    return '%' + c.charCodeAt(0).toString(16);
+  });
+}
+
 describe('store url', () => {
   before(() => {
     exportsLunaris._stores   = stores;
@@ -317,6 +323,22 @@ describe('store url', () => {
         limit                      : 50,
         offset                     : 0,
         '@optional.filter.A:label' : 'cat'
+      });
+    });
+
+    it('should create the url for one optional filter and encode the value', () => {
+      store.upsert('@optional.filter.A', { label : 'cat\'s' });
+      var _url = url.create(stores.optional, 'GET');
+      var _expectedUrl = '/optional?limit=50&offset=0&search=label' +
+        fixedEncodeURIComponent(':') +
+        fixedEncodeURIComponent('cat\'s')
+      ;
+      should(_url.request).eql(_expectedUrl);
+      should(_url.request).eql('/optional?limit=50&offset=0&search=label%3Acat%27s');
+      should(_url.cache).eql({
+        limit                      : 50,
+        offset                     : 0,
+        '@optional.filter.A:label' : 'cat\'s'
       });
     });
 

@@ -2,6 +2,14 @@ var storeUtils = require('./store.utils.js');
 var utils      = require('../utils.js');
 var logger     = require('../logger.js');
 
+// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
+function fixedEncodeURIComponent (str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
+    return '%' + c.charCodeAt(0).toString(16);
+  });
+}
+
+
 /**
  * Check filter object attributes
  * @param {Object} filter { source : ,, sourceAttribute : , localAttribute :  }
@@ -163,9 +171,9 @@ function _getSearchOption (filterValues) {
     if (Array.isArray(_value)) {
       _value = '[' + _value.join(',') + ']';
     }
-    _search += filterValues[j][0] + encodeURIComponent(_operator) + encodeURIComponent(_value) + encodeURIComponent('+');
+    _search += filterValues[j][0] + fixedEncodeURIComponent(_operator) + fixedEncodeURIComponent(_value) + fixedEncodeURIComponent('+');
   }
-  _search = _search.slice(0, _search.length - encodeURIComponent('+').length);
+  _search = _search.slice(0, _search.length - fixedEncodeURIComponent('+').length);
   return ['search', _search];
 }
 
