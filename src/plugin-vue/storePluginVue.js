@@ -193,7 +193,7 @@ lunaris._vue = {
         return;
       }
       if (!Array.isArray(_stores)) {
-        lunaris.logger.warn('vm.stores must be an Array');
+        lunaris.logger.warn('Error in component \'' + _this.$options.name + '\':', 'vm.stores must be an Array!');
         return lunaris.logger.tip('Please register a store with: vm.stores = [<store>, ...]');
       }
 
@@ -203,7 +203,8 @@ lunaris._vue = {
         var _store = _stores[i];
 
         if (!lunaris._vue._vm.$data.$stores[_store]) {
-          return lunaris.logger.warn('Store `' + _store + '` has not been defined');
+          lunaris.logger.warn('Error in component \'' + _this.$options.name + '\':', 'Store \'' + _store + '\' has not been defined!');
+          return lunaris.logger.tip('Please define a store in stores folder');
         }
 
         // re-initialize current store
@@ -254,7 +255,7 @@ lunaris._vue = {
         return;
       }
       if (typeof _hooks !== 'object') {
-        return lunaris.logger.warn('vm.storeHooks must be an Object');
+        return lunaris.logger.warn('Error in component \'' + _this.$options.name + '\':', 'vm.storeHooks must be an Object!');
       }
 
       var _hookKeys = Object.keys(_hooks);
@@ -262,7 +263,7 @@ lunaris._vue = {
         var _hook = _hooks[_hookKeys[i]];
 
         if (typeof _hook !== 'function') {
-          return lunaris.logger.warn('vm.storeHooks.' + _hookKeys[i] + ' must be a Function!');
+          return lunaris.logger.warn('Error in component \'' + _this.$options.name + '\':', 'vm.storeHooks.' + _hookKeys[i] + ' must be a Function!');
         }
 
         lunaris.hook(_hookKeys[i], _hook.bind(_this));
@@ -319,7 +320,7 @@ lunaris._vue = {
               (lunarisError && !lunarisError.method) ||
               (lunarisError && !lunarisError.version)
           ) {
-            lunaris.logger.warn('vm.$rollback' ,  new Error('The value must be an object and have the properties \"data\" and \"version\" defined!'));
+            lunaris.logger.warn(['Error in component \'' + this.$options.name + '\':', 'vm.$rollback'] ,  new Error('The value must be an object and have the properties \"data\" and \"version\" defined!'));
             return lunaris.logger.tip('vm.$rollback' ,  'value must be: { data : Object, version : Int, storeName : String, method : String }');
           }
 
@@ -337,7 +338,7 @@ lunaris._vue = {
 
             for (var i = 0; i < _data.length; i++) {
               if (!_data[i]._id) {
-                return lunaris.warn('$rollback', 'Provided data must have a defined \"_id\" key!');
+                return lunaris.warn(['Error in component \'' + this.$options.name + '\':', 'vm.$rollback'], 'Provided data must have a defined \"_id\" key!');
               }
               _ids.push(_data[i]._id);
             }
@@ -364,7 +365,7 @@ lunaris._vue = {
          */
         this.$clearForm = function clearForm (store) {
           if (this['$' + store] === undefined) {
-            return lunaris.logger.warn('vm.$clearForm', new Error('The store \"' + store + '\" has not been registered!'));
+            return lunaris.logger.warn(['Error in component \'' + this.$options.name + '\':', 'vm.$clearForm'], new Error('The store \"' + store + '\" has not been registered!'));
           }
 
           lunaris._vue._vm.$data.$stores[store].form = lunaris.getDefaultValue('@' + store);

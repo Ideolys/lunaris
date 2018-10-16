@@ -27,6 +27,62 @@ describe('Store plugin', () => {
     });
   });
 
+  it('should throw an error if vm.stores is not an array', () => {
+    const vm = new Vue({
+      name   : 'test',
+      el     : '#app',
+      stores : 'test',
+    });
+    should(lastError.length).eql(2);
+    should(lastError[0]).eql('[Lunaris warn] Error in component "test":');
+    should(lastError[1]).eql('vm.stores must be an Array!');
+    should(lastTip.length).eql(2);
+    should(lastTip[0]).eql('[Lunaris tip] Please register a store with: vm.stores = [<store>, ...]');
+    vm.$destroy();
+  });
+
+  it('should throw an error if store is not defined', () => {
+    const vm = new Vue({
+      name   : 'test',
+      el     : '#app',
+      stores : ['test2'],
+    });
+    should(lastError.length).eql(2);
+    should(lastError[0]).eql('[Lunaris warn] Error in component "test":');
+    should(lastError[1]).eql('Store "test2" has not been defined!');
+    should(lastTip.length).eql(2);
+    should(lastTip[0]).eql('[Lunaris tip] Please define a store in stores folder');
+    vm.$destroy();
+  });
+
+  it('should throw an error if storeHooks is not an object', () => {
+    const vm = new Vue({
+      name       : 'test',
+      el         : '#app',
+      stores     : ['test'],
+      storeHooks : function () {}
+    });
+    should(lastError.length).eql(2);
+    should(lastError[0]).eql('[Lunaris warn] Error in component "test":');
+    should(lastError[1]).eql('vm.storeHooks must be an Object!');
+    vm.$destroy();
+  });
+
+  it('should throw an error if storeHooks hook is not a function', () => {
+    const vm = new Vue({
+      name       : 'test',
+      el         : '#app',
+      stores     : ['test'],
+      storeHooks : {
+        test : {}
+      }
+    });
+    should(lastError.length).eql(2);
+    should(lastError[0]).eql('[Lunaris warn] Error in component "test":');
+    should(lastError[1]).eql('vm.storeHooks.test must be a Function!');
+    vm.$destroy();
+  });
+
   it('store test should be defined', () => {
     const vm = new Vue({
       el     : '#app',
@@ -410,12 +466,13 @@ describe('Store plugin', () => {
 
     it('clearForm should throw an error if the store is not defined', () => {
       const vm = new Vue({
-        el : '#app',
+        name : 'test',
+        el   : '#app',
       });
 
       vm.$clearForm('test');
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] vm.$clearForm');
+      should(lastError[0]).eql('[Lunaris warn] Error in component "test": vm.$clearForm');
       should(lastError[1]).eql(new Error('The store "test" has not been registered!'));
 
       vm.$destroy();
@@ -461,13 +518,14 @@ describe('Store plugin', () => {
 
     it('should throw an error if no value is given', () => {
       const vm = new Vue({
+        name   : 'test',
         el     : '#app',
         stores : ['testObject'],
       });
 
       vm.$rollback();
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] vm.$rollback');
+      should(lastError[0]).eql('[Lunaris warn] Error in component "test": vm.$rollback');
       should(lastError[1]).eql(new Error('The value must be an object and have the properties "data" and "version" defined!'));
       vm.$destroy();
     });
