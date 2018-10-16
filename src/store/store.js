@@ -66,26 +66,77 @@ function _propagateReflexive (store, collection, obj, operation) {
 }
 
 /**
+ * Before action :
+ *  - check args
+ * @param {String} store
+ * @param {Array/Object} value
+ * @param {Boolean} isNoValue
+ * @returns {Object} {
+ *   value,
+ *   store,
+ *   collection
+ * }
+ */
+function beforeAction (store, value, isNoValue) {
+  storeUtils.checkArgs(store, value, isNoValue);
+
+  if (!isNoValue) {
+    value = utils.clone(value);
+  }
+
+  var _store      = storeUtils.getStore(store);
+  var _collection = storeUtils.getCollection(_store);
+  var _cache      = cache.getCache(_store);
+
+  return {
+    value      : value,
+    store      : _store,
+    collection : _collection,
+    cache      : _cache
+  };
+}
+
+
+function afterAction () {
+
+}
+
+/**
+ * Set Lunaris Error
+ */
+function setLunarisError (storeName, method, request, value, version, err, error) {
+  upsert('@lunarisErrors', {
+    version            : version,
+    data               : value,
+    url                : request,
+    method             : method,
+    storeName          : storeName,
+    date               : dayjs(),
+    messageError       : error,
+    messageErrorServer : err
+  });
+}
+
+/**
  * Upsert a value in a store
  * @param {Object} store
+ * @param {Object} collection
+ * @param {Object} cache
  * @param {Array/Object} value
  * @param {Boolean} isLocal
  * @param {Boolean} isUpdate
  * @param {Object} retryOptions
  */
-function _upsert (store, value, isLocal, isUpdate, retryOptions) {
-  var _collection = storeUtils.getCollection(store);
-  var _cache      = cache.getCache(store);
-
+function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptions) {
   var _isMultipleItems = Array.isArray(value);
   var _version;
   var _ids = [];
   if (!retryOptions) {
-    _version = _collection.begin();
+    _version = collection.begin();
     if (_isMultipleItems) {
       for (var i = 0; i < value.length; i++) {
         value[i] = utils.clone(value[i]);
-        _collection.upsert(value[i], _version);
+        collection.upsert(value[i], _version);
         _ids.push(value[i]._id);
       }
     }
@@ -93,30 +144,30 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       value = utils.clone(value);
       if (store.isStoreObject) {
         // we always should update the same value for object store
-        var _value = _collection.getAll();
+        var _value = collection.getAll();
         var _id    = _value ? _value._id : null;
         value._id  = _id;
       }
-      _collection.upsert(value, _version);
+      collection.upsert(value, _version);
 
       if (_ids) {
         _ids.push(value._id);
       }
     }
 
-    value = _collection.commit(_version);
+    value = collection.commit(_version);
     value = utils.cloneAndFreeze(value);
 
     if (!_isMultipleItems) {
       value = value[0];
     }
 
-    _cache.invalidate(_ids, true);
+    cache.invalidate(_ids, true);
 
     hook.pushToHandlers(store, isUpdate ? 'update' : 'insert', value, _isMultipleItems);
     _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT);
     if (isUpdate) {
-      _propagateReflexive(store, _collection, utils.clone(value),  utils.OPERATIONS.UPDATE);
+      _propagateReflexive(store, collection, utils.clone(value),  utils.OPERATIONS.UPDATE);
     }
   }
   else {
@@ -148,16 +199,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
   http.request(_method, _request, value, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, _method, false);
-      upsert('@lunarisErrors', {
-        version            : _version,
-        data               : value,
-        url                : _request,
-        method             : _method,
-        storeName          : store.name,
-        date               : dayjs(),
-        messageError       : _error,
-        messageErrorServer : err
-      });
+      setLunarisError(store.name, _method, _request, value, _version, err, _error);
       logger.warn(['lunaris.' + (isUpdate ? 'update' : 'insert') + '@' + store.name], err);
       return hook.pushToHandlers(store, 'errorHttp', [_error, value]);
     }
@@ -169,23 +211,23 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
         throw new Error('The store "' + store.name + '" is a store object. The ' + _method + ' method tries to ' + (isUpdate ? 'update' : 'insert') + ' multiple elements!');
       }
 
-      _version = _collection.begin();
+      _version = collection.begin();
       for (i = 0; i < value.length; i++) {
         for (var j = 0; j < data.length; j++) {
           if (value[i]._id === data[j]._id) {
             value[i] = utils.merge(lunaris.clone(value[i]), data[j]);
-            _collection.upsert(value[i], _version);
+            collection.upsert(value[i], _version);
           }
         }
       }
-      value = _collection.commit(_version);
+      value = collection.commit(_version);
       value = utils.cloneAndFreeze(value);
     }
     else {
       value    = utils.merge(lunaris.clone(value), data);
-      _version = _collection.begin();
-      _collection.upsert(value, _version);
-      value = _collection.commit(_version);
+      _version = collection.begin();
+      collection.upsert(value, _version);
+      value = collection.commit(_version);
       if (value.length) {
         value = value[0];
       }
@@ -211,7 +253,7 @@ function _upsert (store, value, isLocal, isUpdate, retryOptions) {
       hook.pushToHandlers(store, 'filterUpdated');
     }
     _propagate(store, value, utils.OPERATIONS.UPDATE);
-    _propagateReflexive(store, _collection, utils.clone(value), utils.OPERATIONS.UPDATE);
+    _propagateReflexive(store, collection, utils.clone(value), utils.OPERATIONS.UPDATE);
   });
 }
 
@@ -241,15 +283,11 @@ function _processNextGetRequest (store) {
  */
 function _get (store, primaryKeyValue, retryOptions, callback) {
   try {
-    storeUtils.checkArgs(store, null, true);
+    var _options = beforeAction(store, null, true);
 
-    var _store      = storeUtils.getStore(store);
-    var _collection = storeUtils.getCollection(_store);
-    var _cache      = cache.getCache(_store);
-
-    if (_store.isLocal) {
-      var _collectionValues = _collection.getAll();
-      hook.pushToHandlers(_store, 'get', _collectionValues, Array.isArray(_collectionValues));
+    if (_options.store.isLocal) {
+      var _collectionValues = _options.collection.getAll();
+      hook.pushToHandlers(_options.store, 'get', _collectionValues, Array.isArray(_collectionValues));
       return callback(store);
     }
 
@@ -257,21 +295,21 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
     var _cacheFilters =  {};
 
     if (!retryOptions) {
-      _request      = url.create(_store, 'GET', primaryKeyValue);
+      _request      = url.create(_options.store, 'GET', primaryKeyValue);
       // required filters consition not fullfilled
       if (!_request) {
         return callback(store);
       }
       _cacheFilters = _request.cache;
       _request      = _request.request;
-      var _ids      = _cache.get(_cacheFilters);
+      var _ids      = _options.cache.get(_cacheFilters);
 
       if (_ids) {
         if (_ids.length) {
-          hook.pushToHandlers(_store, 'get', utils.cloneAndFreeze(_collection.getAll(_ids)), true);
+          hook.pushToHandlers(_options.store, 'get', utils.cloneAndFreeze(_options.collection.getAll(_ids)), true);
           return callback(store);
         }
-        hook.pushToHandlers(_store, 'get', [], true);
+        hook.pushToHandlers(_options.store, 'get', [], true);
         return callback(store);
       }
     }
@@ -281,34 +319,25 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
 
     http.request('GET', _request, null, function (err, data) {
       if (err) {
-        var _error = template.getError(err, _store, 'GET', true);
-        upsert('@lunarisErrors', {
-          version            : null,
-          data               : null,
-          url                : _request,
-          method             : 'GET',
-          storeName          : _store.name,
-          date               : dayjs(),
-          messageError       : _error,
-          messageErrorServer : err
-        });
+        var _error = template.getError(err, _options.store, 'GET', true);
+        setLunarisError(_options.store.name, 'GET', _request, null, null, err, _error);
         logger.warn(['lunaris.get' + store], err);
-        hook.pushToHandlers(_store, 'errorHttp', _error);
+        hook.pushToHandlers(_options.store, 'errorHttp', _error);
         return callback(store);
       }
 
-      var _version = _collection.begin();
+      var _version = _options.collection.begin();
       if (Array.isArray(data)) {
-        if (_store.isStoreObject) {
+        if (_options.store.isStoreObject) {
           logger.warn(
             ['lunaris.get' + store],
-            new Error('The store "' + _store.name + '" is an object store. The GET method cannot return multiple elements!')
+            new Error('The store "' + _options.store.name + '" is an object store. The GET method cannot return multiple elements!')
           );
           return callback(store);
         }
 
         for (var i = 0; i < data.length; i++) {
-          _collection.upsert(data[i], _version);
+          _options.collection.upsert(data[i], _version);
         }
 
         if (primaryKeyValue && data.length) {
@@ -316,21 +345,21 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         }
       }
       else {
-        _collection.upsert(data, _version);
+        _options.collection.upsert(data, _version);
       }
 
       var _isArray = Array.isArray(data);
-      data         = _collection.commit(_version);
+      data         = _options.collection.commit(_version);
       var _ids     = [];
       for (i = 0; i < data.length; i++) {
         _ids.push(data[i]._id);
         data[i] = utils.freeze(utils.clone(data[i]));
       }
 
-      _cache.add(_cacheFilters, _ids);
+      _options.cache.add(_cacheFilters, _ids);
 
-      hook.pushToHandlers(_store, 'get', data, _isArray);
-      _propagate(_store, data, utils.OPERATIONS.INSERT);
+      hook.pushToHandlers(_options.store, 'get', data, _isArray);
+      _propagate(_options.store, data, utils.OPERATIONS.INSERT);
     });
   }
   catch (e) {
@@ -363,7 +392,7 @@ function upsert (store, value, isLocal, retryOptions) {
       value = retryOptions.data;
     }
 
-    storeUtils.checkArgs(store, value);
+    var _options = beforeAction(store, value);
     if ((Array.isArray(value) && value[0]._id) || value._id) {
       _isUpdate = true;
     }
@@ -371,18 +400,17 @@ function upsert (store, value, isLocal, retryOptions) {
       _isUpdate = false;
     }
 
-    var _store = storeUtils.getStore(store);
-    if (_store.validateFn) {
-      return validate(store, value, _isUpdate, function (res) {
+    if (_options.store.validateFn) {
+      return validate(store, _options.value, _isUpdate, function (res) {
         if (!res) {
           return;
         }
 
-        _upsert(_store, value, isLocal, _isUpdate, retryOptions);
+        _upsert(_options.store, _options.collection, _options.cache, _options.value, isLocal, _isUpdate, retryOptions);
       }, _eventName);
     }
 
-    _upsert(_store, value, isLocal, _isUpdate, retryOptions);
+    _upsert(_options.store, _options.collection, _options.cache, _options.value, isLocal, _isUpdate, retryOptions);
   }
   catch (e) {
     logger.warn([_eventName], e);
@@ -405,37 +433,33 @@ function deleteStore (store, value, retryOptions, isLocal) {
     if (retryOptions) {
       value = retryOptions.data;
     }
-    storeUtils.checkArgs(store, value);
-
-    var _store      = storeUtils.getStore(store);
-    var _collection = storeUtils.getCollection(_store);
-    var _cache      = cache.getCache(_store);
+    var _options = beforeAction(store, value);
 
     var _version;
     if (!retryOptions) {
-      _version = _collection.begin();
-      _collection.remove(value._id, _version);
-      value = _collection.commit(_version);
+      _version = _options.collection.begin();
+      _options.collection.remove(value._id, _version);
+      value = _options.collection.commit(_version);
       value = value[0];
       if (!value) {
         throw new Error('You cannot delete a value not in the store!');
       }
-      hook.pushToHandlers(_store, 'delete', value);
-      _propagate(_store, value, utils.OPERATIONS.DELETE);
-      _propagateReflexive(_store, _collection, utils.clone(value), utils.OPERATIONS.DELETE);
-      _cache.invalidate(value._id);
+      hook.pushToHandlers(_options.store, 'delete', value);
+      _propagate(_options.store, value, utils.OPERATIONS.DELETE);
+      _propagateReflexive(_options.store, _options.collection, utils.clone(value), utils.OPERATIONS.DELETE);
+      _options.cache.invalidate(value._id);
     }
     else {
       _version = retryOptions.version;
     }
 
-    if (_store.isLocal || isLocal) {
+    if (_options.store.isLocal || isLocal) {
       return;
     }
 
     var _request = '/';
     if (!retryOptions) {
-      _request = url.create(_store, 'DELETE', storeUtils.getPrimaryKeyValue(_store, value));
+      _request = url.create(_options.store, 'DELETE', storeUtils.getPrimaryKeyValue(_options.store, value));
       // required filters consition not fullfilled
       if (!_request) {
         return;
@@ -447,24 +471,15 @@ function deleteStore (store, value, retryOptions, isLocal) {
     }
     http.request('DELETE', _request, null, function (err, data) {
       if (err) {
-        var _error = template.getError(err, _store, 'DELETE', false);
-        upsert('@lunarisErrors', {
-          version            : _version,
-          data               : value,
-          url                : _request,
-          method             : 'DELETE',
-          storeName          : _store.name,
-          date               : dayjs(),
-          messageError       : _error,
-          messageErrorServer : err
-        });
+        var _error = template.getError(err, _options.store, 'DELETE', false);
+        setLunarisError(_options.store.name, 'DELETE', _request, value, _version, err, _error);
         logger.warn(['lunaris.delete' + store], err);
-        return hook.pushToHandlers(_store, 'errorHttp', [_error, value]);
+        return hook.pushToHandlers(_options.store, 'errorHttp', [_error, value]);
       }
 
-      hook.pushToHandlers(_store, 'deleted', [
+      hook.pushToHandlers(_options.store, 'deleted', [
         data,
-        template.getSuccess(null, _store, 'DELETE', false)
+        template.getSuccess(null, _options.store, 'DELETE', false)
       ]);
     });
   }
@@ -481,13 +496,11 @@ function deleteStore (store, value, retryOptions, isLocal) {
  */
 function setPagination (store, page, limit) {
   try {
-    storeUtils.checkArgs(store, null, true);
+    var _options = beforeAction(store, null, true);
 
-    var _store = storeUtils.getStore(store);
-
-    _store.paginationLimit       = limit || _store.paginationLimit;
-    _store.paginationCurrentPage = page  || 1;
-    _store.paginationOffset      = _store.paginationCurrentPage === 1 ? 0 : _store.paginationLimit * _store.paginationCurrentPage;
+    _options.store.paginationLimit       = limit || _options.store.paginationLimit;
+    _options.store.paginationCurrentPage = page  || 1;
+    _options.store.paginationOffset      = _options.store.paginationCurrentPage === 1 ? 0 : _options.store.paginationLimit * _options.store.paginationCurrentPage;
   }
   catch (e) {
     logger.warn(['lunaris.setPagination' + store], e);
@@ -501,20 +514,16 @@ function setPagination (store, page, limit) {
  */
 function clear (store, isSilent) {
   try {
-    storeUtils.checkArgs(store, null, true);
+    var _options = beforeAction(store, null, true);
 
-    var _store      = storeUtils.getStore(store);
-    var _collection = storeUtils.getCollection(_store);
-    var _cache      = cache.getCache(_store);
-
-    _collection.clear();
-    _store.paginationCurrentPage = 1;
-    _store.paginationOffset      = 0;
-    _cache.clear();
+    _options.collection.clear();
+    _options.store.paginationCurrentPage = 1;
+    _options.store.paginationOffset      = 0;
+    _options.cache.clear();
     if (!isSilent) {
-      hook.pushToHandlers(_store, 'reset');
+      hook.pushToHandlers(_options.store, 'reset');
     }
-    _propagate(_store, null, utils.OPERATIONS.DELETE);
+    _propagate(_options.store, null, utils.OPERATIONS.DELETE);
   }
   catch (e) {
     logger.warn(['lunaris.clear' + store], e);
@@ -548,18 +557,14 @@ function get (store, primaryKeyValue, retryOptions) {
  */
 function getOne (store, id) {
   try {
-    storeUtils.checkArgs(store, null, true);
-
-    var _store      = storeUtils.getStore(store);
-    var _collection = storeUtils.getCollection(_store);
-
+    var _options = beforeAction(store, null, true);
     var _item;
 
     if (id)  {
-      _item = _collection.get(id);
+      _item = _options.collection.get(id);
     }
     else {
-      _item = _collection.getFirst();
+      _item = _options.collection.getFirst();
     }
 
     if (!_item) {
@@ -602,11 +607,8 @@ function retry (store, url, method, data, version) {
  */
 function rollback (store, version) {
   try {
-    storeUtils.checkArgs(store, null, true);
-
-    var _store      = storeUtils.getStore(store);
-    var _collection = storeUtils.getCollection(_store);
-    _collection.rollback(version);
+    var _options = beforeAction(store, null, true);
+    _options.collection.rollback(version);
   }
   catch (e) {
     logger.warn(['lunaris.rollback' + store], e);
@@ -620,14 +622,12 @@ function rollback (store, version) {
  */
 function getDefaultValue (store) {
   try {
-    storeUtils.checkArgs(store, null, true);
-
-    var _store = storeUtils.getStore(store);
-    if (!_store.meta) {
+    var _options = beforeAction(store, null, true);
+    if (!_options.store.meta) {
       return emptyObject;
     }
 
-    return utils.clone(_store.meta.defaultValue);
+    return utils.clone(_options.store.meta.defaultValue);
   }
   catch (e) {
     logger.warn(['lunaris.getDefaultValue' + store], e);

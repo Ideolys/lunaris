@@ -79,10 +79,10 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
  * Check arguments for upsert, get, deleteStore
  * @param {String} store
  * @param {*} value
- * @param {Boolean} isNotValue enable or not value check
+ * @param {Boolean} isNoValue enable or not value check
  */
-function checkArgs (store, value, isNotValue) {
-  if (value === undefined && !isNotValue) {
+function checkArgs (store, value, isNoValue) {
+  if (value === undefined && !isNoValue) {
     throw new Error('lunaris.<insert|update|delete>(<store>, <value>) must have a value, provided value: ' + value);
   }
   if (!store || typeof store !== 'string') {
