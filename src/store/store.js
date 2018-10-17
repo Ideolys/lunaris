@@ -294,6 +294,9 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
     if (_options.store.isLocal) {
       var _collectionValues = _options.collection.getAll();
       afterAction(_options.store, 'get', _collectionValues);
+      if (_options.store.isFilter) {
+        hook.pushToHandlers(_options.store, 'filterUpdated');
+      }
       return callback(store);
     }
 
@@ -369,6 +372,9 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       _options.cache.add(_cacheFilters, _ids);
       afterAction(_options.store, 'get', data);
       _propagate(_options.store, data, utils.OPERATIONS.INSERT);
+      if (_options.store.isFilter) {
+        hook.pushToHandlers(_options.store, 'filterUpdated');
+      }
     });
   }
   catch (e) {

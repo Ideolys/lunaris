@@ -1627,6 +1627,52 @@ describe('lunaris store', () => {
       lunaris.insert('@optional.param.site', { id : 1 });
     });
 
+    it('should fire the event filterUpdated for GET : store object', done => {
+      lunaris._stores['store1']          = initStore('store1');
+      lunaris._stores['store1'].isLocal  = true;
+      lunaris._stores['store1'].isFilter = true;
+      lunaris._stores['optional'] = initStore('optional');
+      lunaris._stores['optional'].filters.push({
+        source          : '@store1',
+        sourceAttribute : 'id',
+        localAttribute  : 'id',
+        operator        : '='
+      });
+
+      lunaris.hook('filterUpdated@store1', () => {
+        done();
+      });
+
+      lunaris.hook('errorHttp@optional', err => {
+        done(err);
+      });
+
+      lunaris._stores['store1'].data.add({ id : 1 });
+      lunaris.get('@store1');
+    });
+
+    it('should fire the event filterUpdated for GET : store array', done => {
+      lunaris._stores['store1']          = initStore('store1');
+      lunaris._stores['store1'].isFilter = true;
+      lunaris._stores['optional'] = initStore('optional');
+      lunaris._stores['optional'].filters.push({
+        source          : '@store1',
+        sourceAttribute : 'id',
+        localAttribute  : 'id',
+        operator        : '='
+      });
+
+      lunaris.hook('filterUpdated@store1', () => {
+        done();
+      });
+
+      lunaris.hook('errorHttp@optional', err => {
+        done(err);
+      });
+
+      lunaris.get('@store1');
+    });
+
     it('should filter the store by two optional filters', done => {
       lunaris._stores['optional.param.site']               = initStore('optional.param.site');
       lunaris._stores['optional.param.site'].isStoreObject = true;

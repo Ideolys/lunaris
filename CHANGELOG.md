@@ -28,6 +28,7 @@
   + Stop to pollute global scope.
   + Optional filter values support specific characters like ' for HTTP requests.
   + Some collection values were not immutable and or not frozen.
+  + GET action send `filterUpdated` event if the store is a filter for another store.
 
 ## 1.4.1
 *2018-09-26*
