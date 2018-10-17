@@ -786,6 +786,198 @@ describe('lunaris internal collection', () => {
         }
       ]);
     });
+
+    it('should update objects multiple payload : update', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+
+      var _parentObj = {
+        _id     : 1,
+        id      : 1,
+        label   : 'B',
+        element : null
+      };
+      var _parentObj2 = {
+        _id     : 5,
+        id      : 5,
+        label   : 'D',
+        element : null
+      };
+
+      var _childObj = {
+        _id     : 2,
+        id      : 2,
+        label   : 'A-1',
+        element : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj2 = {
+        _id     : 3,
+        id      : 3,
+        label   : 'A-2',
+        element : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj3 = {
+        _id     : 4,
+        id      : 4,
+        label   : 'C',
+        element : {
+          _id   : 5,
+          id    : 5,
+          label : 'D-1'
+        }
+      };
+
+      var elements = collection(null, _schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
+      elements.add(_parentObj);
+      elements.add(_childObj);
+      elements.add(_childObj2);
+      elements.add(_childObj3);
+      elements.add(_parentObj2);
+
+      var _res = elements.propagateReflexive([_parentObj, _parentObj2], utils.OPERATIONS.UPDATE);
+      should(_res.length).eql(3);
+      should(_res).eql([
+        {
+          id      : 2,
+          label   : 'A-1',
+          element : {
+            id       : 1,
+            label    : 'B',
+            _id      : 1,
+            _version : [1]
+          },
+          _id      : 2,
+          _version : [6]
+        },
+        {
+          id      : 3,
+          label   : 'A-2',
+          element : {
+            id       : 1,
+            label    : 'B',
+            _id      : 1,
+            _version : [1]
+          },
+          _id      : 3,
+          _version : [6]
+        },
+        {
+          _id     : 4,
+          id      : 4,
+          label   : 'C',
+          element : {
+            _id      : 5,
+            id       : 5,
+            label    : 'D',
+            _version : [5]
+          },
+          _version : [6]
+        }
+      ]);
+    });
+
+    it('should update objects multiple payload : delete', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+
+      var _parentObj = {
+        _id     : 1,
+        id      : 1,
+        label   : 'B',
+        element : null
+      };
+      var _parentObj2 = {
+        _id     : 5,
+        id      : 5,
+        label   : 'D',
+        element : null
+      };
+
+      var _childObj = {
+        _id     : 2,
+        id      : 2,
+        label   : 'A-1',
+        element : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj2 = {
+        _id     : 3,
+        id      : 3,
+        label   : 'A-2',
+        element : {
+          _id   : 1,
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      var _childObj3 = {
+        _id     : 4,
+        id      : 4,
+        label   : 'C',
+        element : {
+          _id     : 5,
+          id      : 5,
+          label   : 'D-1',
+          element : null
+        }
+      };
+
+      var elements = collection(null, _schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
+      elements.add(_parentObj);
+      elements.add(_childObj);
+      elements.add(_childObj2);
+      elements.add(_childObj3);
+      elements.add(_parentObj2);
+
+      var _res = elements.propagateReflexive([_parentObj, _parentObj2], utils.OPERATIONS.DELETE);
+      should(_res.length).eql(3);
+      should(_res).eql([
+        {
+          id       : 2,
+          label    : 'A-1',
+          element  : null,
+          _id      : 2,
+          _version : [6]
+        },
+        {
+          id       : 3,
+          label    : 'A-2',
+          element  : null,
+          _id      : 3,
+          _version : [6]
+        },
+        {
+          _id      : 4,
+          id       : 4,
+          label    : 'C',
+          element  : null,
+          _version : [6]
+        }
+      ]);
+    });
   });
 
   describe('remove()', () => {
@@ -1054,20 +1246,38 @@ describe('lunaris internal collection', () => {
       should(_values[1]).eql({ _id : 2, id : 2, test : 2, _version : [1]});
     });
 
-    it('should begin and end the transactions', () => {
+    it('should begin and end the transactions and return an array', () => {
       var _collection = collection();
       _collection.add({ id : 1, test : 1 }, _version);
 
       var _version = _collection.begin();
       _collection.upsert({ _id : 1, id : 1, test : 'B' });
       _collection.upsert({ _id : 1, id : 1, test : 'A' }, _version);
-      _collection.commit(_version);
+      var _res = _collection.commit(_version);
+      should(_res).be.an.Array().and.have.lengthOf(1);
+      should(_res).eql([{ _id : 1, id : 1, test : 'A', _version : [3] }]);
 
       var _values = _collection._getAll();
       should(_values).have.length(3);
       should(_values[0]).eql({ _id : 1, id : 1, test : 1  , _version : [1, 2] });
       should(_values[1]).eql({ _id : 1, id : 1, test : 'B', _version : [2, 3] });
       should(_values[2]).eql({ _id : 1, id : 1, test : 'A', _version : [3]    });
+    });
+
+    it('should begin and end the transactions and return and object', () => {
+      var _collection = collection(null, null, true);
+      _collection.add({ id : 1, test : 1 }, _version);
+
+      var _version = _collection.begin();
+      _collection.upsert({ _id : 1, id : 1, test : 'B' }, _version);
+      var _res = _collection.commit(_version);
+      should(_res).be.an.Object();
+      should(_res).eql({ _id : 1, id : 1, test : 'B', _version : [2] });
+
+      var _values = _collection._getAll();
+      should(_values).have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1  , _version : [1, 2] });
+      should(_values[1]).eql({ _id : 1, id : 1, test : 'B', _version : [2]    });
     });
 
     it('should not duplicate values if the same id has been already used within a transaction', () => {
@@ -1223,7 +1433,7 @@ describe('lunaris internal collection', () => {
       _collection.commit(_version);
       should(_collection.get(1)).eql({ _id : 1, id : 1, test : 2, _version : [1]});
       _collection.rollback(_version);
-      _values = _collection._getAll();
+      var _values = _collection._getAll();
       should(_values).have.length(1);
       should(_values[0]).eql({ _id : 1, id : 1, test : 2, _version : [1, 2]});
       should(_collection.get(1)).eql(null);
@@ -1238,7 +1448,7 @@ describe('lunaris internal collection', () => {
       _collection.commit(_version);
       should(_collection.get(1)).eql(null);
       _collection.rollback(_version);
-      _values = _collection._getAll();
+      var _values = _collection._getAll();
       should(_values).have.length(0);
     });
 
@@ -1254,7 +1464,7 @@ describe('lunaris internal collection', () => {
 
       should(_collection.get(2)).eql({ _id : 2, id : 1, test : 2, _version : [2]});
       _collection.rollback(_version);
-      _values = _collection._getAll();
+      var _values = _collection._getAll();
       should(_values).have.length(3);
       should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1, 2]});
       should(_values[1]).eql({ _id : 2, id : 1, test : 2, _version : [2, 3]});

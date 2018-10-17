@@ -6,14 +6,15 @@ function freeze (value) {
 }
 
 exports.cloneAndFreeze = function cloneAndFreeze (value) {
-  if (!Array.isArray(value)) {
-    return freeze(clone(value));
+  var _value = clone(value);
+  if (!Array.isArray(_value)) {
+    return freeze(_value);
   }
 
-  for (var i = 0; i < value.length; i++) {
-    value[i] = freeze(clone(value[i]));
+  for (var i = 0; i < _value.length; i++) {
+    _value[i] = freeze(_value[i]);
   }
-  return value;
+  return _value;
 };
 
 exports.OPERATIONS = {

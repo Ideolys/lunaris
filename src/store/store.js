@@ -45,7 +45,7 @@ function _propagate (store, data, operation) {
     var _store            = storeUtils.getStore('@' + _storeToPropagate);
     var _collection       = storeUtils.getCollection(_store);
     var _res              = _collection.propagate(store.name, data, operation);
-    _pushCommitResToHandlers(_store, 'update', _res);
+    _pushCommitResToHandlers(_store, 'update', _res, Array.isArray(_res));
   }
 }
 
@@ -53,15 +53,15 @@ function _propagate (store, data, operation) {
  * Update reflexive deps
  * @param {Object} store
  * @param {Object} collection
- * @param {Object} obj parent object
+ * @param {Object/Array} data parent objects
  * @param {String} operation
  */
-function _propagateReflexive (store, collection, obj, operation) {
+function _propagateReflexive (store, collection, data, operation) {
   if (!store.meta || (store.meta && !store.meta.meta.reflexive)) {
     return;
   }
 
-  var _res = collection.propagateReflexive(obj, operation);
+  var _res = collection.propagateReflexive(data, operation);
   _pushCommitResToHandlers(store, 'update', _res);
 }
 
@@ -96,9 +96,20 @@ function beforeAction (store, value, isNoValue) {
   };
 }
 
+/**
+ * After action : freeze values
+ * @param {Object} store
+ * @param {String} event
+ * @param {Object/Array} value
+ * @param {String} message
+ */
+function afterAction (store, event, value, message) {
+  var _value = utils.cloneAndFreeze(value);
+  if (message) {
+    return hook.pushToHandlers(store, event, [_value, message]);
+  }
 
-function afterAction () {
-
+  hook.pushToHandlers(store, event, _value, Array.isArray(_value));
 }
 
 /**
@@ -135,13 +146,11 @@ function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptio
     _version = collection.begin();
     if (_isMultipleItems) {
       for (var i = 0; i < value.length; i++) {
-        value[i] = utils.clone(value[i]);
         collection.upsert(value[i], _version);
         _ids.push(value[i]._id);
       }
     }
     else {
-      value = utils.clone(value);
       if (store.isStoreObject) {
         // we always should update the same value for object store
         var _value = collection.getAll();
@@ -156,18 +165,17 @@ function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptio
     }
 
     value = collection.commit(_version);
-    value = utils.cloneAndFreeze(value);
-
-    if (!_isMultipleItems) {
-      value = value[0];
-    }
 
     cache.invalidate(_ids, true);
 
-    hook.pushToHandlers(store, isUpdate ? 'update' : 'insert', value, _isMultipleItems);
+    afterAction(store, isUpdate ? 'update' : 'insert', value);
     _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT);
     if (isUpdate) {
-      _propagateReflexive(store, collection, utils.clone(value),  utils.OPERATIONS.UPDATE);
+      _propagateReflexive(store, collection, value,  utils.OPERATIONS.UPDATE);
+    }
+
+    if (!_isMultipleItems && !store.isStoreObject) {
+      value = value[0];
     }
   }
   else {
@@ -201,59 +209,57 @@ function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptio
       var _error = template.getError(err, store, _method, false);
       setLunarisError(store.name, _method, _request, value, _version, err, _error);
       logger.warn(['lunaris.' + (isUpdate ? 'update' : 'insert') + '@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', [_error, value]);
+      return hook.pushToHandlers(store, 'errorHttp', [_error, utils.cloneAndFreeze(value)]);
     }
 
-    var _isEvent    = true;
-    var _isMultiple = Array.isArray(data);
-    if (_isMultiple) {
-      if (store.isStoreObject) {
+    var _isEvent = true;
+    if (store.isStoreObject || !_isMultipleItems) {
+      if (store.isStoreObject && Array.isArray(data)) {
         throw new Error('The store "' + store.name + '" is a store object. The ' + _method + ' method tries to ' + (isUpdate ? 'update' : 'insert') + ' multiple elements!');
       }
 
-      _version = collection.begin();
-      for (i = 0; i < value.length; i++) {
-        for (var j = 0; j < data.length; j++) {
-          if (value[i]._id === data[j]._id) {
-            value[i] = utils.merge(lunaris.clone(value[i]), data[j]);
-            collection.upsert(value[i], _version);
-          }
-        }
-      }
-      value = collection.commit(_version);
-      value = utils.cloneAndFreeze(value);
-    }
-    else {
-      value    = utils.merge(lunaris.clone(value), data);
+      value    = utils.merge(value, data);
       _version = collection.begin();
       collection.upsert(value, _version);
       value = collection.commit(_version);
-      if (value.length) {
-        value = value[0];
-      }
       // the value must have been deleted
-      if (value) {
-        value = utils.cloneAndFreeze(value);
-      }
-      else {
+      if (!value) {
         _isEvent = false;
       }
+    }
+    else {
+      var _isMultiple = Array.isArray(data);
+      _version = collection.begin();
+
+      for (i = 0; i < value.length; i++) {
+        if (_isMultiple) {
+          for (var j = 0; j < data.length; j++) {
+            if (value[i]._id === data[j]._id) {
+              value[i] = utils.merge(lunaris.clone(value[i]), data[j]);
+              collection.upsert(value[i], _version);
+            }
+          }
+        }
+        else {
+          value[i] = utils.merge(value[i], data);
+          collection.upsert(value[i], _version);
+        }
+      }
+
+      value = collection.commit(_version);
     }
 
     if (!_isEvent) {
       return;
     }
 
-    hook.pushToHandlers(store, 'update', value, _isMultiple);
-    hook.pushToHandlers(store, isUpdate ? 'updated' : 'inserted', [
-      value,
-      template.getSuccess(null, store, _method, false)
-    ]);
+    afterAction(store, 'update', value);
+    afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, _method, false));
     if (store.isFilter) {
       hook.pushToHandlers(store, 'filterUpdated');
     }
     _propagate(store, value, utils.OPERATIONS.UPDATE);
-    _propagateReflexive(store, collection, utils.clone(value), utils.OPERATIONS.UPDATE);
+    _propagateReflexive(store, collection, value, utils.OPERATIONS.UPDATE);
   });
 }
 
@@ -287,7 +293,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
 
     if (_options.store.isLocal) {
       var _collectionValues = _options.collection.getAll();
-      hook.pushToHandlers(_options.store, 'get', _collectionValues, Array.isArray(_collectionValues));
+      afterAction(_options.store, 'get', _collectionValues);
       return callback(store);
     }
 
@@ -306,10 +312,10 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
 
       if (_ids) {
         if (_ids.length) {
-          hook.pushToHandlers(_options.store, 'get', utils.cloneAndFreeze(_options.collection.getAll(_ids)), true);
+          afterAction(_options.store, 'get', _options.collection.getAll(_ids));
           return callback(store);
         }
-        hook.pushToHandlers(_options.store, 'get', [], true);
+        afterAction(_options.store, 'get', []);
         return callback(store);
       }
     }
@@ -348,17 +354,20 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         _options.collection.upsert(data, _version);
       }
 
-      var _isArray = Array.isArray(data);
       data         = _options.collection.commit(_version);
       var _ids     = [];
-      for (i = 0; i < data.length; i++) {
-        _ids.push(data[i]._id);
-        data[i] = utils.freeze(utils.clone(data[i]));
+
+      if (store.isStoreObject) {
+        _ids.push(data._id);
+      }
+      else {
+        for (i = 0; i < data.length; i++) {
+          _ids.push(data[i]._id);
+        }
       }
 
       _options.cache.add(_cacheFilters, _ids);
-
-      hook.pushToHandlers(_options.store, 'get', data, _isArray);
+      afterAction(_options.store, 'get', data);
       _propagate(_options.store, data, utils.OPERATIONS.INSERT);
     });
   }
@@ -440,13 +449,18 @@ function deleteStore (store, value, retryOptions, isLocal) {
       _version = _options.collection.begin();
       _options.collection.remove(value._id, _version);
       value = _options.collection.commit(_version);
-      value = value[0];
-      if (!value) {
+      var _isArray = Array.isArray(value);
+      if ((!_isArray && !value) || (_isArray && !value.length)) {
         throw new Error('You cannot delete a value not in the store!');
       }
-      hook.pushToHandlers(_options.store, 'delete', value);
+      afterAction(_options.store, 'delete', value);
       _propagate(_options.store, value, utils.OPERATIONS.DELETE);
-      _propagateReflexive(_options.store, _options.collection, utils.clone(value), utils.OPERATIONS.DELETE);
+      _propagateReflexive(_options.store, _options.collection, value, utils.OPERATIONS.DELETE);
+
+      if (!store.isStoreObject) {
+        value = value[0];
+      }
+
       _options.cache.invalidate(value._id);
     }
     else {
@@ -477,10 +491,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
         return hook.pushToHandlers(_options.store, 'errorHttp', [_error, value]);
       }
 
-      hook.pushToHandlers(_options.store, 'deleted', [
-        data,
-        template.getSuccess(null, _options.store, 'DELETE', false)
-      ]);
+      afterAction(_options.store, 'deleted', data, template.getSuccess(null, _options.store, 'DELETE', false));
     });
   }
   catch (e) {

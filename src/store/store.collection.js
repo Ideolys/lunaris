@@ -390,7 +390,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
         remove(_objToRollback[j]._id, _version);
       }
     }
-    commit(_version);
+    return _internalCommit(_version);
   }
 
   /**
@@ -406,6 +406,23 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
    * @param {Int} versionNumber
    */
   function commit (versionNumber) {
+    var _res = _internalCommit(versionNumber);
+    if (_isStoreObject) {
+      if (_res.length) {
+        return _res[0];
+      }
+
+      return null;
+    }
+
+    return _res;
+  }
+
+  /**
+   * Commit the transaction version number
+   * @param {Int} versionNumber
+   */
+  function _internalCommit (versionNumber) {
     var _res         = [];
     var _transaction = _transactions[versionNumber];
     if (!_transaction) {
@@ -423,7 +440,11 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
         _res.push(upsert(_transaction[i][1]));
       }
       else {
-        _res.push(remove(_transaction[i][1]._id));
+        var _remove = remove(_transaction[i][1]._id);
+        // The _id can be unedfined
+        if (_remove) {
+          _res.push(_remove);
+        }
       }
     }
 
@@ -431,7 +452,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
     _isTransactionCommit         = false;
     _transactionVersionNumber    = null;
     incrementVersionNumber();
-    return _res;
+    return utils.clone(_res);
   }
 
   /**
@@ -488,18 +509,21 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       }
     }
 
-    return commit(_version);
+    return _internalCommit(_version);
   }
 
   /**
    * Propagate reflexive update
-   * @param {String} store
-   * @param {Object/Array} data object to delete or insert
+   * @param {Object/Array} data objects to delete or insert
    * @param {String} operation
    */
-  function propagateReflexive (objParent, operation) {
+  function propagateReflexive (data, operation) {
     if (!_reflexiveUpdateFn) {
       return;
+    }
+
+    if (data && !Array.isArray(data)) {
+      data = [data];
     }
 
     var _version = begin();
@@ -507,23 +531,25 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       var _item         = _data[i];
       var _lowerVersion = _item._version[0];
       var _upperVersion = _item._version[1];
-      if (_lowerVersion <= currentVersionNumber && !_upperVersion && _item._id !== objParent._id) {
-        // Remember, we cannot directly edit a value from the collection (clone)
-        var _obj = utils.clone(_item);
-        if (operation === OPERATIONS.DELETE) {
-          _obj = _reflexiveDeleteFn(_getPrimaryKey, objParent, _obj);
-        }
-        else if (operation === OPERATIONS.UPDATE) {
-          _obj = _reflexiveUpdateFn(_getPrimaryKey, objParent, _obj);
-        }
+      for (var j = 0; j < data.length; j++) {
+        if (_lowerVersion <= currentVersionNumber && !_upperVersion && _item._id !== data[j]._id) {
+          // Remember, we cannot directly edit a value from the collection (clone)
+          var _obj = utils.clone(_item);
+          if (operation === OPERATIONS.DELETE) {
+            _obj = _reflexiveDeleteFn(_getPrimaryKey, data[j], _obj);
+          }
+          else if (operation === OPERATIONS.UPDATE) {
+            _obj = _reflexiveUpdateFn(_getPrimaryKey, data[j], _obj);
+          }
 
-        if (_obj) {
-          upsert(_obj, _version);
+          if (_obj) {
+            upsert(_obj, _version);
+          }
         }
       }
     }
 
-    return commit(_version);
+    return _internalCommit(_version);
   }
 
   return {
@@ -576,7 +602,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
         return _items.length ? _items[0] : null;
       }
 
-      return _items;
+      return utils.clone(_items);
     },
 
     /**
