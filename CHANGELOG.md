@@ -27,6 +27,7 @@
   + Fix cache when comparing array values.
   + Stop to pollute global scope.
   + Optional filter values support specific characters like ' for HTTP requests.
+  + Some collection values were not immutable and or not frozen.
 
 ## 1.4.1
 *2018-09-26*
