@@ -47,3 +47,14 @@ try {
 catch (e) {
   exports.storeDependencies = '';
 }
+
+/**
+ * Lunaris external constants object
+ * Injected at build time
+ */
+try {
+  exports.constants = CONSTANTS;
+}
+catch (e) {
+  exports.constants = {};
+}

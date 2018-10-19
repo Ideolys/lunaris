@@ -36,5 +36,6 @@ module.exports = {
   begin           : hook.begin,
   commit          : hook.commit,
 
-  OPERATIONS : utils.OPERATIONS
+  OPERATIONS : utils.OPERATIONS,
+  constants  : lunarisExports.constants
 };

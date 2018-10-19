@@ -8,6 +8,16 @@ describe('builder', () => {
     lunaris._resetVersionNumber();
   });
 
+  it('should have defined constants', () => {
+    should(lunaris.constants).eql({
+      CONSTANT1 : '1',
+      ARRAY     : [1, 2, 3],
+      OBJECT    : {
+        STATUS : [1, 2]
+      }
+    });
+  });
+
   describe('joins', () => {
 
     it('should have found joins', () => {

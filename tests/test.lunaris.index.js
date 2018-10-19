@@ -134,4 +134,9 @@ describe('lunaris index', () => {
     should(index.http).be.ok();
     should(index.http).eql(http);
   });
+
+  it('constants should be defined', () => {
+    should(index.constants).be.ok();
+    should(index.constants).be.an.Object();
+  });
 });
