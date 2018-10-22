@@ -3753,7 +3753,7 @@ describe('Schema', () => {
       should(_obj.total).eql(7);
     });
 
-    it.only('should find a join and set a custom property if a shortcut has been used and define join functions and find transformer function', () => {
+    it('should find a join and set a custom property if a shortcut has been used and define join functions and find transformer function', () => {
       var _fn = function (element) {
         return element.cost;
       };
