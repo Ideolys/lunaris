@@ -284,7 +284,7 @@ lunaris._vue = {
       var _hookKeys = Object.keys(_hooks);
       for (var i = 0; i < _hookKeys.length; i++) {
         var _hook = _hooks[_hookKeys[i]];
-        lunaris.removeHook(_hookKeys[i], _hook);
+        lunaris.removeHook(_hookKeys[i], _hook.bind(_this));
       }
 
       var _internalHooks = _this.$options.internalStoreHooks;
