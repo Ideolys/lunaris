@@ -1444,7 +1444,8 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null
+              reflexive          : null,
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1475,6 +1476,7 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1489,7 +1491,8 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null
+              reflexive          : null,
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1520,6 +1523,7 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1534,7 +1538,8 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null
+              reflexive          : null,
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1565,6 +1570,7 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1583,7 +1589,8 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null
+              reflexive          : null,
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1614,6 +1621,7 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1633,7 +1641,8 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null
+              reflexive          : null,
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1678,6 +1687,7 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1692,7 +1702,8 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null
+              reflexive          : null,
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {
@@ -1724,6 +1735,7 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1742,7 +1754,8 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null
+              reflexive          : null,
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {
@@ -1774,6 +1787,7 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1788,7 +1802,8 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null
+              reflexive          : null,
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1818,6 +1833,7 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1832,7 +1848,8 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null
+              reflexive          : null,
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1862,6 +1879,7 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1880,7 +1898,8 @@ describe('Validate', () => {
               aggregates         : {},
               aggregatesSort     : [],
               externalAggregates : {},
-              joins              : {}
+              joins              : {},
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1907,18 +1926,22 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<idMenu>']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<   idMenu>']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<  idMenu   >']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '   < idMenu   >  ']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1937,7 +1960,8 @@ describe('Validate', () => {
               aggregates         : {},
               aggregatesSort     : [],
               externalAggregates : {},
-              joins              : {}
+              joins              : {},
+              computedFns        : {}
             },
             onValidate  : { },
             onTransform : {},
@@ -1964,18 +1988,22 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<idMenu>>']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<   idMenu>>']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<  idMenu   >>']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '   << idMenu   >>  ']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -2030,7 +2058,8 @@ describe('Validate', () => {
               aggregates         : {},
               aggregatesSort     : [],
               externalAggregates : {},
-              joins              : {}
+              joins              : {},
+              computedFns        : {}
             },
             onValidate : {
               cities2_name : function () {return 'test';}
@@ -2141,6 +2170,7 @@ describe('Validate', () => {
           var _computed = schema.analyzeDescriptor(_objectDescriptor);
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
+          delete _computed.computedsFn;
           should(_computed).eql(_expectedTreeDescriptor);
           done();
         });
