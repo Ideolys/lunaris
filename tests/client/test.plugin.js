@@ -178,7 +178,7 @@ describe('Store plugin', () => {
     vm.$destroy();
   });
 
-  it.only('should remove handlers', () => {
+  it('should remove handlers', () => {
     const vm = new Vue({
       el         : '#app',
       stores     : ['test'],
