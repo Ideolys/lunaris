@@ -156,7 +156,9 @@ function removeHook (hook, handler) {
       throw new Error('Cannot remove hook "' + hook + '", it has not been defined!');
     }
 
+    console.log(_handlers);
     for (var i = 0; i < _handlers.length; i++) {
+      console.log(_handlers[i] === handler, _handlers[i].toString(), handler.toString())
       if (_handlers[i] === handler) {
         _handlers.splice(i, 1);
       }

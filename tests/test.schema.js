@@ -1,7 +1,7 @@
 const schema     = require('../lib/_builder/store/schema');
 const aggregates = require('../src/store/store.aggregate');
 
-describe('Schema', () => {
+describe.only('Schema', () => {
 
   describe('analyzeDescriptor(obj)', () => {
 

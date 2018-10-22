@@ -178,6 +178,21 @@ describe('Store plugin', () => {
     vm.$destroy();
   });
 
+  it.only('should remove handlers', () => {
+    const vm = new Vue({
+      el         : '#app',
+      stores     : ['test'],
+      storeHooks : {
+        'insert@test' : function test () {
+          console.log('test');
+        }
+      }
+    });
+    vm.$destroy();
+    should(lunaris._stores.test.hooks.insert).have.lengthOf(1);
+    vm.$destroy();
+  });
+
   it('should update the state when get : store array', () => {
     const vm = new Vue({
       el     : '#app',
