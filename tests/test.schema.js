@@ -1027,7 +1027,8 @@ describe('Schema', () => {
           continent : null,
           countries : []
         },
-        reflexiveFn : null
+        reflexiveFn : null,
+        computedsFn : null
       };
 
       var _objectDescriptor = {
@@ -1166,7 +1167,8 @@ describe('Schema', () => {
           continent : null,
           countries : []
         },
-        reflexiveFn : null
+        reflexiveFn : null,
+        computedsFn : null
       };
 
       var _objectDescriptor = [{
@@ -3536,7 +3538,7 @@ describe('Schema', () => {
     });
   });
 
-  describe.only('transformer functions', () => {
+  describe('transformer functions', () => {
 
     it('should find computed property', () => {
       var _fn = function (obj) {
@@ -3665,6 +3667,77 @@ describe('Schema', () => {
       });
     });
 
+    it('should find computed property in object and init constants', () => {
+      var _fn = function (price, obj, constants) {
+        return price.value * constants.tva;
+      };
+
+      var _objectDescriptor = {
+        id    : ['<<id>>'],
+        price : ['object', {
+          value : ['number'],
+          ttc   : [_fn]
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.computedFns).eql({
+        'price.ttc' : _fn
+      });
+
+      var _obj = {
+        id    : 1,
+        price : {
+          value : 10
+        }
+      };
+
+      var _res = _schema.computedsFn(_obj, { tva : 1.2 });
+      should(_res).eql({
+        id    : 1,
+        price : {
+          value : 10,
+          ttc   : 12
+        }
+      });
+    });
+
+    it('should find computed property in object and use root object', () => {
+      var _fn = function (price, obj) {
+        return price.value * obj.x;
+      };
+
+      var _objectDescriptor = {
+        id    : ['<<id>>'],
+        x     : ['number'],
+        price : ['object', {
+          value : ['number'],
+          ttc   : [_fn]
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.computedFns).eql({
+        'price.ttc' : _fn
+      });
+
+      var _obj = {
+        id    : 1,
+        x     : 1.2,
+        price : {
+          value : 10
+        }
+      };
+
+      var _res = _schema.computedsFn(_obj);
+      should(_res).eql({
+        id    : 1,
+        x     : 1.2,
+        price : {
+          value : 10,
+          ttc   : 12
+        }
+      });
+    });
+
     it('should find computed property in array', () => {
       var _fn = function (price) {
         return price.value * 1.20;
@@ -3697,6 +3770,105 @@ describe('Schema', () => {
       };
 
       var _res = _schema.computedsFn(_obj);
+      should(_res).eql({
+        id     : 1,
+        prices : [
+          {
+            id    : 1,
+            value : 10,
+            ttc   : 12
+          }, {
+            id    : 2,
+            value : 20,
+            ttc   : 24
+          }
+        ]
+      });
+    });
+
+    it('should find computed property in array and use root object', () => {
+      var _fn = function (price, obj) {
+        return price.value * obj.x;
+      };
+
+      var _objectDescriptor = {
+        id     : ['<<id>>'],
+        x      : ['number'],
+        prices : ['array', {
+          id    : ['<<int>>'],
+          value : ['number'],
+          ttc   : [_fn]
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.computedFns).eql({
+        'prices.ttc' : _fn
+      });
+
+      var _obj = {
+        id     : 1,
+        x      : 1.2,
+        prices : [
+          {
+            id    : 1,
+            value : 10
+          }, {
+            id    : 2,
+            value : 20
+          }
+        ]
+      };
+
+      var _res = _schema.computedsFn(_obj);
+      should(_res).eql({
+        id     : 1,
+        x      : 1.2,
+        prices : [
+          {
+            id    : 1,
+            value : 10,
+            ttc   : 12
+          }, {
+            id    : 2,
+            value : 20,
+            ttc   : 24
+          }
+        ]
+      });
+    });
+
+    it('should find computed property in array', () => {
+      var _fn = function (price, obj, constants) {
+        return price.value * constants.tva;
+      };
+
+      var _objectDescriptor = {
+        id     : ['<<id>>'],
+        prices : ['array', {
+          id    : ['<<int>>'],
+          value : ['number'],
+          ttc   : [_fn]
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.computedFns).eql({
+        'prices.ttc' : _fn
+      });
+
+      var _obj = {
+        id     : 1,
+        prices : [
+          {
+            id    : 1,
+            value : 10
+          }, {
+            id    : 2,
+            value : 20
+          }
+        ]
+      };
+
+      var _res = _schema.computedsFn(_obj, { tva : 1.2 });
       should(_res).eql({
         id     : 1,
         prices : [
@@ -3753,6 +3925,46 @@ describe('Schema', () => {
       should(_obj.total).eql(7);
     });
 
+    it('should set the aggregate sum and find the computed property and define the constants', () => {
+      var _fn = function (element, obj, constants) {
+        return element.cost * constants.tva;
+      };
+
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        total    : ['sum', 'elements', _fn],
+        elements : ['array', {
+          id   : ['<<id>>'],
+          cost : ['number']
+        }]
+      };
+
+      var _schema      = schema.analyzeDescriptor(_objectDescriptor);
+      var _aggregateFn = _schema.aggregateFn;
+
+      should(_schema.meta.aggregates).eql({
+        total : ['sum', 'elements', _fn]
+      });
+      should(_schema.meta.aggregatesSort).eql(['total']);
+
+      var _obj = {
+        id       : 1,
+        elements : [
+          {
+            id   : 1,
+            cost : 5
+          }, {
+            id   : 2,
+            cost : 2
+          }
+        ]
+      };
+
+      _aggregateFn(_obj, aggregates.aggregates, { tva : 1.5 });
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(10.5);
+    });
+
     it('should find a join and set a custom property if a shortcut has been used and define join functions and find transformer function', () => {
       var _fn = function (element) {
         return element.cost;
@@ -3792,6 +4004,216 @@ describe('Schema', () => {
       _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
       should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
       should(_obj.total).be.a.Number().and.eql(4);
+    });
+
+    it('should find a join and set a custom property if a shortcut has been used and define join functions and find transformer function with root object', () => {
+      var _fn = function (element, obj) {
+        return element.cost * obj.x;
+      };
+
+      var _objectDescriptor = {
+        id    : ['<<id>>'],
+        x     : ['int'],
+        total : ['sum', '@elements', _fn]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+      should(_schema.meta.joins).eql({
+        elements : 'join_elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sum', 'total', 'join_elements', _fn]
+      });
+
+      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues))};
+      var _obj        = { id : 1, x : 2 };
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates);
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(6);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates);
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(12);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(8);
+    });
+
+    it('should find a join and set a custom property if a shortcut has been used and define join functions and find transformer function and init constants', () => {
+      var _fn = function (element, obj, constants) {
+        return element.cost * constants.tva;
+      };
+
+      var _objectDescriptor = {
+        id    : ['<<id>>'],
+        total : ['sum', '@elements', _fn]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+      should(_schema.meta.joins).eql({
+        elements : 'join_elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sum', 'total', 'join_elements', _fn]
+      });
+
+      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues))};
+      var _obj        = { id : 1 };
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates, { tva : 1.5 });
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(4.5);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates, { tva : 1.5 });
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(9);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates, { tva : 1.5 });
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(6);
+    });
+
+    it('should find a join nd define join functions and find transformer function', () => {
+      var _fn = function (element) {
+        return element.cost;
+      };
+
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        total    : ['sum', 'elements', _fn],
+        elements : ['@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+      should(_schema.meta.joins).eql({
+        elements : 'elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sum', 'total', 'elements', _fn]
+      });
+
+      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues))};
+      var _obj        = { id : 1 };
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates);
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(3);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates);
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(6);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(4);
+    });
+
+    it('should find a join nd define join functions and find transformer function with root object', () => {
+      var _fn = function (element, obj) {
+        return element.cost * obj.x;
+      };
+
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        x        : ['int'],
+        total    : ['sum', 'elements', _fn],
+        elements : ['@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+      should(_schema.meta.joins).eql({
+        elements : 'elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sum', 'total', 'elements', _fn]
+      });
+
+      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues))};
+      var _obj        = { id : 1, x : 2 };
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates);
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(6);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates);
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(12);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(8);
+    });
+
+    it('should find a join nd define join functions and find transformer function and init constants', () => {
+      var _fn = function (element, obj, constants) {
+        return element.cost * constants.tva;
+      };
+
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        total    : ['sum', 'elements', _fn],
+        elements : ['@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+      should(_schema.meta.joins).eql({
+        elements : 'elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sum', 'total', 'elements', _fn]
+      });
+
+      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues))};
+      var _obj        = { id : 1 };
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates, { tva : 1.5 });
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(4.5);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates, { tva : 1.5 });
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(9);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates, { tva : 1.5 });
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(6);
     });
 
   });
