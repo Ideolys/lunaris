@@ -4,6 +4,7 @@
 *2018-XX-XX*
 - Features :
   - Add transformer functions.
+  - Add constants object `lunaris.contants`
 - Fix :
 
 ## 1.5.0
