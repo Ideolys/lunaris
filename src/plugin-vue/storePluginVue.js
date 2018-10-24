@@ -265,7 +265,7 @@ lunaris._vue = {
         if (typeof _hook !== 'function') {
           return lunaris.logger.warn('Error in component \'' + _this.$options.name + '\':', 'vm.storeHooks.' + _hookKeys[i] + ' must be a Function!');
         }
-        lunaris.hook(_this, _hookKeys[i], _hook.bind(_this));
+        lunaris.hook(_hookKeys[i], _hook.bind(_this));
       }
     }
 
