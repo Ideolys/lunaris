@@ -7,7 +7,7 @@ function getPrimaryKey (value) {
   return value.id;
 }
 
-describe('lunaris internal collection', () => {
+describe.only('lunaris internal collection', () => {
   beforeEach(() => {
     collectionModule.resetVersionNumber();
   });
@@ -159,6 +159,53 @@ describe('lunaris internal collection', () => {
       should(_index[0]).eql([2]);
       should(_index[1]).have.lengthOf(1);
       should(_index[1]).eql([1]);
+    });
+
+    it('should compute computed property', () => {
+      var _obj = [{
+        id               : ['<<int>>'],
+        label            : ['string'],
+        labelCapitalized : [function (obj) {
+          return obj.label.toUpperCase();
+        }]
+      }];
+
+      var _schema = schema.analyzeDescriptor(_obj);
+
+      var _collection = collection(null, null, false, null, null, null, _schema.computedsFn);
+      _collection.add({ id : 2, label : 'a' });
+      _collection.add({ id : 3, label : 'b' });
+      var _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 2, label : 'a', labelCapitalized : 'A', _version : [1]});
+      should(_values[1]).eql({ _id : 2, id : 3, label : 'b', labelCapitalized : 'B', _version : [2]});
+    });
+
+    it('should compute computed property for upsert', () => {
+      var _obj = [{
+        id               : ['<<int>>'],
+        label            : ['string'],
+        labelCapitalized : [function (obj) {
+          return obj.label.toUpperCase();
+        }]
+      }];
+
+      var _schema = schema.analyzeDescriptor(_obj);
+
+      var _collection = collection(null, getPrimaryKey, false, null, null, null, _schema.computedsFn);
+      _collection.add({ id : 2, label : 'a' });
+      _collection.add({ id : 3, label : 'b' });
+      var _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 2, label : 'a', labelCapitalized : 'A', _version : [1]});
+      should(_values[1]).eql({ _id : 2, id : 3, label : 'b', labelCapitalized : 'B', _version : [2]});
+
+      _collection.upsert({ _id : 1, id : 2, label : 'c' });
+      _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(3);
+      should(_values[0]).eql({ _id : 1, id : 2, label : 'a', labelCapitalized : 'A', _version : [1, 3]});
+      should(_values[1]).eql({ _id : 2, id : 3, label : 'b', labelCapitalized : 'B', _version : [2]});
+      should(_values[2]).eql({ _id : 1, id : 2, label : 'c', labelCapitalized : 'C', _version : [3]});
     });
 
     describe('join / propagate / aggregate', () => {
@@ -1159,6 +1206,30 @@ describe('lunaris internal collection', () => {
       var _collection = collection();
       _collection.upsert({ id : 1, test : 2 });
       should(_collection.get(1)).eql({ _id : 1, id : 1, test : 2, _version : [1]});
+    });
+
+    it('should update the item with primaryKey index', () => {
+      var _collection = collection(null, getPrimaryKey);
+      _collection.add({ id : 1, test : 1 });
+      _collection.upsert({ _id : 1, id : 1, test : 2 });
+
+      var _values = _collection._getAll();
+      should(_values).have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1, 2]});
+      should(_values[1]).eql({ _id : 1, id : 1, test : 2, _version : [2]});
+    });
+
+    it('should update the item with primaryKey index and commit/begin', () => {
+      var _collection = collection(null, getPrimaryKey);
+      _collection.add({ id : 1, test : 1 });
+      var _version = _collection.begin();
+      _collection.upsert({ _id : 1, id : 1, test : 2 }, _version);
+      _collection.commit(_version);
+
+      var _values = _collection._getAll();
+      should(_values).have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 1, test : 1, _version : [1, 2]});
+      should(_values[1]).eql({ _id : 1, id : 1, test : 2, _version : [2]});
     });
   });
 

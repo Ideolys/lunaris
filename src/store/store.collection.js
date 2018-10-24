@@ -1,6 +1,7 @@
-var utils      = require('../utils.js');
-var OPERATIONS = utils.OPERATIONS;
-var aggregates = require('./store.aggregate.js').aggregates;
+var utils          = require('../utils.js');
+var OPERATIONS     = utils.OPERATIONS;
+var aggregates     = require('./store.aggregate.js').aggregates;
+var lunarisExports = require('../exports.js');
 
 /**
  * Version number :
@@ -119,8 +120,9 @@ var index = {
  * }
  * @param {Function} aggregateFn function to set aggregate values
  * @param {Object} reflexiveFns { update : {Function}, delete : {Function} }
+ * @param {Function} computedsFn function to set computed properties
  */
-function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, reflexiveFns) {
+function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, reflexiveFns, computedsFn) {
   var _data                     = [];
   var _currentId                = startId && typeof startId === 'number' ? startId : 1;
   var _transactions             = {};
@@ -133,6 +135,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
   var _aggregateFn              = aggregateFn;
   var _reflexiveUpdateFn        = reflexiveFns ? reflexiveFns.update : null;
   var _reflexiveDeleteFn        = reflexiveFns ? reflexiveFns.delete : null;
+  var _computedsFn              = computedsFn;
   /**
    * id : [[id], [_id]]
    */
@@ -179,9 +182,22 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
    * Add value to the array of collection values and set the index id
    * @param {Object} value
    * @param {Int} versionNumber
+   * @param {Boolean} isFromUpsert
    * @param {Boolean} isFromIndex
    */
-  function _addToValues (value, versionNumber, isFromIndex) {
+  function _addToValues (value, versionNumber, isFromUpsert, isFromIndex) {
+    if (!(value._id && isFromUpsert)) {
+      _setJoinValues(value);
+      if (_aggregateFn) {
+        _aggregateFn(value, aggregates, lunarisExports.constants);
+      }
+      value._id = _currentId;
+      _currentId++;
+    }
+    else {
+      return _data.push(value);
+    }
+
     if (isFromIndex || !_getPrimaryKey) {
       return _data.push(value);
     }
@@ -196,7 +212,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
     // We upsert the last version of the object
     if (_search.found) {
       value._id = _indexes.id[1][_search.index];
-      value     = upsert(value, versionNumber, false, true);
+      upsert(value, versionNumber, false, true);
       return;
     }
 
@@ -234,13 +250,8 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       return;
     }
 
-    if (!(value._id && isFromUpsert)) {
-      _setJoinValues(value);
-      if (_aggregateFn) {
-        _aggregateFn(value, aggregates);
-      }
-      value._id = _currentId;
-      _currentId++;
+    if (_computedsFn) {
+      _computedsFn(value, lunarisExports.constants);
     }
 
     value._version = [versionNumber || currentVersionNumber];
@@ -248,7 +259,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       incrementVersionNumber();
     }
 
-    _addToValues(value, versionNumber, isFromIndex);
+    _addToValues(value, versionNumber, isFromUpsert, isFromIndex);
     return value;
   }
 
@@ -480,11 +491,11 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       // For INSERT, we cannot garantie that the store will propagate multiple times an INSERT
       // Only the collection has a sytem to avoid duplicate values (based on primary key values)
       if (operation === OPERATIONS.INSERT || operation === OPERATIONS.UPDATE) {
-        _joinsDescriptor.joinFns[store].delete(object, data, aggregates);
-        return _joinsDescriptor.joinFns[store].insert(object, data, aggregates);
+        _joinsDescriptor.joinFns[store].delete(object, data, aggregates, lunarisExports.constants);
+        return _joinsDescriptor.joinFns[store].insert(object, data, aggregates, lunarisExports.constants);
       }
       else if (operation === OPERATIONS.DELETE) {
-        return _joinsDescriptor.joinFns[store].delete(object, data, aggregates);
+        return _joinsDescriptor.joinFns[store].delete(object, data, aggregates, lunarisExports.constants);
       }
     }
 

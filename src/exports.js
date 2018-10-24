@@ -1,20 +1,5 @@
-var collection = require('./store/store.collection.js');
+exports._stores = {};
 
-exports._stores = {
-  lunarisErrors : {
-    name                  : 'lunarisErrors',
-    data                  : collection.collection(),
-    data_filtered         : collection.collection(),
-    filters               : [],
-    paginationLimit       : 50,
-    paginationOffset      : 0,
-    paginationCurrentPage : 1,
-    hooks                 : {},
-    nameTranslated        : '${store.lunarisErrors}',
-    isLocal               : true,
-    storesToPropagate     : []
-  }
-};
 // exports.baseUrl is only designed for tests in order to perform HTTP requests
 try {
   exports.baseUrl = BASE_URL;

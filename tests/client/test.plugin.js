@@ -184,7 +184,6 @@ describe('Store plugin', () => {
       stores     : ['test'],
       storeHooks : {
         'insert@test' : function test () {
-          console.log('test');
         }
       }
     });

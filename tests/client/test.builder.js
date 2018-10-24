@@ -5,6 +5,7 @@ describe('builder', () => {
     lunaris.clear('@childAggregate');
     lunaris.clear('@parent');
     lunaris.clear('@childParent');
+    lunaris.clear('@computed');
     lunaris._resetVersionNumber();
   });
 
@@ -16,6 +17,25 @@ describe('builder', () => {
         STATUS : [1, 2]
       }
     });
+  });
+
+  it('should have set the computed', done => {
+    var _hook = obj => {
+      should(obj[0]).eql({
+        id               : 1,
+        label            : 'abc',
+        labelCapitalized : 'ABC',
+        _id              : 1,
+        _version         : [1]
+      });
+
+      lunaris.removeHook('insert@computed', _hook);
+      done();
+    };
+
+    lunaris.hook('insert@computed', _hook);
+
+    lunaris.insert('@computed', { id : 1, label : 'abc' });
   });
 
   describe('joins', () => {
