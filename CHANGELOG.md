@@ -4,7 +4,7 @@
 *2018-XX-XX*
 
 - Features :
-  + Adding 2 new validation type: email and emailList
+  + Adding 2 new validation types: email and emailList
 
 ## 1.5.0
 *2018-10-22*
