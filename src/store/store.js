@@ -7,9 +7,23 @@ var logger          = require('../logger.js');
 var cache           = require('./store.cache.js');
 var url             = require('./store.url.js');
 var template        = require('./store.template.js');
-var collection      = require('./store.collection.js').collection;
+var collection      = require('./store.collection.js');
 var emptyObject     = {};
 var getRequestQueue = {};
+
+lunarisExports._stores.lunarisErrors = {
+  name                  : 'lunarisErrors',
+  data                  : collection.collection(),
+  filters               : [],
+  paginationLimit       : 50,
+  paginationOffset      : 0,
+  paginationCurrentPage : 1,
+  hooks                 : {},
+  nameTranslated        : '${store.lunarisErrors}',
+  isLocal               : true,
+  storesToPropagate     : [],
+  isStoreObject         : false
+};
 
 /**
  * Push commit res objects to handlers
@@ -118,22 +132,6 @@ function afterAction (store, event, value, message) {
  * Set Lunaris Error
  */
 function setLunarisError (storeName, method, request, value, version, err, error) {
-  if (!lunarisExports._stores.lunarisErrors) {
-    lunarisExports._stores.lunarisErrors = {
-      name                  : 'lunarisErrors',
-      data                  : collection(),
-      filters               : [],
-      paginationLimit       : 50,
-      paginationOffset      : 0,
-      paginationCurrentPage : 1,
-      hooks                 : {},
-      nameTranslated        : '${store.lunarisErrors}',
-      isLocal               : true,
-      storesToPropagate     : [],
-      isStoreObject         : false
-    };
-  }
-
   upsert('@lunarisErrors', {
     version            : version,
     data               : value,

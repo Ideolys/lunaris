@@ -7,7 +7,7 @@ function getPrimaryKey (value) {
   return value.id;
 }
 
-describe.only('lunaris internal collection', () => {
+describe('lunaris internal collection', () => {
   beforeEach(() => {
     collectionModule.resetVersionNumber();
   });

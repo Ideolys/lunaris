@@ -2,6 +2,7 @@ var utils          = require('../utils.js');
 var OPERATIONS     = utils.OPERATIONS;
 var aggregates     = require('./store.aggregate.js').aggregates;
 var lunarisExports = require('../exports.js');
+var logger         = require('../logger.js');
 
 /**
  * Version number :
@@ -175,7 +176,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       }
     }
 
-    _joinsDescriptor.joinFns.set(value, _joinValues, aggregates);
+    _joinsDescriptor.joinFns.set(value, _joinValues, aggregates, lunarisExports.constants, logger);
   }
 
   /**
@@ -189,7 +190,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
     if (!(value._id && isFromUpsert)) {
       _setJoinValues(value);
       if (_aggregateFn) {
-        _aggregateFn(value, aggregates, lunarisExports.constants);
+        _aggregateFn(value, aggregates, lunarisExports.constants, logger);
       }
       value._id = _currentId;
       _currentId++;
@@ -251,7 +252,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
     }
 
     if (_computedsFn) {
-      _computedsFn(value, lunarisExports.constants);
+      _computedsFn(value, lunarisExports.constants, logger);
     }
 
     value._version = [versionNumber || currentVersionNumber];
@@ -491,11 +492,11 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       // For INSERT, we cannot garantie that the store will propagate multiple times an INSERT
       // Only the collection has a sytem to avoid duplicate values (based on primary key values)
       if (operation === OPERATIONS.INSERT || operation === OPERATIONS.UPDATE) {
-        _joinsDescriptor.joinFns[store].delete(object, data, aggregates, lunarisExports.constants);
-        return _joinsDescriptor.joinFns[store].insert(object, data, aggregates, lunarisExports.constants);
+        _joinsDescriptor.joinFns[store].delete(object, data, aggregates, lunarisExports.constants, logger);
+        return _joinsDescriptor.joinFns[store].insert(object, data, aggregates, lunarisExports.constants, logger);
       }
       else if (operation === OPERATIONS.DELETE) {
-        return _joinsDescriptor.joinFns[store].delete(object, data, aggregates, lunarisExports.constants);
+        return _joinsDescriptor.joinFns[store].delete(object, data, aggregates, lunarisExports.constants, logger);
       }
     }
 

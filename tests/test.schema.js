@@ -3578,7 +3578,7 @@ describe('Schema', () => {
         label            : ['string'],
         labelCapitalized : [_fn]
       };
-      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'test');
       should(_schema.meta.computedFns).eql({
         labelCapitalized : _fn
       });
@@ -3588,12 +3588,16 @@ describe('Schema', () => {
         label : 'abc'
       };
 
-      var _res = _schema.computedsFn(_obj);
+      var _lastError;
+      var _res = _schema.computedsFn(_obj, {}, { warn : function (message) {
+        _lastError = message;
+      }});
       should(_res).eql({
         id               : 1,
         label            : 'abc',
         labelCapitalized : null
       });
+      should(_lastError).eql('Error in @test when calling transformer function!');
     });
 
     it('should find computed properties', () => {

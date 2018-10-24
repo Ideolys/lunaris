@@ -3,6 +3,7 @@
 ## 1.6.0
 *2018-XX-XX*
 - Features :
+  - Add transformer functions.
 - Fix :
 
 ## 1.5.0

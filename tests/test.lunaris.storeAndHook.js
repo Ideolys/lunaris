@@ -35,7 +35,7 @@ eval(buildLunaris({
   })
 }));
 let server  = express();
-//lunaris._stores.lunarisErrors.data = collection.collection();
+lunaris._stores.lunarisErrors.data = collection.collection();
 
 var nbCallsPagination2 = 0;
 
