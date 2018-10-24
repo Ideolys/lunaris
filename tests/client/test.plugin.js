@@ -192,6 +192,28 @@ describe('Store plugin', () => {
     vm.$destroy();
   });
 
+  it('should call storeHooks base handler', done => {
+    let _hasBeenCalled = false;
+    const vm = new Vue({
+      el         : '#app',
+      stores     : ['test'],
+      storeHooks : {
+        'insert@test' : function test () {
+          _hasBeenCalled = true;
+        }
+      }
+    });
+
+    lunaris.insert('@test', { id : 1 });
+
+    setTimeout(() => {
+      should(_hasBeenCalled).eql(true);
+      vm.$destroy();
+      lunaris.clear('@test');
+      done();
+    }, 50);
+  });
+
   it('should update the state when get : store array', () => {
     const vm = new Vue({
       el     : '#app',
