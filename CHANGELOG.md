@@ -7,6 +7,9 @@
   - Add constants object `lunaris.contants`
 - Fix :
 
+- Features :
+  + Adding 2 new validation types: email and emailList
+
 ## 1.5.0
 *2018-10-22*
 - Features :
