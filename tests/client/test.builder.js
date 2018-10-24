@@ -38,6 +38,25 @@ describe('builder', () => {
     lunaris.insert('@computed', { id : 1, label : 'abc' });
   });
 
+  it('should have set the computed with the constant', done => {
+    var _hook = obj => {
+      should(obj[0]).eql({
+        id               : 1,
+        label            : 'abc',
+        labelCapitalized : 'ABC-1',
+        _id              : 1,
+        _version         : [1]
+      });
+
+      lunaris.removeHook('insert@computedConstant', _hook);
+      done();
+    };
+
+    lunaris.hook('insert@computedConstant', _hook);
+
+    lunaris.insert('@computedConstant', { id : 1, label : 'abc' });
+  });
+
   describe('joins', () => {
 
     it('should have found joins', () => {
