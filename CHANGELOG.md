@@ -3,12 +3,11 @@
 ## 1.6.0
 *2018-XX-XX*
 - Features :
-  - Add transformer functions.
-  - Add constants object `lunaris.contants`
+  + Adding 2 new validation types: email and emailList
+  + Add transformer functions.
+  + Add constants object `lunaris.contants`
 - Fix :
 
-- Features :
-  + Adding 2 new validation types: email and emailList
 
 ## 1.5.0
 *2018-10-22*
