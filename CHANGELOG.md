@@ -1,7 +1,12 @@
 # Lunaris
 
-## 1.5.0
+## 1.6.0
 *2018-XX-XX*
+- Features :
+- Fix :
+
+## 1.5.0
+*2018-10-22*
 - Features :
   + A store can be joined with another store. Use `@storeToJoin` in the map. The stores must have a map.
   + Add support for aggregates :
