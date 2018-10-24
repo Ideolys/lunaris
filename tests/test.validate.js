@@ -366,6 +366,48 @@ describe('Validate', () => {
           should(validate.isString(null)).eql(false);
         });
 
+        it('should return true if it is a valid email', () => {
+          // ok
+          should(validate.isEmail('foo@bar.fr')).eql(true);
+          should(validate.isEmail('foo@bar.frazerty')).eql(true);
+          should(validate.isEmail('foo86@bar3.fr')).eql(true);
+          should(validate.isEmail('fOo@bar.fr')).eql(true);
+          should(validate.isEmail('foo@bAr.fr')).eql(true);
+          should(validate.isEmail('foo@bar.Fr')).eql(true);
+          should(validate.isEmail('foo.bar@bar.fr')).eql(true);
+          // errors
+          should(validate.isEmail('foobar.fr')).eql(false);
+          should(validate.isEmail('foo@bar')).eql(false);
+          should(validate.isEmail('foo@bar.f')).eql(false);
+          should(validate.isEmail('foo@bar.')).eql(false);
+          should(validate.isEmail('foo.bar')).eql(false);
+          should(validate.isEmail('foo@@bar.fr')).eql(false);
+          should(validate.isEmail('foo@bar@hello.fr')).eql(false);
+          should(validate.isEmail('f.o.o.bar.fr')).eql(false);
+          should(validate.isEmail('foobar')).eql(false);
+          should(validate.isEmail('')).eql(false);
+          should(validate.isEmail('.fr')).eql(false);
+          should(validate.isEmail('@.fr')).eql(false);
+        });
+
+        it('should return true if it is a valid emails list', () => {
+          // ok
+          should(validate.isEmailList('foo@bar.fr')).eql(true);
+          should(validate.isEmailList('foo@bar.fr;bar@foo.fr')).eql(true);
+          should(validate.isEmailList('foo@bar.fr       ;bar@foo.fr')).eql(true);
+          should(validate.isEmailList('foo@bar.fr;       bar@foo.fr')).eql(true);
+          should(validate.isEmailList('foo@bar.fr;  bar@foo.fr')).eql(true);
+          should(validate.isEmailList('foo@bar.fr ; bar@foo.fr')).eql(true);
+          should(validate.isEmailList('foo@bar.fr;\nbar@foo.fr')).eql(true);
+          should(validate.isEmailList('foo@bar.fr\n;bar@foo.fr')).eql(true);
+          should(validate.isEmailList('foo@bar.fr ; bar@foo.fr; balle@foo.fr  ; test@moi.fr\n; abc@def.com')).eql(true);          
+          // errors
+          should(validate.isEmailList('foo@bar.frbar@foo.fr')).eql(false);
+          should(validate.isEmailList('foo@bar.fr;')).eql(false);
+          should(validate.isEmailList(';')).eql(false);
+          should(validate.isEmailList('foo@bar.fr;qsd')).eql(false);
+          should(validate.isEmailList('')).eql(false);
+        });
 
       }); /* End of descript test */
     });
