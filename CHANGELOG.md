@@ -5,7 +5,7 @@
 - Features :
   + Adding 2 new validation types: email and emailList
   + Add transformer functions.
-  + Add constants object `lunaris.contants`
+  + Add constants object `lunaris.contants`. Constants are available in where filters, aggregates and computed properties.
 - Fix :
 
 

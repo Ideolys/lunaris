@@ -1,6 +1,7 @@
-var storeUtils = require('./store.utils.js');
-var utils      = require('../utils.js');
-var logger     = require('../logger.js');
+var storeUtils     = require('./store.utils.js');
+var utils          = require('../utils.js');
+var logger         = require('../logger.js');
+var exportsLunaris = require('../exports.js');
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
 function fixedEncodeURIComponent (str) {
@@ -38,7 +39,7 @@ function _runWhereCondition (whereFn, item) {
     return false;
   }
 
-  var _res = whereFn.call(null, item);
+  var _res = whereFn.call(null, item, exportsLunaris.constants);
   if (typeof _res !== 'boolean') {
     logger.tip('A filter where must return a boolean.');
     return false;

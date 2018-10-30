@@ -1,7 +1,8 @@
-const testUtils      = require('./testUtils');
-const url            = require('../src/store/store.url');
-const exportsLunaris = require('../src/exports');
-const stores         = {
+const exportsLunaris     = require('../src/exports');
+exportsLunaris.constants = { TRUE : true };
+const testUtils          = require('./testUtils');
+const url                = require('../src/store/store.url');
+const stores             = {
   noFilter            : testUtils.initStore('noFilter'),
   'required.filter.A' : testUtils.initStore('required.filter.A'),
   'required.filter.B' : testUtils.initStore('required.filter.B'),
@@ -20,8 +21,8 @@ const stores         = {
 const defaultStoresValue = JSON.parse(JSON.stringify(exportsLunaris._stores));
 const store              = require('../src/store/store');
 
-function fixedEncodeURIComponent(str) {
-  return encodeURIComponent(str).replace(/[!'()*]/g, function(c) {
+function fixedEncodeURIComponent (str) {
+  return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
     return '%' + c.charCodeAt(0).toString(16);
   });
 }
@@ -114,7 +115,7 @@ describe('store url', () => {
       {
         source          : '@required.filter.B',
         sourceAttribute : 'label',
-        sourceWhere     : function (item) { return item.isChecked === true; },
+        sourceWhere     : function (item, constants) { return item.isChecked === constants.TRUE; },
         localAttribute  : 'label',
         isRequired      : true
       }
