@@ -146,6 +146,6 @@ describe('lunaris index', () => {
   it('offline should be defined', () => {
     should(index.offline).be.ok();
     should(index.offline).be.an.Object();
-    should(index.offline.isOnline).be.a.Function();
+    should(index.offline.isOnline).be.a.Boolean();
   });
 });
