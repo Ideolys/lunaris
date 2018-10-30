@@ -52,18 +52,20 @@ function _runWhereCondition (whereFn, item) {
 * @param {Object} store
 * @param {Sting} method
 * @returns {object} {
-*  isRequiredOptionsFilled : {Boolean}
-*  requiredOptions         : {String}
-*  optionalOptions         : {Array}
-*  cache                   : {Object}
+*  isRequiredOptionsFilled    : {Boolean}
+*  constructedRequiredOptions : {String}
+*  requiredOptions            : {Array}
+*  optionalOptions            : {Array}
+*  cache                      : {Object}
 * }
 */
 function _getFilterValuesHTTPRequest (store, method) {
   var _filterValues            = {
-    isRequiredOptionsFilled : true,
-    requiredOptions         : '',
-    optionalOptions         : [],
-    cache                   : {}
+    isRequiredOptionsFilled    : true,
+    constructedRequiredOptions : '',
+    requiredOptions            : [],
+    optionalOptions            : [],
+    cache                      : {}
   };
   var _nbRequiredFIlters       = 0;
   var _nbRequiredFilledFilters = 0;
@@ -136,7 +138,8 @@ function _getFilterValuesHTTPRequest (store, method) {
           if (Array.isArray(_sourceValue)) {
             throw new Error('A required filter must be a store object!');
           }
-          _filterValues.requiredOptions += '/' + _value[0] + '/' + fixedEncodeURIComponent(_value[1]);
+          _filterValues.constructedRequiredOptions += '/' + _value[0] + '/' + fixedEncodeURIComponent(_value[1]);
+          _filterValues.requiredOptions.push(_value);
         }
 
         _filterValues.cache[_filter.source + ':' + _filter.sourceAttribute] = _value[1];
@@ -215,12 +218,18 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
 }
 
 /**
- * Create URL for givens tore and action
- * @param {Object} store
- * @param {Boolean} isGET is GET HTTP me:thod ?
- * @param {*} primaryKeyValue
- * @returns {Object}
- */
+* Create URL for givens tore and action
+* @param {Object} store
+* @param {Boolean} isGET is GET HTTP method ?
+* @param {*} primaryKeyValue
+* @returns {Object} {
+*  isRequiredOptionsFilled    : {Boolean}
+*  constructedRequiredOptions : {String}
+*  requiredOptions            : {Array}
+*  optionalOptions            : {Array}
+*  cache                      : {Object}
+* }
+*/
 function createUrl (store, method, primaryKeyValue) {
   var _request = { request : '/', cache : {} };
   var _isGet   = method === 'GET';
@@ -243,7 +252,7 @@ function createUrl (store, method, primaryKeyValue) {
     return null;
   }
 
-  _request.request += _filterValues.requiredOptions;
+  _request.request += _filterValues.constructedRequiredOptions;
   _request.request += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues.optionalOptions);
 
   utils.merge(_request.cache, _filterValues.cache);
