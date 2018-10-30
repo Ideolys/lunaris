@@ -130,6 +130,13 @@ function afterAction (store, event, value, message) {
 
 /**
  * Set Lunaris Error
+ * @param {String} storeName
+ * @param {Stirng} method ge, post, etc.
+ * @param {String} request url
+ * @param {Array/Object} value
+ * @param {Int} version versionDbNumber
+ * @param {Object}err
+ * @param {String} error message to display
  */
 function setLunarisError (storeName, method, request, value, version, err, error) {
   upsert('@lunarisErrors', {
