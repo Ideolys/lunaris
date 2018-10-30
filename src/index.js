@@ -5,6 +5,7 @@ var collection     = require('./store/store.collection.js');
 var utils          = require('./utils.js');
 var logger         = require('./logger.js');
 var http           = require('./http.js');
+var offline        = require('./offline.js');
 
 module.exports = {
   _stores             : lunarisExports._stores,
@@ -19,7 +20,8 @@ module.exports = {
   removeHook     : hook.removeHook,
   pushToHandlers : hook.pushToHandlers,
 
-  http : http,
+  http    : http,
+  offline : offline,
 
   get             : store.get,
   getOne          : store.getOne,

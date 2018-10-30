@@ -1,6 +1,9 @@
+const utils              = require('../src/utils');
+const http               = require('../src/http');
+const lunarisExports     = require('../src/exports');
+lunarisExports.isBrowser = false;
+
 const index = require('../src/index');
-const utils = require('../src/utils');
-const http  = require('../src/http');
 
 describe('lunaris index', () => {
   it('_stores should be defined', () => {
@@ -138,5 +141,11 @@ describe('lunaris index', () => {
   it('constants should be defined', () => {
     should(index.constants).be.ok();
     should(index.constants).be.an.Object();
+  });
+
+  it('offline should be defined', () => {
+    should(index.offline).be.ok();
+    should(index.offline).be.an.Object();
+    should(index.offline.isOnline).be.a.Function();
   });
 });

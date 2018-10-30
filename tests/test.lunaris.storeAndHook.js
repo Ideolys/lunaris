@@ -32,7 +32,8 @@ eval(buildLunaris({
     transaction_1 : [],
     transaction_A : ['transaction', 'transaction_1'],
     transaction_B : ['transaction']
-  })
+  }),
+  IS_BROWSER : false
 }));
 let server  = express();
 lunaris._stores.lunarisErrors.data = collection.collection();

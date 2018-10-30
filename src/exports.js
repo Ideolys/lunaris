@@ -43,3 +43,14 @@ try {
 catch (e) {
   exports.constants = {};
 }
+
+
+/**
+ * Set env browser
+ */
+try {
+  exports.isBrowser = IS_BROWSER;
+}
+catch (e) {
+  exports.isBrowser = true;
+}
