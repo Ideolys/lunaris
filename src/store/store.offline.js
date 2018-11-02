@@ -4,6 +4,33 @@ var stopwords      = lunarisExports.stopwords;
 var OPERATORS      = utils.OPERATORS;
 
 /**
+ * Preload
+ * @param {Object} store
+ * @param {Object} cache
+ * @param {Object} cacheFilter
+ * @param {Array} data
+ */
+function _preloadCache (store, cache, cacheFilter, data) {
+  var _len = data.length;
+  if (_len <= store.paginationLimit) {
+    return data;
+  }
+
+  var _dataToReturn = data.slice(0, store.paginationLimit);
+  var _ids          = [];
+  for (var i = store.paginationLimit; i < _len; i++) {
+    _ids.push(data[i]._id);
+
+    if (i % store.paginationLimit) {
+      cacheFilter.offset += store.paginationLimit;
+      cache.add(utils.clone(cacheFilter), _ids);
+    }
+  }
+
+  return _dataToReturn;
+}
+
+/**
  * Perform ilike operation for each given object
  * @param {*} filterValue
  * @param {*} objValue
@@ -100,9 +127,10 @@ function filter (store, collection, cache, filterValues) {
 
   if (store.isStoreObject) {
     _data = _data[0] || null;
+    return _data;
   }
 
-  return _data;
+  return _preloadCache(store, cache, filterValues.cache, _data);
 }
 
 exports.filter = filter;
