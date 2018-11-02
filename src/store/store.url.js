@@ -2,29 +2,17 @@ var storeUtils     = require('./store.utils.js');
 var utils          = require('../utils.js');
 var logger         = require('../logger.js');
 var exportsLunaris = require('../exports.js');
+var offline        = require('../offline.js');
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
 function fixedEncodeURIComponent (str) {
+  if (!offline.isOnline) {
+    return str;
+  }
+
   return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
     return '%' + c.charCodeAt(0).toString(16);
   });
-}
-
-
-/**
- * Check filter object attributes
- * @param {Object} filter { source : ,, sourceAttribute : , localAttribute :  }
- */
-function _checkFilterObject (filter) {
-  if (!filter.source) {
-    throw new Error('A filter must have a source defined as : filter.source = @<store>');
-  }
-  if (!filter.sourceAttribute) {
-    throw new Error('A filter must have a source attribute defined as : filter.sourceAttribute = <attribute>');
-  }
-  if (!filter.localAttribute) {
-    throw new Error('A filter must have a local attribute defined as : filter.localAttribute = <attribute>');
-  }
 }
 
 /**
@@ -55,8 +43,8 @@ function _runWhereCondition (whereFn, item) {
 * @returns {object} {
 *  isRequiredOptionsFilled    : {Boolean}
 *  constructedRequiredOptions : {String}
-*  requiredOptions            : {Array}
-*  optionalOptions            : {Array}
+*  requiredOptions            : {Object} { <source:attribute:operator> : {Array} }
+*  optionalOptions            : {Object} { <source:attribute:operator> : {Array} }
 *  cache                      : {Object}
 * }
 */
@@ -64,8 +52,8 @@ function _getFilterValuesHTTPRequest (store, method) {
   var _filterValues            = {
     isRequiredOptionsFilled    : true,
     constructedRequiredOptions : '',
-    requiredOptions            : [],
-    optionalOptions            : [],
+    requiredOptions            : {},
+    optionalOptions            : {},
     cache                      : {}
   };
   var _nbRequiredFIlters       = 0;
@@ -77,7 +65,6 @@ function _getFilterValuesHTTPRequest (store, method) {
   for (var i = 0; i < store.filters.length; i++) {
     var _filter = store.filters[i];
     var _value  = [];
-    _checkFilterObject(_filter);
 
     var _sourceStore = storeUtils.getStore(_filter.source);
     var _sourceValue = storeUtils.getCollection(_sourceStore).getAll();
@@ -125,6 +112,7 @@ function _getFilterValuesHTTPRequest (store, method) {
     }
 
     if (_sourceValue !== undefined) {
+      var _filterKey = i;
       _value.push(_filter.localAttribute, _sourceValue, _filter.operator || 'ILIKE');
 
       if (_methods.indexOf(method) !== -1) {
@@ -133,17 +121,17 @@ function _getFilterValuesHTTPRequest (store, method) {
         }
 
         if (_value[2] && !_filter.isRequired) {
-          _filterValues.optionalOptions.push(_value);
+          _filterValues.optionalOptions[_filterKey] = _value;
         }
         else {
           if (Array.isArray(_sourceValue)) {
             throw new Error('A required filter must be a store object!');
           }
           _filterValues.constructedRequiredOptions += '/' + _value[0] + '/' + fixedEncodeURIComponent(_value[1]);
-          _filterValues.requiredOptions.push(_value);
+          _filterValues.requiredOptions[_filterKey] = _value;
         }
 
-        _filterValues.cache[_filter.source + ':' + _filter.sourceAttribute] = _value[1];
+        _filterValues.cache[_filterKey] = _value[1];
       }
     }
   }
@@ -158,16 +146,9 @@ function _getFilterValuesHTTPRequest (store, method) {
 */
 function _getSearchOption (filterValues) {
   var _search    = '';
-  var _operators = {
-    '='   : ':=',
-    ILIKE : ':',
-    '>'   : ':>',
-    '<'   : ':<',
-    '>='  : ':>=',
-    '<='  : ':<=',
-  };
+  var _operators = utils.OPERATORS;
   for (var j = 0; j < filterValues.length; j++) {
-    var _operator = ':=';
+    var _operator = utils.OPERATORS.ILIKE;
     if (filterValues[j][2]) {
       _operator = _operators[filterValues[j][2]] || _operator;
     }
@@ -226,8 +207,8 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
 * @returns {Object} {
 *  isRequiredOptionsFilled    : {Boolean}
 *  constructedRequiredOptions : {String}
-*  requiredOptions            : {Array}
-*  optionalOptions            : {Array}
+*  requiredOptions            : {Object} { <source:attribute:operator> : {Array} }
+*  optionalOptions            : {Object} { <source:attribute:operator> : {Array} }
 *  cache                      : {Object}
 * }
 */
@@ -254,7 +235,12 @@ function createUrl (store, method, primaryKeyValue) {
   }
 
   _request.request += _filterValues.constructedRequiredOptions;
-  _request.request += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues.optionalOptions);
+  var _options = [];
+  var _keys    = Object.keys(_filterValues.optionalOptions);
+  for (var i = 0; i < _keys.length; i++) {
+    _options.push(_filterValues.optionalOptions[_keys[i]]);
+  }
+  _request.request += _getUrlOptionsForHTTPRequest(store, _isGet, _options);
 
   utils.merge(_request.cache, _filterValues.cache);
   return _request;

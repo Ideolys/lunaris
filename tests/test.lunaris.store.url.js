@@ -1,3 +1,5 @@
+const offline            = require('../src/offline');
+offline.isOnline         = true;
 const exportsLunaris     = require('../src/exports');
 exportsLunaris.constants = { TRUE : true };
 const testUtils          = require('./testUtils');
@@ -8,7 +10,6 @@ const stores             = {
   'required.filter.B' : testUtils.initStore('required.filter.B'),
   required            : testUtils.initStore('required'),
   requiredMultiple    : testUtils.initStore('requiredMultiple'),
-  error               : testUtils.initStore('error'),
   'optional.filter.A' : testUtils.initStore('optional.filter.A'),
   'optional.filter.B' : testUtils.initStore('optional.filter.B'),
   optional            : testUtils.initStore('optional'),
@@ -189,49 +190,14 @@ describe('store url', () => {
       should(_url).eql(null);
     });
 
-    it('should throw an error if no source has been defined', () => {
-      stores.error.filters = [{}];
-      try {
-        url.create(stores.error, 'GET');
-      }
-      catch (e) {
-        should(e).eql(new Error('A filter must have a source defined as : filter.source = @<store>'));
-      }
-    });
-
-    it('should throw an error if no sourceAttribute has been defined', () => {
-      stores.error.filters = [{
-        source : '@errorFilter'
-      }];
-      try {
-        url.create(stores.error, 'GET');
-      }
-      catch (e) {
-        should(e).eql(new Error('A filter must have a source attribute defined as : filter.sourceAttribute = <attribute>'));
-      }
-    });
-
-    it('should throw an error if no localAttribute has been defined', () => {
-      stores.error.filters = [{
-        source          : '@errorFilter',
-        sourceAttribute : 'label'
-      }];
-      try {
-        url.create(stores.error, 'GET');
-      }
-      catch (e) {
-        should(e).eql(new Error('A filter must have a local attribute defined as : filter.localAttribute = <attribute>'));
-      }
-    });
-
     it('should create the url for one required filter', () => {
       store.upsert('@required.filter.A', { label : 'cat' });
       var _url = url.create(stores.required, 'GET');
       should(_url.request).eql('/required/label/cat?limit=50&offset=0');
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@required.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
       });
     });
 
@@ -240,9 +206,9 @@ describe('store url', () => {
       var _url = url.create(stores.required, 'GET');
       should(_url.request).eql('/required/label/cat%27s?limit=50&offset=0');
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@required.filter.A:label' : 'cat\'s'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat\'s'
       });
     });
 
@@ -251,16 +217,16 @@ describe('store url', () => {
       var _url = url.create(stores.required, 'GET');
       should(_url.request).eql('/required/label/cat?limit=50&offset=0');
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@required.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
       });
       _url = url.create(stores.required, 'GET');
       should(_url.request).eql('/required/label/cat?limit=50&offset=50');
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 50,
-        '@required.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 50,
+        0      : 'cat'
       });
     });
 
@@ -270,10 +236,10 @@ describe('store url', () => {
       var _url = url.create(stores.requiredMultiple, 'GET');
       should(_url.request).eql('/requiredMultiple/label/cat/label/dog?limit=50&offset=0');
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@required.filter.A:label' : 'cat',
-        '@required.filter.B:label' : 'dog'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat',
+        1      : 'dog'
       });
     });
 
@@ -296,9 +262,9 @@ describe('store url', () => {
       var _url = url.create(stores.requiredMultiple, 'GET');
       should(_url.request).eql('/requiredMultiple/label/dog?limit=50&offset=0');
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@required.filter.B:label' : 'dog'
+        limit  : 50,
+        offset : 0,
+        1      : 'dog'
       });
       delete stores.requiredMultiple.filters[0].httpMethods;
     });
@@ -309,9 +275,9 @@ describe('store url', () => {
       var _expectedUrl = '/whereObject/label/cat?limit=50&offset=0';
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@required.filter.B:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
       });
     });
 
@@ -332,9 +298,9 @@ describe('store url', () => {
       ;
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
       });
     });
 
@@ -348,9 +314,9 @@ describe('store url', () => {
       should(_url.request).eql(_expectedUrl);
       should(_url.request).eql('/optional?limit=50&offset=0&search=label%3Acat%27s');
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.A:label' : 'cat\'s'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat\'s',
       });
     });
 
@@ -367,9 +333,10 @@ describe('store url', () => {
       ;
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat',
+        1      : 'cat'
       });
     });
 
@@ -383,9 +350,9 @@ describe('store url', () => {
       ;
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
       });
     });
 
@@ -399,9 +366,9 @@ describe('store url', () => {
       ;
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
       });
     });
 
@@ -415,9 +382,9 @@ describe('store url', () => {
       ;
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
       });
     });
 
@@ -431,9 +398,9 @@ describe('store url', () => {
       ;
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
       });
     });
 
@@ -447,9 +414,9 @@ describe('store url', () => {
       ;
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
       });
     });
 
@@ -463,9 +430,9 @@ describe('store url', () => {
       ;
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
       });
     });
 
@@ -479,9 +446,9 @@ describe('store url', () => {
       ;
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.A:label' : 'cat'
+        limit  : 50,
+        offset : 0,
+        1      : 'cat'
       });
     });
 
@@ -498,9 +465,9 @@ describe('store url', () => {
       ;
       should(_url.request).eql(_expectedUrl);
       should(_url.cache).eql({
-        limit                      : 50,
-        offset                     : 0,
-        '@optional.filter.B:label' : ['dog', 'lion']
+        limit  : 50,
+        offset : 0,
+        0      : ['dog', 'lion']
       });
     });
   });

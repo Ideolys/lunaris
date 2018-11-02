@@ -4,11 +4,11 @@ const collection  = require('../src/store/store.collection');
 /**
  * Utils
  */
-exports.initStore = function initStore (name, map, joinDescriptor, storesToPropagate) {
+exports.initStore = function initStore (name, map, joinDescriptor, storesToPropagate, filters, compilatedStores = {}) {
   var _store                   = {};
   _store.name                  = name;
   _store.primaryKey            = null;
-  _store.filters               = [];
+  _store.filters               = filters || [];
   _store.hooks                 = {};
   _store.paginationLimit       = 50;
   _store.paginationOffset      = 0;
@@ -20,5 +20,6 @@ exports.initStore = function initStore (name, map, joinDescriptor, storesToPropa
   _store.isStoreObject         = !map ? false : !Array.isArray(map) ? true : false;
   _store.data                  = collection.collection(null, _store.meta.getPrimaryKeyFn, _store.isStoreObject, joinDescriptor, null, _store.meta.reflexiveFn);
   _store.storesToPropagate     = storesToPropagate || [];
+  _store.filterFns             = _store.meta ? storeMap.getFilterFns(compilatedStores, _store.meta.compilation, _store.filters) : null;
   return _store;
 };
