@@ -1,7 +1,3 @@
-
-const stopWordsFR        = require('stopword').fr;
-const lunarisExports     = require('../src/exports');
-lunarisExports.stopwords = stopWordsFR;
 const storeTestUtils     = require('./testUtils');
 const storeOffline       = require('../src/store/store.offline');
 const cache              = require('../src/store/store.cache');

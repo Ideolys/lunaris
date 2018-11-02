@@ -3,6 +3,9 @@ const http               = require('../src/http');
 const lunarisExports     = require('../src/exports');
 lunarisExports.isBrowser = false;
 
+const stopWordsFR        = require('stopword').fr;
+lunarisExports.stopwords = stopWordsFR;
+
 const index = require('../src/index');
 
 describe('lunaris index', () => {
