@@ -8,6 +8,8 @@ var cache           = require('./store.cache.js');
 var url             = require('./store.url.js');
 var template        = require('./store.template.js');
 var collection      = require('./store.collection.js');
+var offline         = require('../offline.js');
+var storeOffline    = require('./store.offline.js');
 var emptyObject     = {};
 var getRequestQueue = {};
 
@@ -333,7 +335,6 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         return callback(store);
       }
       _cacheFilters = _request.cache;
-      _request      = _request.request;
       var _ids      = _options.cache.get(_cacheFilters);
 
       if (_ids) {
@@ -344,6 +345,18 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         afterAction(_options.store, 'get', []);
         return callback(store);
       }
+
+      if (!offline.isOnline) {
+        afterAction(_options.store, 'get', storeOffline.filter(
+          _options.store,
+          _options.collection,
+          _options.cache,
+          _request
+        ));
+        return callback(store);
+      }
+
+      _request = _request.request;
     }
     else {
       _request = retryOptions.url || '/';

@@ -243,6 +243,8 @@ function createUrl (store, method, primaryKeyValue) {
   _request.request += _getUrlOptionsForHTTPRequest(store, _isGet, _options);
 
   utils.merge(_request.cache, _filterValues.cache);
+  _request.requiredOptions = _filterValues.requiredOptions;
+  _request.optionalOptions = _filterValues.optionalOptions;
   return _request;
 }
 
