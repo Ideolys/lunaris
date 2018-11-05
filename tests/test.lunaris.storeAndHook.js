@@ -53,7 +53,7 @@ describe('lunaris store', () => {
     setTimeout(() => {
       collection.resetVersionNumber();
       done();
-    }, 10);
+    }, 5);
   });
 
   after(done => {
@@ -1446,14 +1446,12 @@ describe('lunaris store', () => {
       lunaris._stores['required.param.site'].data.add({
         site : 1
       });
-      lunaris._stores['required']                = initStore('required');
-      lunaris._stores['required'].fakeAttributes = ['site'];
-      lunaris._stores['required'].filters.push({
+      lunaris._stores['required'] = initStore('required', null, null, null, [{
         source          : '@required.param.site',
         sourceAttribute : 'site',
         localAttribute  : 'site',
         isRequired      : true
-      });
+      }]);
 
       lunaris.hook('get@required', items => {
         if (_isFirstCall) {
@@ -1490,14 +1488,12 @@ describe('lunaris store', () => {
       var _hasBeenCalled = false;
       lunaris._stores['required.param.site']         = initStore('required.param.site');
       lunaris._stores['required.param.site'].isLocal = true;
-      lunaris._stores['required']                = initStore('required');
-      lunaris._stores['required'].fakeAttributes = ['site'];
-      lunaris._stores['required'].filters.push({
+      lunaris._stores['required']                = initStore('required', null, null, null, [{
         source          : '@required.param.site',
         sourceAttribute : 'site',
         localAttribute  : 'site',
         isRequired      : true
-      });
+      }]);
 
       lunaris.hook('get@required', () => {
         _hasBeenCalled = true;
@@ -1522,13 +1518,12 @@ describe('lunaris store', () => {
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
-      lunaris._stores['pagination2']            = initStore('pagination2');
-      lunaris._stores['pagination2'].filters    = [{
+      lunaris._stores['pagination2']            = initStore('pagination2', null,  null, null, [{
         source          : '@pagination2.param.site',
         sourceAttribute : 'site',
         localAttribute  : 'site',
         isRequired      : true
-      }];
+      }]);
 
       lunaris.hook('update@pagination2.param.site', () => {
         lunaris._stores['pagination2'].paginationCurrentPage = 1;
@@ -1582,13 +1577,12 @@ describe('lunaris store', () => {
       lunaris._stores['optional.param.site'].data.add({
         id : 1
       });
-      lunaris._stores['optional'] = initStore('optional');
-      lunaris._stores['optional'].filters.push({
+      lunaris._stores['optional'] = initStore('optional', null, null, null, [{
         source          : '@optional.param.site',
         sourceAttribute : 'id',
         localAttribute  : 'id',
         operator        : '='
-      });
+      }]);
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
@@ -1609,13 +1603,12 @@ describe('lunaris store', () => {
       lunaris._stores['optional.param.site']          = initStore('optional.param.site');
       lunaris._stores['optional.param.site'].isLocal  = true;
       lunaris._stores['optional.param.site'].isFilter = true;
-      lunaris._stores['optional'] = initStore('optional');
-      lunaris._stores['optional'].filters.push({
+      lunaris._stores['optional'] = initStore('optional', null, null, null, [{
         source          : '@optional.param.site',
         sourceAttribute : 'id',
         localAttribute  : 'id',
         operator        : '='
-      });
+      }]);
 
       lunaris.hook('filterUpdated@optional.param.site', () => {
         done();
@@ -1632,13 +1625,12 @@ describe('lunaris store', () => {
       lunaris._stores['store1']          = initStore('store1');
       lunaris._stores['store1'].isLocal  = true;
       lunaris._stores['store1'].isFilter = true;
-      lunaris._stores['optional'] = initStore('optional');
-      lunaris._stores['optional'].filters.push({
+      lunaris._stores['optional'] = initStore('optional', null, null, null, [{
         source          : '@store1',
         sourceAttribute : 'id',
         localAttribute  : 'id',
         operator        : '='
-      });
+      }]);
 
       lunaris.hook('filterUpdated@store1', () => {
         done();
@@ -1655,13 +1647,12 @@ describe('lunaris store', () => {
     it('should fire the event filterUpdated for GET : store array', done => {
       lunaris._stores['store1']          = initStore('store1');
       lunaris._stores['store1'].isFilter = true;
-      lunaris._stores['optional'] = initStore('optional');
-      lunaris._stores['optional'].filters.push({
+      lunaris._stores['optional'] = initStore('optional', null, null, null, [{
         source          : '@store1',
         sourceAttribute : 'id',
         localAttribute  : 'id',
         operator        : '='
-      });
+      }]);
 
       lunaris.hook('filterUpdated@store1', () => {
         done();
@@ -1685,19 +1676,19 @@ describe('lunaris store', () => {
       lunaris._stores['optional.param.category'].data.add({
         id : 2
       });
-      lunaris._stores['optional'] = initStore('optional');
-      lunaris._stores['optional'].filters.push({
-        source          : '@optional.param.site',
-        sourceAttribute : 'id',
-        localAttribute  : 'id',
-        operator        : '='
-      });
-      lunaris._stores['optional'].filters.push({
-        source          : '@optional.param.category',
-        sourceAttribute : 'id',
-        localAttribute  : 'category',
-        operator        : '='
-      });
+      lunaris._stores['optional'] = initStore('optional', null, null, null, [
+        {
+          source          : '@optional.param.site',
+          sourceAttribute : 'id',
+          localAttribute  : 'id',
+          operator        : '='
+        }, {
+          source          : '@optional.param.category',
+          sourceAttribute : 'id',
+          localAttribute  : 'category',
+          operator        : '='
+        }
+      ]);
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
@@ -1722,12 +1713,11 @@ describe('lunaris store', () => {
       lunaris._stores['optional.param.site'].data.add({
         id : 2
       });
-      lunaris._stores['optional'] = initStore('optional');
-      lunaris._stores['optional'].filters.push({
+      lunaris._stores['optional'] = initStore('optional', null, null, null, [{
         source          : '@optional.param.site',
         sourceAttribute : 'id',
         localAttribute  : 'id'
-      });
+      }]);
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
@@ -1746,13 +1736,11 @@ describe('lunaris store', () => {
 
     it('should not filter the store if the optional filter is not set', done => {
       lunaris._stores['optional.param.site']     = initStore('optional.param.site');
-      lunaris._stores['optional']                = initStore('optional');
-      lunaris._stores['optional'].fakeAttributes = ['site'];
-      lunaris._stores['optional'].filters.push({
+      lunaris._stores['optional']                = initStore('optional', null, null, null, [{
         source          : '@optional.param.site',
         sourceAttribute : 'site',
         localAttribute  : 'site',
-      });
+      }]);
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
@@ -1806,15 +1794,13 @@ describe('lunaris store', () => {
       lunaris._stores['required.param.site'].data.add({
         site : 1
       });
-      lunaris._stores['methods']                = initStore('methods');
-      lunaris._stores['methods'].fakeAttributes = ['site'];
-      lunaris._stores['methods'].filters.push({
+      lunaris._stores['methods']                = initStore('methods', null, null, null, [{
         source          : '@required.param.site',
         sourceAttribute : 'site',
         localAttribute  : 'site',
         isRequired      : true,
         httpMethods     : ['POST']
-      });
+      }]);
 
       lunaris.hook('get@methods', data => {
         should(data[0].query).be.ok();
@@ -1831,6 +1817,153 @@ describe('lunaris store', () => {
       });
 
       lunaris.get('@methods');
+    });
+
+    describe('offline', () => {
+      before(() => {
+        lunaris.offline.isOnline = false;
+      });
+      after(() => {
+        lunaris.offline.isOnline = true;
+      });
+
+      it('should filter the store by a required filter when offline', done => {
+        lunaris._stores['required.param.site']               = initStore('required.param.site', {});
+        lunaris._stores['required.param.site'].isStoreObject = true;
+        lunaris._stores['required.param.site'].isLocal       = true;
+        lunaris._stores['required.param.site'].data.add({
+          site : 1
+        });
+        var _map = [{
+          id    : ['<<int>>'],
+          label : ['string']
+        }];
+        lunaris._stores['required'] = initStore('required', _map, null, null, [{
+          source          : '@required.param.site',
+          sourceAttribute : 'site',
+          localAttribute  : 'id',
+          isRequired      : true
+        }], {
+          'required.param.site' : {
+            isStoreObject : true
+          }
+        });
+
+        lunaris._stores['required'].data.add({ id : 1, label : 'A' });
+        lunaris._stores['required'].data.add({ id : 2, label : 'B' });
+        lunaris._stores['required'].data.add({ id : 3, label : 'C' });
+        lunaris._stores['required'].data.add({ id : 4, label : 'D' });
+
+        lunaris.hook('get@required', items => {
+          should(items).eql([
+            { _id : 1, id : 1, label : 'A', _version : [2] }
+          ]);
+          should(Object.isFrozen(items[0])).eql(true);
+          done();
+        });
+
+        lunaris.hook('errorHttp@required', err => {
+          done(err);
+        });
+
+        lunaris.get('@required');
+      });
+
+      it('should filter the store by an optional filter when offline', done => {
+        lunaris._stores['optional.param.site']               = initStore('optional.param.site', {});
+        lunaris._stores['optional.param.site'].isStoreObject = true;
+        lunaris._stores['optional.param.site'].isLocal       = true;
+        lunaris._stores['optional.param.site'].data.add({
+          site : 1
+        });
+        var _map = [{
+          id    : ['<<int>>'],
+          label : ['string']
+        }];
+        lunaris._stores['optional'] = initStore('optional', _map, null, null, [{
+          source          : '@optional.param.site',
+          sourceAttribute : 'site',
+          localAttribute  : 'site.id',
+          isRequired      : true
+        }], {
+          'optional.param.site' : {
+            isStoreObject : true
+          }
+        });
+
+        lunaris._stores['optional'].data.add({ id : 1, label : 'A', site : { id : 1 } });
+        lunaris._stores['optional'].data.add({ id : 2, label : 'B', site : { id : 2 } });
+        lunaris._stores['optional'].data.add({ id : 3, label : 'C', site : { id : 1 } });
+        lunaris._stores['optional'].data.add({ id : 4, label : 'D', site : { id : 2 } });
+
+        lunaris.hook('get@optional', items => {
+          should(items).eql([
+            { _id : 1, id : 1, label : 'A', site : { id : 1 }, _version : [2] },
+            { _id : 3, id : 3, label : 'C', site : { id : 1 }, _version : [4] },
+          ]);
+          should(Object.isFrozen(items[0])).eql(true);
+          should(Object.isFrozen(items[1])).eql(true);
+          done();
+        });
+
+        lunaris.hook('errorHttp@optional', err => {
+          done(err);
+        });
+
+        lunaris.get('@optional');
+      });
+
+      it('should filter the store by an optional filter when offline and add to the cache', done => {
+        lunaris._stores['optional.param.site']               = initStore('optional.param.site', {});
+        lunaris._stores['optional.param.site'].isStoreObject = true;
+        lunaris._stores['optional.param.site'].isLocal       = true;
+        lunaris._stores['optional.param.site'].data.add({
+          site : 2
+        });
+        var _map = [{
+          id    : ['<<int>>'],
+          label : ['string']
+        }];
+        lunaris._stores['optional'] = initStore('optional', _map, null, null, [{
+          source          : '@optional.param.site',
+          sourceAttribute : 'site',
+          localAttribute  : 'site.id',
+          isRequired      : true
+        }], {
+          'optional.param.site' : {
+            isStoreObject : true
+          }
+        });
+
+        lunaris._stores['optional'].data.add({ id : 1, label : 'A', site : { id : 2 } });
+        lunaris._stores['optional'].data.add({ id : 2, label : 'B', site : { id : 2 } });
+        lunaris._stores['optional'].data.add({ id : 3, label : 'C', site : { id : 1 } });
+        lunaris._stores['optional'].data.add({ id : 4, label : 'D', site : { id : 2 } });
+
+        lunaris.setPagination('@optional', 1, 2);
+
+        lunaris.hook('get@optional', items => {
+          should(items).eql([
+            { _id : 1, id : 1, label : 'A', site : { id : 2 }, _version : [2] },
+            { _id : 2, id : 2, label : 'B', site : { id : 2 }, _version : [3] },
+          ]);
+          should(Object.isFrozen(items[0])).eql(true);
+          should(Object.isFrozen(items[1])).eql(true);
+          should(lunaris._stores['optional'].cache._cache()).eql([
+            [
+              { 0 : 2, limit : 2, offset : 2 },
+              [4]
+            ]
+          ]);
+          done();
+        });
+
+        lunaris.hook('errorHttp@optional', err => {
+          done(err);
+        });
+
+        lunaris.get('@optional');
+      });
     });
   });
 

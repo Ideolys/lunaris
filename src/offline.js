@@ -4,6 +4,9 @@ var isOnline       = true;
 module.exports = {
   get isOnline () {
     return isOnline;
+  },
+  set isOnline (value) {
+    isOnline = value;
   }
 };
 

@@ -21,7 +21,7 @@ function _preloadCache (store, cache, cacheFilter, data) {
   for (var i = store.paginationLimit; i < _len; i++) {
     _ids.push(data[i]._id);
 
-    if (i % store.paginationLimit) {
+    if (i % store.paginationLimit || i + 1 === _len) {
       cacheFilter.offset += store.paginationLimit;
       cache.add(utils.clone(cacheFilter), _ids);
     }

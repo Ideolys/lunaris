@@ -617,7 +617,7 @@ describe('offline filters', () => {
     ]);
   });
 
-  it('should preload the cache if the data length > store pagination limit', () => {
+  it('should preload the cache if the data length > store pagination limit and nb items found === pagination limit', () => {
     var _map = [{
       id    : ['<<int>>'],
       label : ['string']
@@ -695,6 +695,85 @@ describe('offline filters', () => {
           offset : 2
         },
         [5, 6]
+      ]
+    ]);
+  });
+
+  it('should preload the cache if the data length > store pagination limit and nb items found <= pagination limit', () => {
+    var _map = [{
+      id    : ['<<int>>'],
+      label : ['string']
+    }];
+    var _store = storeTestUtils.initStore('store', _map, null, null, [
+      {
+        source          : '@source',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        operator        : 'ILIKE'
+      }
+    ]);
+    _store.paginationLimit = 2;
+
+    var _data = [
+      {
+        id    : 1,
+        label : 'A'
+      }, {
+        id    : 2,
+        label : 'A'
+      }, {
+        id    : 3,
+        label : 'B'
+      }, {
+        id    : 4,
+        label : 'B'
+      }, {
+        id    : 5,
+        label : 'C'
+      }
+    ];
+
+    for (var i = 0; i < _data.length; i++) {
+      _store.data.add(_data[i]);
+    }
+
+    var _filterValues = {
+      requiredOptions : {},
+      optionalOptions : {
+        0 : ['label', ['B', 'C'], 'ILIKE']
+      },
+      cache : {
+        limit  : 2,
+        offset : 0,
+        0      : ['B', 'C']
+      }
+    };
+
+    var _cache          = cache.getCache(_store);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _cache, _filterValues);
+    should(_filteredValues).be.an.Array().and.have.lengthOf(2);
+    should(_filteredValues).eql([
+      {
+        id       : 3,
+        label    : 'B',
+        _id      : 3,
+        _version : [3]
+      }, {
+        id       : 4,
+        label    : 'B',
+        _id      : 4,
+        _version : [4]
+      }
+    ]);
+
+    should(_cache._cache()).eql([
+      [
+        {
+          0      : ['B', 'C'],
+          limit  : 2,
+          offset : 2
+        },
+        [5]
       ]
     ]);
   });
