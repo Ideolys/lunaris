@@ -6,6 +6,8 @@ describe('builder', () => {
     lunaris.clear('@parent');
     lunaris.clear('@childParent');
     lunaris.clear('@computed');
+    lunaris.clear('@filter.parent');
+    lunaris.clear('@filter.child');
     lunaris._resetVersionNumber();
   });
 
@@ -55,6 +57,65 @@ describe('builder', () => {
     lunaris.hook('insert@computedConstant', _hook);
 
     lunaris.insert('@computedConstant', { id : 1, label : 'abc' });
+  });
+
+  it('should filter when offline', done => {
+    var _parentObj = {
+      id : 1,
+    };
+
+    var _childObj = {
+      id     : 2,
+      parent : {
+        id : 1
+      }
+    };
+
+    var _childObj2 = {
+      id     : 3,
+      parent : {
+        id : 1
+      }
+    };
+
+    var _childObj3 = {
+      id     : 4,
+      parent : {
+        id : 2
+      }
+    };
+
+    lunaris.offline.isOnline = false;
+
+    lunaris.insert('@filter.parent', _parentObj);
+    lunaris.insert('@filter.child', _childObj);
+    lunaris.insert('@filter.child', _childObj2);
+    lunaris.insert('@filter.child', _childObj3);
+
+    lunaris.hook('get@filter.child', items => {
+      should(items).eql([
+        {
+          id     : 2,
+          parent : {
+            id : 1
+          },
+          _id      : 1,
+          _version : [2]
+        },
+        {
+          id     : 3,
+          parent : {
+            id : 1
+          },
+          _id      : 2,
+          _version : [3]
+        }
+      ]);
+      done();
+    });
+
+    lunaris.get('@filter.child');
+    lunaris.offline.isOnline = true;
   });
 
   describe('joins', () => {
