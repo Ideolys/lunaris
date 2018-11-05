@@ -2420,6 +2420,37 @@ describe('Schema', () => {
 
   });
 
+  describe('setPrimaryKey', () => {
+
+    it('should return null if no primaryKey has been defined', () => {
+      var _objectDescriptor = {
+        id : ['id'],
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.setPrimaryKey({ id : 1})).eql(null);
+    });
+
+    it('should set the id', () => {
+      var _objectDescriptor = {
+        id    : ['<<int>>'],
+        label : ['string'],
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.setPrimaryKey({ id : null, label : 'A'}, 1)).eql('_1');
+    });
+
+    it('should set the values for composite key if null', () => {
+      var _objectDescriptor = {
+        id    : ['<<int>>'],
+        label : ['string'],
+        type  : ['<<int>>']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.setPrimaryKey({ id : null, label : 'A', type : 'B'}, 1)).eql('_1-B');
+    });
+
+  });
+
   describe('aggregates', () => {
 
     describe('set', () => {

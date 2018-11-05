@@ -171,6 +171,10 @@ function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptio
     _version = collection.begin();
     if (_isMultipleItems) {
       for (var i = 0; i < value.length; i++) {
+        // If offline set PK
+        if (!offline.isOnline && !isUpdate) {
+          storeUtils.setPrimaryKeyValue(store, value[i], collection.getCurrentId());
+        }
         collection.upsert(value[i], _version);
         _ids.push(value[i]._id);
       }
@@ -181,6 +185,10 @@ function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptio
         var _value = collection.getAll();
         var _id    = _value ? _value._id : null;
         value._id  = _id;
+      }
+      // If offline set PK
+      if (!offline.isOnline && !isUpdate) {
+        storeUtils.setPrimaryKeyValue(store, value, store.isStoreObject ? value._id : collection.getCurrentId());
       }
       collection.upsert(value, _version);
 
@@ -720,7 +728,8 @@ function validate (store, value, isUpdate, callback, eventName) {
         _valueToValidate = [value];
       }
 
-      _store.validateFn(_valueToValidate, _store.meta.onValidate, _isUpdate, function (err) {
+      var _isValidatingPK = offline.isOnline ? _isUpdate : false; // No primary validation
+      _store.validateFn(_valueToValidate, _store.meta.onValidate, _isValidatingPK, function (err) {
         if (err.length) {
           for (var i = 0; i < err.length; i++) {
             logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store + ' Error when validating data'], err[i]);

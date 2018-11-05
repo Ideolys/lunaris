@@ -70,9 +70,47 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
     if (_id !== '') {
       _id = _id.slice(0, _id.length - 1);
     }
+
+    return _id;
   }
 
   return value[store.primaryKey];
+}
+
+/**
+ * Set primary key value for update
+ * @param {Object} store
+ * @param {Object} value
+ * @param {String} id
+ * @returns {String}
+ */
+function setPrimaryKeyValue (store, value, id) {
+  var _id = '_';
+  if (store.setPrimaryKeyFn) {
+    return store.setPrimaryKeyFn.call(null, value, id);
+  }
+
+  if (!store.primaryKey || (store.primaryKey && !store.primaryKey.length)) {
+    return null;
+  }
+
+  var _primaryKey = store.primaryKey;
+  if (Array.isArray(_primaryKey)) {
+    for (var i = 0; i < _primaryKey.length; i++) {
+      _id += (value[_primaryKey[i]] || id) + '-';
+      if (!value[_primaryKey[i]]) {
+        value[_primaryKey[i]] = '_' + id;
+      }
+    }
+
+    if (_id !== '') {
+      _id = _id.slice(0, _id.length - 1);
+    }
+
+    return _id;
+  }
+
+  return value[store.primaryKey] = _id + id;
 }
 
 /**
@@ -93,4 +131,5 @@ function checkArgs (store, value, isNoValue) {
 exports.getStore           = getStore;
 exports.getCollection      = getCollection;
 exports.getPrimaryKeyValue = getPrimaryKeyValue;
+exports.setPrimaryKeyValue = setPrimaryKeyValue;
 exports.checkArgs          = checkArgs;

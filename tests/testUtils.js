@@ -17,6 +17,7 @@ exports.initStore = function initStore (name, map, joinDescriptor, storesToPropa
   _store.meta                  = storeMap.analyzeDescriptor(map, name);
   _store.validateFn            = validateMap.buildValidateFunction(_store.meta.compilation);
   _store.getPrimaryKeyFn       = null;
+  _store.setPrimaryKeyFn       = map ? _store.meta.setPrimaryKey : null;
   _store.isStoreObject         = !map ? false : !Array.isArray(map) ? true : false;
   _store.data                  = collection.collection(null, _store.meta.getPrimaryKeyFn, _store.isStoreObject, joinDescriptor, null, _store.meta.reflexiveFn);
   _store.storesToPropagate     = storesToPropagate || [];

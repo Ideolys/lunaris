@@ -118,6 +118,22 @@ describe('builder', () => {
     lunaris.offline.isOnline = true;
   });
 
+  it('should set the id when inserting in offline', () => {
+    lunaris.offline.isOnline = false;
+    lunaris.insert('@filter.child', { id : null, label : 'A', parent : { id : 1 }});
+
+    should(lunaris.getOne('@filter.child', 1)).eql({
+      id     : '_1',
+      label  : 'A',
+      parent : {
+        id : 1
+      },
+      _id      : 1,
+      _version : [1]
+    });
+    lunaris.offline.isOnline = true;
+  });
+
   describe('joins', () => {
 
     it('should have found joins', () => {

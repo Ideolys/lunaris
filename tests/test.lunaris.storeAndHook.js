@@ -2107,6 +2107,68 @@ describe('lunaris store', () => {
         done();
       }, 100);
     });
+
+    it('should set the id when inserting : simpleKey', () => {
+      var _map = [{
+        id    : ['<<int>>'],
+        label : ['string']
+      }];
+      lunaris._stores['required'] = initStore('required', _map);
+
+      lunaris.insert('@required', { id : null, label : 'A' });
+
+      should(lunaris.getOne('@required', 1)).eql({
+        id       : '_1',
+        label    : 'A',
+        _id      : 1,
+        _version : [1]
+      });
+    });
+
+    it('should set the id when inserting : composite key', () => {
+      var _map = [{
+        id    : ['<<int>>'],
+        label : ['<<string>>']
+      }];
+      lunaris._stores['required'] = initStore('required', _map);
+
+      lunaris.insert('@required', { id : null, label : 'A' });
+
+      should(lunaris.getOne('@required', 1)).eql({
+        id       : '_1',
+        label    : 'A',
+        _id      : 1,
+        _version : [1]
+      });
+    });
+
+    it('should set the id when inserting : simpleKey && no map', () => {
+      lunaris._stores['required'] = initStore('required');
+      lunaris._stores['required'].primaryKey = ['id'];
+
+      lunaris.insert('@required', { id : null, label : 'A' });
+
+      should(lunaris.getOne('@required', 1)).eql({
+        id       : '_1',
+        label    : 'A',
+        _id      : 1,
+        _version : [1]
+      });
+    });
+
+    it('should set the id when inserting : composite key && no map', () => {
+      lunaris._stores['required'] = initStore('required');
+      lunaris._stores['required'].primaryKey = ['id', 'label'];
+
+      lunaris.insert('@required', { id : null, label : 'A' });
+
+      should(lunaris.getOne('@required', 1)).eql({
+        id       : '_1',
+        label    : 'A',
+        _id      : 1,
+        _version : [1]
+      });
+    });
   });
 
 
