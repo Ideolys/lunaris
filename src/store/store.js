@@ -229,6 +229,10 @@ function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptio
     _request = retryOptions.url;
   }
 
+  if (!offline.isOnline) {
+    return;
+  }
+
   http.request(_method, _request, value, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, _method, false);
@@ -525,6 +529,11 @@ function deleteStore (store, value, retryOptions, isLocal) {
     else {
       _request = retryOptions.url;
     }
+
+    if (!offline.isOnline) {
+      return;
+    }
+
     http.request('DELETE', _request, null, function (err, data) {
       if (err) {
         var _error = template.getError(err, _options.store, 'DELETE', false);
