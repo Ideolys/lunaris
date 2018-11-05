@@ -1254,6 +1254,39 @@ describe('lunaris store', () => {
       lunaris.get('@store1');
     });
 
+    it('should filter the store even if it is local', done => {
+      lunaris._stores['source']         = initStore('source', {});
+      lunaris._stores['source'].isLocal = true;
+
+      var _map = [{
+        id    : ['<<int>>'],
+        label : ['string']
+      }];
+      var _store = initStore('store1', _map, null, null, [{
+        source          : '@source',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        operator        : 'ILIKE'
+      }], { source : { isStoreObject : true } });
+      lunaris._stores['store1']         = _store;
+      lunaris._stores['store1'].isLocal = true;
+      lunaris.insert('store1', [
+        { id : 1, label : 'A'},
+        { id : 2, label : 'B'}
+      ]);
+      lunaris.insert('@source', { label : 'B' });
+
+      lunaris.hook('get@store1', items => {
+        should(items).be.an.Array().and.have.lengthOf(1);
+        should(items).eql([
+          { _id : 2, id : 2, label : 'B', _version : [1] }
+        ]);
+        done();
+      });
+
+      lunaris.get('@store1');
+    });
+
     it('should get null if the store is object and it has no value', done => {
       var _store                        = initStore('store1', { id : ['<<int>>'] });
       lunaris._stores['store1']         = _store;

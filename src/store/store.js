@@ -318,17 +318,7 @@ function _processNextGetRequest (store) {
  */
 function _get (store, primaryKeyValue, retryOptions, callback) {
   try {
-    var _options = beforeAction(store, null, true);
-
-    if (_options.store.isLocal) {
-      var _collectionValues = _options.collection.getAll();
-      afterAction(_options.store, 'get', _collectionValues);
-      if (_options.store.isFilter) {
-        hook.pushToHandlers(_options.store, 'filterUpdated');
-      }
-      return callback(store);
-    }
-
+    var _options      = beforeAction(store, null, true);
     var _request      = '/';
     var _cacheFilters =  {};
 
@@ -350,13 +340,16 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         return callback(store);
       }
 
-      if (!offline.isOnline) {
+      if (!offline.isOnline || _options.store.isLocal) {
         afterAction(_options.store, 'get', storeOffline.filter(
           _options.store,
           _options.collection,
           _options.cache,
           _request
         ));
+        if (_options.store.isFilter) {
+          hook.pushToHandlers(_options.store, 'filterUpdated');
+        }
         return callback(store);
       }
 
