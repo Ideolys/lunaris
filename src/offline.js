@@ -11,7 +11,7 @@ module.exports = {
 };
 
 if (lunarisExports.isBrowser) {
-  isOnline = Navigator.onLine || true;
+  isOnline = window.navigator.onLine !== undefined ? window.navigator.onLine : true;
 
   window.addEventListener('online', function () {
     isOnline = true;
