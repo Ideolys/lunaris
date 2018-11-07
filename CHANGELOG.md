@@ -7,6 +7,7 @@
   + Add transformer functions.
   + Add constants object `lunaris.contants`. Constants are available in where filters, aggregates and computed properties.
   + Filters support local stores and offline mode. All filter features are available.
+  + Store compilation errors are shown in browser console.
 - Fix :
 
 

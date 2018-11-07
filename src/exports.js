@@ -64,3 +64,11 @@ try {
 catch (e) {
   exports.stopwords = [];
 }
+
+
+try {
+  exports.compilationErrors = COMPILATION_ERRORS;
+}
+catch (e) {
+  exports.compilationErrors = [];
+}

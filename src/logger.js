@@ -3,7 +3,7 @@ var exportsLunaris = require('./exports.js');
 var baseMessageError = '[Lunaris warn] ';
 var baseMessageTip   = '[Lunaris tip] ';
 
-module.exports = {
+var logger = {
   /**
    * Warn developper in the console
    * @param {Array/String} strings
@@ -39,3 +39,11 @@ module.exports = {
     console.warn(baseMessageTip + strings.join(' '), tip);
   },
 };
+
+if (exportsLunaris.compilationErrors.length) {
+  for (var i = 0; i < exportsLunaris.compilationErrors.length; i++) {
+    logger.warn.call(null, exportsLunaris.compilationErrors[i]);
+  }
+}
+
+module.exports = logger;

@@ -4301,6 +4301,24 @@ describe('Schema', () => {
       }
     });
 
+    it('should throw an error if no localAttribute has been defined', () => {
+      var _errorMap = [{
+        id : ['<<int>>']
+      }];
+
+      var _schema = schema.analyzeDescriptor(_errorMap);
+      try {
+        schema.getFilterFns({}, _schema.compilation, [{
+          source          : '@errorFilter',
+          sourceAttribute : 'label',
+          localAttribute  : 'element[id]'
+        }]);
+      }
+      catch (e) {
+        should(e).eql(new Error('A filter local attribute must not contain "[" or "]", use "." notation instead : path.to.my.element'));
+      }
+    });
+
     it('should define a function for ILIKE operator', done => {
       var _map = [{
         id    : ['<<int>>'],
