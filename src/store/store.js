@@ -272,7 +272,7 @@ function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptio
         if (_isMultiple) {
           for (var j = 0; j < data.length; j++) {
             if (value[i]._id === data[j]._id) {
-              value[i] = utils.merge(lunaris.clone(value[i]), data[j]);
+              value[i] = utils.merge(utils.clone(value[i]), data[j]);
               collection.upsert(value[i], _version);
             }
           }

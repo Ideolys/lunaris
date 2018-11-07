@@ -8,6 +8,9 @@
   + Add constants object `lunaris.contants`. Constants are available in where filters, aggregates and computed properties.
   + Filters support local stores and offline mode. All filter features are available.
   + Store compilation errors are shown in browser console.
+  + BREAKING CHANGES:
+    + `lnuaris.clone` and `lunaris.freeze` are availbale through `lunaris.utils`
+    + All aggregate type names have been changed to `<type>Agg` in order to prevent conflict with attributes types.
 - Fix :
 
 

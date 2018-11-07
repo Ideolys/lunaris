@@ -14,19 +14,14 @@ describe('lunaris index', () => {
     should(index._stores).be.an.Object().and.eql(require('../src/exports.js')._stores);
   });
 
-  it('clone() should be defined', () => {
-    should(index.clone).be.ok();
-    should(index.clone).be.a.Function();
+  it('utils should be defined', () => {
+    should(index.utils).be.ok();
+    should(index.utils).be.a.Object();
   });
 
   it('hook() should be defined', () => {
     should(index.hook).be.ok();
     should(index.hook).be.a.Function();
-  });
-
-  it('merge() should be defined', () => {
-    should(index.merge).be.ok();
-    should(index.merge).be.a.Function();
   });
 
   it('removeHook() should be defined', () => {
@@ -104,11 +99,6 @@ describe('lunaris index', () => {
   it('getDefaultValue() should be defined', () => {
     should(index.getDefaultValue).be.ok();
     should(index.retry).be.a.Function();
-  });
-
-  it('freeze() should be defined', () => {
-    should(index.freeze).be.ok();
-    should(index.freeze).be.a.Function();
   });
 
   it('_resetVersionNumber() should be defined', () => {

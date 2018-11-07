@@ -1663,7 +1663,7 @@ describe('Schema', () => {
       it('should find a join and set a custom property if a shortcut has been used and define join functions', () => {
         var _objectDescriptor = {
           id    : ['<<id>>'],
-          total : ['sum', '@elements.cost']
+          total : ['sumAgg', '@elements.cost']
         };
         var _schema = schema.analyzeDescriptor(_objectDescriptor);
 
@@ -1671,7 +1671,7 @@ describe('Schema', () => {
           elements : 'join_elements'
         });
         should(_schema.meta.externalAggregates).eql({
-          elements : ['sum', 'total', 'join_elements.cost']
+          elements : ['sumAgg', 'total', 'join_elements.cost']
         });
 
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -1700,8 +1700,8 @@ describe('Schema', () => {
       it('should find multiple joins and set a custom property if a shortcut has been used and define join functions', () => {
         var _objectDescriptor = {
           id     : ['<<id>>'],
-          total  : ['sum', '@elements.cost'],
-          total2 : ['sum', '@elements2.price']
+          total  : ['sumAgg', '@elements.cost'],
+          total2 : ['sumAgg', '@elements2.price']
         };
         var _schema = schema.analyzeDescriptor(_objectDescriptor);
         should(_schema.meta.joins).eql({
@@ -1709,8 +1709,8 @@ describe('Schema', () => {
           elements2 : 'join_elements2'
         });
         should(_schema.meta.externalAggregates).eql({
-          elements  : ['sum', 'total', 'join_elements.cost'],
-          elements2 : ['sum', 'total2', 'join_elements2.price']
+          elements  : ['sumAgg', 'total', 'join_elements.cost'],
+          elements2 : ['sumAgg', 'total2', 'join_elements2.price']
         });
 
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -1754,7 +1754,7 @@ describe('Schema', () => {
         var _objectDescriptor = {
           id     : ['<<id>>'],
           object : ['object', {
-            total : ['sum', '@elements.cost']
+            total : ['sumAgg', '@elements.cost']
           }]
         };
         var _schema = schema.analyzeDescriptor(_objectDescriptor);
@@ -1762,7 +1762,7 @@ describe('Schema', () => {
           elements : 'object.join_elements'
         });
         should(_schema.meta.externalAggregates).eql({
-          elements : ['sum', 'object.total', 'object.join_elements.cost'],
+          elements : ['sumAgg', 'object.total', 'object.join_elements.cost'],
         });
 
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -1793,7 +1793,7 @@ describe('Schema', () => {
           id      : ['<<id>>'],
           objects : ['array', {
             id    : ['<<id>>'],
-            total : ['sum', '@elements.price']
+            total : ['sumAgg', '@elements.price']
           }]
         };
         var _schema = schema.analyzeDescriptor(_objectDescriptor);
@@ -1801,7 +1801,7 @@ describe('Schema', () => {
           elements : 'objects.join_elements'
         });
         should(_schema.meta.externalAggregates).eql({
-          elements : ['sum', 'objects.total', 'objects.join_elements.price'],
+          elements : ['sumAgg', 'objects.total', 'objects.join_elements.price'],
         });
 
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -1838,7 +1838,7 @@ describe('Schema', () => {
           id      : ['<<id>>'],
           objects : ['array', {
             id       : ['<<id>>'],
-            total    : ['sum', 'elements.price'],
+            total    : ['sumAgg', 'elements.price'],
             elements : ['array', '@elements']
           }]
         };
@@ -1847,7 +1847,7 @@ describe('Schema', () => {
           elements : 'objects.elements'
         });
         should(_schema.meta.externalAggregates).eql({
-          elements : ['sum', 'objects.total', 'objects.elements.price'],
+          elements : ['sumAgg', 'objects.total', 'objects.elements.price'],
         });
 
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -1885,7 +1885,7 @@ describe('Schema', () => {
           objects : ['array', {
             id       : ['<<id>>'],
             elements : ['array', '@elements'],
-            total    : ['sum', 'elements.price']
+            total    : ['sumAgg', 'elements.price']
           }]
         };
         var _schema = schema.analyzeDescriptor(_objectDescriptor);
@@ -1893,7 +1893,7 @@ describe('Schema', () => {
           elements : 'objects.elements'
         });
         should(_schema.meta.externalAggregates).eql({
-          elements : ['sum', 'objects.total', 'objects.elements.price'],
+          elements : ['sumAgg', 'objects.total', 'objects.elements.price'],
         });
 
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -1929,7 +1929,7 @@ describe('Schema', () => {
         it('should set a value even there is no elements to aggregate : insert (root level)', () => {
           var _objectDescriptor = {
             id       : ['<<id>>'],
-            total    : ['sum', 'elements.cost'],
+            total    : ['sumAgg', 'elements.cost'],
             elements : ['@elements']
           };
           var _schema  = schema.analyzeDescriptor(_objectDescriptor);
@@ -1938,7 +1938,7 @@ describe('Schema', () => {
             elements : 'elements'
           });
           should(_schema.meta.externalAggregates).eql({
-            elements : ['sum', 'total', 'elements.cost'],
+            elements : ['sumAgg', 'total', 'elements.cost'],
           });
 
           var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -1956,7 +1956,7 @@ describe('Schema', () => {
         it('should not crash if the attribute does not exist : attribute key', () => {
           var _objectDescriptor = {
             id       : ['<<id>>'],
-            total    : ['sum', 'elements.cost'],
+            total    : ['sumAgg', 'elements.cost'],
             elements : ['@elements']
           };
           var _schema = schema.analyzeDescriptor(_objectDescriptor);
@@ -1965,7 +1965,7 @@ describe('Schema', () => {
             elements : 'elements'
           });
           should(_schema.meta.externalAggregates).eql({
-            elements : ['sum', 'total', 'elements.cost'],
+            elements : ['sumAgg', 'total', 'elements.cost'],
           });
 
           var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -1985,7 +1985,7 @@ describe('Schema', () => {
             id       : ['<<int>>'],
             elements : ['array', {
               id    : ['<<int>>'],
-              total : ['sum', 'costs.parts.cost'],
+              total : ['sumAgg', 'costs.parts.cost'],
               costs : ['array', {
                 id    : ['<<int>>'],
                 parts : ['@parts']
@@ -1998,7 +1998,7 @@ describe('Schema', () => {
             parts : 'elements.costs.parts'
           });
           should(_schema.meta.externalAggregates).eql({
-            parts : ['sum', 'elements.total', 'elements.costs.parts.cost'],
+            parts : ['sumAgg', 'elements.total', 'elements.costs.parts.cost'],
           });
 
           var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -2056,7 +2056,7 @@ describe('Schema', () => {
             id       : ['<<int>>'],
             elements : ['object', {
               id    : ['<<int>>'],
-              total : ['sum', 'costs.parts.cost'],
+              total : ['sumAgg', 'costs.parts.cost'],
               costs : ['object', {
                 id    : ['<<int>>'],
                 parts : ['@parts']
@@ -2069,7 +2069,7 @@ describe('Schema', () => {
             parts : 'elements.costs.parts'
           });
           should(_schema.meta.externalAggregates).eql({
-            parts : ['sum', 'elements.total', 'elements.costs.parts.cost'],
+            parts : ['sumAgg', 'elements.total', 'elements.costs.parts.cost'],
           });
 
           var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -2458,7 +2458,7 @@ describe('Schema', () => {
         try {
           var _objectDescriptor = {
             id       : ['<<id>>'],
-            total    : ['sum'],
+            total    : ['sumAgg'],
             elements : ['array', {
               id   : ['<<id>>'],
               cost : ['number']
@@ -2471,10 +2471,10 @@ describe('Schema', () => {
         }
       });
 
-      it('should set the aggregate sum', () => {
+      it('should set the aggregate sumAgg', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
-          total    : ['sum', 'elements.cost'],
+          total    : ['sumAgg', 'elements.cost'],
           elements : ['array', {
             id   : ['<<id>>'],
             cost : ['number']
@@ -2482,18 +2482,18 @@ describe('Schema', () => {
         };
         var _schema = schema.analyzeDescriptor(_objectDescriptor);
         should(_schema.meta.aggregates).eql({
-          total : ['sum', 'elements.cost']
+          total : ['sumAgg', 'elements.cost']
         });
         should(_schema.meta.aggregatesSort).eql(['total']);
       });
 
-      it('should set multiple aggregate sum', () => {
+      it('should set multiple aggregate sumAgg', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -2502,20 +2502,20 @@ describe('Schema', () => {
         };
         var _schema = schema.analyzeDescriptor(_objectDescriptor);
         should(_schema.meta.aggregates).eql({
-          total            : ['sum', 'elements.total'],
-          'elements.total' : ['sum', 'elements.parts.cost']
+          total            : ['sumAgg', 'elements.total'],
+          'elements.total' : ['sumAgg', 'elements.parts.cost']
         });
         should(_schema.meta.aggregatesSort).eql(['elements.total', 'total']);
       });
 
-      it('should set multiple aggregate sum at same level', () => {
+      it('should set multiple aggregate sumAgg at same level', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
-          total2   : ['sum', 'elements2.total'],
+          total    : ['sumAgg', 'elements.total'],
+          total2   : ['sumAgg', 'elements2.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -2523,7 +2523,7 @@ describe('Schema', () => {
           }],
           elements2 : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -2532,10 +2532,10 @@ describe('Schema', () => {
         };
         var _schema = schema.analyzeDescriptor(_objectDescriptor);
         should(_schema.meta.aggregates).eql({
-          total             : ['sum', 'elements.total'],
-          total2            : ['sum', 'elements2.total'],
-          'elements.total'  : ['sum', 'elements.parts.cost'],
-          'elements2.total' : ['sum', 'elements2.parts.cost'],
+          total             : ['sumAgg', 'elements.total'],
+          total2            : ['sumAgg', 'elements2.total'],
+          'elements.total'  : ['sumAgg', 'elements.parts.cost'],
+          'elements2.total' : ['sumAgg', 'elements2.parts.cost'],
         });
         should(_schema.meta.aggregatesSort).eql(['elements2.total', 'elements.total', 'total2', 'total']);
       });
@@ -2545,7 +2545,7 @@ describe('Schema', () => {
       it('should set a value even there is no elements to aggregate : insert (root level)', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
-          total    : ['sum', 'elements.cost'],
+          total    : ['sumAgg', 'elements.cost'],
           elements : ['array', {
             id   : ['<<id>>'],
             cost : ['number']
@@ -2566,7 +2566,7 @@ describe('Schema', () => {
       it('should not crash if the attribute does not exist : attribute key', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
-          total    : ['sum', 'elements.cost'],
+          total    : ['sumAgg', 'elements.cost'],
           elements : ['array', {
             id   : ['<<id>>'],
             cost : ['number']
@@ -2589,7 +2589,7 @@ describe('Schema', () => {
       it('should not crash if the attribute does not exist : array to aggregate', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
-          total    : ['sum', 'elements.cost'],
+          total    : ['sumAgg', 'elements.cost'],
           elements : ['array', {
             id   : ['<<id>>'],
             cost : ['number']
@@ -2609,7 +2609,7 @@ describe('Schema', () => {
       it('should update the aggregate value : insert (root level)', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
-          total    : ['sum', 'elements.cost'],
+          total    : ['sumAgg', 'elements.cost'],
           elements : ['array', {
             id   : ['<<id>>'],
             cost : ['number']
@@ -2636,10 +2636,10 @@ describe('Schema', () => {
       it('should update aggregate values : insert (imbricated aggregate)', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -2684,10 +2684,10 @@ describe('Schema', () => {
       it('should set a value event there is no elements to aggregate : insert (imbricated aggregate)', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -2722,10 +2722,10 @@ describe('Schema', () => {
       it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'costs.parts.cost'],
+            total : ['sumAgg', 'costs.parts.cost'],
             costs : ['array', {
               id    : ['<<int>>'],
               parts : ['array', {
@@ -2796,13 +2796,13 @@ describe('Schema', () => {
       it('should update aggregate values : insert (deep imbrication)', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'costs.parts.cost'],
+            total : ['sumAgg', 'costs.parts.cost'],
             costs : ['array', {
               id    : ['<<int>>'],
-              total : ['sum', 'parts.cost'],
+              total : ['sumAgg', 'parts.cost'],
               parts : ['array', {
                 id   : ['<<int>>'],
                 cost : ['number']
@@ -2883,11 +2883,11 @@ describe('Schema', () => {
       it('should aggregate everywhere : insert', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
-          total2   : ['sum', 'elements2.total'],
+          total    : ['sumAgg', 'elements.total'],
+          total2   : ['sumAgg', 'elements2.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -2895,7 +2895,7 @@ describe('Schema', () => {
           }],
           elements2 : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -2966,7 +2966,7 @@ describe('Schema', () => {
       it('should update the aggregate value : update (root level) by adding element', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
-          total    : ['sum', 'elements.cost'],
+          total    : ['sumAgg', 'elements.cost'],
           elements : ['array', {
             id   : ['<<id>>'],
             cost : ['number']
@@ -2995,10 +2995,10 @@ describe('Schema', () => {
       it('should update aggregate values : update (imbricated aggregate) by adding element', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -3040,10 +3040,10 @@ describe('Schema', () => {
       it('should update aggregate values : update (imbricated aggregate) by delete element', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -3085,10 +3085,10 @@ describe('Schema', () => {
       it('should update aggregate values : update (imbricated aggregate) by update element', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -3130,10 +3130,10 @@ describe('Schema', () => {
       it('should set a value event there is no elements to aggregate : insert (imbricated aggregate)', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -3174,10 +3174,10 @@ describe('Schema', () => {
       it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'costs.parts.cost'],
+            total : ['sumAgg', 'costs.parts.cost'],
             costs : ['array', {
               id    : ['<<int>>'],
               parts : ['array', {
@@ -3250,13 +3250,13 @@ describe('Schema', () => {
       it('should update aggregate values : insert (deep imbrication)', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'costs.parts.cost'],
+            total : ['sumAgg', 'costs.parts.cost'],
             costs : ['array', {
               id    : ['<<int>>'],
-              total : ['sum', 'parts.cost'],
+              total : ['sumAgg', 'parts.cost'],
               parts : ['array', {
                 id   : ['<<int>>'],
                 cost : ['number']
@@ -3334,11 +3334,11 @@ describe('Schema', () => {
       it('should aggregate everywhere : update', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
-          total2   : ['sum', 'elements2.total'],
+          total    : ['sumAgg', 'elements.total'],
+          total2   : ['sumAgg', 'elements2.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -3346,7 +3346,7 @@ describe('Schema', () => {
           }],
           elements2 : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -3442,7 +3442,7 @@ describe('Schema', () => {
       it('should update the aggregate value : update (root level) by delete element', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
-          total    : ['sum', 'elements.cost'],
+          total    : ['sumAgg', 'elements.cost'],
           elements : ['array', {
             id   : ['<<id>>'],
             cost : ['number']
@@ -3475,10 +3475,10 @@ describe('Schema', () => {
       it('should update aggregate values : update (imbricated aggregate) by delete element', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -3525,10 +3525,10 @@ describe('Schema', () => {
       it('should update aggregate values : update (imbricated aggregate) by delete element', () => {
         var _objectDescriptor = {
           id       : ['<<int>>'],
-          total    : ['sum', 'elements.total'],
+          total    : ['sumAgg', 'elements.total'],
           elements : ['array', {
             id    : ['<<int>>'],
-            total : ['sum', 'parts.cost'],
+            total : ['sumAgg', 'parts.cost'],
             parts : ['array', {
               id   : ['<<int>>'],
               cost : ['number']
@@ -3920,14 +3920,14 @@ describe('Schema', () => {
       });
     });
 
-    it('should set the aggregate sum and find the computed property', () => {
+    it('should set the aggregate sumAgg and find the computed property', () => {
       var _fn = function (element) {
         return element.cost;
       };
 
       var _objectDescriptor = {
         id       : ['<<id>>'],
-        total    : ['sum', 'elements', _fn],
+        total    : ['sumAgg', 'elements', _fn],
         elements : ['array', {
           id   : ['<<id>>'],
           cost : ['number']
@@ -3938,7 +3938,7 @@ describe('Schema', () => {
       var _aggregateFn = _schema.aggregateFn;
 
       should(_schema.meta.aggregates).eql({
-        total : ['sum', 'elements', _fn]
+        total : ['sumAgg', 'elements', _fn]
       });
       should(_schema.meta.aggregatesSort).eql(['total']);
 
@@ -3960,14 +3960,14 @@ describe('Schema', () => {
       should(_obj.total).eql(7);
     });
 
-    it('should set the aggregate sum and find the computed property and define the constants', () => {
+    it('should set the aggregate sumAgg and find the computed property and define the constants', () => {
       var _fn = function (element, obj, constants) {
         return element.cost * constants.tva;
       };
 
       var _objectDescriptor = {
         id       : ['<<id>>'],
-        total    : ['sum', 'elements', _fn],
+        total    : ['sumAgg', 'elements', _fn],
         elements : ['array', {
           id   : ['<<id>>'],
           cost : ['number']
@@ -3978,7 +3978,7 @@ describe('Schema', () => {
       var _aggregateFn = _schema.aggregateFn;
 
       should(_schema.meta.aggregates).eql({
-        total : ['sum', 'elements', _fn]
+        total : ['sumAgg', 'elements', _fn]
       });
       should(_schema.meta.aggregatesSort).eql(['total']);
 
@@ -4007,7 +4007,7 @@ describe('Schema', () => {
 
       var _objectDescriptor = {
         id    : ['<<id>>'],
-        total : ['sum', '@elements', _fn]
+        total : ['sumAgg', '@elements', _fn]
       };
       var _schema = schema.analyzeDescriptor(_objectDescriptor);
 
@@ -4015,7 +4015,7 @@ describe('Schema', () => {
         elements : 'join_elements'
       });
       should(_schema.meta.externalAggregates).eql({
-        elements : ['sum', 'total', 'join_elements', _fn]
+        elements : ['sumAgg', 'total', 'join_elements', _fn]
       });
 
       var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -4049,7 +4049,7 @@ describe('Schema', () => {
       var _objectDescriptor = {
         id    : ['<<id>>'],
         x     : ['int'],
-        total : ['sum', '@elements', _fn]
+        total : ['sumAgg', '@elements', _fn]
       };
       var _schema = schema.analyzeDescriptor(_objectDescriptor);
 
@@ -4057,7 +4057,7 @@ describe('Schema', () => {
         elements : 'join_elements'
       });
       should(_schema.meta.externalAggregates).eql({
-        elements : ['sum', 'total', 'join_elements', _fn]
+        elements : ['sumAgg', 'total', 'join_elements', _fn]
       });
 
       var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -4090,7 +4090,7 @@ describe('Schema', () => {
 
       var _objectDescriptor = {
         id    : ['<<id>>'],
-        total : ['sum', '@elements', _fn]
+        total : ['sumAgg', '@elements', _fn]
       };
       var _schema = schema.analyzeDescriptor(_objectDescriptor);
 
@@ -4098,7 +4098,7 @@ describe('Schema', () => {
         elements : 'join_elements'
       });
       should(_schema.meta.externalAggregates).eql({
-        elements : ['sum', 'total', 'join_elements', _fn]
+        elements : ['sumAgg', 'total', 'join_elements', _fn]
       });
 
       var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -4131,7 +4131,7 @@ describe('Schema', () => {
 
       var _objectDescriptor = {
         id       : ['<<id>>'],
-        total    : ['sum', 'elements', _fn],
+        total    : ['sumAgg', 'elements', _fn],
         elements : ['@elements']
       };
       var _schema = schema.analyzeDescriptor(_objectDescriptor);
@@ -4140,7 +4140,7 @@ describe('Schema', () => {
         elements : 'elements'
       });
       should(_schema.meta.externalAggregates).eql({
-        elements : ['sum', 'total', 'elements', _fn]
+        elements : ['sumAgg', 'total', 'elements', _fn]
       });
 
       var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -4174,7 +4174,7 @@ describe('Schema', () => {
       var _objectDescriptor = {
         id       : ['<<id>>'],
         x        : ['int'],
-        total    : ['sum', 'elements', _fn],
+        total    : ['sumAgg', 'elements', _fn],
         elements : ['@elements']
       };
       var _schema = schema.analyzeDescriptor(_objectDescriptor);
@@ -4183,7 +4183,7 @@ describe('Schema', () => {
         elements : 'elements'
       });
       should(_schema.meta.externalAggregates).eql({
-        elements : ['sum', 'total', 'elements', _fn]
+        elements : ['sumAgg', 'total', 'elements', _fn]
       });
 
       var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
@@ -4216,7 +4216,7 @@ describe('Schema', () => {
 
       var _objectDescriptor = {
         id       : ['<<id>>'],
-        total    : ['sum', 'elements', _fn],
+        total    : ['sumAgg', 'elements', _fn],
         elements : ['@elements']
       };
       var _schema = schema.analyzeDescriptor(_objectDescriptor);
@@ -4225,7 +4225,7 @@ describe('Schema', () => {
         elements : 'elements'
       });
       should(_schema.meta.externalAggregates).eql({
-        elements : ['sum', 'total', 'elements', _fn]
+        elements : ['sumAgg', 'total', 'elements', _fn]
       });
 
       var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);

@@ -34,7 +34,7 @@ function getHandlerFn (store, path, id, isLocal, vnode) {
 
       for (var i = 0; i < _radioValues.length; i++) {
         if (_radioValues[i].isChecked === true) {
-          var _val       = lunaris.clone(_radioValues[i]);
+          var _val       = lunaris.utils.clone(_radioValues[i]);
           _val.isChecked = false;
           lunaris.update(store, _val);
         }
@@ -45,7 +45,7 @@ function getHandlerFn (store, path, id, isLocal, vnode) {
     if (!_item) {
       return;
     }
-    _obj = lunaris.merge(_item, _obj);
+    _obj = lunaris.utils.merge(_item, _obj);
 
     lunaris.validate(store, _obj, function (isValid, err) {
       if (isValid) {

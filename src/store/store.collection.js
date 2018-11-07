@@ -1,4 +1,5 @@
 var utils          = require('../utils.js');
+var index          = utils.index;
 var OPERATIONS     = utils.OPERATIONS;
 var aggregates     = require('./store.aggregate.js').aggregates;
 var lunarisExports = require('../exports.js');
@@ -16,95 +17,6 @@ var currentVersionNumber = 1;
 function incrementVersionNumber () {
   currentVersionNumber++;
 }
-
-// Code form LokiJS,& Mindex
-var index = {
-  /**
-   * Sort
-   * @param {*} a
-   * @param {*} b
-   * @return {Int}
-   */
-  sort : function sort (a, b) {
-    if (a === null && b === null) {
-      return 0;
-    }
-
-    if (a === null) {
-      return -1;
-    }
-
-    if (b === null) {
-      return 1;
-    }
-
-    if (a < b) {
-      return -1;
-    }
-
-    if (a > b) {
-      return 1;
-    }
-
-    return 0;
-  },
-
-  /**
-   * Insert value at specified index
-   * @param {Array} array
-   * @param {int} index
-   * @param {*} value
-   * @return {Array}
-   */
-  insertAt : function insertAt (array, index, value) {
-    array.splice(index, 0, value);
-    return array;
-  },
-
-  /**
-   * Removed value at specified index
-   * @param {Array} array
-   * @param {*} index
-   * @returns {Array}
-   */
-  removeAt : function removeAt (array, index) {
-    array.splice(index, 1);
-    return array;
-  },
-
-  /**
-   * BinarySearh
-   * @param {Array} array
-   * @param {*} value
-   * @returns {Object} { found : Boolean, index : Int }
-   */
-  binarySearch : function binarySearch (array, value) {
-    var lo = 0;
-    var hi = array.length;
-    var compared;
-    var mid;
-
-    while (lo < hi) {
-      mid = ((lo + hi) / 2) | 0;
-      compared = this.sort(value, array[mid]);
-      if (compared === 0) {
-        return {
-          found : true,
-          index : mid
-        };
-      } else if (compared < 0) {
-        hi = mid;
-      } else {
-        lo = mid + 1;
-      }
-    }
-
-    return {
-      found : false,
-      index : hi
-    };
-  }
-};
 
 /**
  * @param {Int} startId from where to start id generation, default 1
@@ -137,6 +49,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
   var _reflexiveUpdateFn        = reflexiveFns ? reflexiveFns.update : null;
   var _reflexiveDeleteFn        = reflexiveFns ? reflexiveFns.delete : null;
   var _computedsFn              = computedsFn;
+
   /**
    * id : [[id], [_id]]
    */

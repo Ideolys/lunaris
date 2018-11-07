@@ -17,6 +17,17 @@ exports.cloneAndFreeze = function cloneAndFreeze (value) {
   return _value;
 };
 
+exports.keepTheReferenceAndChangeTheAttributes = function (obj1, obj2) {
+  var _keys = Object.keys(obj1);
+  for (var i = 0; i < _keys.length; i++) {
+    delete obj1[_keys[i]];
+  }
+  _keys = Object.keys(obj2);
+  for (i = 0; i < _keys.length; i++) {
+    obj1[_keys[i]] = obj2[_keys[i]];
+  }
+};
+
 exports.clone  = clone;
 exports.freeze = freeze;
 
@@ -109,6 +120,95 @@ exports.distance = function distance (str1, str2) {
     return 1 - distance / str1.length;
   } else {
     return 1 - distance / str2.length;
+  }
+};
+
+// Code form LokiJS,& Mindex
+exports.index = {
+  /**
+   * Sort
+   * @param {*} a
+   * @param {*} b
+   * @return {Int}
+   */
+  sort : function sort (a, b) {
+    if (a === null && b === null) {
+      return 0;
+    }
+
+    if (a === null) {
+      return -1;
+    }
+
+    if (b === null) {
+      return 1;
+    }
+
+    if (a < b) {
+      return -1;
+    }
+
+    if (a > b) {
+      return 1;
+    }
+
+    return 0;
+  },
+
+  /**
+   * Insert value at specified index
+   * @param {Array} array
+   * @param {int} index
+   * @param {*} value
+   * @return {Array}
+   */
+  insertAt : function insertAt (array, index, value) {
+    array.splice(index, 0, value);
+    return array;
+  },
+
+  /**
+   * Removed value at specified index
+   * @param {Array} array
+   * @param {*} index
+   * @returns {Array}
+   */
+  removeAt : function removeAt (array, index) {
+    array.splice(index, 1);
+    return array;
+  },
+
+  /**
+   * BinarySearh
+   * @param {Array} array
+   * @param {*} value
+   * @returns {Object} { found : Boolean, index : Int }
+   */
+  binarySearch : function binarySearch (array, value) {
+    var lo = 0;
+    var hi = array.length;
+    var compared;
+    var mid;
+
+    while (lo < hi) {
+      mid = ((lo + hi) / 2) | 0;
+      compared = this.sort(value, array[mid]);
+      if (compared === 0) {
+        return {
+          found : true,
+          index : mid
+        };
+      } else if (compared < 0) {
+        hi = mid;
+      } else {
+        lo = mid + 1;
+      }
+    }
+
+    return {
+      found : false,
+      index : hi
+    };
   }
 };
 

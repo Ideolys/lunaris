@@ -19,7 +19,7 @@ describe('Store plugin', () => {
     should(lunaris._vue._vm).be.ok();
     should(lunaris._vue._vm.$data.$stores).be.ok();
     should(lunaris._vue._vm.$data.$stores.test).be.ok();
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test)).eql({
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test)).eql({
       silent        : true,
       state         : [],
       isStoreObject : false,
@@ -222,7 +222,7 @@ describe('Store plugin', () => {
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get', Object.freeze(_payload), true);
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(_payload);
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(_payload);
 
     vm.$destroy();
   });
@@ -235,14 +235,14 @@ describe('Store plugin', () => {
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get', Object.freeze(_payload), true);
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(lunaris.clone(_payload));
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(lunaris.utils.clone(_payload));
 
     const vm2 = new Vue({
       el     : '#app',
       stores : ['test'],
     });
 
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(lunaris.clone(_payload));
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(lunaris.utils.clone(_payload));
     vm.$destroy();
     vm2.$destroy();
   });
@@ -255,7 +255,7 @@ describe('Store plugin', () => {
 
     var _payload = { _id : 1, id : 1, label : 'A' };
     lunaris.pushToHandlers(lunaris._stores.testObject, 'get', Object.freeze(_payload));
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql(_payload);
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql(_payload);
 
     vm.$destroy();
   });
@@ -269,7 +269,7 @@ describe('Store plugin', () => {
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
     lunaris.pushToHandlers(lunaris._stores.test, 'insert', { _id : 3, id : 3, label : 'C' });
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(_payload.concat({ _id : 3, id : 3, label : 'C' }));
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(_payload.concat({ _id : 3, id : 3, label : 'C' }));
 
     vm.$destroy();
   });
@@ -283,7 +283,7 @@ describe('Store plugin', () => {
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
     lunaris.pushToHandlers(lunaris._stores.test, 'insert', [{ _id : 3, id : 3, label : 'C' }, { _id : 4, id : 4, label : 'D' }], true);
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(_payload.concat([
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(_payload.concat([
       { _id : 3, id : 3, label : 'C' },
       { _id : 4, id : 4, label : 'D' }
     ]));
@@ -300,7 +300,7 @@ describe('Store plugin', () => {
     var _payload = { _id : 1, id : 1, label : 'A' };
     lunaris.pushToHandlers(lunaris._stores.testObject, 'get'   , Object.freeze(_payload), true);
     lunaris.pushToHandlers(lunaris._stores.testObject, 'insert', { _id : 2, id : 2, label : 'B' });
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql({ _id : 2, id : 2, label : 'B' });
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql({ _id : 2, id : 2, label : 'B' });
 
     vm.$destroy();
   });
@@ -314,7 +314,7 @@ describe('Store plugin', () => {
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
     lunaris.pushToHandlers(lunaris._stores.test, 'update', { _id : 1, id : 1, label : 'A-1' });
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
       { _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B' }
     ]);
 
@@ -330,7 +330,7 @@ describe('Store plugin', () => {
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
     lunaris.pushToHandlers(lunaris._stores.test, 'update', [{ _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B-1' }], true);
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(
       [{ _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B-1' }]
     );
 
@@ -346,7 +346,7 @@ describe('Store plugin', () => {
     var _payload = { _id : 1, id : 1, label : 'A' };
     lunaris.pushToHandlers(lunaris._stores.testObject, 'get'   , Object.freeze(_payload), true);
     lunaris.pushToHandlers(lunaris._stores.testObject, 'update', { _id : 1, id : 1, label : 'A-1' });
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql({ _id : 1, id : 1, label : 'A-1' });
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql({ _id : 1, id : 1, label : 'A-1' });
 
     vm.$destroy();
   });
@@ -358,7 +358,7 @@ describe('Store plugin', () => {
     });
 
     lunaris.pushToHandlers(lunaris._stores.test, 'update', { _id : 1, id : 1, label : 'A-1' });
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
       { _id : 1, id : 1, label : 'A-1' }
     ]);
 
@@ -372,7 +372,7 @@ describe('Store plugin', () => {
     });
 
     lunaris.pushToHandlers(lunaris._stores.test, 'update', [{ _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B-1' }], true);
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(
       [{ _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B-1' }]
     );
 
@@ -388,7 +388,7 @@ describe('Store plugin', () => {
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
     lunaris.pushToHandlers(lunaris._stores.test, 'update', [{ _id : 1, id : 1, label : 'A-1' }, { _id : 3, id : 3, label : 'C' }], true);
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
       { _id : 1, id : 1, label : 'A-1' },
       { _id : 2, id : 2, label : 'B' },
       { _id : 3, id : 3, label : 'C' }
@@ -406,7 +406,7 @@ describe('Store plugin', () => {
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
     lunaris.pushToHandlers(lunaris._stores.test, 'delete', { _id : 1, id : 1, label : 'A-1' });
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
       { _id : 2, id : 2, label : 'B' }
     ]);
 
@@ -422,7 +422,7 @@ describe('Store plugin', () => {
     var _payload = { _id : 1, id : 1, label : 'A' };
     lunaris.pushToHandlers(lunaris._stores.testObject, 'get'   , Object.freeze(_payload));
     lunaris.pushToHandlers(lunaris._stores.testObject, 'delete', { _id : 1, id : 1, label : 'A-1' });
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql(null);
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql({});
 
     vm.$destroy();
   });
@@ -436,7 +436,7 @@ describe('Store plugin', () => {
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
     lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
     lunaris.pushToHandlers(lunaris._stores.test, 'reset');
-    should(lunaris.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([]);
+    should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([]);
 
     vm.$destroy();
   });
@@ -450,7 +450,7 @@ describe('Store plugin', () => {
     var _payload = { _id : 1, id : 1, label : 'A' };
     lunaris.pushToHandlers(lunaris._stores.testObject, 'get', Object.freeze(_payload));
     lunaris.pushToHandlers(lunaris._stores.testObject, 'reset');
-    should(lunaris._vue._vm.$data.$stores.testObject.state).eql(null);
+    should(lunaris._vue._vm.$data.$stores.testObject.state).eql({});
 
     vm.$destroy();
   });
@@ -591,7 +591,7 @@ describe('Store plugin', () => {
       });
 
       lunaris.insert('@test', [{ id : 1 }]);
-      should(lunaris.clone(vm.$test)).eql([
+      should(lunaris.utils.clone(vm.$test)).eql([
         { _id : 1, id : 1, _version : [1] }
       ]);
       vm.$rollback({
@@ -602,7 +602,7 @@ describe('Store plugin', () => {
         method  : 'POST',
         version : 1
       });
-      should(lunaris.clone(vm.$test)).eql([]);
+      should(lunaris.utils.clone(vm.$test)).eql([]);
       vm.$destroy();
       lunaris._stores.test.data.clear();
       lunaris._resetVersionNumber();
@@ -615,14 +615,14 @@ describe('Store plugin', () => {
       });
 
       lunaris.insert('@testObject', { id : 1 });
-      should(lunaris.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [1] });
+      should(lunaris.utils.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [1] });
       vm.$rollback({
         storeName : 'testObject',
         data      : { _id : 1, id : 1, _version : [1] },
         method    : 'POST',
         version   : 1
       });
-      should(lunaris.clone(vm.$testObject)).eql(null);
+      should(lunaris.utils.clone(vm.$testObject)).eql({});
       vm.$destroy();
       lunaris._stores.testObject.data.clear();
       lunaris._resetVersionNumber();
@@ -635,7 +635,7 @@ describe('Store plugin', () => {
       });
 
       lunaris.insert('@test', [{ id : 1 }, { id : 2 }]);
-      should(lunaris.clone(vm.$test)).eql([
+      should(lunaris.utils.clone(vm.$test)).eql([
         { _id : 1, id : 1, _version : [1] },
         { _id : 2, id : 2, _version : [1] }
       ]);
@@ -648,7 +648,7 @@ describe('Store plugin', () => {
         method  : 'POST',
         version : 1
       });
-      should(lunaris.clone(vm.$test)).eql([]);
+      should(lunaris.utils.clone(vm.$test)).eql([]);
       vm.$destroy();
       lunaris._stores.test.data.clear();
       lunaris._resetVersionNumber();
@@ -663,7 +663,7 @@ describe('Store plugin', () => {
       lunaris.insert('@test', { id : 1 });
       lunaris.update('@test', { _id : 1, id : 1, label : 'A' });
 
-      should(lunaris.clone(vm.$test)).eql([
+      should(lunaris.utils.clone(vm.$test)).eql([
         { _id : 1, id : 1, label : 'A', _version : [2] }
       ]);
       vm.$rollback({
@@ -672,7 +672,7 @@ describe('Store plugin', () => {
         method    : 'PUT',
         version   : 2
       });
-      should(lunaris.clone(vm.$test)).eql([
+      should(lunaris.utils.clone(vm.$test)).eql([
         { _id : 1, id : 1, _version : [3] }
       ]);
       vm.$destroy();
@@ -689,14 +689,14 @@ describe('Store plugin', () => {
       lunaris.insert('@testObject', { id : 1 });
       lunaris.update('@testObject', { _id : 1, id : 1, label : 'A' });
 
-      should(lunaris.clone(vm.$testObject)).eql({ _id : 1, id : 1, label : 'A', _version : [2] });
+      should(lunaris.utils.clone(vm.$testObject)).eql({ _id : 1, id : 1, label : 'A', _version : [2] });
       vm.$rollback({
         storeName : 'testObject',
         data      : { _id : 1, id : 1, label : 'A', _version : [2] },
         method    : 'PUT',
         version   : 2
       });
-      should(lunaris.clone(vm.$testObject)).eql({ id : 1, _id : 1, _version : [3] });
+      should(lunaris.utils.clone(vm.$testObject)).eql({ id : 1, _id : 1, _version : [3] });
       vm.$destroy();
       lunaris._stores.testObject.data.clear();
       lunaris._resetVersionNumber();
@@ -713,7 +713,7 @@ describe('Store plugin', () => {
         { _id : 1, id : 1, label : 'A' },
         { _id : 2, id : 2, label : 'B' }
       ]);
-      should(lunaris.clone(vm.$test)).eql([
+      should(lunaris.utils.clone(vm.$test)).eql([
         { _id : 1, id : 1, label : 'A', _version : [2] },
         { _id : 2, id : 2, label : 'B', _version : [2] }
       ]);
@@ -726,7 +726,7 @@ describe('Store plugin', () => {
         method  : 'PUT',
         version : 2
       });
-      should(lunaris.clone(vm.$test)).eql([
+      should(lunaris.utils.clone(vm.$test)).eql([
         { _id : 1, id : 1, _version : [3] },
         { _id : 2, id : 2, _version : [3] }
       ]);
@@ -743,14 +743,14 @@ describe('Store plugin', () => {
 
       lunaris.insert('@test', [{ id : 1 }]);
       lunaris.delete('@test', { _id : 1 });
-      should(lunaris.clone(vm.$test)).eql([]);
+      should(lunaris.utils.clone(vm.$test)).eql([]);
       vm.$rollback({
         storeName : 'test',
         data      : { _id : 1 },
         method    : 'DELETE',
         version   : 2
       });
-      should(lunaris.clone(vm.$test)).eql([{ _id : 1, id : 1, _version : [3] }]);
+      should(lunaris.utils.clone(vm.$test)).eql([{ _id : 1, id : 1, _version : [3] }]);
       vm.$destroy();
       lunaris._stores.test.data.clear();
       lunaris._resetVersionNumber();
@@ -764,14 +764,14 @@ describe('Store plugin', () => {
 
       lunaris.insert('@testObject', { id : 1 });
       lunaris.delete('@testObject', { _id : 1 });
-      should(lunaris.clone(vm.$testObject)).eql(null);
+      should(lunaris.utils.clone(vm.$testObject)).eql({});
       vm.$rollback({
         storeName : 'testObject',
         data      : { _id : 1 },
         method    : 'DELETE',
         version   : 2
       });
-      should(lunaris.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [3] });
+      should(lunaris.utils.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [3] });
       vm.$destroy();
       lunaris._stores.testObject.data.clear();
       lunaris._resetVersionNumber();

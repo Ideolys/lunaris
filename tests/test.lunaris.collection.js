@@ -574,7 +574,7 @@ describe('lunaris internal collection', () => {
       it('should set aggregate values', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
-          sum      : ['sum', 'elements.cost'],
+          sum      : ['sumAgg', 'elements.cost'],
           elements : ['array', {
             id   : ['<<int>>'],
             cost : ['number']
@@ -613,12 +613,12 @@ describe('lunaris internal collection', () => {
       it('should set aggregate values and join values', () => {
         var _objectDescriptor = {
           id       : ['<<id>>'],
-          sum      : ['sum', 'elements.cost'],
+          sum      : ['sumAgg', 'elements.cost'],
           elements : ['array', {
             id   : ['<<int>>'],
             cost : ['number']
           }],
-          total : ['sum', '@elements.cost']
+          total : ['sumAgg', '@elements.cost']
         };
         var _schema   = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns  = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);

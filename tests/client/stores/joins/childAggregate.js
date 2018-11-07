@@ -3,7 +3,7 @@ module.exports = {
   isLocal : true,
   map     : [{
     id     : ['<<int>>'],
-    total  : ['sum', 'parent.price'],
+    total  : ['sumAgg', 'parent.price'],
     parent : ['@parent']
   }]
 };

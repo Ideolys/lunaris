@@ -109,7 +109,7 @@ lunaris._vue = {
       return function reset () {
         var _storeObj = lunaris._vue._vm.$data.$stores[store];
         if (_storeObj.isStoreObject) {
-          _storeObj.state = null;
+          lunaris.utils.keepTheReferenceAndChangeTheAttributes(_storeObj.state, {});
         }
         else {
           _storeObj.state.splice(0);
@@ -130,7 +130,7 @@ lunaris._vue = {
           if (Array.isArray(items)) {
             items = items[0];
           }
-          return _storeObj.state = items;
+          return lunaris.utils.keepTheReferenceAndChangeTheAttributes(_storeObj.state, items || {});
         }
 
         if (!Array.isArray(items)) {
@@ -165,7 +165,7 @@ lunaris._vue = {
       return function deleteItem (item) {
         var _storeObj = lunaris._vue._vm.$data.$stores[store];
         if (_storeObj.isStoreObject) {
-          return _storeObj.state = null;
+          return lunaris.utils.keepTheReferenceAndChangeTheAttributes(_storeObj.state, {});
         }
 
         if (!Array.isArray(item)) {
@@ -344,7 +344,7 @@ lunaris._vue = {
 
             _data = lunaris._stores[lunarisError.storeName].data.getAll(_ids);
             for (var j = 0; j < _data.length; j++) {
-              _data[j] = lunaris.freeze(lunaris.clone(_data[j]));
+              _data[j] = lunaris.utils.cloneAndFreeze(_data[j]);
             }
 
             return _update(lunarisError.storeName)(_data);
@@ -352,7 +352,7 @@ lunaris._vue = {
           if (lunarisError.method === lunaris.OPERATIONS.DELETE) {
             _data = lunaris._stores[lunarisError.storeName].data.get(lunarisError.data._id);
             if (_data) {
-              lunaris.freeze(lunaris.clone(_data));
+              lunaris.utils.cloneAndFreeze(_data);
               _update(lunarisError.storeName)(_data);
             }
           }

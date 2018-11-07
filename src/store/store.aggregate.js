@@ -1,3 +1,6 @@
+var utils = require('../utils.js');
+var index = utils.index;
+
 var sum = {
   type : 'number',
   init : {
@@ -93,8 +96,8 @@ var min = {
       return prevState;
     }
 
-    prevState.values.push(value);
-    prevState.values.sort();
+    var _search = index.binarySearch(prevState.values, value);
+    index.insertAt(prevState.values, _search.index, value);
     prevState.value = prevState.values[0];
     return prevState;
   },
@@ -107,10 +110,9 @@ var min = {
       return prevState;
     }
 
-    var _index = prevState.values.indexOf(value);
-    if (_index !== -1) {
-      prevState.values.splice(_index, 1);
-      prevState.values.sort();
+    var _search = index.binarySearch(prevState.values, value);
+    if (_search.found) {
+      index.removeAt(prevState.values, _search.index);
       prevState.value = prevState.values[0];
     }
 
@@ -139,8 +141,8 @@ var max = {
       return prevState;
     }
 
-    prevState.values.push(value);
-    prevState.values.sort();
+    var _search = index.binarySearch(prevState.values, value);
+    index.insertAt(prevState.values, _search.index, value);
     prevState.value = prevState.values[prevState.values.length - 1];
     return prevState;
   },
@@ -153,10 +155,9 @@ var max = {
       return prevState;
     }
 
-    var _index = prevState.values.indexOf(value);
-    if (_index !== -1) {
-      prevState.values.splice(_index, 1);
-      prevState.values.sort();
+    var _search = index.binarySearch(prevState.values, value);
+    if (_search.found) {
+      index.removeAt(prevState.values, _search.index);
       prevState.value = prevState.values[prevState.values.length - 1];
     }
 
@@ -211,12 +212,12 @@ var avg = {
 };
 
 var aggregates = {
-  sum           : sum,
-  count         : count,
-  avg           : avg,
-  min           : min,
-  max           : max,
-  countBoolTrue : countBoolTrue
+  sumAgg           : sum,
+  countAgg         : count,
+  avgAgg           : avg,
+  minAgg           : min,
+  maxAgg           : max,
+  countBoolTrueAgg : countBoolTrue
 };
 
 exports.aggregates = aggregates;

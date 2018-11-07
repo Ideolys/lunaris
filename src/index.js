@@ -11,10 +11,9 @@ module.exports = {
   _stores             : lunarisExports._stores,
   _collection         : collection.collection,
   _resetVersionNumber : collection.resetVersionNumber,
-  freeze              : utils.freeze,
-  clone               : utils.clone,
-  merge               : utils.merge,
-  logger              : logger,
+
+  utils  : utils,
+  logger : logger,
 
   hook           : hook.hook,
   removeHook     : hook.removeHook,
