@@ -11,6 +11,7 @@
   + BREAKING CHANGES:
     + `lnuaris.clone` and `lunaris.freeze` are availbale through `lunaris.utils`
     + All aggregate type names have been changed to `<type>Agg` in order to prevent conflict with attributes types.
+  + Add mass operations, use `lunaris.update@('@store:path.to.element', value)`. The mass opration will make a PATCH request to the server and conserve the operation for each new insert or update to the store.
 - Fix :
 
 

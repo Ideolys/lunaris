@@ -1,4 +1,5 @@
 var logger = require('../logger.js');
+var utils  = require('../utils.js');
 
 /**
  * Get store
@@ -128,8 +129,76 @@ function checkArgs (store, value, isNoValue) {
   }
 }
 
+
+/**
+ * Decompose object path to get the attribute value
+ * attribute
+ * attribute.test
+ * @param {Array} objectPathParts
+ * @returns {Object}
+ */
+function getPathValue (objectPathParts) {
+  var _parts = utils.clone(objectPathParts);
+  var _obj   = {};
+  var _part  = _parts.shift();
+
+  if (!_parts.length) {
+    return _obj[_part];
+  }
+
+  return getPathValue(objectPathParts) || null;
+}
+
+/**
+ * Decompose object path to set the attribute value
+ * attribute
+ * attribute.test
+ * @param {Array} objectPathParts
+ * @param {*} value
+ * @returns {Object}
+ */
+function setPathValue (objectPathParts, value, obj) {
+  var _parts = utils.clone(objectPathParts);
+  var _obj   = obj || {};
+  var _part  = _parts.shift();
+
+  if (!_parts.length) {
+    _obj[_part] = value;
+    return _obj;
+  }
+
+  _obj[_part] = setPathValue(_parts, value);
+  return _obj;
+}
+
+/**
+ * Set values for given path to an object
+ * @param {Object} objectPathValues  { path : value }
+ * @param {*} data
+ */
+function setObjectPathValues (objectPathValues, data) {
+  var _paths = Object.keys(objectPathValues);
+  for (var i = 0; i< _paths.length; i++) {
+    setPathValue(_paths[i].split('.'), objectPathValues[_paths[i]], data);
+  }
+}
+
+/**
+ * Get JSON patch path
+ * @param {String} path element.label
+ * @returns {String} element/label
+ */
+function getJSONPatchPath (path) {
+  return path.replace('.', '/');
+}
+
 exports.getStore           = getStore;
 exports.getCollection      = getCollection;
 exports.getPrimaryKeyValue = getPrimaryKeyValue;
 exports.setPrimaryKeyValue = setPrimaryKeyValue;
 exports.checkArgs          = checkArgs;
+
+exports.getPathValue        = getPathValue;
+exports.setPathValue        = setPathValue;
+exports.setObjectPathValues = setObjectPathValues;
+exports.getJSONPatchPath    = getJSONPatchPath;

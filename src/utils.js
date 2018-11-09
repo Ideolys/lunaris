@@ -35,6 +35,7 @@ exports.OPERATIONS = {
   DELETE : 'DELETE',
   INSERT : 'POST',
   UPDATE : 'PUT',
+  PATCH  : 'PATCH',
   LIST   : 'GET'
 };
 

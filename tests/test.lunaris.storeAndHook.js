@@ -633,12 +633,12 @@ describe('lunaris store', () => {
     });
   });
 
-  describe('mass insert() / update()', () => {
+  describe('multiple insert() / update()', () => {
 
     it('should insert the values', (done) => {
-      var _store = initStore('mass');
-      lunaris._stores['mass'] = _store;
-      lunaris.insert('@mass', [
+      var _store = initStore('multiple');
+      lunaris._stores['multiple'] = _store;
+      lunaris.insert('@multiple', [
         { id : 1, label : 'A' },
         { id : 2, label : 'B' }
       ]);
@@ -648,7 +648,7 @@ describe('lunaris store', () => {
         { _id : 2, id : 2, label : 'B', _version : [1] }
       ]);
 
-      lunaris.hook('inserted@mass', () => {
+      lunaris.hook('inserted@multiple', () => {
         done();
       });
     });
@@ -657,12 +657,12 @@ describe('lunaris store', () => {
       var _isFirstInsertEvent                   = true;
       var _isUpdateHook                         = false;
       var _isUpdatedHook                        = false;
-      var _store                                = initStore('mass');
-      lunaris._stores['mass']                 = _store;
-      lunaris._stores['mass'].primaryKey      = 'id';
-      lunaris._stores['mass'].successTemplate = '$pronounMale $storeName has been successfully $method';
+      var _store                                = initStore('multiple');
+      lunaris._stores['multiple']                 = _store;
+      lunaris._stores['multiple'].primaryKey      = 'id';
+      lunaris._stores['multiple'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
-      lunaris.hook('insert@mass', updatedValue => {
+      lunaris.hook('insert@multiple', updatedValue => {
         if (_isFirstInsertEvent) {
           should(updatedValue).be.an.Array();
           should(updatedValue).eql([
@@ -677,11 +677,11 @@ describe('lunaris store', () => {
         }
       });
 
-      lunaris.hook('update@mass', () => {
+      lunaris.hook('update@multiple', () => {
         _isUpdateHook = true;
       });
 
-      lunaris.hook('inserted@mass', (data, message) => {
+      lunaris.hook('inserted@multiple', (data, message) => {
         _isUpdatedHook = true;
         should(data).be.an.Array();
         should(data).eql([
@@ -692,18 +692,18 @@ describe('lunaris store', () => {
         for (var i = 0; i < data.length; i++) {
           should(Object.isFrozen(data[i])).eql(true);
         }
-        should(message).eql('${the} mass has been successfully ${created}');
+        should(message).eql('${the} multiple has been successfully ${created}');
 
         if (_isUpdateHook && _isUpdatedHook) {
           done();
         }
       });
 
-      lunaris.hook('errorHttp@mass', (err) => {
+      lunaris.hook('errorHttp@multiple', (err) => {
         done(err);
       });
 
-      lunaris.insert('@mass', [
+      lunaris.insert('@multiple', [
         { id : null, label : 'A' },
         { id : null, label : 'B' }
       ]);
@@ -764,13 +764,13 @@ describe('lunaris store', () => {
     });
 
     it('should update a value', () => {
-      var _store = initStore('mass');
-      lunaris._stores['mass'] = _store;
-      lunaris.insert('@mass', [
+      var _store = initStore('multiple');
+      lunaris._stores['multiple'] = _store;
+      lunaris.insert('@multiple', [
         { id : 1, label : 'A' },
         { id : 2, label : 'B' }
       ]);
-      lunaris.update('@mass', [
+      lunaris.update('@multiple', [
         { _id : 1, id : 1, label : 'A-1' },
         { _id : 2, id : 2, label : 'B-1' }
       ]);
@@ -782,18 +782,18 @@ describe('lunaris store', () => {
       var _nbCalls            = 0;
       var _isUpdateHook       = false;
       var _isUpdatedHook      = false;
-      var _store              = initStore('mass');
-      lunaris._stores['mass'] = _store;
-      lunaris._stores['mass'].successTemplate = '$pronounMale $storeName has been successfully $method';
+      var _store              = initStore('multiple');
+      lunaris._stores['multiple'] = _store;
+      lunaris._stores['multiple'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
-      lunaris.hook('inserted@mass', () => {
-        lunaris.update('@mass', [
+      lunaris.hook('inserted@multiple', () => {
+        lunaris.update('@multiple', [
           { _id : 1, id : 1, label : 'A-1' },
           { _id : 2, id : 2, label : 'B-1' }
         ]);
       });
 
-      lunaris.hook('update@mass', updatedValue => {
+      lunaris.hook('update@multiple', updatedValue => {
         _isUpdateHook = true;
         if (_nbCalls === 0) {
           return _nbCalls++;
@@ -826,25 +826,25 @@ describe('lunaris store', () => {
         return _nbCalls++;
       });
 
-      lunaris.hook('updated@mass', (data, message) => {
+      lunaris.hook('updated@multiple', (data, message) => {
         _isUpdatedHook = true;
         should(data).eql([
           { _id : 1, id : 1, label : 'A-1', put : true, _version : [4] },
           { _id : 2, id : 2, label : 'B-1', put : true, _version : [4] }
         ]);
 
-        should(message).eql('${the} mass has been successfully ${edited}');
+        should(message).eql('${the} multiple has been successfully ${edited}');
 
         if (_isUpdateHook && _isUpdatedHook) {
           done();
         }
       });
 
-      lunaris.hook('errorHttp@mass', (err) => {
+      lunaris.hook('errorHttp@multiple', (err) => {
         done(err);
       });
 
-      lunaris.insert('@mass', [
+      lunaris.insert('@multiple', [
         { id : 1, label : 'A' },
         { id : 2, label : 'B' }
       ]);
@@ -930,6 +930,165 @@ describe('lunaris store', () => {
       });
 
       lunaris.insert('@store_insert_put', [{ id : 1 }, { id : 2 }]);
+    });
+  });
+
+  describe('mass', () => {
+    it('should update all object in the store and make a patch', done => {
+      var _nbCalled     = 0;
+      lunaris._stores['mass'] = initStore('mass');
+
+      lunaris.hook('errorHttp@mass', done);
+      lunaris.hook('patched@mass', () => {
+        done();
+      });
+      lunaris.hook('inserted@mass', () => {
+        lunaris.update('@mass:label', 'A');
+      });
+      lunaris.hook('update@mass', (items) => {
+        _nbCalled++;
+
+        if (_nbCalled === 1) {
+          should(items).eql([
+            { id : 1, _id : 1, _version : [2], post : true },
+            { id : 2, _id : 2, _version : [2], post : true },
+            { id : 3, _id : 3, _version : [2], post : true },
+            { id : 4, _id : 4, _version : [2], post : true }
+          ]);
+          return;
+        }
+        else if (_nbCalled === 2) {
+          should(items).eql([
+            { id : 1, _id : 1, _version : [3], post : true, label : 'A' },
+            { id : 2, _id : 2, _version : [3], post : true, label : 'A' },
+            { id : 3, _id : 3, _version : [3], post : true, label : 'A' },
+            { id : 4, _id : 4, _version : [3], post : true, label : 'A' }
+          ]);
+          return;
+        }
+        // should not update mass store another time
+        done(_nbCalled);
+      });
+
+      lunaris.hook('insert@mass', function (items) {
+        should(items).eql([
+          { id : 1, _id : 1, _version : [1] },
+          { id : 2, _id : 2, _version : [1] },
+          { id : 3, _id : 3, _version : [1] },
+          { id : 4, _id : 4, _version : [1] }
+        ]);
+      });
+
+      lunaris.insert('@mass', [
+        { id : 1 },
+        { id : 2 },
+        { id : 3 },
+        { id : 4 }
+      ]);
+    });
+
+    it('should conserve a mass operation for next insert', done => {
+      lunaris._stores['mass'] = initStore('mass');
+
+      lunaris.hook('errorHttp@mass', done);
+      lunaris.hook('patched@mass', () => {
+        lunaris.insert('@mass', [{ id : 1 }]);
+      });
+      lunaris.hook('inserted@mass', (items) => {
+        should(items).eql([{
+          id       : 1,
+          label    : 'A',
+          post     : true,
+          _id      : 1,
+          _version : [3]
+        }]);
+        done();
+      });
+
+      lunaris.hook('insert@mass', function (items) {
+        should(items).eql([{
+          id       : 1,
+          label    : 'A',
+          _id      : 1,
+          _version : [2]
+        }]);
+      });
+
+      lunaris.update('@mass:label', 'A');
+    });
+
+    it('should conserve a mass operation for next update', done => {
+      lunaris._stores['mass'] = initStore('mass');
+
+      lunaris.hook('errorHttp@mass', done);
+      lunaris.hook('patched@mass', () => {
+        lunaris.update('@mass', { id : 1, label : 'B', _id : 1 });
+      });
+      lunaris.hook('inserted@mass', (items) => {
+        should(items).eql([{
+          id       : 1,
+          post     : true,
+          _id      : 1,
+          _version : [2]
+        }]);
+        lunaris.update('@mass:label', 'A');
+      });
+
+      var _nbCalled = 0;
+      lunaris.hook('update@mass', items => {
+        _nbCalled++;
+
+        if (_nbCalled === 1) {
+          should(items).eql([{
+            id       : 1,
+            _id      : 1,
+            _version : [2],
+            post     : true
+          }]);
+          return;
+        }
+        else if (_nbCalled === 2) {
+          should(items).eql([{
+            id       : 1,
+            _id      : 1,
+            _version : [3],
+            post     : true,
+            label    : 'A'
+          }]);
+          return;
+        }
+        else if (_nbCalled === 3) {
+          should(items).eql([{
+            id       : 1,
+            _id      : 1,
+            _version : [4],
+            label    : 'A'
+          }]);
+          return;
+        }
+        else if (_nbCalled === 4) {
+          should(items).eql([{
+            id       : 1,
+            _id      : 1,
+            _version : [5],
+            label    : 'A',
+            put      : true
+          }]);
+          return done();
+        }
+
+        done(_nbCalled);
+      });
+
+      lunaris.hook('insert@mass', items => {
+        should(items).eql([{
+          id       : 1,
+          _id      : 1,
+          _version : [1]
+        }]);
+      });
+
+      lunaris.insert('@mass', { id : 1 });
     });
   });
 
@@ -2270,8 +2429,8 @@ describe('lunaris store', () => {
     });
 
     it('should retry : insert', done => {
-      var _nbExecuted = 0;
       var _store                                      = initStore('store_insert_post');
+      var _nbExecuted                                 = 0;
       lunaris._stores['store_insert_post']            = _store;
       lunaris._stores['store_insert_post'].primaryKey = 'id';
 
@@ -4144,7 +4303,7 @@ function _startServer (callback) {
   server.post('/store1/site/:idSite'   , _postPutDelHandler);
   server.put('/store1/:id/site/:idSite', _postPutDelHandler);
 
-  server.post('/mass', (req, res) => {
+  server.post('/multiple', (req, res) => {
     req.body.reverse();
     for (var i = 0; i < req.body.length; i++) {
       req.body[i].id   = i + 1;
@@ -4153,7 +4312,7 @@ function _startServer (callback) {
     }
     res.json({ success : true, error : null, message : null, data : req.body });
   });
-  server.put('/mass', (req, res) => {
+  server.put('/multiple', (req, res) => {
     req.body.reverse();
     for (var i = 0; i < req.body.length; i++) {
       req.body[i].put = true;
@@ -4164,6 +4323,28 @@ function _startServer (callback) {
 
   server.get('/emptyArray', (req, res) => {
     res.json({ success : true, error : null, message : null, data : [] });
+  });
+
+  server.patch('/mass', (req, res) => {
+    res.json({ success : true, error : null, message : null, data : [] });
+  });
+  server.post('/mass', (req, res) => {
+    if (!Array.isArray(req.body)) {
+      req.body = [req.body];
+    }
+    for (var i = 0; i < req.body.length; i++) {
+      req.body[i].post = true;
+    }
+    res.json({ success : true, error : null, message : null, data : req.body });
+  });
+  server.put('/mass/:id', (req, res) => {
+    if (!Array.isArray(req.body)) {
+      req.body = [req.body];
+    }
+    for (var i = 0; i < req.body.length; i++) {
+      req.body[i].put = true;
+    }
+    res.json({ success : true, error : null, message : null, data : req.body });
   });
 
   server = server.listen(port, callback);

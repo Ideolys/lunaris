@@ -217,7 +217,6 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
           return _data[i];
         }
 
-        // _objToUpdate._operation = OPERATIONS.UPDATE;
         if (!isRemove) {
           return add(_objToUpdate, _transactionVersionNumber ? _transactionVersionNumber : null, true, isFromIndex);
         }

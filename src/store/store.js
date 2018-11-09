@@ -10,6 +10,7 @@ var template        = require('./store.template.js');
 var collection      = require('./store.collection.js');
 var offline         = require('../offline.js');
 var storeOffline    = require('./store.offline.js');
+var OPERATIONS      = utils.OPERATIONS;
 var emptyObject     = {};
 var getRequestQueue = {};
 
@@ -24,7 +25,8 @@ lunarisExports._stores.lunarisErrors = {
   nameTranslated        : '${store.lunarisErrors}',
   isLocal               : true,
   storesToPropagate     : [],
-  isStoreObject         : false
+  isStoreObject         : false,
+  massOperations        : {}
 };
 
 /**
@@ -122,7 +124,10 @@ function beforeAction (store, value, isNoValue) {
  * @param {String} message
  */
 function afterAction (store, event, value, message) {
-  var _value = utils.cloneAndFreeze(value);
+  var _value = null;
+  if (value) {
+    _value = utils.cloneAndFreeze(value);
+  }
   if (message) {
     return hook.pushToHandlers(store, event, [_value, message]);
   }
@@ -154,28 +159,43 @@ function setLunarisError (storeName, method, request, value, version, err, error
 }
 
 /**
- * Upsert a value in a store
+ * Upsert collection
  * @param {Object} store
  * @param {Object} collection
- * @param {Object} cache
- * @param {Array/Object} value
- * @param {Boolean} isLocal
+ * @param {*} value
+ * @param {Int} version
+ * @param {Boolean} isMultipleItems
  * @param {Boolean} isUpdate
- * @param {Object} retryOptions
+ * @param {Array} pathParts
+ * @returns {Int} version
  */
-function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptions) {
-  var _isMultipleItems = Array.isArray(value);
-  var _version;
-  var _ids = [];
-  if (!retryOptions) {
-    _version = collection.begin();
-    if (_isMultipleItems) {
-      for (var i = 0; i < value.length; i++) {
+function _upsertCollection (store, collection, cache, value, version, isMultipleItems, isUpdate, pathParts) {
+  var _ids        = [];
+  var _inputValue = value;
+
+  if (pathParts.length) {
+    // set or upddate massOperations rules
+    store.massOperations[pathParts.join('.')] = value;
+
+    var _data = collection.getAll();
+    version   = collection.begin();
+    for (var i = 0; i < _data.length; i++) {
+      storeUtils.setPathValue(pathParts, value, _data[i]);
+      collection.upsert(_data[i], version);
+    }
+  }
+  else {
+    version = collection.begin();
+    if (isMultipleItems) {
+      for (i = 0; i < value.length; i++) {
         // If offline set PK
         if (!offline.isOnline && !isUpdate) {
           storeUtils.setPrimaryKeyValue(store, value[i], collection.getCurrentId());
         }
-        collection.upsert(value[i], _version);
+        // Set value if mass operation have been applied to the store
+        storeUtils.setObjectPathValues(store.massOperations, value[i]);
+
+        collection.upsert(value[i], version);
         _ids.push(value[i]._id);
       }
     }
@@ -190,73 +210,79 @@ function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptio
       if (!offline.isOnline && !isUpdate) {
         storeUtils.setPrimaryKeyValue(store, value, store.isStoreObject ? value._id : collection.getCurrentId());
       }
-      collection.upsert(value, _version);
+      // Set value if mass operation have been applied to the store
+      storeUtils.setObjectPathValues(store.massOperations, value);
+
+      collection.upsert(value, version);
 
       if (_ids) {
         _ids.push(value._id);
       }
     }
-
-    value = collection.commit(_version);
-
-    cache.invalidate(_ids, true);
-
-    afterAction(store, isUpdate ? 'update' : 'insert', value);
-    _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT);
-    if (isUpdate) {
-      _propagateReflexive(store, collection, value,  utils.OPERATIONS.UPDATE);
-    }
-
-    if (!_isMultipleItems && !store.isStoreObject) {
-      value = value[0];
-    }
-  }
-  else {
-    _version = retryOptions.version;
   }
 
-  if (store.isLocal || isLocal) {
-    if (store.isFilter) {
-      hook.pushToHandlers(store, 'filterUpdated');
-    }
-    return;
+  value = collection.commit(version);
+
+
+  cache.invalidate(_ids, true);
+  afterAction(store, isUpdate ? 'update' : 'insert', value);
+  _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT);
+  if (isUpdate) {
+    _propagateReflexive(store, collection, value,  utils.OPERATIONS.UPDATE);
   }
 
-  var _method  = isUpdate ? 'PUT' : 'POST';
-  var _request = '/';
-
-  if (!retryOptions) {
-    _request = url.create(store, _method, storeUtils.getPrimaryKeyValue(store, value, !isUpdate || (isUpdate && _isMultipleItems)));
-    // required filters consition not fullfilled
-    if (!_request) {
-      return;
-    }
-    _request = _request.request;
+  if (!isMultipleItems && !store.isStoreObject) {
+    value = value[0];
   }
-  else {
-    _request = retryOptions.url;
+  // it's a patch !
+  if (pathParts.length) {
+    value = {
+      op    : 'replace',
+      path  : storeUtils.getJSONPatchPath(pathParts.join('.')),
+      value : _inputValue
+    };
   }
 
-  if (!offline.isOnline) {
-    return;
-  }
+  return { version : version, value : value };
+}
 
-  http.request(_method, _request, value, function (err, data) {
+/**
+ * Make HTTP request for upsert
+ * @param {String} method  GET, POST, ...
+ * @param {String} request url
+ * @param {Boolean} isUpdate
+ * @param {Boolean} isPatch
+ * @param {Object} store
+ * @param {Object} collection
+ * @param {*} value
+ * @param {Boolean} isMultipleItems
+ * @param {Int} version
+ */
+function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version) {
+  http.request(method, request, value, function (err, data) {
     if (err) {
-      var _error = template.getError(err, store, _method, false);
-      setLunarisError(store.name, _method, _request, value, _version, err, _error);
+      var _error = template.getError(err, store, method, false);
+      setLunarisError(store.name, method, request, value, version, err, _error);
       logger.warn(['lunaris.' + (isUpdate ? 'update' : 'insert') + '@' + store.name], err);
       return hook.pushToHandlers(store, 'errorHttp', [_error, utils.cloneAndFreeze(value)]);
     }
 
+    if (method === OPERATIONS.PATCH) {
+      afterAction(store, 'patched');
+      return;
+    }
+
     var _isEvent = true;
-    if (store.isStoreObject || !_isMultipleItems) {
+    if (store.isStoreObject || !isMultipleItems) {
       if (store.isStoreObject && Array.isArray(data)) {
-        throw new Error('The store "' + store.name + '" is a store object. The ' + _method + ' method tries to ' + (isUpdate ? 'update' : 'insert') + ' multiple elements!');
+        throw new Error('The store "' + store.name + '" is a store object. The ' + method + ' method tries to ' + (isUpdate ? 'update' : 'insert') + ' multiple elements!');
+      }
+      if (Array.isArray(data)) {
+        data = data[0];
       }
 
-      value    = utils.merge(value, data);
-      _version = collection.begin();
+      value        = utils.merge(value, data);
+      var _version = collection.begin();
       collection.upsert(value, _version);
       value = collection.commit(_version);
       // the value must have been deleted
@@ -268,7 +294,7 @@ function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptio
       var _isMultiple = Array.isArray(data);
       _version = collection.begin();
 
-      for (i = 0; i < value.length; i++) {
+      for (var i = 0; i < value.length; i++) {
         if (_isMultiple) {
           for (var j = 0; j < data.length; j++) {
             if (value[i]._id === data[j]._id) {
@@ -291,13 +317,72 @@ function _upsert (store, collection, cache, value, isLocal, isUpdate, retryOptio
     }
 
     afterAction(store, 'update', value);
-    afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, _method, false));
+    afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false));
     if (store.isFilter) {
       hook.pushToHandlers(store, 'filterUpdated');
     }
     _propagate(store, value, utils.OPERATIONS.UPDATE);
     _propagateReflexive(store, collection, value, utils.OPERATIONS.UPDATE);
   });
+}
+
+/**
+ * Upsert a value in a store
+ * @param {Object} store
+ * @param {Array} pathParts
+ * @param {Object} collection
+ * @param {Object} cache
+ * @param {Array/Object} value
+ * @param {Boolean} isLocal
+ * @param {Boolean} isUpdate
+ * @param {Object} retryOptions
+ */
+function _upsert (store, collection, cache, pathParts, value, isLocal, isUpdate, retryOptions) {
+  var _isMultipleItems = Array.isArray(value);
+  var _version;
+  if (!retryOptions) {
+    var _res = _upsertCollection(store, collection, cache, value, _version, _isMultipleItems, isUpdate, pathParts);
+    _version = _res.version;
+    value    = _res.value;
+  }
+  else {
+    _version = retryOptions.version;
+  }
+
+  if (store.isLocal || isLocal) {
+    if (store.isFilter) {
+      hook.pushToHandlers(store, 'filterUpdated');
+    }
+    return;
+  }
+
+  var _method  = OPERATIONS.UPDATE;
+  if (!isUpdate) {
+    _method = OPERATIONS.INSERT;
+  }
+  if (pathParts.length) {
+    _method = OPERATIONS.PATCH;
+  }
+
+  var _request = '/';
+
+  if (!retryOptions) {
+    _request = url.create(store, _method, storeUtils.getPrimaryKeyValue(store, value, !isUpdate || (isUpdate && _isMultipleItems)));
+    // required filters consition not fullfilled
+    if (!_request) {
+      return;
+    }
+    _request = _request.request;
+  }
+  else {
+    _request = retryOptions.url;
+  }
+
+  if (!offline.isOnline) {
+    return;
+  }
+
+  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version);
 }
 
 /**
@@ -398,8 +483,8 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         _options.collection.upsert(data, _version);
       }
 
-      data         = _options.collection.commit(_version);
-      var _ids     = [];
+      data     = _options.collection.commit(_version);
+      var _ids = [];
 
       if (store.isStoreObject) {
         _ids.push(data._id);
@@ -441,7 +526,16 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
  * }
  */
 function upsert (store, value, isLocal, retryOptions) {
-  var _isUpdate  = false;
+  var _isUpdate   = false;
+
+  var _storeParts = (store && typeof store === 'string') ? store.split(':') : [];
+  if (_storeParts.length) {
+    store = _storeParts.shift();
+  }
+  if (_storeParts.length) {
+    _isUpdate = true;
+  }
+
   var _eventName = 'lunaris.' + (_isUpdate ? 'update' : 'insert') + store;
   try {
     if (retryOptions) {
@@ -452,21 +546,21 @@ function upsert (store, value, isLocal, retryOptions) {
     if ((Array.isArray(value) && value[0]._id) || value._id) {
       _isUpdate = true;
     }
-    if (retryOptions && retryOptions.method === 'POST') {
+    if (retryOptions && retryOptions.method === OPERATIONS.INSERT) {
       _isUpdate = false;
     }
 
-    if (_options.store.validateFn) {
+    if (_options.store.validateFn && !_options.pathParts) {
       return validate(store, _options.value, _isUpdate, function (res) {
         if (!res) {
           return;
         }
 
-        _upsert(_options.store, _options.collection, _options.cache, _options.value, isLocal, _isUpdate, retryOptions);
+        _upsert(_options.store, _options.collection, _options.cache, _storeParts, _options.value, isLocal, _isUpdate, retryOptions);
       }, _eventName);
     }
 
-    _upsert(_options.store, _options.collection, _options.cache, _options.value, isLocal, _isUpdate, retryOptions);
+    _upsert(_options.store, _options.collection, _options.cache,_storeParts, _options.value, isLocal, _isUpdate, retryOptions);
   }
   catch (e) {
     logger.warn([_eventName], e);

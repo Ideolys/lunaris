@@ -22,5 +22,6 @@ exports.initStore = function initStore (name, map, joinDescriptor, storesToPropa
   _store.data                  = collection.collection(null, _store.meta.getPrimaryKeyFn, _store.isStoreObject, joinDescriptor, null, _store.meta.reflexiveFn);
   _store.storesToPropagate     = storesToPropagate || [];
   _store.filterFns             = _store.meta ? storeMap.getFilterFns(compilatedStores, _store.meta.compilation, _store.filters) : null;
+  _store.massOperations        = {};
   return _store;
 };
