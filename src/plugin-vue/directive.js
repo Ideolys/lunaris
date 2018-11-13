@@ -45,7 +45,7 @@ function getHandlerFn (store, path, id, isLocal, vnode) {
     if (!_item) {
       return;
     }
-    _obj = lunaris.utils.merge(_item, _obj);
+    _obj = lunaris.utils.merge(lunaris.utils.clone(_item), _obj);
 
     lunaris.validate(store, _obj, function (isValid, err) {
       if (isValid) {

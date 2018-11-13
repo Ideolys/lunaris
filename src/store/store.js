@@ -727,7 +727,8 @@ function getOne (store, id) {
     if (!_item) {
       return;
     }
-    return utils.clone(_item);
+
+    return utils.cloneAndFreeze(_item);
   }
   catch (e) {
     logger.warn(['lunaris.getOne' + store], e);
