@@ -25,6 +25,7 @@ describe('offline filters', () => {
     var _res = storeOffline.filter(_store, _store.data, _cache, { requiredOptions : {}, optionalOptions : {} });
     should(_res).eql({
       id       : 1,
+      _rowId   : 1,
       _id      : 1,
       _version : [1]
     });
@@ -41,6 +42,7 @@ describe('offline filters', () => {
     var _res = storeOffline.filter(_store, _store.data, _cache, { requiredOptions : {}, optionalOptions : {} });
     should(_res).eql({
       id       : 1,
+      _rowId   : 1,
       _id      : 1,
       _version : [1]
     });
@@ -61,10 +63,12 @@ describe('offline filters', () => {
     should(_res).eql([
       {
         id       : 1,
+        _rowId   : 1,
         _id      : 1,
         _version : [1]
       }, {
         id       : 2,
+        _rowId   : 2,
         _id      : 2,
         _version : [2]
       }
@@ -86,10 +90,12 @@ describe('offline filters', () => {
     should(_res).eql([
       {
         id       : 1,
+        _rowId   : 1,
         _id      : 1,
         _version : [1]
       }, {
         id       : 2,
+        _rowId   : 2,
         _id      : 2,
         _version : [2]
       }
@@ -149,11 +155,13 @@ describe('offline filters', () => {
       {
         id       : 3,
         label    : 'B',
+        _rowId   : 3,
         _id      : 3,
         _version :  [3]
       }, {
         id       : 4,
         label    : 'B',
+        _rowId   : 4,
         _id      : 4,
         _version : [4]
       }
@@ -229,6 +237,7 @@ describe('offline filters', () => {
         id       : 3,
         label    : 'B',
         category : { id : 3 },
+        _rowId   : 3,
         _id      : 3,
         _version : [3]
       }
@@ -288,11 +297,13 @@ describe('offline filters', () => {
       {
         id       : 5,
         label    : 'pomme chaude',
+        _rowId   : 5,
         _id      : 5,
         _version : [5]
       }, {
         id       : 6,
         label    : 'pomme',
+        _rowId   : 6,
         _id      : 6,
         _version : [6]
       }
@@ -305,6 +316,7 @@ describe('offline filters', () => {
       {
         id       : 5,
         label    : 'pomme chaude',
+        _rowId   :5,
         _id      : 5,
         _version : [5]
       }
@@ -352,11 +364,13 @@ describe('offline filters', () => {
       {
         id       : 1,
         label    : 'c\'est une patate chaude',
+        _rowId   : 1,
         _id      : 1,
         _version : [1]
       }, {
         id       : 2,
         label    : 'je suis une patate chaude',
+        _rowId   : 2,
         _id      : 2,
         _version : [2]
       }
@@ -404,11 +418,13 @@ describe('offline filters', () => {
       {
         id       : 1,
         label    : 'purée chaude',
+        _rowId   : 1,
         _id      : 1,
         _version : [1]
       }, {
         id       : 2,
         label    : 'purée',
+        _rowId   : 2,
         _id      : 2,
         _version : [2]
       }
@@ -456,11 +472,13 @@ describe('offline filters', () => {
       {
         id       : 1,
         label    : 'patate chaude',
+        _rowId   : 1,
         _id      : 1,
         _version : [1]
       }, {
         id       : 2,
         label    : 'patate',
+        _rowId   : 2,
         _id      : 2,
         _version : [2]
       }
@@ -537,6 +555,7 @@ describe('offline filters', () => {
         id       : 4,
         label    : 'B',
         category : { id : '4' },
+        _rowId   : 4,
         _id      : 4,
         _version : [4]
       }
@@ -596,21 +615,25 @@ describe('offline filters', () => {
       {
         id       : 3,
         label    : 'B',
+        _rowId   : 3,
         _id      : 3,
         _version : [3]
       }, {
         id       : 4,
         label    : 'B',
+        _rowId   : 4,
         _id      : 4,
         _version : [4]
       }, {
         id       : 5,
         label    : 'C',
+        _rowId   : 5,
         _id      : 5,
         _version : [5]
       }, {
         id       : 6,
         label    : 'C',
+        _rowId   : 6,
         _id      : 6,
         _version : [6]
       }
@@ -677,17 +700,19 @@ describe('offline filters', () => {
       {
         id       : 3,
         label    : 'B',
+        _rowId   : 3,
         _id      : 3,
         _version : [3]
       }, {
         id       : 4,
         label    : 'B',
+        _rowId   : 4,
         _id      : 4,
         _version : [4]
       }
     ]);
 
-    should(_cache._cache()).eql([
+    should(_cache.cache()).eql([
       [
         {
           0      : ['B', 'C'],
@@ -756,17 +781,19 @@ describe('offline filters', () => {
       {
         id       : 3,
         label    : 'B',
+        _rowId   : 3,
         _id      : 3,
         _version : [3]
       }, {
         id       : 4,
         label    : 'B',
+        _rowId   : 4,
         _id      : 4,
         _version : [4]
       }
     ]);
 
-    should(_cache._cache()).eql([
+    should(_cache.cache()).eql([
       [
         {
           0      : ['B', 'C'],
@@ -838,26 +865,30 @@ describe('offline filters', () => {
       {
         id       : 3,
         label    : 'B',
+        _rowId   : 3,
         _id      : 3,
         _version : [3]
       }, {
         id       : 4,
         label    : 'B',
+        _rowId   : 4,
         _id      : 4,
         _version : [4]
       }, {
         id       : 5,
         label    : 'C',
+        _rowId   : 5,
         _id      : 5,
         _version : [5]
       }, {
         id       : 6,
         label    : 'C',
+        _rowId   : 6,
         _id      : 6,
         _version : [6]
       }
     ]);
 
-    should(_cache._cache()).eql([]);
+    should(_cache.cache()).eql([]);
   });
 });

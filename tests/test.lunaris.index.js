@@ -1,5 +1,6 @@
 const utils              = require('../src/utils');
 const http               = require('../src/http');
+const localStorageDriver = require('../src/localStorageDriver');
 const lunarisExports     = require('../src/exports');
 lunarisExports.isBrowser = false;
 
@@ -140,5 +141,16 @@ describe('lunaris index', () => {
     should(index.offline).be.ok();
     should(index.offline).be.an.Object();
     should(index.offline.isOnline).be.a.Boolean();
+  });
+
+  it('_indexedDB() should be defined', () => {
+    should(index._indexedDB).be.ok();
+    should(index._indexedDB).be.a.Function();
+  });
+
+  it('localStorage should be defined', () => {
+    should(index.localStorage).be.ok();
+    should(index.localStorage).be.an.Object();
+    should(index.localStorage).eql(localStorageDriver.localStorage);
   });
 });

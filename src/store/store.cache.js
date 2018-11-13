@@ -149,9 +149,9 @@ function cache () {
     },
 
     /**
-     * Return cache values. Uniquely for tests purposes
+     * Return cache values
      */
-    _cache : function () {
+    cache : function () {
       return _cache;
     }
   };

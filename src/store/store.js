@@ -1,18 +1,18 @@
-var lunarisExports  = require('../exports.js');
-var hook            = require('./store.hook.js');
-var utils           = require('../utils.js');
-var storeUtils      = require('./store.utils.js');
-var http            = require('../http.js');
-var logger          = require('../logger.js');
-var cache           = require('./store.cache.js');
-var url             = require('./store.url.js');
-var template        = require('./store.template.js');
-var collection      = require('./store.collection.js');
-var offline         = require('../offline.js');
-var storeOffline    = require('./store.offline.js');
-var OPERATIONS      = utils.OPERATIONS;
-var emptyObject     = {};
-var getRequestQueue = {};
+var lunarisExports     = require('../exports.js');
+var hook               = require('./store.hook.js');
+var utils              = require('../utils.js');
+var storeUtils         = require('./store.utils.js');
+var http               = require('../http.js');
+var logger             = require('../logger.js');
+var cache              = require('./store.cache.js');
+var url                = require('./store.url.js');
+var template           = require('./store.template.js');
+var collection         = require('./store.collection.js');
+var offline            = require('../offline.js');
+var storeOffline       = require('./store.offline.js');
+var OPERATIONS         = utils.OPERATIONS;
+var emptyObject        = {};
+var getRequestQueue    = {};
 
 lunarisExports._stores.lunarisErrors = {
   name                  : 'lunarisErrors',
@@ -230,6 +230,7 @@ function _upsertCollection (store, collection, cache, value, version, isMultiple
   if (isUpdate) {
     _propagateReflexive(store, collection, value,  utils.OPERATIONS.UPDATE);
   }
+  storeUtils.saveState(store, collection, cache);
 
   if (!isMultipleItems && !store.isStoreObject) {
     value = value[0];
@@ -323,6 +324,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
     }
     _propagate(store, value, utils.OPERATIONS.UPDATE);
     _propagateReflexive(store, collection, value, utils.OPERATIONS.UPDATE);
+    storeUtils.saveState(store, collection, cache);
   });
 }
 
@@ -373,6 +375,7 @@ function _upsert (store, collection, cache, pathParts, value, isLocal, isUpdate,
       return;
     }
     _request = _request.request;
+    storeUtils.saveState(store, collection, cache);
   }
   else {
     _request = retryOptions.url;
@@ -446,6 +449,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         return callback(store);
       }
 
+      storeUtils.saveState(_options.store, _options.collection, _options.cache);
       _request = _request.request;
     }
     else {
@@ -501,6 +505,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       if (_options.store.isFilter) {
         hook.pushToHandlers(_options.store, 'filterUpdated');
       }
+      storeUtils.saveState(_options.store, _options.collection, _options.cache);
     });
   }
   catch (e) {
@@ -603,6 +608,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
       }
 
       _options.cache.invalidate(value._id);
+      storeUtils.saveState(_options.store, _options.collection, _options.cache);
     }
     else {
       _version = retryOptions.version;
@@ -620,6 +626,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
         return;
       }
       _request = _request.request;
+      storeUtils.saveState(_options.store, _options.collection, _options.cache);
     }
     else {
       _request = retryOptions.url;
@@ -658,6 +665,7 @@ function setPagination (store, page, limit) {
     _options.store.paginationLimit       = limit || _options.store.paginationLimit;
     _options.store.paginationCurrentPage = page  || 1;
     _options.store.paginationOffset      = _options.store.paginationCurrentPage === 1 ? 0 : _options.store.paginationLimit * _options.store.paginationCurrentPage;
+    storeUtils.saveState(_options.store, _options.collection, _options.cache);
   }
   catch (e) {
     logger.warn(['lunaris.setPagination' + store], e);
@@ -681,6 +689,7 @@ function clear (store, isSilent) {
       hook.pushToHandlers(_options.store, 'reset');
     }
     _propagate(_options.store, null, utils.OPERATIONS.DELETE);
+    storeUtils.saveState(_options.store, _options.collection, _options.cache);
   }
   catch (e) {
     logger.warn(['lunaris.clear' + store], e);

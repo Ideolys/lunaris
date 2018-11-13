@@ -1,16 +1,18 @@
-var hook           = require('./store/store.hook.js');
-var store          = require('./store/store.js');
-var lunarisExports = require('./exports.js');
-var collection     = require('./store/store.collection.js');
-var utils          = require('./utils.js');
-var logger         = require('./logger.js');
-var http           = require('./http.js');
-var offline        = require('./offline.js');
+var hook               = require('./store/store.hook.js');
+var store              = require('./store/store.js');
+var lunarisExports     = require('./exports.js');
+var collection         = require('./store/store.collection.js');
+var utils              = require('./utils.js');
+var logger             = require('./logger.js');
+var http               = require('./http.js');
+var offline            = require('./offline.js');
+var localStorageDriver = require('./localStorageDriver.js');
 
 module.exports = {
   _stores             : lunarisExports._stores,
   _collection         : collection.collection,
   _resetVersionNumber : collection.resetVersionNumber,
+  _indexedDB          : localStorageDriver.indexedDB.init,
 
   utils  : utils,
   logger : logger,
@@ -19,8 +21,9 @@ module.exports = {
   removeHook     : hook.removeHook,
   pushToHandlers : hook.pushToHandlers,
 
-  http    : http,
-  offline : offline,
+  http         : http,
+  offline      : offline,
+  localStorage : localStorageDriver.localStorage,
 
   get             : store.get,
   getOne          : store.getOne,

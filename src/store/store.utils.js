@@ -1,5 +1,8 @@
-var logger = require('../logger.js');
-var utils  = require('../utils.js');
+var lunarisExports     = require('../exports.js');
+var logger             = require('../logger.js');
+var utils              = require('../utils.js');
+var localStorageDriver = require('../localStorageDriver.js');
+var database           = localStorageDriver.indexedDB;
 
 /**
  * Get store
@@ -192,6 +195,36 @@ function getJSONPatchPath (path) {
   return path.replace('.', '/');
 }
 
+/**
+ * Save
+ * @param {Object} store
+ * @param {Object} collection
+ * @param {Object} cache
+ */
+function saveState (store, collection, cache) {
+  if (!lunarisExports.isBrowser) {
+    return;
+  }
+
+  var _state = {
+    store          : store.name,
+    massOperations : store.massOperations,
+    pagination     : {
+      limit       : store.paginationLimit,
+      offset      : store.pagginationOffset,
+      currentPage : store.paginationCurrentPage
+    },
+    collection : {
+      currentId     : collection.getCurrentId(),
+      currrentRowId : collection.getCurrentRowId(),
+      index         : collection.getIndexId()
+    },
+    cache : cache.cache()
+  };
+
+  database.upsert('_states', _state);
+}
+
 exports.getStore           = getStore;
 exports.getCollection      = getCollection;
 exports.getPrimaryKeyValue = getPrimaryKeyValue;
@@ -202,3 +235,4 @@ exports.getPathValue        = getPathValue;
 exports.setPathValue        = setPathValue;
 exports.setObjectPathValues = setObjectPathValues;
 exports.getJSONPatchPath    = getJSONPatchPath;
+exports.saveState           = saveState;

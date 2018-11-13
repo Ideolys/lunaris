@@ -1,9 +1,13 @@
-var utils          = require('../utils.js');
-var index          = utils.index;
-var OPERATIONS     = utils.OPERATIONS;
-var aggregates     = require('./store.aggregate.js').aggregates;
-var lunarisExports = require('../exports.js');
-var logger         = require('../logger.js');
+var utils              = require('../utils.js');
+var index              = utils.index;
+var OPERATIONS         = utils.OPERATIONS;
+var aggregates         = require('./store.aggregate.js').aggregates;
+var lunarisExports     = require('../exports.js');
+var logger             = require('../logger.js');
+var localStorageDriver = require('../localStorageDriver.js');
+var localStorage       = localStorageDriver.localStorage;
+var localDatabase      = localStorageDriver.indexedDB;
+
 
 /**
  * Version number :
@@ -16,6 +20,7 @@ var currentVersionNumber = 1;
 
 function incrementVersionNumber () {
   currentVersionNumber++;
+  localStorage.set('lunaris:versionNumber', currentVersionNumber);
 }
 
 /**
@@ -34,10 +39,12 @@ function incrementVersionNumber () {
  * @param {Function} aggregateFn function to set aggregate values
  * @param {Object} reflexiveFns { update : {Function}, delete : {Function} }
  * @param {Function} computedsFn function to set computed properties
+ * @param {String} storeName
  */
-function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, reflexiveFns, computedsFn) {
+function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, reflexiveFns, computedsFn, storeName) {
   var _data                     = [];
   var _currentId                = startId && typeof startId === 'number' ? startId : 1;
+  var _currentRowId             = 1;
   var _transactions             = {};
   var _isTransactionCommit      = false;
   var _transactionVersionNumber = null;
@@ -49,6 +56,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
   var _reflexiveUpdateFn        = reflexiveFns ? reflexiveFns.update : null;
   var _reflexiveDeleteFn        = reflexiveFns ? reflexiveFns.delete : null;
   var _computedsFn              = computedsFn;
+  var _storeName                = storeName;
 
   /**
    * id : [[id], [_id]]
@@ -105,19 +113,25 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       if (_aggregateFn) {
         _aggregateFn(value, aggregates, lunarisExports.constants, logger);
       }
-      value._id = _currentId;
+      value._id    = _currentId;
       _currentId++;
     }
     else {
+      value._rowId = _currentRowId++;
+      localDatabase.add(_storeName, value);
       return _data.push(value);
     }
 
     if (isFromIndex || !_getPrimaryKey) {
+      value._rowId = _currentRowId++;
+      localDatabase.add(_storeName, value);
       return _data.push(value);
     }
 
     var _id = _getPrimaryKey(value);
     if (!_id) {
+      value._rowId = _currentRowId++;
+      localDatabase.add(_storeName, value);
       return _data.push(value);
     }
 
@@ -132,7 +146,9 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
 
     index.insertAt(_arrayIdValues, _search.index, _id);
     index.insertAt(_indexes.id[1], _search.index, value._id);
+    value._rowId = _currentRowId++;
     _data.push(value);
+    localDatabase.add(_storeName, value);
   }
 
   /**
@@ -203,6 +219,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       if (_data[i]._id === value._id && _lowerVersion <= _version && _version <= _upperVersion) {
         var _objToUpdate     = utils.clone(value);
         _data[i]._version[1] = _version;
+        localDatabase.upsert(_storeName, _data[i]);
 
         //  During the same transaction :
         //   - If insert / update : the updated row will be merged with the inserted one
@@ -210,7 +227,9 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
         if (_lowerVersion === _version && _upperVersion === _version && _data[i]._version[1] >= 0) {
           utils.merge(_data[i], _objToUpdate);
           _data[i]._version.pop();
+          localDatabase.upsert(_storeName, _data[i]);
           if (isRemove) {
+            localDatabase.del(_storeName, _data[i]._rowId);
             _data.splice(i, 1);
             return;
           }
@@ -231,9 +250,10 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
    * Clear the collection
    */
   function clear () {
-    _data       = [];
-    _currentId  = 1;
-    _indexes.id = [[], []];
+    _data         = [];
+    _currentId    = 1;
+    _currentRowId = 1;
+    _indexes.id   = [[], []];
   }
 
   /**
@@ -489,7 +509,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
     propagate          : propagate,
     propagateReflexive : propagateReflexive,
 
-    _getIndexId : function () {
+    getIndexId : function () {
       return _indexes.id;
     },
 
@@ -541,6 +561,21 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
      */
     getCurrentVersionNumber : function () {
       return currentVersionNumber;
+    },
+
+    /**
+     * Get current row id
+     */
+    getCurrentRowId : function getCurrentRowId () {
+      return _currentRowId;
+    },
+
+    /**
+     * Set current row id
+     * @param {Int} value
+     */
+    setCurrentRowId : function setRowId (value) {
+      _currentRowId = value;
     }
   };
 }

@@ -17,7 +17,7 @@ describe('store cache', () => {
     var _store = initStore('store');
     var _cache = cache.getCache(_store);
     should(_cache.add).be.a.Function();
-    should(_cache._cache).be.a.Function();
+    should(_cache.cache).be.a.Function();
     should(_cache.get).be.a.Function();
     should(_cache.invalidate).be.a.Function();
     should(_cache.clear).be.a.Function();
@@ -30,7 +30,7 @@ describe('store cache', () => {
       var _cache         = cache.getCache(_store);
       var _expectedValue = [];
       _cache.add({}, [1, 2]);
-      should(_cache._cache()).eql(_expectedValue);
+      should(_cache.cache()).eql(_expectedValue);
     });
 
     it ('should add the pagination values and the result _ids', () => {
@@ -48,7 +48,7 @@ describe('store cache', () => {
         limit  : 2,
       },
       [1, 2]);
-      should(_cache._cache()).eql(_expectedValue);
+      should(_cache.cache()).eql(_expectedValue);
     });
 
     it('should clear the cache', () => {
@@ -60,7 +60,7 @@ describe('store cache', () => {
       },
       [1, 2]);
       _cache.clear();
-      should(_cache._cache()).eql([]);
+      should(_cache.cache()).eql([]);
     });
 
     it ('should update the previous cache value', () => {
@@ -78,7 +78,7 @@ describe('store cache', () => {
         limit  : 2,
       },
       [1, 2]);
-      should(_cache._cache()).eql(_expectedValue);
+      should(_cache.cache()).eql(_expectedValue);
 
       _cache.add({
         offset : 0,
@@ -86,7 +86,7 @@ describe('store cache', () => {
       },
       [1]);
       _expectedValue[0][1].splice(1, 1);
-      should(_cache._cache()).eql(_expectedValue);
+      should(_cache.cache()).eql(_expectedValue);
     });
   });
 
@@ -233,7 +233,7 @@ describe('store cache', () => {
       [1, 2]);
 
       _cache.invalidate(1);
-      should(_cache._cache()).eql([[
+      should(_cache.cache()).eql([[
         {
           offset : 0,
           limit  : 2,
@@ -265,7 +265,7 @@ describe('store cache', () => {
       [2, 3]);
 
       _cache.invalidate(2);
-      should(_cache._cache()).eql([
+      should(_cache.cache()).eql([
         [
           {
             offset : 0,
@@ -315,7 +315,7 @@ describe('store cache', () => {
       [2, 3]);
 
       _cache.invalidate([2, 3]);
-      should(_cache._cache()).eql([
+      should(_cache.cache()).eql([
         [
           {
             offset : 0,
@@ -345,7 +345,7 @@ describe('store cache', () => {
       [1, 2]);
 
       _cache.invalidate(1, true);
-      should(_cache._cache()).eql([]);
+      should(_cache.cache()).eql([]);
     });
 
     it('should invalidate multiple ids and the cached filter values', () => {
@@ -371,7 +371,7 @@ describe('store cache', () => {
       [2, 3]);
 
       _cache.invalidate([3, 4], true);
-      should(_cache._cache()).eql([
+      should(_cache.cache()).eql([
         [
           {
             offset : 0,

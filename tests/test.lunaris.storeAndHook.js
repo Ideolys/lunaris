@@ -40,7 +40,7 @@ lunaris._stores.lunarisErrors.data = collection.collection();
 
 var nbCallsPagination2 = 0;
 
-describe('lunaris store', () => {
+describe.only('lunaris store', () => {
 
   before(done => {
     _startServer(done);
@@ -106,7 +106,7 @@ describe('lunaris store', () => {
       var _store = initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
-      should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A', _version : [1] });
+      should(_store.data.get(1)).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
     });
 
     it('should insert the value and execute the hooks : insert & inserted', done => {
@@ -114,7 +114,7 @@ describe('lunaris store', () => {
       var _isUpdateHook                         = false;
       var _isUpdatedHook                        = false;
       var _store                                = initStore('store1');
-      var _expectedValue                        = [{ _id : 1, id : 2, label : 'A', _version : [1] }];
+      var _expectedValue                        = [{ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1] }];
       lunaris._stores['store1']                 = _store;
       lunaris._stores['store1'].primaryKey      = 'id';
       lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
@@ -135,10 +135,11 @@ describe('lunaris store', () => {
       lunaris.hook('inserted@store1', (data, message) => {
         _isUpdatedHook = true;
         var _res       = Object.assign(_expectedValue[0], {
-          body     : { _id : 1, id : 2, label : 'A' },
+          body     : { _rowId : 1, _id : 1, id : 2, label : 'A' },
           query    : {},
           params   : {},
-          _version : [2]
+          _version : [2],
+          _rowId   : 2
         });
         should(data).eql([_res]);
         should(message).eql('${the} store1 has been successfully ${created}');
@@ -159,7 +160,7 @@ describe('lunaris store', () => {
     it('should insert the value and execute the hooks', done => {
       var _nbExecutedHandlers              = 0;
       var _store                           = initStore('store1');
-      var _expectedValue                   = [{ _id : 1, id : 2, label : 'A', _version : [1] }];
+      var _expectedValue                   = [{ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1] }];
       lunaris._stores['store1']            = _store;
       lunaris._stores['store1'].primaryKey = 'id';
 
@@ -210,10 +211,11 @@ describe('lunaris store', () => {
         should(_values).have.lengthOf(1);
         delete _values[0].date;
         should(_values[0]).eql({
+          _rowId             : 1,
           _id                : 1,
           _version           : [2],
           version            : 1,
-          data               : { _id : 1, id : 2, label : 'A', _version : [1] },
+          data               : { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1] },
           url                : '/store_insert_post',
           method             : 'POST',
           storeName          : 'store_insert_post',
@@ -242,14 +244,14 @@ describe('lunaris store', () => {
       var _store = initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
-      should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A', _version : [1] });
+      should(_store.data.get(1)).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
 
       lunaris.hook('updated@store1', () => {
         done();
       });
 
       lunaris.update('@store1', { _id : 1, id : 1, label : 'B'});
-      should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'B', _version : [2] });
+      should(_store.data.get(1)).eql({ _rowId : 2, _id : 1, id : 1, label : 'B', _version : [2] });
     });
 
     it('should update the value and execute the hooks : update and updated', done => {
@@ -257,7 +259,7 @@ describe('lunaris store', () => {
       var _isUpdateHook         = false;
       var _isUpdatedHook        = false;
       var _store                = initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'B', _version : [2] };
+      var _expectedValue        = { _rowId : 2, _id : 1, id : 1, label : 'B', _version : [2] };
       lunaris._stores['store1'] = _store;
       lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
@@ -275,10 +277,11 @@ describe('lunaris store', () => {
       lunaris.hook('updated@store1', (data, message) => {
         _isUpdatedHook = true;
         should(data).eql([Object.assign(_expectedValue, {
-          body     : { _id : 1, id : 1, label : 'B'},
+          body     : { _rowId : 2, _id : 1, id : 1, label : 'B'},
           query    : {},
           params   : { id : '1' },
-          _version : [3]
+          _version : [3],
+          _rowId   : 3
         })]);
 
         should(message).eql('${the} store1 has been successfully ${edited}');
@@ -340,6 +343,7 @@ describe('lunaris store', () => {
       lunaris.hook('insert@storeObject', () => {
         lunaris.update('@storeObject', { _id : 2, id : 1, label : 'string' });
         should(lunaris._stores['storeObject'].data.getAll()).eql({
+          _rowId   : 2,
           _id      : 1,
           id       : 1,
           label    : 'string',
@@ -365,10 +369,11 @@ describe('lunaris store', () => {
         should(_values).have.lengthOf(1);
         delete _values[0].date;
         should(_values[0]).eql({
+          _rowId             : 1,
           _id                : 1,
           _version           : [4],
           version            : 3,
-          data               : { _id : 1, id : 1, label : 'B', _version : [3] },
+          data               : { _rowId : 3, _id : 1, id : 1, label : 'B', _version : [3] },
           url                : '/store_insert_put/1',
           method             : 'PUT',
           storeName          : 'store_insert_put',
@@ -444,7 +449,7 @@ describe('lunaris store', () => {
       var _isInsertedHook       = false;
       var _isUpdatedHook        = false;
       var _store                = initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'A' };
+      var _expectedValue        = { _rowId : 1, _id : 1, id : 1, label : 'A' };
       lunaris._stores['optional'] = initStore('optional');
       lunaris._stores['optional'].isStoreObject = true;
       lunaris._stores['optional'].data.add({
@@ -489,7 +494,7 @@ describe('lunaris store', () => {
         should(data[0].params).eql({ id : '1', idSite : '2' });
         should(data[0].query).eql({ search : 'category:=A' });
         should(data[0].body).be.ok();
-        should(data[0].body).eql({ _id : 1, id : 1, label : 'A' });
+        should(data[0].body).eql({ _rowId : 3, _id : 1, id : 1, label : 'A' });
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -507,7 +512,7 @@ describe('lunaris store', () => {
       var _isInsertedHook       = false;
       var _isUpdatedHook        = false;
       var _store                = initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'A' };
+      var _expectedValue        = { _rowId : 1, _id : 1, id : 1, label : 'A' };
       lunaris._stores['optional'] = initStore('optional');
       lunaris._stores['optional'].data.add({
         site : 2
@@ -552,7 +557,7 @@ describe('lunaris store', () => {
         should(data[0].params).eql({ id : '1'});
         should(data[0].query).eql({});
         should(data[0].body).be.ok();
-        should(data[0].body).eql({ _id : 1, id : 1, label : 'A' });
+        should(data[0].body).eql({ _rowId : 3, _id : 1, id : 1, label : 'A' });
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -570,7 +575,7 @@ describe('lunaris store', () => {
       var _isInsertedHook                       = false;
       var _isUpdatedHook                        = false;
       var _store                                = initStore('store1', {});
-      var _expectedValue                        = { _id : 1, id : 1, label : 'A' };
+      var _expectedValue                        = { _rowId : 1, _id : 1, id : 1, label : 'A' };
       lunaris._stores['required']               = initStore('required');
       lunaris._stores['required'].isStoreObject = true;
       lunaris._stores['required'].data.add({
@@ -618,7 +623,7 @@ describe('lunaris store', () => {
         should(data.params).eql({ id : '1', idSite : '2'});
         should(data.query).eql({});
         should(data.body).be.ok();
-        should(data.body).eql({ _id : 1, id : 1, label : 'A'});
+        should(data.body).eql({ _rowId : 3, _id : 1, id : 1, label : 'A'});
 
         if (_isInsertedHook && _isUpdatedHook) {
           done();
@@ -644,8 +649,8 @@ describe('lunaris store', () => {
       ]);
 
       should(_store.data._getAll()).eql([
-        { _id : 1, id : 1, label : 'A', _version : [1] },
-        { _id : 2, id : 2, label : 'B', _version : [1] }
+        { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] },
+        { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [1] }
       ]);
 
       lunaris.hook('inserted@multiple', () => {
@@ -666,8 +671,8 @@ describe('lunaris store', () => {
         if (_isFirstInsertEvent) {
           should(updatedValue).be.an.Array();
           should(updatedValue).eql([
-            { _id : 1, id : null, label : 'A', _version : [1] },
-            { _id : 2, id : null, label : 'B', _version : [1] }
+            { _rowId : 1, _id : 1, id : null, label : 'A', _version : [1] },
+            { _rowId : 2, _id : 2, id : null, label : 'B', _version : [1] }
           ]);
 
           for (var i = 0; i < updatedValue.length; i++) {
@@ -685,8 +690,8 @@ describe('lunaris store', () => {
         _isUpdatedHook = true;
         should(data).be.an.Array();
         should(data).eql([
-          { _id : 1, id : 2, label : 'A', post : true, _version : [2] },
-          { _id : 2, id : 1, label : 'B', post : true, _version : [2] }
+          { _rowId : 3, _id : 1, id : 2, label : 'A', post : true, _version : [2] },
+          { _rowId : 4, _id : 2, id : 1, label : 'B', post : true, _version : [2] }
         ]);
 
         for (var i = 0; i < data.length; i++) {
@@ -735,10 +740,11 @@ describe('lunaris store', () => {
         should(_values).have.lengthOf(1);
         delete _values[0].date;
         should(_values[0]).eql({
+          _rowId             : 1,
           _id                : 1,
           _version           : [2],
           version            : 1,
-          data               : [{ _id : 1, id : 1, label : 'A', _version : [1] }, { _id : 2, id : 2, label : 'B', _version : [1] }],
+          data               : [{ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] }, { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [1] }],
           url                : '/store_insert_post',
           method             : 'POST',
           storeName          : 'store_insert_post',
@@ -774,8 +780,8 @@ describe('lunaris store', () => {
         { _id : 1, id : 1, label : 'A-1' },
         { _id : 2, id : 2, label : 'B-1' }
       ]);
-      should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A-1', _version : [2] });
-      should(_store.data.get(2)).eql({ _id : 2, id : 2, label : 'B-1', _version : [2] });
+      should(_store.data.get(1)).eql({ _rowId : 3, _id : 1, id : 1, label : 'A-1', _version : [2] });
+      should(_store.data.get(2)).eql({ _rowId : 4, _id : 2, id : 2, label : 'B-1', _version : [2] });
     });
 
     it('should update the value and execute the hooks : update and updated', done => {
@@ -802,8 +808,8 @@ describe('lunaris store', () => {
         if (_nbCalls === 1) {
           should(updatedValue).be.an.Array();
           should(updatedValue).eql([
-            { _id : 1, id : 1, label : 'A-1', _version : [3] },
-            { _id : 2, id : 2, label : 'B-1', _version : [3] }
+            { _rowId : 5, _id : 1, id : 1, label : 'A-1', _version : [3] },
+            { _rowId : 6, _id : 2, id : 2, label : 'B-1', _version : [3] }
           ]);
 
           for (var i = 0; i < updatedValue.length; i++) {
@@ -815,8 +821,8 @@ describe('lunaris store', () => {
         if (_nbCalls === 2) {
           should(updatedValue).be.an.Array();
           should(updatedValue).eql([
-            { _id : 1, id : 1, label : 'A-1', _version : [4], put : true },
-            { _id : 2, id : 2, label : 'B-1', _version : [4], put : true }
+            { _rowId : 7, _id : 1, id : 1, label : 'A-1', _version : [4], put : true },
+            { _rowId : 8, _id : 2, id : 2, label : 'B-1', _version : [4], put : true }
           ]);
 
           for (i = 0; i < updatedValue.length; i++) {
@@ -829,8 +835,8 @@ describe('lunaris store', () => {
       lunaris.hook('updated@multiple', (data, message) => {
         _isUpdatedHook = true;
         should(data).eql([
-          { _id : 1, id : 1, label : 'A-1', put : true, _version : [4] },
-          { _id : 2, id : 2, label : 'B-1', put : true, _version : [4] }
+          { _rowId : 7, _id : 1, id : 1, label : 'A-1', put : true, _version : [4] },
+          { _rowId : 8, _id : 2, id : 2, label : 'B-1', put : true, _version : [4] }
         ]);
 
         should(message).eql('${the} multiple has been successfully ${edited}');
@@ -916,10 +922,11 @@ describe('lunaris store', () => {
         should(_values).have.lengthOf(1);
         delete _values[0].date;
         should(_values[0]).eql({
+          _rowId             : 1,
           _id                : 1,
           _version           : [4],
           version            : 3,
-          data               : [{ _id : 1, id : 1, label : 'A', _version : [3] }, { _id : 2, id : 2, label : 'B', _version : [3] }],
+          data               : [{ _rowId : 5, _id : 1, id : 1, label : 'A', _version : [3] }, { _rowId : 6, _id : 2, id : 2, label : 'B', _version : [3] }],
           url                : '/store_insert_put',
           method             : 'PUT',
           storeName          : 'store_insert_put',
@@ -950,19 +957,19 @@ describe('lunaris store', () => {
 
         if (_nbCalled === 1) {
           should(items).eql([
-            { id : 1, _id : 1, _version : [2], post : true },
-            { id : 2, _id : 2, _version : [2], post : true },
-            { id : 3, _id : 3, _version : [2], post : true },
-            { id : 4, _id : 4, _version : [2], post : true }
+            { _rowId : 5, id : 1, _id : 1, _version : [2], post : true },
+            { _rowId : 6, id : 2, _id : 2, _version : [2], post : true },
+            { _rowId : 7, id : 3, _id : 3, _version : [2], post : true },
+            { _rowId : 8, id : 4, _id : 4, _version : [2], post : true }
           ]);
           return;
         }
         else if (_nbCalled === 2) {
           should(items).eql([
-            { id : 1, _id : 1, _version : [3], post : true, label : 'A' },
-            { id : 2, _id : 2, _version : [3], post : true, label : 'A' },
-            { id : 3, _id : 3, _version : [3], post : true, label : 'A' },
-            { id : 4, _id : 4, _version : [3], post : true, label : 'A' }
+            { _rowId : 9, id : 1, _id : 1, _version : [3], post : true, label : 'A' },
+            { _rowId : 10, id : 2, _id : 2, _version : [3], post : true, label : 'A' },
+            { _rowId : 11, id : 3, _id : 3, _version : [3], post : true, label : 'A' },
+            { _rowId : 12, id : 4, _id : 4, _version : [3], post : true, label : 'A' }
           ]);
           return;
         }
@@ -972,10 +979,10 @@ describe('lunaris store', () => {
 
       lunaris.hook('insert@mass', function (items) {
         should(items).eql([
-          { id : 1, _id : 1, _version : [1] },
-          { id : 2, _id : 2, _version : [1] },
-          { id : 3, _id : 3, _version : [1] },
-          { id : 4, _id : 4, _version : [1] }
+          { _rowId : 1, id : 1, _id : 1, _version : [1] },
+          { _rowId : 2, id : 2, _id : 2, _version : [1] },
+          { _rowId : 3, id : 3, _id : 3, _version : [1] },
+          { _rowId : 4, id : 4, _id : 4, _version : [1] }
         ]);
       });
 
@@ -999,6 +1006,7 @@ describe('lunaris store', () => {
           id       : 1,
           label    : 'A',
           post     : true,
+          _rowId   : 2,
           _id      : 1,
           _version : [3]
         }]);
@@ -1009,6 +1017,7 @@ describe('lunaris store', () => {
         should(items).eql([{
           id       : 1,
           label    : 'A',
+          _rowId   : 1,
           _id      : 1,
           _version : [2]
         }]);
@@ -1028,6 +1037,7 @@ describe('lunaris store', () => {
         should(items).eql([{
           id       : 1,
           post     : true,
+          _rowId   : 2,
           _id      : 1,
           _version : [2]
         }]);
@@ -1041,6 +1051,7 @@ describe('lunaris store', () => {
         if (_nbCalled === 1) {
           should(items).eql([{
             id       : 1,
+            _rowId   : 2,
             _id      : 1,
             _version : [2],
             post     : true
@@ -1050,6 +1061,7 @@ describe('lunaris store', () => {
         else if (_nbCalled === 2) {
           should(items).eql([{
             id       : 1,
+            _rowId   : 3,
             _id      : 1,
             _version : [3],
             post     : true,
@@ -1060,6 +1072,7 @@ describe('lunaris store', () => {
         else if (_nbCalled === 3) {
           should(items).eql([{
             id       : 1,
+            _rowId   : 4,
             _id      : 1,
             _version : [4],
             label    : 'A'
@@ -1069,6 +1082,7 @@ describe('lunaris store', () => {
         else if (_nbCalled === 4) {
           should(items).eql([{
             id       : 1,
+            _rowId   : 5,
             _id      : 1,
             _version : [5],
             label    : 'A',
@@ -1083,6 +1097,7 @@ describe('lunaris store', () => {
       lunaris.hook('insert@mass', items => {
         should(items).eql([{
           id       : 1,
+          _rowId   : 1,
           _id      : 1,
           _version : [1]
         }]);
@@ -1119,7 +1134,7 @@ describe('lunaris store', () => {
     });
 
     it('should delete the value', () => {
-      var _value = { _id : 1, id : 1, label : 'A', _version : [1] };
+      var _value = { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] };
 
       var _store = initStore('store1');
       lunaris._stores['store1'] = _store;
@@ -1156,10 +1171,11 @@ describe('lunaris store', () => {
         should(_values).have.lengthOf(1);
         delete _values[0].date;
         should(_values[0]).eql({
+          _rowId             : 1,
           _id                : 1,
           _version           : [3],
           version            : 2,
-          data               : { _id : 1, id : 1, _version : [1, 2]},
+          data               : { _rowId : 1, _id : 1, id : 1, _version : [1, 2]},
           url                : '/store_del/1',
           method             : 'DELETE',
           storeName          : 'store_del',
@@ -1177,7 +1193,7 @@ describe('lunaris store', () => {
       var _isDeleteHook                    = false;
       var _isDeletedHook                   = false;
       var _store                           = initStore('store1');
-      var _expectedValue                   = { _id : 1, id : 2, label : 'A', _version : [1] };
+      var _expectedValue                   = { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1] };
       lunaris._stores['store1']            = _store;
       lunaris._stores['store1'].primaryKey = 'id';
       lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
@@ -1185,7 +1201,7 @@ describe('lunaris store', () => {
       lunaris.hook('delete@store1', data => {
         _isDeleteHook = true;
         should(data).be.an.Array().and.have.lengthOf(1);
-        should(data).eql([{ _id : 1, id : 2, label : 'A', _version : [1, 2] }]);
+        should(data).eql([{ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] }]);
       });
 
       lunaris.hook('deleted@store1', (data, message) => {
@@ -1215,7 +1231,7 @@ describe('lunaris store', () => {
       var _isDeleteHook                    = false;
       var _isDeletedHook                   = false;
       var _store                           = initStore('store1');
-      var _expectedValue                   = { _id : 1, id : 2, label : 'A', _version : [1] };
+      var _expectedValue                   = { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1] };
       lunaris._stores['store1']            = _store;
       lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
@@ -1253,7 +1269,7 @@ describe('lunaris store', () => {
       var _isDeleteHook                    = false;
       var _isDeletedHook                   = false;
       var _store                           = initStore('store1');
-      var _expectedValue                   = { _id : 1, id : 2, label : 'A', _version : [1] };
+      var _expectedValue                   = { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1] };
       lunaris._stores['store1']            = _store;
       lunaris._stores['store1'].primaryKey = 'id';
       lunaris._stores['store1'].isLocal    = true;
@@ -1283,7 +1299,7 @@ describe('lunaris store', () => {
 
     it('should delete the value and execute the hook and return false if the value has not been deleted', () => {
       var _store                = initStore('store1');
-      var _expectedValue        = { _id : 1, id : 1, label : 'A', _version : [1] };
+      var _expectedValue        = { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] };
       lunaris._stores['store1'] = _store;
 
       lunaris.insert('@store1', { id : 1, label : 'A' });
@@ -1317,8 +1333,8 @@ describe('lunaris store', () => {
     it('should get the first value', () => {
       var _store          = initStore('store1');
       var _expectedValues = [
-        { _id : 1, id : 1, label : 'A', _version : [1] },
-        { _id : 2, id : 2, label : 'B', _version : [2] }
+        { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] },
+        { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] }
       ];
       lunaris._stores['store1'] = _store;
 
@@ -1339,7 +1355,7 @@ describe('lunaris store', () => {
       lunaris.insert('@store1', { id : 2, label : 'B' });
       var _val = lunaris.getOne('@store1', 2);
       should(_val).eql(
-        { _id : 2, id : 2, label : 'B', _version : [2] }
+        { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] }
       );
     });
 
@@ -1375,9 +1391,9 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@store1', items => {
         should(items).eql([
-          { _id : 1, id : 20, label : 'B', _version : [1] },
-          { _id : 2, id : 30, label : 'D', _version : [1] },
-          { _id : 3, id : 10, label : 'E', _version : [1] }
+          { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [1] },
+          { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [1] },
+          { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [1] }
         ]);
 
         done();
@@ -1400,8 +1416,8 @@ describe('lunaris store', () => {
       lunaris.hook('get@store1', items => {
         should(items).be.an.Array().and.have.lengthOf(2);
         should(items).eql([
-          { _id : 1, id : 1, _version : [1] },
-          { _id : 2, id : 2, _version : [2] }
+          { _rowId : 1, _id : 1, id : 1, _version : [1] },
+          { _rowId : 2, _id : 2, id : 2, _version : [2] }
         ]);
         done();
       });
@@ -1438,7 +1454,7 @@ describe('lunaris store', () => {
       lunaris.hook('get@store1', items => {
         should(items).be.an.Array().and.have.lengthOf(1);
         should(items).eql([
-          { _id : 2, id : 2, label : 'B', _version : [1] }
+          { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [1] }
         ]);
         done();
       });
@@ -1454,7 +1470,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@store1', items => {
         should(items).be.an.Object();
-        should(items).eql({_id : 1, id : 1, _version : [1]});
+        should(items).eql({ _rowId : 1, _id : 1, id : 1, _version : [1] });
         done();
       });
 
@@ -1520,6 +1536,7 @@ describe('lunaris store', () => {
         should(_values).have.lengthOf(1);
         delete _values[0].date;
         should(_values[0]).eql({
+          _rowId             : 1,
           _id                : 1,
           _version           : [1],
           version            : null,
@@ -1557,9 +1574,9 @@ describe('lunaris store', () => {
         _nbPages++;
         if (_nbPages === 1) {
           should(items).eql([
-            { _id : 1, id : 20, label : 'B', _version : [1] },
-            { _id : 2, id : 30, label : 'D', _version : [1] },
-            { _id : 3, id : 10, label : 'E', _version : [1] }
+            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [1] },
+            { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [1] },
+            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [1] }
           ]);
           for (var i = 0; i < items.length; i++) {
             should(Object.isFrozen(items[i])).eql(true);
@@ -1569,9 +1586,9 @@ describe('lunaris store', () => {
         }
         if (_nbPages === 2) {
           should(items).eql([
-            { _id : 4, id : 40, label : 'A', _version : [2] },
-            { _id : 5, id : 50, label : 'C', _version : [2] },
-            { _id : 6, id : 60, label : 'F', _version : [2] }
+            { _rowId : 4, _id : 4, id : 40, label : 'A', _version : [2] },
+            { _rowId : 5, _id : 5, id : 50, label : 'C', _version : [2] },
+            { _rowId : 6, _id : 6, id : 60, label : 'F', _version : [2] }
           ]);
           for (i = 0; i < items.length; i++) {
             should(Object.isFrozen(items[i])).eql(true);
@@ -1600,9 +1617,9 @@ describe('lunaris store', () => {
         _nbPages++;
         if (_nbPages === 1) {
           should(items).eql([
-            { _id : 1, id : 20, label : 'B', _version : [1] },
-            { _id : 2, id : 30, label : 'D', _version : [1] },
-            { _id : 3, id : 10, label : 'E', _version : [1] }
+            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [1] },
+            { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [1] },
+            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [1] }
           ]);
           for (var i = 0; i < items.length; i++) {
             should(Object.isFrozen(items[i])).eql(true);
@@ -1612,9 +1629,9 @@ describe('lunaris store', () => {
         }
 
         should(items).eql([
-          { _id : 1, id : 20, label : 'A', _version : [2] },
-          { _id : 2, id : 30, label : 'D', _version : [2] },
-          { _id : 3, id : 10, label : 'C', _version : [2] }
+          { _rowId : 4, _id : 1, id : 20, label : 'A', _version : [2] },
+          { _rowId : 5, _id : 2, id : 30, label : 'D', _version : [2] },
+          { _rowId : 6, _id : 3, id : 10, label : 'C', _version : [2] }
         ]);
         for (i = 0; i < items.length; i++) {
           should(Object.isFrozen(items[i])).eql(true);
@@ -1646,11 +1663,12 @@ describe('lunaris store', () => {
       }]);
 
       lunaris.hook('get@required', items => {
+        console.log(items);
         if (_isFirstCall) {
           should(items).eql([
-            { _id : 1, id : 1, _version : [2] },
-            { _id : 2, id : 2, _version : [2] },
-            { _id : 3, id : 3, _version : [2] }
+            { _rowId : 1, _id : 1, id : 1, _version : [2] },
+            { _rowId : 2, _id : 2, id : 2, _version : [2] },
+            { _rowId : 3, _id : 3, id : 3, _version : [2] }
           ]);
           _isFirstCall = false;
           lunaris.update('@required.param.site', {
@@ -1661,9 +1679,9 @@ describe('lunaris store', () => {
           return;
         }
         should(items).eql([
-          { _id : 4, id : 4, _version : [4] },
-          { _id : 5, id : 5, _version : [4] },
-          { _id : 6, id : 6, _version : [4] }
+          { _rowId : 4, _id : 4, id : 4, _version : [4] },
+          { _rowId : 5, _id : 5, id : 5, _version : [4] },
+          { _rowId : 6, _id : 6, id : 6, _version : [4] }
         ]);
 
         done();
@@ -1726,18 +1744,18 @@ describe('lunaris store', () => {
         _nbPages++;
         if (_nbPages === 1) {
           should(items).eql([
-            { _id : 1, id : 20, label : 'B', _version : [2] },
-            { _id : 2, id : 30, label : 'D', _version : [2] },
-            { _id : 3, id : 10, label : 'E', _version : [2] }
+            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+            { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
           ]);
           lunaris.get('@pagination2');
           return;
         }
         if (_nbPages === 2) {
           should(items).eql([
-            { _id : 4, id : 40, label : 'A', _version : [3] },
-            { _id : 5, id : 50, label : 'C', _version : [3] },
-            { _id : 6, id : 60, label : 'F', _version : [3] }
+            { _rowId : 4, _id : 4, id : 40, label : 'A', _version : [3] },
+            { _rowId : 5, _id : 5, id : 50, label : 'C', _version : [3] },
+            { _rowId : 6, _id : 6, id : 60, label : 'F', _version : [3] }
           ]);
           lunaris.update('@pagination2.param.site', {
             _id  : 1,
@@ -1748,9 +1766,9 @@ describe('lunaris store', () => {
         }
 
         should(items).eql([
-          { _id : 7, id : 70, label : 'G', _version : [5] },
-          { _id : 8, id : 80, label : 'H', _version : [5] },
-          { _id : 9, id : 90, label : 'I', _version : [5] }
+          { _rowId : 7, _id : 7, id : 70, label : 'G', _version : [5] },
+          { _rowId : 8, _id : 8, id : 80, label : 'H', _version : [5] },
+          { _rowId : 9, _id : 9, id : 90, label : 'I', _version : [5] }
         ]);
 
         done();
@@ -1778,7 +1796,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _id : 1, limit : '50', offset : '0', search : 'id:=1', _version : [2]}
+          { _rowId : 1, _id : 1, limit : '50', offset : '0', search : 'id:=1', _version : [2]}
         ]);
 
         done();
@@ -1884,7 +1902,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _id : 1, limit : '50', offset : '0', search : 'id:=1+category:=2', _version : [3]}
+          { _rowId : 1, _id : 1, limit : '50', offset : '0', search : 'id:=1+category:=2', _version : [3]}
         ]);
 
         done();
@@ -1913,7 +1931,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _id : 1, limit : '50', offset : '0', search : 'id:[1,2]', _version : [3]}
+          { _rowId : 1, _id : 1, limit : '50', offset : '0', search : 'id:[1,2]', _version : [3]}
         ]);
 
         done();
@@ -1936,7 +1954,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _id : 1, limit : '50', offset : '0', _version : [1]}
+          { _rowId : 1, _id : 1, limit : '50', offset : '0', _version : [1]}
         ]);
 
         done();
@@ -1956,6 +1974,7 @@ describe('lunaris store', () => {
         if (_currentId === 1) {
           should(item).be.an.Object();
           should(item).eql([{
+            _rowId   : 1,
             _id      : 1,
             id       : 1,
             _version : [1]
@@ -1966,6 +1985,7 @@ describe('lunaris store', () => {
         }
 
         should(item).eql([{
+          _rowId   : 2,
           _id      : 2,
           id       : 2,
           _version : [2]
@@ -2059,7 +2079,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@required', items => {
         should(items).eql([
-          { _id : 1, id : 1, label : 'A', _version : [2] }
+          { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] }
         ]);
         should(Object.isFrozen(items[0])).eql(true);
         should(_hasBeenCalled).eql(false);
@@ -2108,8 +2128,8 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _id : 1, id : 1, label : 'A', site : { id : 1 }, _version : [2] },
-          { _id : 3, id : 3, label : 'C', site : { id : 1 }, _version : [2] },
+          { _rowId : 1, _id : 1, id : 1, label : 'A', site : { id : 1 }, _version : [2] },
+          { _rowId : 3, _id : 3, id : 3, label : 'C', site : { id : 1 }, _version : [2] },
         ]);
         should(Object.isFrozen(items[0])).eql(true);
         should(Object.isFrozen(items[1])).eql(true);
@@ -2161,13 +2181,13 @@ describe('lunaris store', () => {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _id : 1, id : 1, label : 'A', site : { id : 2 }, _version : [2] },
-          { _id : 2, id : 2, label : 'B', site : { id : 2 }, _version : [2] },
+          { _rowId : 1, _id : 1, id : 1, label : 'A', site : { id : 2 }, _version : [2] },
+          { _rowId : 2, _id : 2, id : 2, label : 'B', site : { id : 2 }, _version : [2] },
         ]);
         should(Object.isFrozen(items[0])).eql(true);
         should(Object.isFrozen(items[1])).eql(true);
         should(_hasBeenCalled).eql(false);
-        should(lunaris._stores['optional'].cache._cache()).eql([
+        should(lunaris._stores['optional'].cache.cache()).eql([
           [
             { 0 : 2, limit : 2, offset : 2 },
             [4]
@@ -2279,6 +2299,7 @@ describe('lunaris store', () => {
       should(lunaris.getOne('@required', 1)).eql({
         id       : '_1',
         label    : 'A',
+        _rowId   : 1,
         _id      : 1,
         _version : [1]
       });
@@ -2296,6 +2317,7 @@ describe('lunaris store', () => {
       should(lunaris.getOne('@required', 1)).eql({
         id       : '_1',
         label    : 'A',
+        _rowId   : 1,
         _id      : 1,
         _version : [1]
       });
@@ -2310,6 +2332,7 @@ describe('lunaris store', () => {
       should(lunaris.getOne('@required', 1)).eql({
         id       : '_1',
         label    : 'A',
+        _rowId   : 1,
         _id      : 1,
         _version : [1]
       });
@@ -2324,6 +2347,7 @@ describe('lunaris store', () => {
       should(lunaris.getOne('@required', 1)).eql({
         id       : '_1',
         label    : 'A',
+        _rowId   : 1,
         _id      : 1,
         _version : [1]
       });
@@ -2355,7 +2379,7 @@ describe('lunaris store', () => {
       var _store = initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
-      should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A', _version : [1] });
+      should(_store.data.get(1)).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
       lunaris.clear('@store1');
       should(lunaris._stores['store1'].data._getAll()).be.an.Array().and.have.length(0);
       lunaris.get('@store1');
@@ -2372,7 +2396,7 @@ describe('lunaris store', () => {
       var _store        = initStore('store1');
       lunaris._stores['store1'] = _store;
       lunaris.insert('@store1', { id : 1, label : 'A' });
-      should(_store.data.get(1)).eql({ _id : 1, id : 1, label : 'A', _version : [1] });
+      should(_store.data.get(1)).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
 
       lunaris.hook('reset@store1', () => {
         _hasFiredHook = true;
@@ -2441,10 +2465,11 @@ describe('lunaris store', () => {
           should(_values).have.lengthOf(1);
           delete _values[0].date;
           should(_values[0]).eql({
+            _rowId             : 1,
             _id                : 1,
             _version           : [2],
             version            : 1,
-            data               : { _id : 1, id : 2, label : 'A', _version : [1] },
+            data               : { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1] },
             url                : '/store_insert_post',
             method             : 'POST',
             storeName          : 'store_insert_post',
@@ -2458,10 +2483,11 @@ describe('lunaris store', () => {
         should(_values).have.lengthOf(2);
         delete _values[1].date;
         should(_values[1]).eql({
+          _rowId             : 2,
           _id                : 2,
           _version           : [3],
           version            : 1,
-          data               : { _id : 1, id : 2, label : 'A', _version : [1] },
+          data               : { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1] },
           url                : '/store_insert_post',
           method             : 'POST',
           storeName          : 'store_insert_post',
@@ -2491,10 +2517,11 @@ describe('lunaris store', () => {
           should(_values).have.lengthOf(1);
           delete _values[0].date;
           should(_values[0]).eql({
+            _rowId             : 1,
             _id                : 1,
             _version           : [4],
             version            : 3,
-            data               : { _id : 1, id : 2, label : 'A', _version : [3] },
+            data               : { _rowId : 3, _id : 1, id : 2, label : 'A', _version : [3] },
             url                : '/store_insert_put/2',
             method             : 'PUT',
             storeName          : 'store_insert_put',
@@ -2507,10 +2534,11 @@ describe('lunaris store', () => {
         should(_values).have.lengthOf(2);
         delete _values[1].date;
         should(_values[1]).eql({
+          _rowId             : 2,
           _id                : 2,
           _version           : [5],
           version            : 3,
-          data               : { _id : 1, id : 2, label : 'A', _version : [3] },
+          data               : { _rowId : 3, _id : 1, id : 2, label : 'A', _version : [3] },
           url                : '/store_insert_put/2',
           method             : 'PUT',
           storeName          : 'store_insert_put',
@@ -2535,6 +2563,7 @@ describe('lunaris store', () => {
           should(_values).have.lengthOf(1);
           delete _values[0].date;
           should(_values[0]).eql({
+            _rowId             : 1,
             _id                : 1,
             _version           : [1],
             version            : null,
@@ -2552,6 +2581,7 @@ describe('lunaris store', () => {
         should(_values).have.lengthOf(2);
         delete _values[1].date;
         should(_values[1]).eql({
+          _rowId             : 2,
           _id                : 2,
           _version           : [2],
           version            : null,
@@ -2580,10 +2610,11 @@ describe('lunaris store', () => {
           should(_values).have.lengthOf(1);
           delete _values[0].date;
           should(_values[0]).eql({
+            _rowId             : 1,
             _id                : 1,
             _version           : [3],
             version            : 2,
-            data               : { _id : 1, id : 1, _version : [1, 2] },
+            data               : { _rowId : 1, _id : 1, id : 1, _version : [1, 2] },
             url                : '/store_del/1',
             method             : 'DELETE',
             storeName          : 'store_del',
@@ -2597,10 +2628,11 @@ describe('lunaris store', () => {
         should(_values).have.lengthOf(2);
         delete _values[1].date;
         should(_values[1]).eql({
+          _rowId             : 2,
           _id                : 2,
           _version           : [4],
           version            : 2,
-          data               : { _id : 1, id : 1, _version : [1, 2] },
+          data               : { _rowId : 1, _id : 1, id : 1, _version : [1, 2] },
           url                : '/store_del/1',
           method             : 'DELETE',
           storeName          : 'store_del',
@@ -2777,9 +2809,9 @@ describe('lunaris store', () => {
         _nbPages++;
         if (_nbPages === 1) {
           should(items).eql([
-            { _id : 1, id : 20, label : 'B', _version : [2] },
-            { _id : 2, id : 30, label : 'D', _version : [2] },
-            { _id : 3, id : 10, label : 'E', _version : [2] }
+            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+            { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
           ]);
           lunaris.setPagination('@pagination2', 1, 50);
           lunaris.get('@pagination2');
@@ -2787,9 +2819,9 @@ describe('lunaris store', () => {
         }
 
         should(items).eql([
-          { _id : 1, id : 20, label : 'B', _version : [2] },
-          { _id : 2, id : 30, label : 'D', _version : [2] },
-          { _id : 3, id : 10, label : 'E', _version : [2] }
+          { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+          { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+          { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
         ]);
 
         should(nbCallsPagination2).eql(1);
@@ -2823,9 +2855,9 @@ describe('lunaris store', () => {
         _nbPages++;
         if (_nbPages === 1) {
           should(items).eql([
-            { _id : 1, id : 20, label : 'B', _version : [2] },
-            { _id : 2, id : 30, label : 'D', _version : [2] },
-            { _id : 3, id : 10, label : 'E', _version : [2] }
+            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+            { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
           ]);
           lunaris.setPagination('@pagination2', 1, 50);
           lunaris.update('@pagination2', { _id : 3, id : 10, label : 'E-2'}, true);
@@ -2833,11 +2865,10 @@ describe('lunaris store', () => {
           return;
         }
 
-
         should(items).eql([
-          { _id : 4, id : 20, label : 'B', _version : [4] },
-          { _id : 5, id : 30, label : 'D', _version : [4] },
-          { _id : 6, id : 10, label : 'E', _version : [4] }
+          { _rowId : 5, _id : 4, id : 20, label : 'B', _version : [4] },
+          { _rowId : 6, _id : 5, id : 30, label : 'D', _version : [4] },
+          { _rowId : 7, _id : 6, id : 10, label : 'E', _version : [4] }
         ]);
 
         should(nbCallsPagination2).eql(2);
@@ -2871,9 +2902,9 @@ describe('lunaris store', () => {
         _nbPages++;
         if (_nbPages === 1) {
           should(items).eql([
-            { _id : 1, id : 20, label : 'B', _version : [2] },
-            { _id : 2, id : 30, label : 'D', _version : [2] },
-            { _id : 3, id : 10, label : 'E', _version : [2] }
+            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+            { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
           ]);
           lunaris.setPagination('@pagination2', 1, 50);
           lunaris.delete('@pagination2', { _id : 3, id : 10, label : 'E-2'}, null, true);
@@ -2883,8 +2914,8 @@ describe('lunaris store', () => {
 
 
         should(items).eql([
-          { _id : 1, id : 20, label : 'B', _version : [2] },
-          { _id : 2, id : 30, label : 'D', _version : [2] },
+          { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+          { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
         ]);
 
         should(nbCallsPagination2).eql(1);
@@ -3087,12 +3118,13 @@ describe('lunaris store', () => {
       lunaris.get('@store1');
       lunaris.hook('update@propagate', res => {
         should(res).eql({
+          _rowId       : 2,
           _id          : 1,
           id           : 1,
           store1Values : [
-            { _id : 1, id : 20, label : 'B', _version : [2] },
-            { _id : 2, id : 30, label : 'D', _version : [2] },
-            { _id : 3, id : 10, label : 'E', _version : [2] }
+            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+            { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
           ],
           _version : [3]
         });
@@ -3129,22 +3161,24 @@ describe('lunaris store', () => {
       lunaris.hook('update@propagate', res => {
         should(res).eql([
           {
+            _rowId       : 3,
             _id          : 1,
             id           : 1,
             store1Values : [
-              { _id : 1, id : 20, label : 'B', _version : [2] },
-              { _id : 2, id : 30, label : 'D', _version : [2] },
-              { _id : 3, id : 10, label : 'E', _version : [2] }
+              { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+              { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+              { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
             ],
             _version : [3]
           },
           {
+            _rowId       : 4,
             _id          : 2,
             id           : 2,
             store1Values : [
-              { _id : 1, id : 20, label : 'B', _version : [2] },
-              { _id : 2, id : 30, label : 'D', _version : [2] },
-              { _id : 3, id : 10, label : 'E', _version : [2] }
+              { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+              { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+              { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
             ],
             _version : [3]
           }
@@ -3188,11 +3222,13 @@ describe('lunaris store', () => {
         should(_hasBeenCalled).eql(false);
         should(_storeToPropagate.data.getAll()).eql([
           {
+            _rowId       : 1,
             _id          : 1,
             id           : 1,
             store1Values : [],
             _version     : [1]
           }, {
+            _rowId       : 2,
             _id          : 2,
             id           : 2,
             store1Values : [],
@@ -3236,22 +3272,24 @@ describe('lunaris store', () => {
         if (_nbCalled === 1) {
           should(res).eql([
             {
+              _rowId       : 3,
               _id          : 1,
               id           : 1,
               store1Values : [
-                { _id : 1, id : 20, label : 'B', _version : [2] },
-                { _id : 2, id : 30, label : 'D', _version : [2] },
-                { _id : 3, id : 10, label : 'E', _version : [2] }
+                { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+                { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+                { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
               ],
               _version : [3]
             },
             {
+              _rowId       : 4,
               _id          : 2,
               id           : 2,
               store1Values : [
-                { _id : 1, id : 20, label : 'B', _version : [2] },
-                { _id : 2, id : 30, label : 'D', _version : [2] },
-                { _id : 3, id : 10, label : 'E', _version : [2] }
+                { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+                { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+                { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
               ],
               _version : [3]
             }
@@ -3261,12 +3299,14 @@ describe('lunaris store', () => {
 
         should(res).eql([
           {
+            _rowId       : 5,
             _id          : 1,
             id           : 1,
             store1Values : [],
             _version     : [4]
           },
           {
+            _rowId       : 6,
             _id          : 2,
             id           : 2,
             store1Values : [],
@@ -3310,12 +3350,13 @@ describe('lunaris store', () => {
 
         if (_nbCalled === 1) {
           should(res).eql({
+            _rowId       : 2,
             _id          : 1,
             id           : 1,
             store1Values : [
-              { _id : 1, id : 20, label : 'B', _version : [2] },
-              { _id : 2, id : 30, label : 'D', _version : [2] },
-              { _id : 3, id : 10, label : 'E', _version : [2] }
+              { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+              { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+              { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
             ],
             _version : [3]
           });
@@ -3324,6 +3365,7 @@ describe('lunaris store', () => {
         }
 
         should(res).eql({
+          _rowId       : 3,
           _id          : 1,
           id           : 1,
           store1Values : [],
@@ -3365,22 +3407,24 @@ describe('lunaris store', () => {
         if (_nbCalled === 1) {
           should(res).eql([
             {
+              _rowId       : 3,
               _id          : 1,
               id           : 1,
               store1Values : [
-                { _id : 1, id : 20, label : 'B', _version : [2] },
-                { _id : 2, id : 30, label : 'D', _version : [2] },
-                { _id : 3, id : 10, label : 'E', _version : [2] }
+                { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+                { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+                { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
               ],
               _version : [3]
             },
             {
+              _rowId       : 4,
               _id          : 2,
               id           : 2,
               store1Values : [
-                { _id : 1, id : 20, label : 'B', _version : [2] },
-                { _id : 2, id : 30, label : 'D', _version : [2] },
-                { _id : 3, id : 10, label : 'E', _version : [2] }
+                { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+                { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+                { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
               ],
               _version : [3]
             }
@@ -3391,20 +3435,22 @@ describe('lunaris store', () => {
 
         should(res).eql([
           {
+            _rowId       : 5,
             _id          : 1,
             id           : 1,
             store1Values : [
-              { _id : 2, id : 30, label : 'D', _version : [2] },
-              { _id : 3, id : 10, label : 'E', _version : [2] }
+              { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+              { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
             ],
             _version : [5]
           },
           {
+            _rowId       : 6,
             _id          : 2,
             id           : 2,
             store1Values : [
-              { _id : 2, id : 30, label : 'D', _version : [2] },
-              { _id : 3, id : 10, label : 'E', _version : [2] }
+              { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+              { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
             ],
             _version : [5]
           }
@@ -3444,12 +3490,13 @@ describe('lunaris store', () => {
         _nbCalled++;
         if (_nbCalled === 1) {
           should(res).eql({
+            _rowId       : 2,
             _id          : 1,
             id           : 1,
             store1Values : [
-              { _id : 1, id : 20, label : 'B', _version : [2] },
-              { _id : 2, id : 30, label : 'D', _version : [2] },
-              { _id : 3, id : 10, label : 'E', _version : [2] }
+              { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+              { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+              { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
             ],
             _version : [3]
           });
@@ -3458,11 +3505,12 @@ describe('lunaris store', () => {
         }
 
         should(res).eql({
+          _rowId       : 3,
           _id          : 1,
           id           : 1,
           store1Values : [
-            { _id : 2, id : 30, label : 'D', _version : [2] },
-            { _id : 3, id : 10, label : 'E', _version : [2] }
+            { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
           ],
           _version : [5]
         });
@@ -3500,11 +3548,12 @@ describe('lunaris store', () => {
         _nbCalled++;
         if (_nbCalled === 1) {
           should(res).eql({
+            _rowId       : 2,
             _id          : 1,
             id           : 1,
             store1Values : [
-              { _id : 1, id : 1, label : 'A', _version : [2] },
-              { _id : 2, id : 2, label : 'B', _version : [2] },
+              { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+              { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
             ],
             _version : [3]
           });
@@ -3512,29 +3561,32 @@ describe('lunaris store', () => {
         }
 
         should(res).eql({
+          _rowId       : 3,
           _id          : 1,
           id           : 1,
           store1Values : [
             {
+              _rowId   : 3,
               _id      : 1,
               id       : 1,
               label    : 'A',
               _version : [4],
               body     : [
-                { _id : 1, id : 1, label : 'A', _version : [2] },
-                { _id : 2, id : 2, label : 'B', _version : [2] },
+                { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
               ],
               query  : {},
               params : {}
             },
             {
+              _rowId   : 4,
               _id      : 2,
               id       : 2,
               label    : 'B',
               _version : [4],
               body     : [
-                { _id : 1, id : 1, label : 'A', _version : [2] },
-                { _id : 2, id : 2, label : 'B', _version : [2] },
+                { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
               ],
               query  : {},
               params : {}
@@ -3579,19 +3631,21 @@ describe('lunaris store', () => {
         if (_nbCalled === 1) {
           should(res).eql([
             {
+              _rowId       : 3,
               _id          : 1,
               id           : 1,
               store1Values : [
-                { _id : 1, id : 1, label : 'A', _version : [2] },
-                { _id : 2, id : 2, label : 'B', _version : [2] },
+                { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
               ],
               _version : [3]
             }, {
+              _rowId       : 4,
               _id          : 2,
               id           : 2,
               store1Values : [
-                { _id : 1, id : 1, label : 'A', _version : [2] },
-                { _id : 2, id : 2, label : 'B', _version : [2] },
+                { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
               ],
               _version : [3]
             }
@@ -3601,29 +3655,32 @@ describe('lunaris store', () => {
 
         should(res).eql([
           {
+            _rowId       : 5,
             _id          : 1,
             id           : 1,
             store1Values : [
               {
+                _rowId   : 3,
                 _id      : 1,
                 id       : 1,
                 label    : 'A',
                 _version : [4],
                 body     : [
-                  { _id : 1, id : 1, label : 'A', _version : [2] },
-                  { _id : 2, id : 2, label : 'B', _version : [2] },
+                  { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                  { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
                 ],
                 query  : {},
                 params : {}
               },
               {
+                _rowId   : 4,
                 _id      : 2,
                 id       : 2,
                 label    : 'B',
                 _version : [4],
                 body     : [
-                  { _id : 1, id : 1, label : 'A', _version : [2] },
-                  { _id : 2, id : 2, label : 'B', _version : [2] },
+                  { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                  { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
                 ],
                 query  : {},
                 params : {}
@@ -3631,29 +3688,32 @@ describe('lunaris store', () => {
             ],
             _version : [5]
           }, {
+            _rowId       : 6,
             _id          : 2,
             id           : 2,
             store1Values : [
               {
+                _rowId   : 3,
                 _id      : 1,
                 id       : 1,
                 label    : 'A',
                 _version : [4],
                 body     : [
-                  { _id : 1, id : 1, label : 'A', _version : [2] },
-                  { _id : 2, id : 2, label : 'B', _version : [2] },
+                  { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                  { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
                 ],
                 query  : {},
                 params : {}
               },
               {
+                _rowId   : 4,
                 _id      : 2,
                 id       : 2,
                 label    : 'B',
                 _version : [4],
                 body     : [
-                  { _id : 1, id : 1, label : 'A', _version : [2] },
-                  { _id : 2, id : 2, label : 'B', _version : [2] },
+                  { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                  { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
                 ],
                 query  : {},
                 params : {}
@@ -3700,28 +3760,31 @@ describe('lunaris store', () => {
         }
         if (_nbCalled === 2) {
           should(res).eql({
+            _rowId       : 3,
             _id          : 1,
             id           : 1,
             store1Values : [
               {
+                _rowId   : 3,
                 _id      : 1,
                 id       : 1,
                 label    : 'A',
                 _version : [4],
                 body     : [
-                  { _id : 1, id : 1, label : 'A', _version : [2] },
-                  { _id : 2, id : 2, label : 'B', _version : [2] },
+                  { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                  { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
                 ],
                 params : {},
                 query  : {}
               }, {
+                _rowId   : 4,
                 _id      : 2,
                 id       : 2,
                 label    : 'B',
                 _version : [4],
                 body     : [
-                  { _id : 1, id : 1, label : 'A', _version : [2] },
-                  { _id : 2, id : 2, label : 'B', _version : [2] },
+                  { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                  { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
                 ],
                 params : {},
                 query  : {}
@@ -3735,21 +3798,24 @@ describe('lunaris store', () => {
 
         if (_nbCalled === 3) {
           should(res).eql({
+            _rowId       : 4,
             _id          : 1,
             id           : 1,
             store1Values : [
               {
+                _rowId   : 4,
                 _id      : 2,
                 id       : 2,
                 label    : 'B',
                 _version : [4],
                 body     : [
-                  { _id : 1, id : 1, label : 'A', _version : [2] },
-                  { _id : 2, id : 2, label : 'B', _version : [2] },
+                  { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] },
+                  { _rowId : 2, _id : 2, id : 2, label : 'B', _version : [2] },
                 ],
                 params : {},
                 query  : {}
               }, {
+                _rowId   : 5,
                 _id      : 1,
                 id       : 1,
                 label    : 'A-1',
@@ -3762,26 +3828,29 @@ describe('lunaris store', () => {
         }
 
         should(res).eql({
+          _rowId       : 5,
           _id          : 1,
           id           : 1,
           store1Values : [
             {
+              _rowId   : 4,
               _id      : 2,
               id       : 2,
               label    : 'B',
               _version : [4],
               body     : [
-                { _id : 1, id : 1, label : 'A', _version : [2] },
-                { _id : 2, id : 2, label : 'B', _version : [2] },
+                { _id : 1, id : 1, label : 'A', _version : [2] , _rowId : 1 },
+                { _id : 2, id : 2, label : 'B', _version : [2] , _rowId : 2 },
               ],
               params : {},
               query  : {}
             }, {
+              _rowId   : 6,
               _id      : 1,
               id       : 1,
               label    : 'A-1',
               _version : [8],
-              body     : { _id : 1, id : 1, label : 'A-1'},
+              body     : { _id : 1, id : 1, label : 'A-1', _rowId : 5 },
               params   : { id : '1' },
               query    : {}
             },
@@ -3825,22 +3894,26 @@ describe('lunaris store', () => {
       setTimeout(() => {
         should(_storeToPropagate.data.getAll()).eql([
           {
+            _rowId       : 9,
             _id          : 1,
             id           : 1,
             store1Values : [
               {
+                _rowId   : 4,
                 _id      : 1,
                 id       : 1,
                 label    : 'A',
                 _version : [6],
                 body     : [
                   {
+                    _rowId   : 1,
                     _id      : 1,
                     _version : [2],
                     id       : 1,
                     label    : 'A'
                   },
                   {
+                    _rowId   : 2,
                     _id      : 2,
                     _version : [2],
                     id       : 2,
@@ -3850,14 +3923,16 @@ describe('lunaris store', () => {
                 params : {},
                 query  : {}
               }, {
+                _rowId   : 6,
                 _id      : 2,
                 id       : 2,
                 label    : 'B-2',
                 _version : [8],
                 body     : {
-                  _id   : 2,
-                  id    : 2,
-                  label : 'B-2',
+                  _rowId : 3,
+                  _id    : 2,
+                  id     : 2,
+                  label  : 'B-2',
                 },
                 params : { id : '2' },
                 query  : {}
@@ -3866,21 +3941,25 @@ describe('lunaris store', () => {
             _version : [9]
           },
           {
+            _rowId       : 10,
             _id          : 2,
             id           : 2,
             store1Values : [
               {
+                _rowId   : 4,
                 _id      : 1,
                 _version : [6],
                 id       : 1,
                 label    : 'A',
                 body     : [
                   {
+                    _rowId   : 1,
                     id       : 1,
                     label    : 'A',
                     _id      : 1,
                     _version : [2]
                   }, {
+                    _rowId   : 2,
                     id       : 2,
                     label    : 'B',
                     _id      : 2,
@@ -3890,14 +3969,16 @@ describe('lunaris store', () => {
                 params : {},
                 query  : {}
               }, {
+                _rowId   : 6,
                 _id      : 2,
                 id       : 2,
                 label    : 'B-2',
                 _version : [8],
                 body     : {
-                  _id   : 2,
-                  id    : 2,
-                  label : 'B-2',
+                  _rowId : 3,
+                  _id    : 2,
+                  id     : 2,
+                  label  : 'B-2',
                 },
                 params : { id : '2' },
                 query  : {}
@@ -3945,10 +4026,12 @@ describe('lunaris store', () => {
       setTimeout(() => {
         should(_storeToPropagate.data.getAll()).eql([
           {
+            _rowId       : 1,
             _id          : 1,
             id           : 1,
             store1Values : [
               {
+                _rowId   : 1,
                 _id      : 1,
                 id       : 1,
                 label    : 'A-1',
@@ -3964,10 +4047,12 @@ describe('lunaris store', () => {
         setTimeout(() => {
           should(_storeToPropagate.data.getAll()).eql([
             {
+              _rowId       : 2,
               _id          : 1,
               id           : 1,
               store1Values : [
                 {
+                  _rowId   : 1,
                   _id      : 1,
                   id       : 1,
                   label    : 'A-1',
@@ -3975,7 +4060,7 @@ describe('lunaris store', () => {
                 },
               ],
               store2Values : [
-                { _id : 1, id : 1, label : 'A-2', _version : [4] }
+                { _rowId : 1, _id : 1, id : 1, label : 'A-2', _version : [4] }
               ],
               _version : [5]
             }
@@ -4051,9 +4136,11 @@ describe('lunaris store', () => {
         if (_nbCalled === 2) {
           should(res).eql([
             {
+              _rowId : 6,
               id     : 2,
               label  : 'A-1',
               parent : {
+                _rowId   : 5,
                 id       : 1,
                 label    : 'B',
                 _id      : 1,
@@ -4063,9 +4150,11 @@ describe('lunaris store', () => {
               _version : [6]
             },
             {
+              _rowId : 7,
               id     : 3,
               label  : 'A-2',
               parent : {
+                _rowId   : 5,
                 id       : 1,
                 label    : 'B',
                 _id      : 1,
@@ -4145,6 +4234,7 @@ describe('lunaris store', () => {
       lunaris.hook('update@store1', res => {
         should(res).eql([
           {
+            _rowId   : 5,
             id       : 2,
             label    : 'A-1',
             parent   : null,
@@ -4152,6 +4242,7 @@ describe('lunaris store', () => {
             _version : [6]
           },
           {
+            _rowId   : 6,
             id       : 3,
             label    : 'A-2',
             parent   : null,

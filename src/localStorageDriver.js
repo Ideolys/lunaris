@@ -1,4 +1,5 @@
-var logger = require('./logger.js');
+var logger         = require('./logger.js');
+var lunarisExports = require('./exports.js');
 
 var database;
 function _isDatabaseExists (dbname, callback) {
@@ -70,7 +71,7 @@ function initIndexedDB (versionNumber, stores, callback) {
         }
       }
 
-      if (!_db.objectStoreNames.contains('states')) {
+      if (!_db.objectStoreNames.contains('_states')) {
         _db.createObjectStore('_states', { keyPath : 'store' });
       }
     };
@@ -111,6 +112,21 @@ module.exports = {
     },
 
     /**
+     * Delete a value
+     * @param {String} key
+     * @param {*} value
+     */
+    del : function del (key, value) {
+      if (!database) {
+        return;
+      }
+
+      var _transaction = database.transaction([key], 'readwrite');
+      var _objectStore = _transaction.objectStore(key);
+      _objectStore.delete(value);
+    },
+
+    /**
      * Get all value
      * @param {String} key
      * @param {Function} callback
@@ -148,6 +164,9 @@ module.exports = {
 
   localStorage : {
     get : function get (key) {
+      if (!lunarisExports.isBrowser) {
+        return;
+      }
       var _val = localStorage.getItem(key);
       if (_val) {
         return JSON.parse(_val);
@@ -156,10 +175,16 @@ module.exports = {
     },
 
     set : function set (key, value) {
+      if (!lunarisExports.isBrowser) {
+        return;
+      }
       return localStorage.setItem(key, value ? JSON.stringify(value) : null);
     },
 
     clear : function clear (key) {
+      if (!lunarisExports.isBrowser) {
+        return;
+      }
       return localStorage.setItem(key, null);
     }
   }
