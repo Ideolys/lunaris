@@ -78,7 +78,7 @@ describe('directive v-lunaris', () => {
         }
       },
       created : function () {
-        lunaris.insert('@directive', { id : 1, label : 'Cat', children : [], type : { id : 1, label : 'A' } });
+        lunaris.insert('@directive', { _rowId : 1, id : 1, label : 'Cat', children : [], type : { id : 1, label : 'A' } });
       }
     }).$mount();
 
@@ -104,7 +104,7 @@ describe('directive v-lunaris', () => {
       `,
       stores  : ['directive'],
       created : function () {
-        lunaris.insert('@directive', { id : 1, label : 'Cat', children : [], type : { id : 1, label : 'A' } });
+        lunaris.insert('@directive', { _rowId : 1, id : 1, label : 'Cat', children : [], type : { id : 1, label : 'A' } });
       }
     }).$mount();
 
@@ -116,6 +116,7 @@ describe('directive v-lunaris', () => {
       label    : 'Cat',
       children : [],
       type     : { id : 1, label : 'A' },
+      _rowId   : 1,
       _id      : 1,
       _version : [1]
     });
@@ -125,6 +126,7 @@ describe('directive v-lunaris', () => {
       label    : 'Dog',
       children : [],
       type     : { id : 1, label : 'A' },
+      _rowId   : 2,
       _id      : 1,
       _version : [2]
     });
@@ -141,7 +143,7 @@ describe('directive v-lunaris', () => {
       `,
       stores  : ['directive'],
       created : function () {
-        lunaris.insert('@directive', { id : 1, label : 'Cat', children : [], type : { id : 1, label : 'A' } });
+        lunaris.insert('@directive', { _rowId : 1, id : 1, label : 'Cat', children : [], type : { id : 1, label : 'A' } });
       }
     }).$mount();
 
@@ -153,6 +155,7 @@ describe('directive v-lunaris', () => {
       label    : 'Cat',
       children : [],
       type     : { id : 1, label : 'A' },
+      _rowId   : 1,
       _id      : 1,
       _version : [1]
     });
@@ -162,6 +165,7 @@ describe('directive v-lunaris', () => {
       label    : 'Cat',
       children : [],
       type     : { id : 1, label : 'Castle' },
+      _rowId   : 2,
       _id      : 1,
       _version : [2]
     });
@@ -205,6 +209,7 @@ describe('directive v-lunaris', () => {
         { id : 3, label : 'A-2', type : { id : 1, label : 'B-1' }},
       ],
       type     : { id : 1, label : 'A' },
+      _rowId   : 1,
       _id      : 1,
       _version : [1]
     });
@@ -217,6 +222,7 @@ describe('directive v-lunaris', () => {
         { id : 3, label : 'A-2', type : { id : 1, label : 'B-2' }},
       ],
       type     : { id : 1, label : 'A' },
+      _rowId   : 2,
       _id      : 1,
       _version : [2]
     });
@@ -243,6 +249,7 @@ describe('directive v-lunaris', () => {
     should(lunaris.getOne('@directiveCheckbox', 1)).eql({
       id        : 1,
       isChecked : false,
+      _rowId    : 1,
       _id       : 1,
       _version  : [1]
     });
@@ -250,6 +257,7 @@ describe('directive v-lunaris', () => {
     should(lunaris.getOne('@directiveCheckbox', 1)).eql({
       id        : 1,
       isChecked : true,
+      _rowId    : 2,
       _id       : 1,
       _version  : [2]
     });
@@ -285,12 +293,14 @@ describe('directive v-lunaris', () => {
     should(lunaris.getOne('@directiveRadio', 1)).eql({
       id        : 1,
       isChecked : true,
+      _rowId    : 1,
       _id       : 1,
       _version  : [1]
     });
     should(lunaris.getOne('@directiveRadio', 2)).eql({
       id        : 2,
       isChecked : false,
+      _rowId    : 2,
       _id       : 2,
       _version  : [1]
     });
@@ -298,12 +308,14 @@ describe('directive v-lunaris', () => {
     should(lunaris.getOne('@directiveRadio', 1)).eql({
       id        : 1,
       isChecked : false,
+      _rowId    : 3,
       _id       : 1,
       _version  : [2]
     });
     should(lunaris.getOne('@directiveRadio', 2)).eql({
       id        : 2,
       isChecked : true,
+      _rowId    : 4,
       _id       : 2,
       _version  : [3]
     });

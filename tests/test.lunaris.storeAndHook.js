@@ -40,7 +40,7 @@ lunaris._stores.lunarisErrors.data = collection.collection();
 
 var nbCallsPagination2 = 0;
 
-describe.only('lunaris store', () => {
+describe('lunaris store', () => {
 
   before(done => {
     _startServer(done);
@@ -1608,7 +1608,7 @@ describe.only('lunaris store', () => {
     it('should get the values without duplicating values', done => {
       var _nbPages                  = 0;
       var _store                    = initStore('pagination_duplicate');
-      _store.data = collection.collection(null, (item) => {
+      _store.data = collection.collection((item) => {
         return item.id;
       });
       lunaris._stores['pagination_duplicate'] = _store;
@@ -1663,7 +1663,6 @@ describe.only('lunaris store', () => {
       }]);
 
       lunaris.hook('get@required', items => {
-        console.log(items);
         if (_isFirstCall) {
           should(items).eql([
             { _rowId : 1, _id : 1, id : 1, _version : [2] },

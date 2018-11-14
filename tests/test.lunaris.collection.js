@@ -36,7 +36,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should add one item to the collection', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey);
       _collection.add({ id : 1 });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
@@ -51,7 +51,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should add multiple items to the collection', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey);
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
       var _values = _collection._getAll();
@@ -68,7 +68,8 @@ describe('lunaris internal collection', () => {
     });
 
     it('should start the id generation from 6', () => {
-      var _collection = collection(6);
+      var _collection = collection();
+      _collection.setCurrentId(6);
       _collection.add({ id : 1 });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
@@ -81,7 +82,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should clear the collection', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey);
       _collection.add({ id : 1 });
       should(_collection._getAll()).be.an.Array().and.have.length(1);
 
@@ -102,7 +103,8 @@ describe('lunaris internal collection', () => {
     });
 
     it('should clear the collection and the id', () => {
-      var _collection = collection(6);
+      var _collection = collection();
+      _collection.setCurrentId(6);
       _collection.add({ id : 1 });
       should(_collection._getAll()).be.an.Array().and.have.length(1);
 
@@ -145,7 +147,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should not duplicate values if the same id has been already used', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey);
       _collection.add({ id : 2, label : 'A' });
       _collection.add({ id : 2, label : 'B' });
       var _values = _collection._getAll();
@@ -172,7 +174,7 @@ describe('lunaris internal collection', () => {
 
       var _schema = schema.analyzeDescriptor(_obj);
 
-      var _collection = collection(null, null, false, null, null, null, _schema.computedsFn);
+      var _collection = collection(null, false, null, null, null, _schema.computedsFn);
       _collection.add({ id : 2, label : 'a' });
       _collection.add({ id : 3, label : 'b' });
       var _values = _collection._getAll();
@@ -192,7 +194,7 @@ describe('lunaris internal collection', () => {
 
       var _schema = schema.analyzeDescriptor(_obj);
 
-      var _collection = collection(null, getPrimaryKey, false, null, null, null, _schema.computedsFn);
+      var _collection = collection(getPrimaryKey, false, null, null, null, _schema.computedsFn);
       _collection.add({ id : 2, label : 'a' });
       _collection.add({ id : 3, label : 'b' });
       var _values = _collection._getAll();
@@ -217,8 +219,8 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true }}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
-        var _elementsOverview = collection(null, getPrimaryKey, false, {
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
@@ -252,8 +254,8 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true }}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(null, getPrimaryKey, true , { joins : {}, joinFns : {}, collections : {}});
-        var _elementsOverview = collection(null, getPrimaryKey, false, {
+        var _elements         = collection(getPrimaryKey, true , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
@@ -276,7 +278,7 @@ describe('lunaris internal collection', () => {
       });
 
       it('propagate should be defined', () => {
-        var _elements         = collection(null, getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}});
         should(_elements.propagate).be.a.Function();
       });
 
@@ -288,8 +290,8 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
-        var _elementsOverview = collection(null, getPrimaryKey, false, {
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
@@ -339,8 +341,8 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
-        var _elementsOverview = collection(null, getPrimaryKey, false, {
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
@@ -394,8 +396,8 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
-        var _elementsOverview = collection(null, getPrimaryKey, false, {
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
@@ -444,8 +446,8 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
-        var _elementsOverview = collection(null, getPrimaryKey, false, {
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
@@ -497,8 +499,8 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
-        var _elementsOverview = collection(null, getPrimaryKey, false, {
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
@@ -546,8 +548,8 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
-        var _elementsOverview = collection(null, getPrimaryKey, false, {
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
@@ -595,7 +597,7 @@ describe('lunaris internal collection', () => {
           }]
         };
         var _schema   = schema.analyzeDescriptor(_objectDescriptor);
-        var _elements = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, _schema.aggregateFn);
+        var _elements = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, _schema.aggregateFn);
 
         _elements.add({
           id       : 1,
@@ -637,9 +639,8 @@ describe('lunaris internal collection', () => {
         };
         var _schema   = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns  = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-        var _elements         = collection(null, getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
         var _elementsOverview = collection(
-          null,
           getPrimaryKey,
           false,
           {
@@ -696,7 +697,7 @@ describe('lunaris internal collection', () => {
 
   describe('propagateReflexive', () => {
     it ('should be defined', () => {
-      var _elements         = collection(null, getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}});
+      var _elements         = collection(getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}});
       should(_elements.propagateReflexive).be.a.Function();
     });
 
@@ -744,7 +745,7 @@ describe('lunaris internal collection', () => {
         element : null
       };
 
-      var elements = collection(null, _schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
+      var elements = collection(_schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
       elements.add(_parentObj);
       elements.add(_childObj);
       elements.add(_childObj2);
@@ -828,7 +829,7 @@ describe('lunaris internal collection', () => {
         element : null
       };
 
-      var elements = collection(null, _schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
+      var elements = collection(_schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
       elements.add(_parentObj);
       elements.add(_childObj);
       elements.add(_childObj2);
@@ -910,7 +911,7 @@ describe('lunaris internal collection', () => {
         }
       };
 
-      var elements = collection(null, _schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
+      var elements = collection(_schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
       elements.add(_parentObj);
       elements.add(_childObj);
       elements.add(_childObj2);
@@ -1020,7 +1021,7 @@ describe('lunaris internal collection', () => {
         }
       };
 
-      var elements = collection(null, _schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
+      var elements = collection(_schema.getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, _schema.reflexiveFn);
       elements.add(_parentObj);
       elements.add(_childObj);
       elements.add(_childObj2);
@@ -1060,7 +1061,7 @@ describe('lunaris internal collection', () => {
 
   describe('remove()', () => {
     it('should remove the item', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey);
       _collection.add({ id : 1 });
 
       var _index = _collection.getIndexId();
@@ -1085,7 +1086,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should remove the item from multiple items', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey);
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
       _collection.remove(2);
@@ -1104,7 +1105,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should remove items within the same transaction', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey);
       var _version = _collection.begin();
       _collection.add({ id : 1 }, _version);
       _collection.add({ id : 2 }, _version);
@@ -1298,6 +1299,21 @@ describe('lunaris internal collection', () => {
     });
   });
 
+  describe('setCurrentId()', () => {
+    it('should be defined', () => {
+      should(collection().setCurrentId).be.ok();
+    });
+
+    it('should return the default id', () => {
+      var _collection = collection();
+      should(_collection.getCurrentId()).eql(1);
+      _collection.setCurrentId(5);
+      should(_collection.getCurrentId()).eql(5);
+      _collection.add({ id : 1 });
+      should(_collection.getAll()).eql([{ _rowId : 1, _id : 5, _version : [1], id : 1 }]);
+    });
+  });
+
   describe('setCurrentRowId()', () => {
     it('should be defined', () => {
       should(collection().setCurrentRowId).be.ok();
@@ -1397,7 +1413,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should begin and end the transactions and return and object', () => {
-      var _collection = collection(null, null, true);
+      var _collection = collection(null, true);
       _collection.add({ id : 1, test : 1 }, _version);
 
       var _version = _collection.begin();
@@ -1413,14 +1429,15 @@ describe('lunaris internal collection', () => {
     });
 
     it('should not duplicate values if the same id has been already used within a transaction', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey);
       var _version    = _collection.begin();
       _collection.add({ id : 2, label : 'A' }, _version);
       _collection.add({ id : 2, label : 'B' }, _version);
       _collection.commit(_version);
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
-      should(_values[0]).eql({ _rowId : 1, _id : 1, id : 2, label : 'B', _version : [1]});
+      // Must _rowId = 2
+      should(_values[0]).eql({ _rowId : 2, _id : 1, id : 2, label : 'B', _version : [1]});
 
       var _index = _collection.getIndexId();
       should(_index).have.lengthOf(2);
@@ -1431,7 +1448,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should not duplicate values if the same id has been already used in two different transactions', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey);
       var _version    = _collection.begin();
       _collection.add({ id : 2, label : 'A' }, _version);
       _collection.commit(_version);

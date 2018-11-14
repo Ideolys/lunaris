@@ -24,7 +24,6 @@ function incrementVersionNumber () {
 }
 
 /**
- * @param {Int} startId from where to start id generation, default 1
  * @param {Function} getPrimaryKeyFn function built at app build step for the store
  * @param {Boolean} isStoreObject
  * @param {Object} joinsDescriptor {
@@ -41,9 +40,9 @@ function incrementVersionNumber () {
  * @param {Function} computedsFn function to set computed properties
  * @param {String} storeName
  */
-function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, reflexiveFns, computedsFn, storeName) {
+function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, reflexiveFns, computedsFn, storeName) {
   var _data                     = [];
-  var _currentId                = startId && typeof startId === 'number' ? startId : 1;
+  var _currentId                = 1;
   var _currentRowId             = 1;
   var _transactions             = {};
   var _isTransactionCommit      = false;
@@ -113,7 +112,7 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       if (_aggregateFn) {
         _aggregateFn(value, aggregates, lunarisExports.constants, logger);
       }
-      value._id    = _currentId;
+      value._id = _currentId;
       _currentId++;
     }
     else {
@@ -139,7 +138,8 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
     var _search        = index.binarySearch(_arrayIdValues, _id);
     // We upsert the last version of the object
     if (_search.found) {
-      value._id = _indexes.id[1][_search.index];
+      value._id    = _indexes.id[1][_search.index];
+      value._rowId = _currentRowId;
       upsert(value, versionNumber, false, true);
       return;
     }
@@ -219,21 +219,24 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
       if (_data[i]._id === value._id && _lowerVersion <= _version && _version <= _upperVersion) {
         var _objToUpdate     = utils.clone(value);
         _data[i]._version[1] = _version;
-        localDatabase.upsert(_storeName, _data[i]);
 
         //  During the same transaction :
         //   - If insert / update : the updated row will be merged with the inserted one
         //   - If Insert / delete : the inserted row will be removed
         if (_lowerVersion === _version && _upperVersion === _version && _data[i]._version[1] >= 0) {
+          localDatabase.del(_storeName, _data[i]._rowId);
           utils.merge(_data[i], _objToUpdate);
           _data[i]._version.pop();
-          localDatabase.upsert(_storeName, _data[i]);
           if (isRemove) {
             localDatabase.del(_storeName, _data[i]._rowId);
             _data.splice(i, 1);
             return;
           }
+          localDatabase.add(_storeName, _data[i]);
           return _data[i];
+        }
+        else {
+          localDatabase.upsert(_storeName, _data[i]);
         }
 
         if (!isRemove) {
@@ -554,6 +557,14 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
      */
     getCurrentId : function () {
       return _currentId;
+    },
+
+    /**
+     * Set current row id
+     * @param {Int} value
+     */
+    setCurrentId : function setCurrentId (value) {
+      _currentId = value;
     },
 
     /**

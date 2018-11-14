@@ -27,6 +27,7 @@ describe('builder', () => {
         id               : 1,
         label            : 'abc',
         labelCapitalized : 'ABC',
+        _rowId           : 1,
         _id              : 1,
         _version         : [1]
       });
@@ -46,6 +47,7 @@ describe('builder', () => {
         id               : 1,
         label            : 'abc',
         labelCapitalized : 'ABC-1',
+        _rowId           : 1,
         _id              : 1,
         _version         : [1]
       });
@@ -99,6 +101,7 @@ describe('builder', () => {
           parent : {
             id : 1
           },
+          _rowId   : 1,
           _id      : 1,
           _version : [2]
         },
@@ -107,6 +110,7 @@ describe('builder', () => {
           parent : {
             id : 1
           },
+          _rowId   : 2,
           _id      : 2,
           _version : [3]
         }
@@ -128,6 +132,7 @@ describe('builder', () => {
       parent : {
         id : 1
       },
+      _rowId   : 1,
       _id      : 1,
       _version : [1]
     });
@@ -144,6 +149,7 @@ describe('builder', () => {
     it('should set value at insert', () => {
       lunaris.insert('@child' , { id : 1 });
       should(lunaris._stores.child.data.getAll()).eql([{
+        _rowId   : 1,
         _id      : 1,
         id       : 1,
         _version : [1],
@@ -154,10 +160,12 @@ describe('builder', () => {
     it('should propagate update', done => {
       lunaris.hook('update@child', item => {
         should(item).eql([{
+          _rowId   : 2,
           _id      : 1,
           id       : 1,
           _version : [3],
           parent   : [{
+            _rowId   : 1,
             _id      : 1,
             id       : 1,
             _version : [2]
@@ -173,6 +181,7 @@ describe('builder', () => {
     it('should propagate update and calculate aggregate', done => {
       lunaris.hook('update@childAggregate', item => {
         should(item).eql([{
+          _rowId       : 2,
           _id          : 1,
           _version     : [4],
           id           : 1,
@@ -182,12 +191,14 @@ describe('builder', () => {
           },
           parent   : [
             {
+              _rowId   : 1,
               _id      : 1,
               id       : 1,
               price    : 1,
               _version : [2]
             },
             {
+              _rowId   : 2,
               _id      : 2,
               id       : 2,
               price    : 3,
@@ -204,9 +215,9 @@ describe('builder', () => {
 
     it('should calculate aggregate value', () => {
       lunaris.insert('@childAggregateSum' , {
-        id       : 1,
-        total    : 4,
-        parent   : [
+        id     : 1,
+        total  : 4,
+        parent : [
           {
             id   : 1,
             cost : 1,
@@ -219,6 +230,7 @@ describe('builder', () => {
       });
 
       should(lunaris._stores.childAggregateSum.data.getAll()).eql([{
+        _rowId   : 1,
         _id      : 1,
         _version : [1],
         id       : 1,
@@ -283,11 +295,13 @@ describe('builder', () => {
               id     : 2,
               label  : 'A-1',
               parent : {
+                _rowId   : 5,
                 id       : 1,
                 label    : 'B',
                 _id      : 1,
                 _version : [5]
               },
+              _rowId   : 6,
               _id      : 2,
               _version : [6]
             },
@@ -295,11 +309,13 @@ describe('builder', () => {
               id     : 3,
               label  : 'A-2',
               parent : {
+                _rowId   : 5,
                 id       : 1,
                 label    : 'B',
                 _id      : 1,
                 _version : [5]
               },
+              _rowId   : 7,
               _id      : 3,
               _version : [6]
             }
@@ -355,6 +371,7 @@ describe('builder', () => {
             id       : 2,
             label    : 'A-1',
             parent   : null,
+            _rowId   : 5,
             _id      : 2,
             _version : [6]
           },
@@ -362,6 +379,7 @@ describe('builder', () => {
             id       : 3,
             label    : 'A-2',
             parent   : null,
+            _rowId   : 6,
             _id      : 3,
             _version : [6]
           }

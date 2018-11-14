@@ -16,7 +16,7 @@ var getRequestQueue    = {};
 
 lunarisExports._stores.lunarisErrors = {
   name                  : 'lunarisErrors',
-  data                  : collection.collection(),
+  data                  : collection.collection(null, null, null, null, null, null, 'lunarisErrors'),
   filters               : [],
   paginationLimit       : 50,
   paginationOffset      : 0,

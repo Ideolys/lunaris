@@ -592,12 +592,12 @@ describe('Store plugin', () => {
 
       lunaris.insert('@test', [{ id : 1 }]);
       should(lunaris.utils.clone(vm.$test)).eql([
-        { _id : 1, id : 1, _version : [1] }
+        { _rowId : 1, _id : 1, id : 1, _version : [1] }
       ]);
       vm.$rollback({
         storeName : 'test',
         data      : [
-          { _id : 1, id : 1, _version : [1] }
+          { _rowId : 1, _id : 1, id : 1, _version : [1] }
         ],
         method  : 'POST',
         version : 1
@@ -615,10 +615,10 @@ describe('Store plugin', () => {
       });
 
       lunaris.insert('@testObject', { id : 1 });
-      should(lunaris.utils.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [1] });
+      should(lunaris.utils.clone(vm.$testObject)).eql({ _rowId : 1, _id : 1, id : 1, _version : [1] });
       vm.$rollback({
         storeName : 'testObject',
-        data      : { _id : 1, id : 1, _version : [1] },
+        data      : { _rowId : 1, _id : 1, id : 1, _version : [1] },
         method    : 'POST',
         version   : 1
       });
@@ -636,14 +636,14 @@ describe('Store plugin', () => {
 
       lunaris.insert('@test', [{ id : 1 }, { id : 2 }]);
       should(lunaris.utils.clone(vm.$test)).eql([
-        { _id : 1, id : 1, _version : [1] },
-        { _id : 2, id : 2, _version : [1] }
+        { _rowId : 1, _id : 1, id : 1, _version : [1] },
+        { _rowId : 2, _id : 2, id : 2, _version : [1] }
       ]);
       vm.$rollback({
         storeName : 'test',
         data      : [
-          { _id : 1, id : 1, _version : [1] },
-          { _id : 2, id : 2, _version : [1] }
+          { _rowId : 1, _id : 1, id : 1, _version : [1] },
+          { _rowId : 2, _id : 2, id : 2, _version : [1] }
         ],
         method  : 'POST',
         version : 1
@@ -664,16 +664,16 @@ describe('Store plugin', () => {
       lunaris.update('@test', { _id : 1, id : 1, label : 'A' });
 
       should(lunaris.utils.clone(vm.$test)).eql([
-        { _id : 1, id : 1, label : 'A', _version : [2] }
+        { _rowId : 2, _id : 1, id : 1, label : 'A', _version : [2] }
       ]);
       vm.$rollback({
         storeName : 'test',
-        data      : { _id : 1, id : 1, label : 'A', _version : [2] },
+        data      : { _rowId : 2, _id : 1, id : 1, label : 'A', _version : [2] },
         method    : 'PUT',
         version   : 2
       });
       should(lunaris.utils.clone(vm.$test)).eql([
-        { _id : 1, id : 1, _version : [3] }
+        { _rowId : 3, _id : 1, id : 1, _version : [3] }
       ]);
       vm.$destroy();
       lunaris._stores.test.data.clear();
@@ -689,14 +689,14 @@ describe('Store plugin', () => {
       lunaris.insert('@testObject', { id : 1 });
       lunaris.update('@testObject', { _id : 1, id : 1, label : 'A' });
 
-      should(lunaris.utils.clone(vm.$testObject)).eql({ _id : 1, id : 1, label : 'A', _version : [2] });
+      should(lunaris.utils.clone(vm.$testObject)).eql({ _rowId : 2, _id : 1, id : 1, label : 'A', _version : [2] });
       vm.$rollback({
         storeName : 'testObject',
-        data      : { _id : 1, id : 1, label : 'A', _version : [2] },
+        data      : { _rowId : 2, _id : 1, id : 1, label : 'A', _version : [2] },
         method    : 'PUT',
         version   : 2
       });
-      should(lunaris.utils.clone(vm.$testObject)).eql({ id : 1, _id : 1, _version : [3] });
+      should(lunaris.utils.clone(vm.$testObject)).eql({ _rowId : 3, id : 1, _id : 1, _version : [3] });
       vm.$destroy();
       lunaris._stores.testObject.data.clear();
       lunaris._resetVersionNumber();
@@ -714,21 +714,21 @@ describe('Store plugin', () => {
         { _id : 2, id : 2, label : 'B' }
       ]);
       should(lunaris.utils.clone(vm.$test)).eql([
-        { _id : 1, id : 1, label : 'A', _version : [2] },
-        { _id : 2, id : 2, label : 'B', _version : [2] }
+        { _rowId : 3, _id : 1, id : 1, label : 'A', _version : [2] },
+        { _rowId : 4, _id : 2, id : 2, label : 'B', _version : [2] }
       ]);
       vm.$rollback({
         storeName : 'test',
         data      : [
-          { _id : 1, id : 1, label : 'A', _version : [2] },
-          { _id : 2, id : 2, label : 'B', _version : [2] }
+          { _rowId : 3, _id : 1, id : 1, label : 'A', _version : [2] },
+          { _rowId : 4, _id : 2, id : 2, label : 'B', _version : [2] }
         ],
         method  : 'PUT',
         version : 2
       });
       should(lunaris.utils.clone(vm.$test)).eql([
-        { _id : 1, id : 1, _version : [3] },
-        { _id : 2, id : 2, _version : [3] }
+        { _rowId : 6, _id : 1, id : 1, _version : [3] },
+        { _rowId : 5, _id : 2, id : 2, _version : [3] }
       ]);
       vm.$destroy();
       lunaris._stores.test.data.clear();
@@ -750,7 +750,7 @@ describe('Store plugin', () => {
         method    : 'DELETE',
         version   : 2
       });
-      should(lunaris.utils.clone(vm.$test)).eql([{ _id : 1, id : 1, _version : [3] }]);
+      should(lunaris.utils.clone(vm.$test)).eql([{ _rowId : 2, _id : 1, id : 1, _version : [3] }]);
       vm.$destroy();
       lunaris._stores.test.data.clear();
       lunaris._resetVersionNumber();
@@ -771,7 +771,7 @@ describe('Store plugin', () => {
         method    : 'DELETE',
         version   : 2
       });
-      should(lunaris.utils.clone(vm.$testObject)).eql({ _id : 1, id : 1, _version : [3] });
+      should(lunaris.utils.clone(vm.$testObject)).eql({ _rowId : 2, _id : 1, id : 1, _version : [3] });
       vm.$destroy();
       lunaris._stores.testObject.data.clear();
       lunaris._resetVersionNumber();
