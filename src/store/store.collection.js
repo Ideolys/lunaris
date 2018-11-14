@@ -596,6 +596,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
  */
 function resetVersionNumber () {
   currentVersionNumber = 1;
+  localStorage.set('lunaris:versionNumber', 1);
 }
 
 exports.collection         = collection;

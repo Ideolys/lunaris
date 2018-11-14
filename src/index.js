@@ -12,7 +12,7 @@ module.exports = {
   _stores             : lunarisExports._stores,
   _collection         : collection.collection,
   _resetVersionNumber : collection.resetVersionNumber,
-  _indexedDB          : localStorageDriver.indexedDB.init,
+  _indexedDB          : localStorageDriver.indexedDB,
 
   utils  : utils,
   logger : logger,

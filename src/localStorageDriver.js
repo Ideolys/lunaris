@@ -53,7 +53,7 @@ function initIndexedDB (versionNumber, stores, callback) {
     _request.onsuccess = function (e) {
       database = e.target.result;
       if (callback) {
-        callback(false);
+        callback(null, database);
       }
 
       database.onError = function (e) {
