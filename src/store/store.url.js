@@ -219,11 +219,6 @@ function createUrl (store, method, primaryKeyValue) {
 
   _request.request += _url;
 
-  if (store.urlSuffix) {
-    _request.request += '/' + store.urlSuffix;
-    logger.deprecated('store.urlSuffix is deprecated. It will be removed!');
-  }
-
   if (primaryKeyValue) {
     _request.request += '/' + primaryKeyValue;
   }
@@ -240,6 +235,12 @@ function createUrl (store, method, primaryKeyValue) {
   }
 
   _request.request += _filterValues.constructedRequiredOptions;
+
+  if (store.urlSuffix) {
+    _request.request += '/' + store.urlSuffix;
+    logger.deprecated('store.urlSuffix is deprecated. It will be removed!');
+  }
+
   var _options = [];
   var _keys    = Object.keys(_filterValues.optionalOptions);
   for (var i = 0; i < _keys.length; i++) {
