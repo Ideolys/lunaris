@@ -26,6 +26,7 @@
   "devDependencies": {
     "body-parser": "1.18.3",
     "compression": "1.7.3",
+    "cors": "^2.8.5",
     "eslint": "5.2.0",
     "eslint-plugin-json": "1.2.0",
     "express": "4.16.3",
@@ -38,7 +39,7 @@
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha ./tests/test*.js -w",
-    "test-client": "node tests/client/build && ./node_modules/.bin/karma start karma.conf.js"
+    "test-client": "node tests/client/server.js"
   },
   "repository": {
     "type": "git",

@@ -145,7 +145,8 @@ describe('lunaris index', () => {
 
   it('_indexedDB() should be defined', () => {
     should(index._indexedDB).be.ok();
-    should(index._indexedDB).be.a.Function();
+    should(index._indexedDB).be.an.Object();
+    should(index._indexedDB).eql(localStorageDriver.indexedDB);
   });
 
   it('localStorage should be defined', () => {

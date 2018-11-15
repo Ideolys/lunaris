@@ -211,7 +211,7 @@ function saveState (store, collection, cache) {
     massOperations : store.massOperations,
     pagination     : {
       limit       : store.paginationLimit,
-      offset      : store.pagginationOffset,
+      offset      : store.paginationOffset,
       currentPage : store.paginationCurrentPage
     },
     collection : {

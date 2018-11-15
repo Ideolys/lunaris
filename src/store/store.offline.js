@@ -11,14 +11,10 @@ var OPERATORS      = utils.OPERATORS;
  * @param {Array} data
  */
 function _preloadCache (store, cache, cacheFilter, data) {
-  var _len = data.length;
-  if (_len <= store.paginationLimit) {
-    return data;
-  }
-
+  var _len          =  data.length;
   var _dataToReturn = data.slice(0, store.paginationLimit);
   var _ids          = [];
-  for (var i = store.paginationLimit; i < _len; i++) {
+  for (var i = 0; i < _len; i++) {
     _ids.push(data[i]._id);
 
     if (i % store.paginationLimit || i + 1 === _len) {
@@ -113,7 +109,6 @@ function filter (store, collection, cache, filterValues) {
   if (store.isStoreObject) {
     _data = [_data];
   }
-
 
   var _requiredFilters = Object.keys(filterValues.requiredOptions);
   for (var i = 0; i < _requiredFilters.length; i++) {

@@ -127,6 +127,29 @@ module.exports = {
     },
 
     /**
+     * Get a value
+     * @param {String} key
+     * @param {*} value
+     * @param {Function} callback
+     */
+    get : function getAll (key, value, callback) {
+      if (!database) {
+        return;
+      }
+
+      var _transaction = database.transaction([key], 'readwrite');
+      var _objectStore = _transaction.objectStore(key);
+      var _request     = _objectStore.get(value);
+
+      _request.onsuccess = function onsuccess (e) {
+        callback(null, e.target.result);
+      };
+      _request.onerror = function onerror (e) {
+        callback(e);
+      };
+    },
+
+    /**
      * Get all value
      * @param {String} key
      * @param {Function} callback

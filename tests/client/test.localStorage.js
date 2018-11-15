@@ -12,6 +12,9 @@ describe.only('local storage', () => {
   beforeEach(() => {
     lunaris._resetVersionNumber();
     lunaris._indexedDB.clear('test');
+    lunaris._indexedDB.clear('http');
+    lunaris.clear('@http');
+    lunaris.clear('@http.filter');
   });
 
   describe('localStorage API', () => {
@@ -27,7 +30,7 @@ describe.only('local storage', () => {
     });
   });
 
-  describe('state', () => {
+  describe.only('state', () => {
     it('should update currentVersion state', () => {
       var _collection = lunaris._collection(null, null, null, null, null, null, 'test');
       should(lunaris.localStorage.get('lunaris:versionNumber')).eql(1);
@@ -42,6 +45,132 @@ describe.only('local storage', () => {
       should(lunaris.localStorage.get('lunaris:versionNumber')).eql(2);
       lunaris._resetVersionNumber();
       should(lunaris.localStorage.get('lunaris:versionNumber')).eql(1);
+    });
+
+    it('should have set store _states', done => {
+      lunaris._indexedDB.getAll('_states', (err, data) => {
+        if (err) {
+          done(err);
+        }
+
+        should(data).be.an.Array();
+        // var _storesLunaris   = Object.keys(lunaris._stores);
+        // var _storesIndexedDB = [];
+        // for (var i = 0; i < data.length; i++) {
+        //   _storesIndexedDB.push(data[i].store);
+        // }
+        // for (i = 0; i < _storesLunaris.length; i++) {
+        //   if (_storesLunaris[i] !== 'lunarisErrors') {
+        //     should(_storesIndexedDB.indexOf(_storesLunaris[i])).not.eql(-1);
+        //   }
+        // }
+        done();
+      });
+    });
+
+    it('should update the state : get', done => {
+      lunaris.hook('get@http', () => {
+        setTimeout(() => {
+          lunaris._indexedDB.get('_states', 'http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).be.an.Object();
+            should(data).eql({
+              store : 'http',
+              cache : [
+                [{ limit : 50, offset : 0 }, [1, 2, 3]]
+              ],
+              collection : {
+                currentId     : 4,
+                currrentRowId : 4,
+                index         : [['1', '2', '3'], [1, 2, 3]]
+              },
+              massOperations : {},
+              pagination     : { limit : 50, offset : 50, currentPage : 2 }
+            });
+            done();
+          });
+        }, 20);
+      });
+
+      lunaris.hook('errorHttp@http', err => {
+        done(err);
+      });
+
+      lunaris.get('@http');
+    });
+
+    it.only('should update the state : get offline', done => {
+      var _nbCalled = 0;
+      lunaris.hook('reset@http', () => {
+        lunaris.get('@http');
+      });
+      lunaris.hook('get@http', () => {
+        _nbCalled += 1;
+
+        if (_nbCalled === 1) {
+          return setTimeout(() => {
+            lunaris._indexedDB.get('_states', 'http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).be.an.Object();
+              should(data).eql({
+                store : 'http',
+                cache : [
+                  [{ limit : 50, offset : 0 }, [1, 2, 3]]
+                ],
+                collection : {
+                  currentId     : 4,
+                  currrentRowId : 4,
+                  index         : [['1', '2', '3'], [1, 2, 3]]
+                },
+                massOperations : {},
+                pagination     : { limit : 50, offset : 50, currentPage : 2 }
+              });
+
+              lunaris.offline.isOnline = false;
+              lunaris.insert('@http.filter', { label : 'B' });
+            });
+          }, 20);
+        }
+
+        setTimeout(() => {
+          lunaris._indexedDB.get('_states', 'http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+            console.log(data);
+
+            should(data).be.an.Object();
+            should(data).eql({
+              store : 'http',
+              cache : [
+                [{ limit : 50, offset : 0 }, [1, 2, 3]],
+                [{ limit : 50, offset : 0, 0 : 'B' }, [2]]
+              ],
+              collection : {
+                currentId     : 4,
+                currrentRowId : 4,
+                index         : [['1', '2', '3'], [1, 2, 3]]
+              },
+              massOperations : {},
+              pagination     : { limit : 50, offset : 50, currentPage : 2 }
+            });
+            lunaris.offline.isOnline = true;
+            done();
+          });
+        }, 40);
+      });
+
+      lunaris.hook('errorHttp@http', err => {
+        done(err);
+      });
+
+      lunaris.get('@http');
     });
   });
 

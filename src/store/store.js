@@ -223,7 +223,6 @@ function _upsertCollection (store, collection, cache, value, version, isMultiple
 
   value = collection.commit(version);
 
-
   cache.invalidate(_ids, true);
   afterAction(store, isUpdate ? 'update' : 'insert', value);
   _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT);
@@ -437,6 +436,9 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       }
 
       if (!offline.isOnline || _options.store.isLocal) {
+        if (!_ids) {
+          _options.cache.add(_cacheFilters, []);
+        }
         afterAction(_options.store, 'get', storeOffline.filter(
           _options.store,
           _options.collection,
@@ -446,10 +448,10 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         if (_options.store.isFilter) {
           hook.pushToHandlers(_options.store, 'filterUpdated');
         }
+        storeUtils.saveState(_options.store, _options.collection, _options.cache);
         return callback(store);
       }
 
-      storeUtils.saveState(_options.store, _options.collection, _options.cache);
       _request = _request.request;
     }
     else {
