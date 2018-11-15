@@ -219,6 +219,11 @@ function createUrl (store, method, primaryKeyValue) {
 
   _request.request += _url;
 
+  if (store.urlSuffix) {
+    _request.request += '/' + store.urlSuffix;
+    logger.deprecated('store.urlSuffix is deprecated. It will be removed!');
+  }
+
   if (primaryKeyValue) {
     _request.request += '/' + primaryKeyValue;
   }
