@@ -211,6 +211,38 @@ describe.only('local storage', () => {
       lunaris.hook('get@http', _hook);
       lunaris.get('@http');
     });
+
+    it('should update the state : setPagination', done => {
+      lunaris.setPagination('@http', 2);
+      setTimeout(() => {
+        lunaris._indexedDB.get('_states', 'http', (err, data) => {
+          if (err) {
+            done(err);
+          }
+
+          should(data).eql({
+            store      : 'http',
+            cache      : [],
+            collection : {
+              currentId     : 1,
+              currrentRowId : 1,
+              index         : [[], []]
+            },
+            massOperations : {},
+            pagination     : { limit : 50, offset : 100, currentPage : 2 }
+          });
+
+          lunaris._indexedDB.getAll('http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).eql([]);
+            done();
+          });
+        });
+      }, 40);
+    });
   });
 
   describe('collection data', () => {
