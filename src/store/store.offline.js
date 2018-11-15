@@ -11,10 +11,20 @@ var OPERATORS      = utils.OPERATORS;
  * @param {Array} data
  */
 function _preloadCache (store, cache, cacheFilter, data) {
-  var _len          =  data.length;
+  var _len = data.length;
+  var _ids = [];
+  for (var j = 0; j < _len && j < store.paginationLimit; j++) {
+    _ids.push(data[j]._id);
+  }
+  cache.add(utils.clone(cacheFilter), _ids);
+
+  if (_len <= store.paginationLimit) {
+    return data;
+  }
+
   var _dataToReturn = data.slice(0, store.paginationLimit);
-  var _ids          = [];
-  for (var i = 0; i < _len; i++) {
+  _ids              = [];
+  for (var i = store.paginationLimit; i < _len; i++) {
     _ids.push(data[i]._id);
 
     if (i % store.paginationLimit || i + 1 === _len) {

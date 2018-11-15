@@ -2188,6 +2188,10 @@ describe('lunaris store', () => {
         should(_hasBeenCalled).eql(false);
         should(lunaris._stores['optional'].cache.cache()).eql([
           [
+            { 0 : 2, limit : 2, offset : 0 },
+            [1, 2]
+          ],
+          [
             { 0 : 2, limit : 2, offset : 2 },
             [4]
           ]

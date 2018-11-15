@@ -59,7 +59,7 @@ describe('offline filters', () => {
       id : 2
     });
 
-    var _res = storeOffline.filter(_store, _store.data, _cache, { requiredOptions : {}, optionalOptions : {} });
+    var _res = storeOffline.filter(_store, _store.data, _cache, { requiredOptions : {}, optionalOptions : {}, cache : { limit : 2, offset : 0 } });
     should(_res).eql([
       {
         id       : 1,
@@ -146,7 +146,8 @@ describe('offline filters', () => {
       requiredOptions : {
         0 : ['label', 'B', 'ILIKE']
       },
-      optionalOptions : {}
+      optionalOptions : {},
+      cache           : { limit : 2, offset : 0 }
     };
 
     var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
@@ -227,7 +228,8 @@ describe('offline filters', () => {
         0 : ['label'      , 'B', 'ILIKE'],
         1 : ['category.id', 3  , 'ILIKE']
       },
-      optionalOptions : {}
+      optionalOptions : {},
+      cache           : { limit : 2, offset : 0 }
     };
 
     var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
@@ -288,7 +290,8 @@ describe('offline filters', () => {
       requiredOptions : {},
       optionalOptions : {
         0 : ['label', 'pomme', 'ILIKE']
-      }
+      },
+      cache : { limit : 2, offset : 0 }
     };
 
     var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
@@ -316,7 +319,7 @@ describe('offline filters', () => {
       {
         id       : 5,
         label    : 'pomme chaude',
-        _rowId   :5,
+        _rowId   : 5,
         _id      : 5,
         _version : [5]
       }
@@ -355,7 +358,8 @@ describe('offline filters', () => {
       requiredOptions : {},
       optionalOptions : {
         0 : ['label', 'tu es une patate chaude', 'ILIKE']
-      }
+      },
+      cache : { limit : 2, offset : 0 }
     };
 
     var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
@@ -409,7 +413,8 @@ describe('offline filters', () => {
       requiredOptions : {},
       optionalOptions : {
         0 : ['label', 'purée', 'ILIKE']
-      }
+      },
+      cache : { limit : 2, offset : 0 }
     };
 
     var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
@@ -463,7 +468,8 @@ describe('offline filters', () => {
       requiredOptions : {},
       optionalOptions : {
         0 : ['label', 'pattate', 'ILIKE']
-      }
+      },
+      cache : { limit : 2, offset : 0 }
     };
 
     var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
@@ -545,7 +551,8 @@ describe('offline filters', () => {
       },
       optionalOptions : {
         1 : ['category.id', '4', 'ILIKE']
-      }
+      },
+      cache : { limit : 2, offset : 0 }
     };
 
     var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
@@ -606,7 +613,8 @@ describe('offline filters', () => {
       requiredOptions : {},
       optionalOptions : {
         0 : ['label', ['B', 'C'], 'ILIKE']
-      }
+      },
+      cache : { limit : 4, offset : 0 }
     };
 
     var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
@@ -711,8 +719,15 @@ describe('offline filters', () => {
         _version : [4]
       }
     ]);
-
     should(_cache.cache()).eql([
+      [
+        {
+          0      : ['B', 'C'],
+          limit  : 2,
+          offset : 0
+        },
+        [3, 4]
+      ],
       [
         {
           0      : ['B', 'C'],
@@ -798,6 +813,14 @@ describe('offline filters', () => {
         {
           0      : ['B', 'C'],
           limit  : 2,
+          offset : 0
+        },
+        [3, 4]
+      ],
+      [
+        {
+          0      : ['B', 'C'],
+          limit  : 2,
           offset : 2
         },
         [5]
@@ -852,7 +875,7 @@ describe('offline filters', () => {
         0 : ['label', ['B', 'C'], 'ILIKE']
       },
       cache : {
-        limit  : 2,
+        limit  : 4,
         offset : 0,
         0      : ['B', 'C']
       }
@@ -889,6 +912,15 @@ describe('offline filters', () => {
       }
     ]);
 
-    should(_cache.cache()).eql([]);
+    should(_cache.cache()).eql([
+      [
+        {
+          0      : ['B', 'C'],
+          limit  : 4,
+          offset : 0
+        },
+        [3, 4, 5, 6]
+      ]
+    ]);
   });
 });

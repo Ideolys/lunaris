@@ -436,9 +436,6 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       }
 
       if (!offline.isOnline || _options.store.isLocal) {
-        if (!_ids) {
-          _options.cache.add(_cacheFilters, []);
-        }
         afterAction(_options.store, 'get', storeOffline.filter(
           _options.store,
           _options.collection,
