@@ -9,12 +9,12 @@ describe.only('local storage', () => {
     });
   });
 
-  beforeEach(() => {
+  beforeEach(done => {
     lunaris._resetVersionNumber();
-    lunaris._indexedDB.clear('test');
-    lunaris._indexedDB.clear('http');
+    lunaris.clear('@test');
     lunaris.clear('@http');
     lunaris.clear('@http.filter');
+    setTimeout(done, 50);
   });
 
   describe('localStorage API', () => {
@@ -69,7 +69,7 @@ describe.only('local storage', () => {
     });
 
     it('should update the state : get', done => {
-      lunaris.hook('get@http', () => {
+      var _hook = () => {
         setTimeout(() => {
           lunaris._indexedDB.get('_states', 'http', (err, data) => {
             if (err) {
@@ -90,25 +90,24 @@ describe.only('local storage', () => {
               massOperations : {},
               pagination     : { limit : 50, offset : 50, currentPage : 2 }
             });
+
+            lunaris.removeHook('get@http', _hook);
             done();
           });
         }, 20);
-      });
-
-      lunaris.hook('errorHttp@http', err => {
-        done(err);
-      });
-
+      };
+      lunaris.hook('get@http', _hook);
       lunaris.get('@http');
     });
 
-    it.only('should update the state : get offline', done => {
-      var _nbCalled = 0;
-      lunaris.hook('reset@http', () => {
+    it('should update the state : get offline', done => {
+      var _nbCalled  = 0;
+      var _resetHook = () => {
         lunaris.get('@http');
-      });
-      lunaris.hook('get@http', () => {
+      };
+      var _getHook = () => {
         _nbCalled += 1;
+
 
         if (_nbCalled === 1) {
           return setTimeout(() => {
@@ -143,13 +142,12 @@ describe.only('local storage', () => {
             if (err) {
               done(err);
             }
-            console.log(data);
 
             should(data).be.an.Object();
             should(data).eql({
               store : 'http',
               cache : [
-                [{ limit : 50, offset : 0 }, [1, 2, 3]],
+                [{ limit : 50, offset : 0 }         , [1, 2, 3]],
                 [{ limit : 50, offset : 0, 0 : 'B' }, [2]]
               ],
               collection : {
@@ -160,16 +158,57 @@ describe.only('local storage', () => {
               massOperations : {},
               pagination     : { limit : 50, offset : 50, currentPage : 2 }
             });
+
             lunaris.offline.isOnline = true;
+            lunaris.removeHook('get@http', _getHook);
+            lunaris.removeHook('reset@http', _resetHook);
+
             done();
           });
+        }, 100);
+      };
+
+      lunaris.hook('reset@http', _resetHook);
+      lunaris.hook('get@http', _getHook);
+
+      lunaris.get('@http');
+    });
+
+    it('should update the state : clear', done => {
+      var _hook = () => {
+        lunaris.clear('@http');
+        setTimeout(() => {
+          lunaris._indexedDB.get('_states', 'http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).eql({
+              store      : 'http',
+              cache      : [],
+              collection : {
+                currentId     : 1,
+                currrentRowId : 1,
+                index         : [[], []]
+              },
+              massOperations : {},
+              pagination     : { limit : 50, offset : 0, currentPage : 1 }
+            });
+
+            lunaris._indexedDB.getAll('http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).eql([]);
+
+              lunaris.removeHook('get@http', _hook);
+              done();
+            });
+          });
         }, 40);
-      });
-
-      lunaris.hook('errorHttp@http', err => {
-        done(err);
-      });
-
+      };
+      lunaris.hook('get@http', _hook);
       lunaris.get('@http');
     });
   });

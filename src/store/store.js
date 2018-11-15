@@ -10,6 +10,7 @@ var template           = require('./store.template.js');
 var collection         = require('./store.collection.js');
 var offline            = require('../offline.js');
 var storeOffline       = require('./store.offline.js');
+var indexedDB          = require('../localStorageDriver.js').indexedDB;
 var OPERATIONS         = utils.OPERATIONS;
 var emptyObject        = {};
 var getRequestQueue    = {};
@@ -684,6 +685,7 @@ function clear (store, isSilent) {
     _options.store.paginationCurrentPage = 1;
     _options.store.paginationOffset      = 0;
     _options.cache.clear();
+    indexedDB.clear(_options.store.name);
     if (!isSilent) {
       hook.pushToHandlers(_options.store, 'reset');
     }
