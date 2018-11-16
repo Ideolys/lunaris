@@ -35,6 +35,32 @@ app.get('/http', (req, res) => {
     ]
   });
 });
+app.post('/http', (req, res) => {
+  req.body.post = true;
+  res.json({
+    success : true,
+    error   : null,
+    message : null,
+    data    : req.body
+  });
+});
+app.put('/http/:id', (req, res) => {
+  req.body.put = true;
+  res.json({
+    success : true,
+    error   : null,
+    message : null,
+    data    : req.body
+  });
+});
+app.patch('/http', (req, res) => {
+  res.json({
+    success : true,
+    error   : null,
+    message : null,
+    data    : null
+  });
+});
 app.listen(serverPort, () => {
   console.log('-- Server started on port ' + serverPort);
 

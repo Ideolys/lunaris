@@ -75,6 +75,10 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
       _id = _id.slice(0, _id.length - 1);
     }
 
+    if (!isNaN(Number(_id))) {
+      return Number(_id);
+    }
+
     return _id;
   }
 

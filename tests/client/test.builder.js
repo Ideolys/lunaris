@@ -12,6 +12,7 @@ describe('builder', () => {
   });
 
   it('should have defined constants', () => {
+    delete lunaris.constants.indexedDBNumber;
     should(lunaris.constants).eql({
       CONSTANT1 : '1',
       ARRAY     : [1, 2, 3],

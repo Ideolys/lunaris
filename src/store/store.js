@@ -255,11 +255,12 @@ function _upsertCollection (store, collection, cache, value, version, isMultiple
  * @param {Boolean} isPatch
  * @param {Object} store
  * @param {Object} collection
+ * @param {Object} cache
  * @param {*} value
  * @param {Boolean} isMultipleItems
  * @param {Int} version
  */
-function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version) {
+function _upsertHTTP (method, request, isUpdate, store, collection, cache, value, isMultipleItems, version) {
   http.request(method, request, value, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, method, false);
@@ -385,7 +386,7 @@ function _upsert (store, collection, cache, pathParts, value, isLocal, isUpdate,
     return;
   }
 
-  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version);
+  _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version);
 }
 
 /**
@@ -555,7 +556,7 @@ function upsert (store, value, isLocal, retryOptions) {
       _isUpdate = false;
     }
 
-    if (_options.store.validateFn && !_options.pathParts) {
+    if (_options.store.validateFn && !_storeParts.length) {
       return validate(store, _options.value, _isUpdate, function (res) {
         if (!res) {
           return;
@@ -565,7 +566,7 @@ function upsert (store, value, isLocal, retryOptions) {
       }, _eventName);
     }
 
-    _upsert(_options.store, _options.collection, _options.cache,_storeParts, _options.value, isLocal, _isUpdate, retryOptions);
+    _upsert(_options.store, _options.collection, _options.cache, _storeParts, _options.value, isLocal, _isUpdate, retryOptions);
   }
   catch (e) {
     logger.warn([_eventName], e);
@@ -626,7 +627,6 @@ function deleteStore (store, value, retryOptions, isLocal) {
         return;
       }
       _request = _request.request;
-      storeUtils.saveState(_options.store, _options.collection, _options.cache);
     }
     else {
       _request = retryOptions.url;

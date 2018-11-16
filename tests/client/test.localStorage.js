@@ -1,4 +1,4 @@
-describe.only('local storage', () => {
+describe('local storage', () => {
   before(done => {
     lunaris._indexedDB.init(lunaris.constants.indexedDBNumber, [], (err) => {
       if (err) {
@@ -30,7 +30,7 @@ describe.only('local storage', () => {
     });
   });
 
-  describe.only('state', () => {
+  describe('state', () => {
     it('should update currentVersion state', () => {
       var _collection = lunaris._collection(null, null, null, null, null, null, 'test');
       should(lunaris.localStorage.get('lunaris:versionNumber')).eql(1);
@@ -85,7 +85,7 @@ describe.only('local storage', () => {
               collection : {
                 currentId     : 4,
                 currrentRowId : 4,
-                index         : [['1', '2', '3'], [1, 2, 3]]
+                index         : [[1, 2, 3], [1, 2, 3]]
               },
               massOperations : {},
               pagination     : { limit : 50, offset : 50, currentPage : 2 }
@@ -125,7 +125,7 @@ describe.only('local storage', () => {
                 collection : {
                   currentId     : 4,
                   currrentRowId : 4,
-                  index         : [['1', '2', '3'], [1, 2, 3]]
+                  index         : [[1, 2, 3], [1, 2, 3]]
                 },
                 massOperations : {},
                 pagination     : { limit : 50, offset : 50, currentPage : 2 }
@@ -153,7 +153,7 @@ describe.only('local storage', () => {
               collection : {
                 currentId     : 4,
                 currrentRowId : 4,
-                index         : [['1', '2', '3'], [1, 2, 3]]
+                index         : [[1, 2, 3], [1, 2, 3]]
               },
               massOperations : {},
               pagination     : { limit : 50, offset : 50, currentPage : 2 }
@@ -242,6 +242,422 @@ describe.only('local storage', () => {
           });
         });
       }, 40);
+    });
+
+    it('should update the state : delete', done => {
+      var _hook = () => {
+        lunaris.delete('@http', { _id : 1 });
+        setTimeout(() => {
+          lunaris._indexedDB.get('_states', 'http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).eql({
+              store : 'http',
+              cache : [
+                [{ limit : 50, offset : 0 }, [2, 3]]
+              ],
+              collection : {
+                currentId     : 4,
+                currrentRowId : 4,
+                index         : [[2, 3], [2, 3]]
+              },
+              massOperations : {},
+              pagination     : { limit : 50, offset : 50, currentPage : 2 }
+            });
+
+            lunaris.removeHook('get@http', _hook);
+            done();
+          });
+        }, 50);
+      };
+      lunaris.hook('get@http', _hook);
+      lunaris.get('@http');
+    });
+
+    it('should update the state : insert', done => {
+      var _insertHook = () => {
+        setTimeout(() => {
+          lunaris._indexedDB.get('_states', 'http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).be.an.Object();
+            should(data).eql({
+              store      : 'http',
+              cache      : [],
+              collection : {
+                currentId     : 2,
+                currrentRowId : 2,
+                index         : [[1], [1]]
+              },
+              massOperations : {},
+              pagination     : { limit : 50, offset : 0, currentPage : 1 }
+            });
+
+
+            lunaris._indexedDB.getAll('http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).be.an.Array().and.have.lengthOf(1);
+              should(data[0]).eql({
+                id       : 1,
+                label    : 'A',
+                _rowId   : 1,
+                _id      : 1,
+                _version : [1]
+              });
+            });
+          });
+        }, 20);
+      };
+      var _insertedHook = () => {
+        lunaris._indexedDB.getAll('http', (err, data) => {
+          if (err) {
+            done(err);
+          }
+
+          should(data).be.an.Array().and.have.lengthOf(2);
+          should(data[0]).eql({
+            id       : 1,
+            label    : 'A',
+            _rowId   : 1,
+            _id      : 1,
+            _version : [1, 2]
+          });
+          should(data[1]).eql({
+            id       : 1,
+            label    : 'A',
+            post     : true,
+            _rowId   : 2,
+            _id      : 1,
+            _version : [2]
+          });
+
+          setTimeout(() => {
+            lunaris._indexedDB.get('_states', 'http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).be.an.Object();
+              should(data).eql({
+                store      : 'http',
+                cache      : [],
+                collection : {
+                  currentId     : 2,
+                  currrentRowId : 3,
+                  index         : [[1], [1]]
+                },
+                massOperations : {},
+                pagination     : { limit : 50, offset : 0, currentPage : 1 }
+              });
+
+              lunaris.removeHook('insert@http'  , _insertHook);
+              lunaris.removeHook('inserted@http', _insertedHook);
+              done();
+            });
+          }, 60);
+        });
+      };
+      lunaris.hook('insert@http', _insertHook);
+      lunaris.hook('inserted@http', _insertedHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
+    it('should update the state : insert', done => {
+      var _insertHook = () => {
+        setTimeout(() => {
+          lunaris._indexedDB.get('_states', 'http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).be.an.Object();
+            should(data).eql({
+              store      : 'http',
+              cache      : [],
+              collection : {
+                currentId     : 2,
+                currrentRowId : 2,
+                index         : [[1], [1]]
+              },
+              massOperations : {},
+              pagination     : { limit : 50, offset : 0, currentPage : 1 }
+            });
+
+
+            lunaris._indexedDB.getAll('http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).be.an.Array().and.have.lengthOf(1);
+              should(data[0]).eql({
+                id       : 1,
+                label    : 'A',
+                _rowId   : 1,
+                _id      : 1,
+                _version : [1]
+              });
+            });
+          });
+        }, 20);
+      };
+      var _insertedHook = () => {
+        lunaris._indexedDB.getAll('http', (err, data) => {
+          if (err) {
+            done(err);
+          }
+
+          should(data).be.an.Array().and.have.lengthOf(2);
+          should(data[0]).eql({
+            id       : 1,
+            label    : 'A',
+            _rowId   : 1,
+            _id      : 1,
+            _version : [1, 2]
+          });
+          should(data[1]).eql({
+            id       : 1,
+            label    : 'A',
+            post     : true,
+            _rowId   : 2,
+            _id      : 1,
+            _version : [2]
+          });
+
+          setTimeout(() => {
+            lunaris._indexedDB.get('_states', 'http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).be.an.Object();
+              should(data).eql({
+                store      : 'http',
+                cache      : [],
+                collection : {
+                  currentId     : 2,
+                  currrentRowId : 3,
+                  index         : [[1], [1]]
+                },
+                massOperations : {},
+                pagination     : { limit : 50, offset : 0, currentPage : 1 }
+              });
+
+              lunaris.removeHook('insert@http'  , _insertHook);
+              lunaris.removeHook('inserted@http', _insertedHook);
+              done();
+            });
+          }, 60);
+        });
+      };
+      lunaris.hook('insert@http', _insertHook);
+      lunaris.hook('inserted@http', _insertedHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
+    it('should update the state : update', done => {
+      var _insertedHook = () => {
+        setTimeout(() => {
+          lunaris.update('@http', { _id : 1, id : 1, label : 'B' });
+        }, 100);
+      };
+      var _nbCalls    = 0;
+      var _updateHook = () => {
+        _nbCalls++;
+
+        if (_nbCalls > 1) {
+          return;
+        }
+
+        setTimeout(() => {
+          lunaris._indexedDB.get('_states', 'http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).be.an.Object();
+            should(data).eql({
+              store      : 'http',
+              cache      : [],
+              collection : {
+                currentId     : 2,
+                currrentRowId : 3,
+                index         : [[1], [1]]
+              },
+              massOperations : {},
+              pagination     : { limit : 50, offset : 0, currentPage : 1 }
+            });
+
+            setTimeout(() => {
+              lunaris._indexedDB.get('_states', 'http', (err, data) => {
+                if (err) {
+                  done(err);
+                }
+
+                should(data).be.an.Object();
+                should(data).eql({
+                  store      : 'http',
+                  cache      : [],
+                  collection : {
+                    currentId     : 2,
+                    currrentRowId : 4,
+                    index         : [[1], [1]]
+                  },
+                  massOperations : {},
+                  pagination     : { limit : 50, offset : 0, currentPage : 1 }
+                });
+
+                lunaris._indexedDB.getAll('http', (err, data) => {
+                  if (err) {
+                    done(err);
+                  }
+
+                  should(data).be.an.Array().and.have.lengthOf(3);
+                  should(data[0]).eql({
+                    id       : 1,
+                    label    : 'A',
+                    _rowId   : 1,
+                    _id      : 1,
+                    _version : [1, 2]
+                  });
+                  should(data[1]).eql({
+                    id       : 1,
+                    label    : 'A',
+                    post     : true,
+                    _rowId   : 2,
+                    _id      : 1,
+                    _version : [2, 3]
+                  });
+                  should(data[2]).eql({
+                    id       : 1,
+                    label    : 'B',
+                    _rowId   : 3,
+                    _id      : 1,
+                    _version : [3]
+                  });
+                });
+              });
+            }, 40);
+          });
+        }, 60);
+      };
+      var _updatedHook = () => {
+        lunaris._indexedDB.getAll('http', (err, data) => {
+          if (err) {
+            done(err);
+          }
+
+          should(data).be.an.Array().and.have.lengthOf(4);
+          should(data[3]).eql({
+            id       : 1,
+            label    : 'B',
+            put      : true,
+            _rowId   : 4,
+            _id      : 1,
+            _version : [4]
+          });
+
+          setTimeout(() => {
+            lunaris._indexedDB.get('_states', 'http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).be.an.Object();
+              should(data).eql({
+                store      : 'http',
+                cache      : [],
+                collection : {
+                  currentId     : 2,
+                  currrentRowId : 5,
+                  index         : [[1], [1]]
+                },
+                massOperations : {},
+                pagination     : { limit : 50, offset : 0, currentPage : 1 }
+              });
+
+              lunaris.removeHook('inserted@http', _insertedHook);
+              lunaris.removeHook('update@http'  , _updateHook);
+              lunaris.removeHook('updated@http' , _updatedHook);
+              done();
+            });
+          }, 60);
+        });
+      };
+      lunaris.hook('inserted@http', _insertedHook);
+      lunaris.hook('update@http', _updateHook);
+      lunaris.hook('updated@http', _updatedHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
+    it('should update the state : mass update', done => {
+      var _patchedHook = () => {
+        setTimeout(() => {
+          lunaris._indexedDB.get('_states', 'http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).be.an.Object();
+            should(data).eql({
+              store      : 'http',
+              cache      : [],
+              collection : {
+                currentId     : 1,
+                currrentRowId : 1,
+                index         : [[], []]
+              },
+              massOperations : {
+                label : 'B'
+              },
+              pagination : { limit : 50, offset : 0, currentPage : 1 }
+            });
+
+            setTimeout(() => {
+              lunaris._indexedDB.get('_states', 'http', (err, data) => {
+                if (err) {
+                  done(err);
+                }
+
+                should(data).be.an.Object();
+                should(data).eql({
+                  store      : 'http',
+                  cache      : [],
+                  collection : {
+                    currentId     : 1,
+                    currrentRowId : 1,
+                    index         : [[], []]
+                  },
+                  massOperations : {
+                    label : 'B'
+                  },
+                  pagination : { limit : 50, offset : 0, currentPage : 1 }
+                });
+
+                lunaris._indexedDB.getAll('http', (err, data) => {
+                  if (err) {
+                    done(err);
+                  }
+
+                  should(data).be.an.Array().and.have.lengthOf(0);
+                  lunaris.removeHook('patched@http', _patchedHook);
+                  done();
+                });
+              });
+            }, 40);
+          });
+        }, 80);
+      };
+
+      lunaris.hook('patched@http', _patchedHook);
+      lunaris.update('@http:label', 'B');
     });
   });
 
