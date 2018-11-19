@@ -1,7 +1,7 @@
 # Lunaris
 
-## 1.7.0
-*2018-XX-XX*
+## 1.6.1
+*2018-11-19*
 - Features :
 - Fix :
   - Fix vue plugin store when setting store object value.
