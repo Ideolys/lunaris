@@ -5,10 +5,11 @@
     "node"    : false,
     "mocha"   : true
   },
-  "globals" : {
-    "should"  : true,
-    "lunaris" : true,
-    "Vue"     : true,
-    "module"  : true
+  "globals"   : {
+    "should"          : true,
+    "lunaris"         : true,
+    "Vue"             : true,
+    "module"          : true,
+    "lunarisInstance" : true
   }
 }

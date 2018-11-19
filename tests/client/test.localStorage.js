@@ -11,20 +11,23 @@ describe('local storage', () => {
 
   beforeEach(done => {
     lunaris._resetVersionNumber();
-    lunaris.clear('@test');
-    lunaris.clear('@http');
-    lunaris.clear('@http.filter');
-    setTimeout(done, 50);
+    lunaris._indexedDB.clear('_states', () => {
+      lunaris.clear('@test');
+      lunaris.clear('@http');
+      lunaris.clear('@http.filter');
+      setTimeout(done, 100);
+    });
   });
 
   describe('localStorage API', () => {
     it('should set a value', () => {
-      lunaris.localStorage.set('test', 1);
-      should(lunaris.localStorage.get('test')).eql(1);
+      lunaris.localStorage.set('test', 2);
+      should(lunaris.localStorage.get('test')).eql(2);
     });
 
     it('should clear a value', () => {
       lunaris.localStorage.set('test', 1);
+      should(lunaris.localStorage.get('test')).eql(1);
       lunaris.localStorage.clear('test');
       should(lunaris.localStorage.get('test')).eql(null);
     });
@@ -77,19 +80,19 @@ describe('local storage', () => {
             }
 
             should(data).be.an.Object();
-            should(data).eql({
-              store : 'http',
+            should(JSON.stringify(data)).eql(JSON.stringify({
+              store          : 'http',
+              massOperations : {},
+              pagination     : { limit : 50, offset : 50, currentPage : 2 },
+              collection     : {
+                currentId    : 4,
+                currentRowId : 4,
+                index        : [[1, 2, 3], [1, 2, 3]]
+              },
               cache : [
                 [{ limit : 50, offset : 0 }, [1, 2, 3]]
               ],
-              collection : {
-                currentId     : 4,
-                currrentRowId : 4,
-                index         : [[1, 2, 3], [1, 2, 3]]
-              },
-              massOperations : {},
-              pagination     : { limit : 50, offset : 50, currentPage : 2 }
-            });
+            }));
 
             lunaris.removeHook('get@http', _hook);
             done();
@@ -123,9 +126,9 @@ describe('local storage', () => {
                   [{ limit : 50, offset : 0 }, [1, 2, 3]]
                 ],
                 collection : {
-                  currentId     : 4,
-                  currrentRowId : 4,
-                  index         : [[1, 2, 3], [1, 2, 3]]
+                  currentId    : 4,
+                  currentRowId : 4,
+                  index        : [[1, 2, 3], [1, 2, 3]]
                 },
                 massOperations : {},
                 pagination     : { limit : 50, offset : 50, currentPage : 2 }
@@ -151,9 +154,9 @@ describe('local storage', () => {
                 [{ limit : 50, offset : 0, 0 : 'B' }, [2]]
               ],
               collection : {
-                currentId     : 4,
-                currrentRowId : 4,
-                index         : [[1, 2, 3], [1, 2, 3]]
+                currentId    : 4,
+                currentRowId : 4,
+                index        : [[1, 2, 3], [1, 2, 3]]
               },
               massOperations : {},
               pagination     : { limit : 50, offset : 50, currentPage : 2 }
@@ -187,9 +190,9 @@ describe('local storage', () => {
               store      : 'http',
               cache      : [],
               collection : {
-                currentId     : 1,
-                currrentRowId : 1,
-                index         : [[], []]
+                currentId    : 1,
+                currentRowId : 1,
+                index        : [[], []]
               },
               massOperations : {},
               pagination     : { limit : 50, offset : 0, currentPage : 1 }
@@ -224,9 +227,9 @@ describe('local storage', () => {
             store      : 'http',
             cache      : [],
             collection : {
-              currentId     : 1,
-              currrentRowId : 1,
-              index         : [[], []]
+              currentId    : 1,
+              currentRowId : 1,
+              index        : [[], []]
             },
             massOperations : {},
             pagination     : { limit : 50, offset : 100, currentPage : 2 }
@@ -259,9 +262,9 @@ describe('local storage', () => {
                 [{ limit : 50, offset : 0 }, [2, 3]]
               ],
               collection : {
-                currentId     : 4,
-                currrentRowId : 4,
-                index         : [[2, 3], [2, 3]]
+                currentId    : 4,
+                currentRowId : 4,
+                index        : [[2, 3], [2, 3]]
               },
               massOperations : {},
               pagination     : { limit : 50, offset : 50, currentPage : 2 }
@@ -289,9 +292,9 @@ describe('local storage', () => {
               store      : 'http',
               cache      : [],
               collection : {
-                currentId     : 2,
-                currrentRowId : 2,
-                index         : [[1], [1]]
+                currentId    : 2,
+                currentRowId : 2,
+                index        : [[1], [1]]
               },
               massOperations : {},
               pagination     : { limit : 50, offset : 0, currentPage : 1 }
@@ -349,9 +352,9 @@ describe('local storage', () => {
                 store      : 'http',
                 cache      : [],
                 collection : {
-                  currentId     : 2,
-                  currrentRowId : 3,
-                  index         : [[1], [1]]
+                  currentId    : 2,
+                  currentRowId : 3,
+                  index        : [[1], [1]]
                 },
                 massOperations : {},
                 pagination     : { limit : 50, offset : 0, currentPage : 1 }
@@ -382,9 +385,9 @@ describe('local storage', () => {
               store      : 'http',
               cache      : [],
               collection : {
-                currentId     : 2,
-                currrentRowId : 2,
-                index         : [[1], [1]]
+                currentId    : 2,
+                currentRowId : 2,
+                index        : [[1], [1]]
               },
               massOperations : {},
               pagination     : { limit : 50, offset : 0, currentPage : 1 }
@@ -442,9 +445,9 @@ describe('local storage', () => {
                 store      : 'http',
                 cache      : [],
                 collection : {
-                  currentId     : 2,
-                  currrentRowId : 3,
-                  index         : [[1], [1]]
+                  currentId    : 2,
+                  currentRowId : 3,
+                  index        : [[1], [1]]
                 },
                 massOperations : {},
                 pagination     : { limit : 50, offset : 0, currentPage : 1 }
@@ -487,9 +490,9 @@ describe('local storage', () => {
               store      : 'http',
               cache      : [],
               collection : {
-                currentId     : 2,
-                currrentRowId : 3,
-                index         : [[1], [1]]
+                currentId    : 2,
+                currentRowId : 3,
+                index        : [[1], [1]]
               },
               massOperations : {},
               pagination     : { limit : 50, offset : 0, currentPage : 1 }
@@ -506,9 +509,9 @@ describe('local storage', () => {
                   store      : 'http',
                   cache      : [],
                   collection : {
-                    currentId     : 2,
-                    currrentRowId : 4,
-                    index         : [[1], [1]]
+                    currentId    : 2,
+                    currentRowId : 4,
+                    index        : [[1], [1]]
                   },
                   massOperations : {},
                   pagination     : { limit : 50, offset : 0, currentPage : 1 }
@@ -575,9 +578,9 @@ describe('local storage', () => {
                 store      : 'http',
                 cache      : [],
                 collection : {
-                  currentId     : 2,
-                  currrentRowId : 5,
-                  index         : [[1], [1]]
+                  currentId    : 2,
+                  currentRowId : 5,
+                  index        : [[1], [1]]
                 },
                 massOperations : {},
                 pagination     : { limit : 50, offset : 0, currentPage : 1 }
@@ -610,9 +613,9 @@ describe('local storage', () => {
               store      : 'http',
               cache      : [],
               collection : {
-                currentId     : 1,
-                currrentRowId : 1,
-                index         : [[], []]
+                currentId    : 1,
+                currentRowId : 1,
+                index        : [[], []]
               },
               massOperations : {
                 label : 'B'
@@ -631,9 +634,9 @@ describe('local storage', () => {
                   store      : 'http',
                   cache      : [],
                   collection : {
-                    currentId     : 1,
-                    currrentRowId : 1,
-                    index         : [[], []]
+                    currentId    : 1,
+                    currentRowId : 1,
+                    index        : [[], []]
                   },
                   massOperations : {
                     label : 'B'
@@ -658,6 +661,38 @@ describe('local storage', () => {
 
       lunaris.hook('patched@http', _patchedHook);
       lunaris.update('@http:label', 'B');
+    });
+
+    it('should set state when init lunaris', done => {
+      var _hook = () => {
+        setTimeout(() => {
+          var _lunaris = lunarisInstance();
+          var _store   = 'http';
+          setTimeout(() => {
+
+            should(_lunaris._stores[_store].data.getIndexId()).eql([[1, 2, 3], [1, 2, 3]]);
+            should(_lunaris._stores[_store].data.getCurrentId()).eql(4);
+            should(_lunaris._stores[_store].data.getCurrentRowId()).eql(4);
+            should(_lunaris._stores[_store].data.getAll()).eql([
+              { id : 1, label : 'A', _rowId : 1, _id : 1, _version : [1] },
+              { id : 2, label : 'B', _rowId : 2, _id : 2, _version : [1] },
+              { id : 3, label : 'C', _rowId : 3, _id : 3, _version : [1] }
+            ]);
+            should(_lunaris._stores[_store].cache.cache()).eql([
+              [{ limit : 50, offset : 0 }, [1, 2, 3]]
+            ]);
+            should(_lunaris._stores[_store].massOperations).eql({});
+            should(_lunaris._stores[_store].paginationLimit).eql(50);
+            should(_lunaris._stores[_store].paginationOffset).eql(50);
+            should(_lunaris._stores[_store].paginationCurrentPage).eql(2);
+
+            lunaris.removeHook('get@http', _hook);
+            done();
+          }, 200);
+        }, 200);
+      };
+      lunaris.hook('get@http', _hook);
+      lunaris.get('@http');
     });
   });
 

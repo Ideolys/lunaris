@@ -1,3 +1,5 @@
+const lunarisExports     = require('../src/exports');
+lunarisExports.isBrowser = false;
 const collectionModule = require('../src/store/store.collection');
 const collection       = collectionModule.collection;
 const schema           = require('../lib/_builder/store/schema');
@@ -1296,6 +1298,38 @@ describe('lunaris internal collection', () => {
       should(_collection.getCurrentRowId()).eql(1);
       _collection.add({ id : 1, test : 1 });
       should(_collection.getCurrentRowId()).eql(2);
+    });
+  });
+
+  describe('setData()', () => {
+    it('should be defined', () => {
+      should(collection().setData).be.ok();
+    });
+
+    it('should set data', () => {
+      var _collection = collection();
+      should(_collection._getAll()).eql([]);
+      _collection.setData([{ _id : 1, id : 1, _version : [1] }]);
+      should(_collection._getAll()).eql([
+        { _id : 1, id : 1, _version : [1] }
+      ]);
+    });
+  });
+
+  describe('setIndexId()', () => {
+    it('should be defined', () => {
+      should(collection().setIndexId).be.ok();
+    });
+
+    it('should set index id', () => {
+      var _collection = collection();
+      should(_collection.getIndexId()).eql([
+        [], []
+      ]);
+      _collection.setIndexId([[1], [1]]);
+      should(_collection.getIndexId()).eql([
+        [1], [1]
+      ]);
     });
   });
 

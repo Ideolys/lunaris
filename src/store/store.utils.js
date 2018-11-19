@@ -219,9 +219,9 @@ function saveState (store, collection, cache) {
       currentPage : store.paginationCurrentPage
     },
     collection : {
-      currentId     : collection.getCurrentId(),
-      currrentRowId : collection.getCurrentRowId(),
-      index         : collection.getIndexId()
+      currentId    : collection.getCurrentId(),
+      currentRowId : collection.getCurrentRowId(),
+      index        : collection.getIndexId()
     },
     cache : cache.cache()
   };

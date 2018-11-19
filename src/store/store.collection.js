@@ -18,6 +18,12 @@ var localDatabase      = localStorageDriver.indexedDB;
  */
 var currentVersionNumber = 1;
 
+
+var _savedCurrentVersionNumber = localStorage.get('lunaris:versionNumber', 1);
+if (_savedCurrentVersionNumber) {
+  currentVersionNumber = _savedCurrentVersionNumber;
+}
+
 function incrementVersionNumber () {
   currentVersionNumber++;
   localStorage.set('lunaris:versionNumber', currentVersionNumber);
@@ -517,11 +523,27 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     },
 
     /**
+     * Set index id value
+     * @param {Array} value
+     */
+    setIndexId : function (value) {
+      _indexes.id = value;
+    },
+
+    /**
      * Get all items in the collection
      * only for tests
      */
     _getAll : function () {
       return _data;
+    },
+
+    /**
+     * Set data values
+     * @param {Array} value
+     */
+    setData : function (value) {
+      _data = value;
     },
 
     /**

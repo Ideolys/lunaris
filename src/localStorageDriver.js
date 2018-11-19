@@ -34,8 +34,8 @@ function initIndexedDB (versionNumber, stores, callback) {
   window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction || { READ_WRITE : 'readwrite' };
   window.IDBKeyRange    = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
 
-  var _request;
   _isDatabaseExists('lunaris', function (isExisted) {
+    var _request;
     if (isExisted) {
       _request = window.indexedDB.open('lunaris', versionNumber);
     }
@@ -175,13 +175,22 @@ module.exports = {
      * Clear an object store
      * @param {String} key
      */
-    clear : function clear (key) {
+    clear : function clear (key, callback) {
       if (!database) {
         return;
       }
       var _transaction = database.transaction([key], 'readwrite');
       var _objectStore = _transaction.objectStore(key);
-      _objectStore.clear();
+      var _request     = _objectStore.clear();
+
+      if (callback) {
+        _request.onsuccess = function onsuccess (e) {
+          callback(null, e.target.result);
+        };
+        _request.onerror = function onerror (e) {
+          callback(e);
+        };
+      }
     }
   },
 

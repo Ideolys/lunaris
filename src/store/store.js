@@ -27,7 +27,8 @@ lunarisExports._stores.lunarisErrors = {
   isLocal               : true,
   storesToPropagate     : [],
   isStoreObject         : false,
-  massOperations        : {}
+  massOperations        : {},
+  cache                 : cache.cache()
 };
 
 /**
@@ -684,6 +685,8 @@ function clear (store, isSilent) {
     _options.collection.clear();
     _options.store.paginationCurrentPage = 1;
     _options.store.paginationOffset      = 0;
+    _options.store.paginationLimit       = 50;
+    _options.store.massOperations        = {};
     _options.cache.clear();
     indexedDB.clear(_options.store.name);
     if (!isSilent) {
