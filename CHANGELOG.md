@@ -1,5 +1,10 @@
 # Lunaris
 
+## 1.7.0
+*2018-XX-XX*
+- Features :
+- Fix :
+
 ## 1.6.1
 *2018-11-19*
 - Features :
