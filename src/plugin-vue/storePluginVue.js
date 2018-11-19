@@ -109,7 +109,7 @@ lunaris._vue = {
       return function reset () {
         var _storeObj = lunaris._vue._vm.$data.$stores[store];
         if (_storeObj.isStoreObject) {
-          lunaris.utils.keepTheReferenceAndChangeTheAttributes(_storeObj.state, {});
+          return Vue.set(lunaris._vue._vm.$data.$stores[store], 'state', {});
         }
         else {
           _storeObj.state.splice(0);
@@ -130,7 +130,7 @@ lunaris._vue = {
           if (Array.isArray(items)) {
             items = items[0];
           }
-          return lunaris.utils.keepTheReferenceAndChangeTheAttributes(_storeObj.state, items || {});
+          return Vue.set(lunaris._vue._vm.$data.$stores[store], 'state', items);
         }
 
         if (!Array.isArray(items)) {
@@ -165,7 +165,7 @@ lunaris._vue = {
       return function deleteItem (item) {
         var _storeObj = lunaris._vue._vm.$data.$stores[store];
         if (_storeObj.isStoreObject) {
-          return lunaris.utils.keepTheReferenceAndChangeTheAttributes(_storeObj.state, {});
+          return Vue.set(lunaris._vue._vm.$data.$stores[store], 'state', {});
         }
 
         if (!Array.isArray(item)) {

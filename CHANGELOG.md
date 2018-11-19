@@ -4,6 +4,7 @@
 *2018-XX-XX*
 - Features :
 - Fix :
+  - Fix vue plugin store when setting store object value.
 
 ## 1.6.0
 *2018-11-16*
