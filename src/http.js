@@ -1,4 +1,13 @@
 var lunarisExports = require('./exports.js');
+var utils          = require('./utils.js');
+
+var baseOptions = {
+  onComplete : null
+};
+
+function setup (options) {
+  baseOptions = utils.merge(baseOptions, options);
+}
 
 /**
  * Make HTTP request
@@ -38,6 +47,10 @@ function request (method, request, body, callback) {
       return window.location = response.url;
     }
 
+    if (baseOptions.onComplete) {
+      baseOptions.onComplete(response);
+    }
+
     return response.json();
   }).then(function (json) {
     if (json.success === false) {
@@ -50,3 +63,4 @@ function request (method, request, body, callback) {
 }
 
 exports.request = request;
+exports.setup   = setup;
