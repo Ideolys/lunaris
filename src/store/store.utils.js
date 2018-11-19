@@ -229,8 +229,18 @@ function saveState (store, collection, cache) {
   database.upsert('_states', _state);
 }
 
+/**
+ * Get cache object
+ * @param {Object} store
+ * @returns {Object}
+ */
+function getCache (store) {
+  return store.cache;
+}
+
 exports.getStore           = getStore;
 exports.getCollection      = getCollection;
+exports.getCache           = getCache;
 exports.getPrimaryKeyValue = getPrimaryKeyValue;
 exports.setPrimaryKeyValue = setPrimaryKeyValue;
 exports.checkArgs          = checkArgs;

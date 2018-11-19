@@ -153,29 +153,16 @@ function cache () {
      */
     cache : function () {
       return _cache;
+    },
+
+    /**
+     * Set cache
+     * @param {Array} value
+     */
+    set : function (value) {
+      _cache = value;
     }
   };
 }
 
-/**
- * Init cache object
- * @param {Object} store
- */
-function _initCache (store) {
-  return store.cache = cache();
-}
-
-/**
- * Get cache object
- * @param {Object} store
- * @returns {Object}
- */
-function getCache (store) {
-  if (!store.cache) {
-    return _initCache(store);
-  }
-
-  return store.cache;
-}
-
-exports.getCache = getCache;
+exports.cache    = cache;

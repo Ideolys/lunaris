@@ -107,7 +107,7 @@ function beforeAction (store, value, isNoValue) {
 
   var _store      = storeUtils.getStore(store);
   var _collection = storeUtils.getCollection(_store);
-  var _cache      = cache.getCache(_store);
+  var _cache      = storeUtils.getCache(_store);
 
   return {
     value      : value,

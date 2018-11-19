@@ -1,6 +1,7 @@
 const storeMap    = require('../lib/_builder/store/schema');
 const validateMap = require('../lib/_builder/store/validate');
 const collection  = require('../src/store/store.collection');
+const cache       = require('../src/store/store.cache');
 /**
  * Utils
  */
@@ -23,5 +24,6 @@ exports.initStore = function initStore (name, map, joinDescriptor, storesToPropa
   _store.storesToPropagate     = storesToPropagate || [];
   _store.filterFns             = _store.meta ? storeMap.getFilterFns(compilatedStores, _store.meta.compilation, _store.filters) : null;
   _store.massOperations        = {};
+  _store.cache                 = cache.cache();
   return _store;
 };

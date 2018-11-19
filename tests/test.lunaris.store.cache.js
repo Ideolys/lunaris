@@ -1,21 +1,18 @@
-const cache     = require('../src/store/store.cache.js');
-const testUtils = require('./testUtils');
-const initStore = testUtils.initStore;
+const cache = require('../src/store/store.cache.js');
 
 describe('store cache', () => {
 
   it('getter should be defined', () => {
-    should(cache.getCache).be.ok();
-    should(cache.getCache).be.a.Function();
+    should(cache.cache).be.ok();
+    should(cache.cache).be.a.Function();
   });
 
   it('should return an object', () => {
-    should(cache.getCache(initStore('store'))).be.an.Object();
+    should(cache.cache()).be.an.Object();
   });
 
   it('should return a cache object', () => {
-    var _store = initStore('store');
-    var _cache = cache.getCache(_store);
+    var _cache = cache.cache();
     should(_cache.add).be.a.Function();
     should(_cache.cache).be.a.Function();
     should(_cache.get).be.a.Function();
@@ -26,16 +23,14 @@ describe('store cache', () => {
   describe('add', () => {
 
     it ('should add nothing', () => {
-      var _store         = initStore('store');
-      var _cache         = cache.getCache(_store);
+      var _cache         = cache.cache();
       var _expectedValue = [];
       _cache.add({}, [1, 2]);
       should(_cache.cache()).eql(_expectedValue);
     });
 
     it ('should add the pagination values and the result _ids', () => {
-      var _store         = initStore('store');
-      var _cache         = cache.getCache(_store);
+      var _cache         = cache.cache();
       var _expectedValue = [[
         {
           offset : 0,
@@ -52,8 +47,7 @@ describe('store cache', () => {
     });
 
     it('should clear the cache', () => {
-      var _store         = initStore('store');
-      var _cache         = cache.getCache(_store);
+      var _cache         = cache.cache();
       _cache.add({
         offset : 0,
         limit  : 2,
@@ -64,8 +58,7 @@ describe('store cache', () => {
     });
 
     it ('should update the previous cache value', () => {
-      var _store         = initStore('store');
-      var _cache         = cache.getCache(_store);
+      var _cache         = cache.cache();
       var _expectedValue = [[
         {
           offset : 0,
@@ -93,8 +86,7 @@ describe('store cache', () => {
   describe('get', () => {
 
     it('should return null if no cached values', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
       should(_cache.get({
         offset : 0,
         limit  : 2,
@@ -102,8 +94,7 @@ describe('store cache', () => {
     });
 
     it('should return an array', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
 
       _cache.add({
         offset : 0,
@@ -118,8 +109,7 @@ describe('store cache', () => {
     });
 
     it('should compare arrays', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
 
       _cache.add({
         offset : [false],
@@ -132,8 +122,7 @@ describe('store cache', () => {
     });
 
     it('should return the cached ids', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
 
       _cache.add({
         offset : 0,
@@ -148,8 +137,7 @@ describe('store cache', () => {
     });
 
     it('should return the cached ids : multiple cached values', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
 
       _cache.add({
         offset : 0,
@@ -182,8 +170,7 @@ describe('store cache', () => {
     });
 
     it('should return the cached ids : multiple different cached values', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
 
       _cache.add({
         offset : 0,
@@ -223,8 +210,7 @@ describe('store cache', () => {
 
   describe('invalidate', () => {
     it('should invalidate an id', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
 
       _cache.add({
         offset : 0,
@@ -243,8 +229,7 @@ describe('store cache', () => {
     });
 
     it('should invalidate id  in multiple values', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
 
       _cache.add({
         offset : 0,
@@ -293,8 +278,7 @@ describe('store cache', () => {
     });
 
     it('should invalidate multiple ids  in multiple values', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
 
       _cache.add({
         offset : 0,
@@ -335,8 +319,7 @@ describe('store cache', () => {
     });
 
     it('should invalidate the cached filter values', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
 
       _cache.add({
         offset : 0,
@@ -349,8 +332,7 @@ describe('store cache', () => {
     });
 
     it('should invalidate multiple ids and the cached filter values', () => {
-      var _store = initStore('store');
-      var _cache = cache.getCache(_store);
+      var _cache = cache.cache();
 
       _cache.add({
         offset : 0,
@@ -380,6 +362,22 @@ describe('store cache', () => {
           },
           [1, 2]
         ]
+      ]);
+    });
+  });
+
+  describe('set', () => {
+    it('should be defined', () => {
+      var _cache = cache.cache();
+      should(_cache.set).be.a.Function();
+    });
+
+    it('should set the value', () => {
+      var _cache = cache.cache();
+      should(_cache.cache()).eql([]);
+      _cache.set([[{ test : 1 }, []]]);
+      should(_cache.cache()).eql([
+        [{ test : 1 }, []]
       ]);
     });
   });
