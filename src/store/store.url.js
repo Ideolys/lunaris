@@ -219,7 +219,7 @@ function createUrl (store, method, primaryKeyValue) {
 
   _request.request += _url;
 
-  if (primaryKeyValue) {
+  if (primaryKeyValue !== undefined && primaryKeyValue !== null) {
     _request.request += '/' + primaryKeyValue;
   }
 

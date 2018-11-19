@@ -1981,6 +1981,38 @@ describe('lunaris store', () => {
       lunaris.get('@get', _currentId);
     });
 
+    it('should get the item identified by its id = 0', done => {
+      var _currentId = 0;
+      lunaris._stores['get'] = initStore('get');
+      lunaris.hook('get@get', item => {
+        if (_currentId === 0) {
+          should(item).be.an.Object();
+          should(item).eql([{
+            _id      : 1,
+            id       : 0,
+            _version : [1]
+          }]);
+          _currentId++;
+          lunaris.get('@get', _currentId);
+          return;
+        }
+
+        should(item).eql([{
+          _id      : 2,
+          id       : 1,
+          _version : [2]
+        }]);
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@get', err => {
+        done(err);
+      });
+
+      lunaris.get('@get', _currentId);
+    });
+
     it('should not filter the store by a required filter if the filer is not authorized for the current method', done => {
       lunaris._stores['required.param.site'] = initStore('required.param.site');
       lunaris._stores['required.param.site'].data.add({
@@ -4276,6 +4308,9 @@ function _startServer (callback) {
   });
 
   server.get('/get/:id', (req, res) => {
+    if (req.params.id === '0') {
+      return res.json({ success : true, error : null, message : null, data : [{ id : 0 }] });
+    }
     if (req.params.id === '1') {
       return res.json({ success : true, error : null, message : null, data : [{ id : 1 }] });
     }

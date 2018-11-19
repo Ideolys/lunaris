@@ -5,6 +5,7 @@
 - Features :
 - Fix :
   - Fix vue plugin store when setting store object value.
+  - When making GET /:id, the value 0 was not considerated as a valid value.
 
 ## 1.6.0
 *2018-11-16*
