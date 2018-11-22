@@ -3,6 +3,7 @@
 ## 1.7.0
 *2018-XX-XX*
 - Features :
+  - Add `vm.components` that references every vuejs components.
 - Fix :
 
 ## 1.6.1
