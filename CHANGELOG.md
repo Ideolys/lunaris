@@ -5,6 +5,7 @@
 - Features :
   - Add `vm.components` that references every vuejs components.
 - Fix :
+  - Local store were not considerated as valid store for lunaris.begin/lunaris.commit.
 
 ## 1.6.1
 *2018-11-19*

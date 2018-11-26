@@ -3000,24 +3000,6 @@ describe('lunaris store', () => {
 
   describe('transaction', () => {
 
-    it('should add to the transaction only a local store', () => {
-      lunaris._stores['transaction_A']          = initStore('transaction_A');
-      lunaris._stores['transaction_A'].isLocal  = true;
-      lunaris._stores['transaction_A'].isFilter = true;
-
-      lunaris.hook('filterUpdated@transaction_A', () => {
-        return;
-      });
-
-      lunaris.begin();
-      lunaris.insert('@transaction_A', { id : 1 });
-      lunaris.commit();
-
-      should(lastError).have.lengthOf(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.insert@transaction_A');
-      should(lastError[1]).eql(new Error('Only a local store can be registered in a transaction!'));
-    });
-
     it('should fire the event "filterUpdated"', done => {
       lunaris._stores['transaction_A']               = initStore('transaction_A');
       lunaris._stores['transaction_A'].isLocal       = true;
