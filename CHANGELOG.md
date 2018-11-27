@@ -4,6 +4,7 @@
 *2018-XX-XX*
 - Features :
   - Add `vm.components` that references every vuejs components.
+  - `vm.globlas` is availbale in all Vue components.
 - Fix :
   - Local store were not considerated as valid store for lunaris.begin/lunaris.commit.
 
