@@ -7,6 +7,7 @@
   - `vm.globlas` is availbale in all Vue components.
 - Fix :
   - Local store were not considerated as valid store for lunaris.begin/lunaris.commit.
+  - When using n times a store as filter source, n events `filterUpdated` were fired.
 
 ## 1.6.1
 *2018-11-19*
