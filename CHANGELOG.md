@@ -8,6 +8,7 @@
 - Fix :
   - Local store were not considerated as valid store for lunaris.begin/lunaris.commit.
   - When using n times a store as filter source, n events `filterUpdated` were fired.
+  - The int `0` was not a correct value for the function getPrimaryKeyValue. As a restult, store collections could have duplicate values.
 
 ## 1.6.1
 *2018-11-19*

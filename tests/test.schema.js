@@ -2399,6 +2399,15 @@ describe('Schema', () => {
       should(_schema.getPrimaryKey({ id : 1, label : 'A'})).eql('1');
     });
 
+    it('should return the id whe id = 0', () => {
+      var _objectDescriptor = {
+        id    : ['<<int>>'],
+        label : ['string'],
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.getPrimaryKey({ id : 0, label : 'A'})).eql('0');
+    });
+
     it('should return null if no value has been find', () => {
       var _objectDescriptor = {
         id    : ['<<int>>'],
