@@ -39,6 +39,7 @@ function getHandlerFn (store, path, id, isLocal, vnode) {
           lunaris.update(store, _val);
         }
       }
+      return;
     }
 
     var _item = lunaris.getOne(store, _obj._id);

@@ -2709,6 +2709,17 @@ describe('lunaris store', () => {
       should(lunaris.validate).be.a.Function();
     });
 
+    it('should throw an error if the store has not map', done => {
+      lunaris._stores['store'] = initStore('store');
+      delete lunaris._stores['store'].validateFn;
+
+      lunaris.validate('@store', { id : 1, label : 1 }, true);
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.validate@store');
+      should(lastError[1]).eql(new Error('The store does not have a map! You cannot validate a store without a map.'));
+      done();
+    });
+
     it('should throw an error if value is an array and store is an object store', done => {
       lunaris._stores['store'] = initStore('store', {
         id    : ['<<int>>'],

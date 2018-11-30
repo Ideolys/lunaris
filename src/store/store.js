@@ -823,7 +823,7 @@ function validate (store, value, isUpdate, callback, eventName) {
       }
 
       var _isValidatingPK = offline.isOnline ? _isUpdate : false; // No primary validation
-      _store.validateFn(_valueToValidate, _store.meta.onValidate, _isValidatingPK, function (err) {
+      return _store.validateFn(_valueToValidate, _store.meta.onValidate, _isValidatingPK, function (err) {
         if (err.length) {
           for (var i = 0; i < err.length; i++) {
             logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store + ' Error when validating data'], err[i]);
@@ -834,6 +834,8 @@ function validate (store, value, isUpdate, callback, eventName) {
         callback(true);
       });
     }
+
+    throw new Error('The store does not have a map! You cannot validate a store without a map.');
   }
   catch (e) {
     logger.warn([eventName || ('lunaris.validate' + store)], e);
