@@ -14,6 +14,7 @@
   - The directive `v-lunaris` did not work with radio values.
   - The store collection did not delete index values.
   - An insert / update / delete in a store did not globally invalidate the cache.
+  - Fix collection object duplication where object was inserted with a PK = null and then updated with PK != null.
 
 ## 1.6.1
 *2018-11-19*

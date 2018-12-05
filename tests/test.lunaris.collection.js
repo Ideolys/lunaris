@@ -178,6 +178,35 @@ describe('lunaris internal collection', () => {
       should(_index[1]).eql([1]);
     });
 
+    it('should not duplicate values : insert / upsert', () => {
+      var _collection = collection(null, getPrimaryKey);
+      _collection.add({ id : null, label : 'A' });
+      var _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(1);
+      should(_values[0]).eql({ _id : 1, id : null, label : 'A', _version : [1]});
+
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(0);
+      should(_index[0]).eql([]);
+      should(_index[1]).have.lengthOf(0);
+      should(_index[1]).eql([]);
+
+      _collection.upsert({ _id : 1, id : 10, label : 'A', _version : [1]});
+
+      _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(2);
+      should(_values[0]).eql({ _id : 1, id : null, label : 'A', _version : [1, 2]});
+      should(_values[1]).eql({ _id : 1, id : 10  , label : 'A', _version : [2]});
+
+      _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(1);
+      should(_index[0]).eql([10]);
+      should(_index[1]).have.lengthOf(1);
+      should(_index[1]).eql([1]);
+    });
+
     it('should compute computed property', () => {
       var _obj = [{
         id               : ['<<int>>'],

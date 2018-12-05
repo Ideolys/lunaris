@@ -100,29 +100,39 @@ function collection (startId, getPrimaryKeyFn, isStoreObject, joinsDescriptor, a
    * @param {Boolean} isFromIndex
    */
   function _addToValues (value, versionNumber, isFromUpsert, isFromIndex) {
-    if (!(value._id && isFromUpsert)) {
-      _setJoinValues(value);
-      if (_aggregateFn) {
-        _aggregateFn(value, aggregates, lunarisExports.constants, logger);
+    if (value._id && isFromUpsert) {
+      if (_getPrimaryKey) {
+        var _id = _getPrimaryKey(value);
+        if (_id) {
+          var _arrayIdValues = _indexes.id[0];
+          var _search        = index.binarySearch(_arrayIdValues, _id);
+          if (!_search.found) {
+            index.insertAt(_arrayIdValues, _search.index, _id);
+            index.insertAt(_indexes.id[1], _search.index, value._id);
+          }
+        }
       }
-      value._id = _currentId;
-      _currentId++;
-    }
-    else {
       return _data.push(value);
     }
+
+    _setJoinValues(value);
+    if (_aggregateFn) {
+      _aggregateFn(value, aggregates, lunarisExports.constants, logger);
+    }
+    value._id = _currentId;
+    _currentId++;
 
     if (isFromIndex || !_getPrimaryKey) {
       return _data.push(value);
     }
 
-    var _id = _getPrimaryKey(value);
+    _id = _getPrimaryKey(value);
     if (!_id) {
       return _data.push(value);
     }
 
-    var _arrayIdValues = _indexes.id[0];
-    var _search        = index.binarySearch(_arrayIdValues, _id);
+    _arrayIdValues = _indexes.id[0];
+    _search        = index.binarySearch(_arrayIdValues, _id);
     // We upsert the last version of the object
     if (_search.found) {
       value._id = _indexes.id[1][_search.index];
