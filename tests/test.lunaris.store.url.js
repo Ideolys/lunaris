@@ -509,4 +509,23 @@ describe('store url', () => {
       should(e).eql(new Error('Array filter must declare ILIKE operator or nothing!'));
     }
   });
+
+  it('should create the GET request', () => {
+    var _url         = url.createForOffline(testUtils.initStore('store'), {
+      constructedRequiredOptions : '/A/a',
+      optionalOptions            : {
+        0 : ['label', ['B', 'C'], 'ILIKE']
+      },
+      cache : {
+        limit  : 2,
+        offset : 2
+      }
+    });
+    var _expectedUrl = '/store/A/a?limit=2&offset=2&search=label' +
+      encodeURIComponent(':') +
+      encodeURIComponent('[B,C]')
+    ;
+
+    should(_url).eql(_expectedUrl);
+  });
 });

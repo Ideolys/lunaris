@@ -113,19 +113,31 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    * @param {Boolean} isFromIndex
    */
   function _addToValues (value, versionNumber, isFromUpsert, isFromIndex) {
-    if (!(value._id && isFromUpsert)) {
-      _setJoinValues(value);
-      if (_aggregateFn) {
-        _aggregateFn(value, aggregates, lunarisExports.constants, logger);
+    if (value._id && isFromUpsert) {
+      if (_getPrimaryKey) {
+        var _id = _getPrimaryKey(value);
+        if (_id) {
+          var _arrayIdValues = _indexes.id[0];
+          var _search        = index.binarySearch(_arrayIdValues, _id);
+          if (!_search.found) {
+            index.insertAt(_arrayIdValues, _search.index, _id);
+            index.insertAt(_indexes.id[1], _search.index, value._id);
+          }
+        }
       }
-      value._id = _currentId;
-      _currentId++;
-    }
-    else {
+      value._id    = _currentId;
       value._rowId = _currentRowId++;
       localDatabase.add(_storeName, value);
+      _currentId++;
       return _data.push(value);
     }
+
+    _setJoinValues(value);
+    if (_aggregateFn) {
+      _aggregateFn(value, aggregates, lunarisExports.constants, logger);
+    }
+    value._id = _currentId;
+    _currentId++;
 
     if (isFromIndex || !_getPrimaryKey) {
       value._rowId = _currentRowId++;
@@ -133,15 +145,15 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return _data.push(value);
     }
 
-    var _id = _getPrimaryKey(value);
+    _id = _getPrimaryKey(value);
     if (!_id) {
       value._rowId = _currentRowId++;
       localDatabase.add(_storeName, value);
       return _data.push(value);
     }
 
-    var _arrayIdValues = _indexes.id[0];
-    var _search        = index.binarySearch(_arrayIdValues, _id);
+    _arrayIdValues = _indexes.id[0];
+    _search        = index.binarySearch(_arrayIdValues, _id);
     // We upsert the last version of the object
     if (_search.found) {
       value._id    = _indexes.id[1][_search.index];
@@ -149,7 +161,6 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       upsert(value, versionNumber, false, true);
       return;
     }
-
     index.insertAt(_arrayIdValues, _search.index, _id);
     index.insertAt(_indexes.id[1], _search.index, value._id);
     value._rowId = _currentRowId++;
@@ -160,10 +171,12 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   /**
    * Remove a value from the id index
    * @param {Int} _id
+   * @param {Int} id
    */
-  function _removeFromIndex (_id) {
+  function _removeFromIndex (_id, id) {
     var _arrayIdValues = _indexes.id[0];
-    var _search        = index.binarySearch(_arrayIdValues, _id);
+    var _search        = index.binarySearch(_arrayIdValues, id);
+
     if (_search.found) {
       index.removeAt(_arrayIdValues, _search.index);
       index.removeAt(_indexes.id[1], _search.index);
@@ -277,7 +290,12 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return;
     }
 
-    _removeFromIndex(id);
+    if (_getPrimaryKey) {
+      var _obj = get(id);
+      var _id  = _getPrimaryKey(_obj);
+      _removeFromIndex(id, _id);
+    }
+
     return upsert({ _id : id }, versionNumber, true);
   }
 

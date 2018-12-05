@@ -191,6 +191,7 @@ exports.index = {
     var compared;
     var mid;
 
+
     while (lo < hi) {
       mid = ((lo + hi) / 2) | 0;
       compared = this.sort(value, array[mid]);
@@ -329,8 +330,7 @@ for (var i = 0; i < defaultDiacriticsRemovalMap.length; i++) {
  * @returns {String}
  */
 exports.unaccent = function removeDiacritics (str) {
-  return str.replace(/[^\u0000-\u007E]/g, function (a) {
+  return str.replace(/[^u0000-u007E]/g, function (a) {
     return diacriticsMap[a] || a;
   });
 };
-

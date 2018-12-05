@@ -66,7 +66,7 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
   if (Array.isArray(_primaryKey)) {
     for (var i = 0; i < _primaryKey.length; i++) {
       var _value = value[_primaryKey[i]];
-      if (_value) {
+      if (_value !== undefined || _value !== null) {
         _id += _value + '-';
       }
     }

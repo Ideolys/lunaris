@@ -182,9 +182,6 @@ function pushToHandlers (store, hook, payload, isMultipleArgsPayload) {
   }
 
   if (isTransaction && !isCommitingTransaction && hook === 'filterUpdated') {
-    if (!store.isStoreObject) {
-      throw new Error('Only a local store can be registered in a transaction!');
-    }
     return _addEvent(store.name, hook);
   }
 

@@ -8,6 +8,8 @@ describe('builder', () => {
     lunaris.clear('@computed');
     lunaris.clear('@filter.parent');
     lunaris.clear('@filter.child');
+    lunaris.clear('@filter.double');
+    lunaris.clear('@double');
     lunaris._resetVersionNumber();
   });
 
@@ -138,6 +140,21 @@ describe('builder', () => {
       _version : [1]
     });
     lunaris.offline.isOnline = true;
+  });
+
+  it('should send one event filterUpdated', done => {
+    var _nbHooks = 0;
+
+    lunaris.hook('reset@double', () => {
+      _nbHooks++;
+    });
+
+    lunaris.insert('@filter.double', { from : '1', to : '2' });
+
+    setTimeout(() => {
+      should(_nbHooks).eql(1);
+      done();
+    }, 60);
   });
 
   describe('joins', () => {

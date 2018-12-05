@@ -50,6 +50,7 @@ describe('lunaris store', () => {
     lastError = [];
     lastTip   = [];
     lunaris._stores.lunarisErrors.data.clear();
+    lunaris._cache.clear();
     setTimeout(() => {
       collection.resetVersionNumber();
       done();
@@ -574,7 +575,7 @@ describe('lunaris store', () => {
     it('should insert and update the values and execute the hooks with authorized filters', done => {
       var _isInsertedHook                       = false;
       var _isUpdatedHook                        = false;
-      var _store                                = initStore('store1', {});
+      var _store                                = initStore('store1', { id : ['<<int>>'] });
       var _expectedValue                        = { _rowId : 1, _id : 1, id : 1, label : 'A' };
       lunaris._stores['required']               = initStore('required');
       lunaris._stores['required'].isStoreObject = true;
@@ -2000,6 +2001,38 @@ describe('lunaris store', () => {
       lunaris.get('@get', _currentId);
     });
 
+    it('should get the item identified by its id = 0', done => {
+      var _currentId = 0;
+      lunaris._stores['get'] = initStore('get');
+      lunaris.hook('get@get', item => {
+        if (_currentId === 0) {
+          should(item).be.an.Object();
+          should(item).eql([{
+            _id      : 1,
+            id       : 0,
+            _version : [1]
+          }]);
+          _currentId++;
+          lunaris.get('@get', _currentId);
+          return;
+        }
+
+        should(item).eql([{
+          _id      : 2,
+          id       : 1,
+          _version : [2]
+        }]);
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@get', err => {
+        done(err);
+      });
+
+      lunaris.get('@get', _currentId);
+    });
+
     it('should not filter the store by a required filter if the filer is not authorized for the current method', done => {
       lunaris._stores['required.param.site'] = initStore('required.param.site');
       lunaris._stores['required.param.site'].data.add({
@@ -2186,15 +2219,17 @@ describe('lunaris store', () => {
         should(Object.isFrozen(items[0])).eql(true);
         should(Object.isFrozen(items[1])).eql(true);
         should(_hasBeenCalled).eql(false);
-        should(lunaris._stores['optional'].cache.cache()).eql([
-          [
-            { 0 : 2, limit : 2, offset : 0 },
-            [1, 2]
-          ],
-          [
-            { 0 : 2, limit : 2, offset : 2 },
-            [4]
-          ]
+        should(lunaris._cache._cache()).eql([
+          {
+            hash   : '78fad25dacde61528cc6f5211db36df8',
+            ids    : [1, 2],
+            stores : ['optional']
+          },
+          {
+            hash   : '78fad25dacde61528cc6f5211db36df8',
+            ids    : [4],
+            stores : ['optional']
+          }
         ]);
         done();
       });
@@ -2712,6 +2747,17 @@ describe('lunaris store', () => {
       should(lunaris.validate).be.a.Function();
     });
 
+    it('should throw an error if the store has not map', done => {
+      lunaris._stores['store'] = initStore('store');
+      delete lunaris._stores['store'].validateFn;
+
+      lunaris.validate('@store', { id : 1, label : 1 }, true);
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris warn] lunaris.validate@store');
+      should(lastError[1]).eql(new Error('The store does not have a map! You cannot validate a store without a map.'));
+      done();
+    });
+
     it('should throw an error if value is an array and store is an object store', done => {
       lunaris._stores['store'] = initStore('store', {
         id    : ['<<int>>'],
@@ -2893,8 +2939,10 @@ describe('lunaris store', () => {
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
-      lunaris._stores['pagination2']            = initStore('pagination2');
-      lunaris._stores['pagination2'].filters    = [{
+      lunaris._stores['pagination2'] = initStore('pagination2', [{
+        id : ['<<int>>']
+      }]);
+      lunaris._stores['pagination2'].filters = [{
         source          : '@pagination2.param.site',
         sourceAttribute : 'site',
         localAttribute  : 'site',
@@ -2910,18 +2958,19 @@ describe('lunaris store', () => {
             { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
           ]);
           lunaris.setPagination('@pagination2', 1, 50);
-          lunaris.delete('@pagination2', { _id : 3, id : 10, label : 'E-2'}, null, true);
+          lunaris.delete('@pagination2', { _id : 3, id : 10, label : 'E'}, null, true);
           lunaris.get('@pagination2');
           return;
         }
 
 
         should(items).eql([
-          { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
-          { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+          { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [4] },
+          { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [4] },
+          { _rowId : 3, _id : 6, id : 10, label : 'E', _version : [4] }
         ]);
 
-        should(nbCallsPagination2).eql(1);
+        should(nbCallsPagination2).eql(2);
 
         done();
       });
@@ -3001,24 +3050,6 @@ describe('lunaris store', () => {
   });
 
   describe('transaction', () => {
-
-    it('should add to the transaction only a local store', () => {
-      lunaris._stores['transaction_A']          = initStore('transaction_A');
-      lunaris._stores['transaction_A'].isLocal  = true;
-      lunaris._stores['transaction_A'].isFilter = true;
-
-      lunaris.hook('filterUpdated@transaction_A', () => {
-        return;
-      });
-
-      lunaris.begin();
-      lunaris.insert('@transaction_A', { id : 1 });
-      lunaris.commit();
-
-      should(lastError).have.lengthOf(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.insert@transaction_A');
-      should(lastError[1]).eql(new Error('Only a local store can be registered in a transaction!'));
-    });
 
     it('should fire the event "filterUpdated"', done => {
       lunaris._stores['transaction_A']               = initStore('transaction_A');
@@ -4370,6 +4401,9 @@ function _startServer (callback) {
   });
 
   server.get('/get/:id', (req, res) => {
+    if (req.params.id === '0') {
+      return res.json({ success : true, error : null, message : null, data : [{ id : 0 }] });
+    }
     if (req.params.id === '1') {
       return res.json({ success : true, error : null, message : null, data : [{ id : 1 }] });
     }

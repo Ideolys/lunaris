@@ -2,15 +2,18 @@ var utils          = require('../utils.js');
 var lunarisExports = require('../exports.js');
 var stopwords      = lunarisExports.stopwords;
 var OPERATORS      = utils.OPERATORS;
+var cache          = require('../cache.js');
+var md5            = require('../md5.js');
+var url            = require('./store.url.js');
 
 /**
  * Preload
  * @param {Object} store
  * @param {Object} cache
- * @param {Object} cacheFilter
+ * @param {Object} filterValues
  * @param {Array} data
  */
-function _preloadCache (store, cache, cacheFilter, data) {
+function _preloadCache (store, filterValues, data) {
   var _len = data.length;
   var _ids = [];
   for (var j = 0; j < _len && j < store.paginationLimit; j++) {
@@ -28,8 +31,8 @@ function _preloadCache (store, cache, cacheFilter, data) {
     _ids.push(data[i]._id);
 
     if (i % store.paginationLimit || i + 1 === _len) {
-      cacheFilter.offset += store.paginationLimit;
-      cache.add(utils.clone(cacheFilter), _ids);
+      filterValues.cache.offset += store.paginationLimit;
+      cache.add(store.name, md5(url.createForOffline(store, filterValues)), _ids);
     }
   }
 
@@ -100,7 +103,6 @@ function _reduce (filterFn, filter, data) {
  * Filter the collection
  * @param {Object} store
  * @param {Object} collection
- * @param {Object} cache
  * @param {Object} filterValues {
  *  isRequiredOptionsFilled    : {Boolean}
  *  constructedRequiredOptions : {String}
@@ -109,7 +111,7 @@ function _reduce (filterFn, filter, data) {
  *  cache                      : {Object}
  * }
  */
-function filter (store, collection, cache, filterValues) {
+function filter (store, collection, filterValues) {
   var _data = collection.getAll();
 
   if (!filterValues) {
@@ -135,7 +137,7 @@ function filter (store, collection, cache, filterValues) {
     return _data;
   }
 
-  return _preloadCache(store, cache, filterValues.cache, _data);
+  return _preloadCache(store, filterValues, _data);
 }
 
 exports.filter = filter;

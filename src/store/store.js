@@ -5,6 +5,7 @@ var storeUtils         = require('./store.utils.js');
 var http               = require('../http.js');
 var logger             = require('../logger.js');
 var cache              = require('./store.cache.js');
+var md5                = require('../md5.js');
 var url                = require('./store.url.js');
 var template           = require('./store.template.js');
 var collection         = require('./store.collection.js');
@@ -108,13 +109,11 @@ function beforeAction (store, value, isNoValue) {
 
   var _store      = storeUtils.getStore(store);
   var _collection = storeUtils.getCollection(_store);
-  var _cache      = storeUtils.getCache(_store);
 
   return {
     value      : value,
     store      : _store,
-    collection : _collection,
-    cache      : _cache
+    collection : _collection
   };
 }
 
@@ -171,7 +170,7 @@ function setLunarisError (storeName, method, request, value, version, err, error
  * @param {Array} pathParts
  * @returns {Int} version
  */
-function _upsertCollection (store, collection, cache, value, version, isMultipleItems, isUpdate, pathParts) {
+function _upsertCollection (store, collection, value, version, isMultipleItems, isUpdate, pathParts) {
   var _ids        = [];
   var _inputValue = value;
 
@@ -225,7 +224,8 @@ function _upsertCollection (store, collection, cache, value, version, isMultiple
 
   value = collection.commit(version);
 
-  cache.invalidate(_ids, true);
+
+  cache.invalidate(store.name);
   afterAction(store, isUpdate ? 'update' : 'insert', value);
   _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT);
   if (isUpdate) {
@@ -335,17 +335,16 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
  * @param {Object} store
  * @param {Array} pathParts
  * @param {Object} collection
- * @param {Object} cache
  * @param {Array/Object} value
  * @param {Boolean} isLocal
  * @param {Boolean} isUpdate
  * @param {Object} retryOptions
  */
-function _upsert (store, collection, cache, pathParts, value, isLocal, isUpdate, retryOptions) {
+function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryOptions) {
   var _isMultipleItems = Array.isArray(value);
   var _version;
   if (!retryOptions) {
-    var _res = _upsertCollection(store, collection, cache, value, _version, _isMultipleItems, isUpdate, pathParts);
+    var _res = _upsertCollection(store, collection, value, _version, _isMultipleItems, isUpdate, pathParts);
     _version = _res.version;
     value    = _res.value;
   }
@@ -416,18 +415,16 @@ function _processNextGetRequest (store) {
  */
 function _get (store, primaryKeyValue, retryOptions, callback) {
   try {
-    var _options      = beforeAction(store, null, true);
-    var _request      = '/';
-    var _cacheFilters =  {};
+    var _options = beforeAction(store, null, true);
+    var _request = '/';
 
     if (!retryOptions) {
-      _request      = url.create(_options.store, 'GET', primaryKeyValue);
+      _request = url.create(_options.store, 'GET', primaryKeyValue);
       // required filters consition not fullfilled
       if (!_request) {
         return callback(store);
       }
-      _cacheFilters = _request.cache;
-      var _ids      = _options.cache.get(_cacheFilters);
+      var _ids = cache.get(store.name, md5(_request.request));
 
       if (_ids) {
         if (_ids.length) {
@@ -442,7 +439,6 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         afterAction(_options.store, 'get', storeOffline.filter(
           _options.store,
           _options.collection,
-          _options.cache,
           _request
         ));
         if (_options.store.isFilter) {
@@ -501,7 +497,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         }
       }
 
-      _options.cache.add(_cacheFilters, _ids);
+      cache.add(_options.store.name, md5(_request), _ids);
       afterAction(_options.store, 'get', data);
       _propagate(_options.store, data, utils.OPERATIONS.INSERT);
       if (_options.store.isFilter) {
@@ -563,11 +559,11 @@ function upsert (store, value, isLocal, retryOptions) {
           return;
         }
 
-        _upsert(_options.store, _options.collection, _options.cache, _storeParts, _options.value, isLocal, _isUpdate, retryOptions);
+        _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions);
       }, _eventName);
     }
 
-    _upsert(_options.store, _options.collection, _options.cache, _storeParts, _options.value, isLocal, _isUpdate, retryOptions);
+    _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions);
   }
   catch (e) {
     logger.warn([_eventName], e);
@@ -609,7 +605,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
         value = value[0];
       }
 
-      _options.cache.invalidate(value._id);
+      cache.invalidate(_options.store.name);
       storeUtils.saveState(_options.store, _options.collection, _options.cache);
     }
     else {
@@ -687,8 +683,8 @@ function clear (store, isSilent) {
     _options.store.paginationOffset      = 0;
     _options.store.paginationLimit       = 50;
     _options.store.massOperations        = {};
-    _options.cache.clear();
     indexedDB.clear(_options.store.name);
+    cache.invalidate(_options.store.name);
     if (!isSilent) {
       hook.pushToHandlers(_options.store, 'reset');
     }
@@ -837,7 +833,7 @@ function validate (store, value, isUpdate, callback, eventName) {
       }
 
       var _isValidatingPK = offline.isOnline ? _isUpdate : false; // No primary validation
-      _store.validateFn(_valueToValidate, _store.meta.onValidate, _isValidatingPK, function (err) {
+      return _store.validateFn(_valueToValidate, _store.meta.onValidate, _isValidatingPK, function (err) {
         if (err.length) {
           for (var i = 0; i < err.length; i++) {
             logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store + ' Error when validating data'], err[i]);
@@ -848,6 +844,8 @@ function validate (store, value, isUpdate, callback, eventName) {
         callback(true);
       });
     }
+
+    throw new Error('The store does not have a map! You cannot validate a store without a map.');
   }
   catch (e) {
     logger.warn([eventName || ('lunaris.validate' + store)], e);

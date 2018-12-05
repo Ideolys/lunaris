@@ -1,7 +1,30 @@
 # Lunaris
 
-## 1.6.0
+## 1.7.0
 *2018-XX-XX*
+- Features :
+  - Add `vm.components` that references every vuejs components.
+  - `vm.globlas` is availbale in all Vue components.
+  - Cache is global to Lunaris instead of being specific to each store.
+- Fix :
+  - Local store were not considerated as valid store for lunaris.begin/lunaris.commit.
+  - When using n times a store as filter source, n events `filterUpdated` were fired.
+  - The int `0` was not a correct value for the function getPrimaryKeyValue. As a restult, store collections could have duplicate values.
+  - The validation did not return the callback for a the store with no map.
+  - The directive `v-lunaris` did not work with radio values.
+  - The store collection did not delete index values.
+  - An insert / update / delete in a store did not globally invalidate the cache.
+  - Fix collection object duplication where object was inserted with a PK = null and then updated with PK != null.
+
+## 1.6.1
+*2018-11-19*
+- Features :
+- Fix :
+  - Fix vue plugin store when setting store object value.
+  - When making GET /:id, the value 0 was not considerated as a valid value.
+
+## 1.6.0
+*2018-11-16*
 - Features :
   + Adding 2 new validation types: email and emailList
   + Add transformer functions.
@@ -12,8 +35,6 @@
     + `lnuaris.clone` and `lunaris.freeze` are availbale through `lunaris.utils`
     + All aggregate type names have been changed to `<type>Agg` in order to prevent conflict with attributes types.
   + Add mass operations, use `lunaris.update@('@store:path.to.element', value)`. The mass opration will make a PATCH request to the server and conserve the operation for each new insert or update to the store.
-- Fix :
-
 
 ## 1.5.0
 *2018-10-22*
