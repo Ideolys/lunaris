@@ -67,6 +67,23 @@ describe('lunaris internal collection', () => {
       should(_index[1]).eql([1, 2]);
     });
 
+    it('should add multiple items to the collection : inverse', () => {
+      var _collection = collection(null, getPrimaryKey);
+      _collection.add({ id : 20 });
+      _collection.add({ id : 10 });
+      var _values = _collection._getAll();
+      should(_values).be.an.Array().and.have.length(2);
+      should(_values[0]).eql({ _id : 1, id : 20, _version : [1]});
+      should(_values[1]).eql({ _id : 2, id : 10, _version : [2]});
+
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(2);
+      should(_index[0]).eql([10, 20]);
+      should(_index[1]).have.lengthOf(2);
+      should(_index[1]).eql([2, 1]);
+    });
+
     it('should start the id generation from 6', () => {
       var _collection = collection(6);
       _collection.add({ id : 1 });
@@ -1030,19 +1047,19 @@ describe('lunaris internal collection', () => {
   describe('remove()', () => {
     it('should remove the item', () => {
       var _collection = collection(null, getPrimaryKey);
-      _collection.add({ id : 1 });
+      _collection.add({ id : 10 });
 
       var _index = _collection._getIndexId();
       should(_index).have.lengthOf(2);
       should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([1]);
+      should(_index[0]).eql([10]);
       should(_index[1]).have.lengthOf(1);
       should(_index[1]).eql([1]);
 
       _collection.remove(1);
       var _data = _collection._getAll();
       should(_data).have.length(1);
-      should(_data[0]).eql({ _id : 1, id : 1, _version : [1, 2]});
+      should(_data[0]).eql({ _id : 1, id : 10, _version : [1, 2]});
       should(_collection.get(2)).eql(null);
 
       _index = _collection._getIndexId();
@@ -1055,19 +1072,19 @@ describe('lunaris internal collection', () => {
 
     it('should remove the item from multiple items', () => {
       var _collection = collection(null, getPrimaryKey);
-      _collection.add({ id : 1 });
-      _collection.add({ id : 2 });
+      _collection.add({ id : 10 });
+      _collection.add({ id : 20 });
       _collection.remove(2);
       var _values = _collection._getAll();
       should(_values).have.length(2);
-      should(_values[0]).eql({ _id : 1, id : 1, _version : [1]   });
-      should(_values[1]).eql({ _id : 2, id : 2, _version : [2, 3]});
+      should(_values[0]).eql({ _id : 1, id : 10, _version : [1]   });
+      should(_values[1]).eql({ _id : 2, id : 20, _version : [2, 3]});
       should(_collection.get(2)).eql(null);
 
       var _index = _collection._getIndexId();
       should(_index).have.lengthOf(2);
       should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([1]);
+      should(_index[0]).eql([10]);
       should(_index[1]).have.lengthOf(1);
       should(_index[1]).eql([1]);
     });
@@ -1075,14 +1092,14 @@ describe('lunaris internal collection', () => {
     it('should remove items within the same transaction', () => {
       var _collection = collection(null, getPrimaryKey);
       var _version = _collection.begin();
-      _collection.add({ id : 1 }, _version);
-      _collection.add({ id : 2 }, _version);
+      _collection.add({ id : 10 }, _version);
+      _collection.add({ id : 20 }, _version);
       _collection.commit(_version);
 
       var _index = _collection._getIndexId();
       should(_index).have.lengthOf(2);
       should(_index[0]).have.lengthOf(2);
-      should(_index[0]).eql([1, 2]);
+      should(_index[0]).eql([10, 20]);
       should(_index[1]).have.lengthOf(2);
       should(_index[1]).eql([1, 2]);
 
@@ -1093,8 +1110,8 @@ describe('lunaris internal collection', () => {
 
       var _values = _collection._getAll();
       should(_values).have.length(2);
-      should(_values[0]).eql({ _id : 1, id : 1, _version : [1, 2]});
-      should(_values[1]).eql({ _id : 2, id : 2, _version : [1, 2]});
+      should(_values[0]).eql({ _id : 1, id : 10, _version : [1, 2]});
+      should(_values[1]).eql({ _id : 2, id : 20, _version : [1, 2]});
       should(_collection.get(1)).eql(null);
       should(_collection.get(2)).eql(null);
 

@@ -569,7 +569,7 @@ describe('lunaris store', () => {
     it('should insert and update the values and execute the hooks with authorized filters', done => {
       var _isInsertedHook                       = false;
       var _isUpdatedHook                        = false;
-      var _store                                = initStore('store1', {});
+      var _store                                = initStore('store1', { id : ['<<int>>'] });
       var _expectedValue                        = { _id : 1, id : 1, label : 'A' };
       lunaris._stores['required']               = initStore('required');
       lunaris._stores['required'].isStoreObject = true;
@@ -2902,8 +2902,10 @@ describe('lunaris store', () => {
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
-      lunaris._stores['pagination2']            = initStore('pagination2');
-      lunaris._stores['pagination2'].filters    = [{
+      lunaris._stores['pagination2'] = initStore('pagination2', [{
+        id : ['<<int>>']
+      }]);
+      lunaris._stores['pagination2'].filters = [{
         source          : '@pagination2.param.site',
         sourceAttribute : 'site',
         localAttribute  : 'site',
@@ -2919,18 +2921,19 @@ describe('lunaris store', () => {
             { _id : 3, id : 10, label : 'E', _version : [2] }
           ]);
           lunaris.setPagination('@pagination2', 1, 50);
-          lunaris.delete('@pagination2', { _id : 3, id : 10, label : 'E-2'}, null, true);
+          lunaris.delete('@pagination2', { _id : 3, id : 10, label : 'E'}, null, true);
           lunaris.get('@pagination2');
           return;
         }
 
 
         should(items).eql([
-          { _id : 1, id : 20, label : 'B', _version : [2] },
-          { _id : 2, id : 30, label : 'D', _version : [2] },
+          { _id : 1, id : 20, label : 'B', _version : [4] },
+          { _id : 2, id : 30, label : 'D', _version : [4] },
+          { _id : 6, id : 10, label : 'E', _version : [4] }
         ]);
 
-        should(nbCallsPagination2).eql(1);
+        should(nbCallsPagination2).eql(2);
 
         done();
       });
