@@ -1,12 +1,14 @@
 const storeTestUtils     = require('./testUtils');
 const storeOffline       = require('../src/store/store.offline');
-const cache              = require('../src/store/store.cache');
+const cache              = require('../src/cache');
 const collection         = require('../src/store/store.collection');
+const md5                = require('../src/md5');
 
 describe('offline filters', () => {
 
   beforeEach(() => {
     collection.resetVersionNumber();
+    cache.clear();
   });
 
   it('should be defined', () => {
@@ -16,13 +18,12 @@ describe('offline filters', () => {
 
   it('should return an object if the store is a store object', () => {
     var _store = storeTestUtils.initStore('store', {});
-    var _cache = cache.getCache(_store);
 
     _store.data.add({
       id : 1
     });
 
-    var _res = storeOffline.filter(_store, _store.data, _cache, { requiredOptions : {}, optionalOptions : {} });
+    var _res = storeOffline.filter(_store, _store.data, { requiredOptions : {}, optionalOptions : {} });
     should(_res).eql({
       id       : 1,
       _id      : 1,
@@ -32,13 +33,12 @@ describe('offline filters', () => {
 
   it('should return an object if the store is a store object : no filter values', () => {
     var _store = storeTestUtils.initStore('store', {});
-    var _cache = cache.getCache(_store);
 
     _store.data.add({
       id : 1
     });
 
-    var _res = storeOffline.filter(_store, _store.data, _cache, { requiredOptions : {}, optionalOptions : {} });
+    var _res = storeOffline.filter(_store, _store.data, { requiredOptions : {}, optionalOptions : {} });
     should(_res).eql({
       id       : 1,
       _id      : 1,
@@ -48,7 +48,6 @@ describe('offline filters', () => {
 
   it('should return an array', () => {
     var _store = storeTestUtils.initStore('store', []);
-    var _cache = cache.getCache(_store);
 
     _store.data.add({
       id : 1
@@ -57,7 +56,7 @@ describe('offline filters', () => {
       id : 2
     });
 
-    var _res = storeOffline.filter(_store, _store.data, _cache, { requiredOptions : {}, optionalOptions : {} });
+    var _res = storeOffline.filter(_store, _store.data, { requiredOptions : {}, optionalOptions : {} });
     should(_res).eql([
       {
         id       : 1,
@@ -73,7 +72,6 @@ describe('offline filters', () => {
 
   it('should return an array : no filter values', () => {
     var _store = storeTestUtils.initStore('store', []);
-    var _cache = cache.getCache(_store);
 
     _store.data.add({
       id : 1
@@ -82,7 +80,7 @@ describe('offline filters', () => {
       id : 2
     });
 
-    var _res = storeOffline.filter(_store, _store.data, _cache);
+    var _res = storeOffline.filter(_store, _store.data);
     should(_res).eql([
       {
         id       : 1,
@@ -143,7 +141,7 @@ describe('offline filters', () => {
       optionalOptions : {}
     };
 
-    var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(2);
     should(_filteredValues).eql([
       {
@@ -222,7 +220,7 @@ describe('offline filters', () => {
       optionalOptions : {}
     };
 
-    var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(1);
     should(_filteredValues).eql([
       {
@@ -282,7 +280,7 @@ describe('offline filters', () => {
       }
     };
 
-    var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(2);
     should(_filteredValues).eql([
       {
@@ -299,7 +297,7 @@ describe('offline filters', () => {
     ]);
 
     _filterValues.optionalOptions[0][1] = 'pomme chaude';
-    _filteredValues                     = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
+    _filteredValues                     = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(1);
     should(_filteredValues).eql([
       {
@@ -346,7 +344,7 @@ describe('offline filters', () => {
       }
     };
 
-    var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(2);
     should(_filteredValues).eql([
       {
@@ -398,7 +396,7 @@ describe('offline filters', () => {
       }
     };
 
-    var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(2);
     should(_filteredValues).eql([
       {
@@ -450,7 +448,7 @@ describe('offline filters', () => {
       }
     };
 
-    var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(2);
     should(_filteredValues).eql([
       {
@@ -530,7 +528,7 @@ describe('offline filters', () => {
       }
     };
 
-    var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(1);
     should(_filteredValues).eql([
       {
@@ -590,7 +588,7 @@ describe('offline filters', () => {
       }
     };
 
-    var _filteredValues = storeOffline.filter(_store, _store.data, cache.getCache(_store), _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(4);
     should(_filteredValues).eql([
       {
@@ -667,11 +665,11 @@ describe('offline filters', () => {
         limit  : 2,
         offset : 0,
         0      : ['B', 'C']
-      }
+      },
+      constructedRequiredOptions : ''
     };
 
-    var _cache          = cache.getCache(_store);
-    var _filteredValues = storeOffline.filter(_store, _store.data, _cache, _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(2);
     should(_filteredValues).eql([
       {
@@ -687,16 +685,11 @@ describe('offline filters', () => {
       }
     ]);
 
-    should(_cache._cache()).eql([
-      [
-        {
-          0      : ['B', 'C'],
-          limit  : 2,
-          offset : 2
-        },
-        [5, 6]
-      ]
-    ]);
+    should(cache._cache()).eql([{
+      hash   : md5('/store?limit=2&offset=2&search=label' + encodeURIComponent(':[B,C]')),
+      ids    : [5, 6],
+      stores : ['store']
+    }]);
   });
 
   it('should preload the cache if the data length > store pagination limit and nb items found <= pagination limit', () => {
@@ -746,11 +739,11 @@ describe('offline filters', () => {
         limit  : 2,
         offset : 0,
         0      : ['B', 'C']
-      }
+      },
+      constructedRequiredOptions : ''
     };
 
-    var _cache          = cache.getCache(_store);
-    var _filteredValues = storeOffline.filter(_store, _store.data, _cache, _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(2);
     should(_filteredValues).eql([
       {
@@ -766,16 +759,11 @@ describe('offline filters', () => {
       }
     ]);
 
-    should(_cache._cache()).eql([
-      [
-        {
-          0      : ['B', 'C'],
-          limit  : 2,
-          offset : 2
-        },
-        [5]
-      ]
-    ]);
+    should(cache._cache()).eql([{
+      hash   : md5('/store?limit=2&offset=2&search=label' + encodeURIComponent(':[B,C]')),
+      ids    : [5],
+      stores : ['store']
+    }]);
   });
 
   it('should not preload the cache if the data length <= store pagination limit', () => {
@@ -825,14 +813,13 @@ describe('offline filters', () => {
         0 : ['label', ['B', 'C'], 'ILIKE']
       },
       cache : {
-        limit  : 2,
+        limit  : 4,
         offset : 0,
         0      : ['B', 'C']
       }
     };
 
-    var _cache          = cache.getCache(_store);
-    var _filteredValues = storeOffline.filter(_store, _store.data, _cache, _filterValues);
+    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(4);
     should(_filteredValues).eql([
       {
@@ -858,6 +845,6 @@ describe('offline filters', () => {
       }
     ]);
 
-    should(_cache._cache()).eql([]);
+    should(cache._cache()).eql([]);
   });
 });

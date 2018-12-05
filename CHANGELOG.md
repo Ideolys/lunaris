@@ -5,6 +5,7 @@
 - Features :
   - Add `vm.components` that references every vuejs components.
   - `vm.globlas` is availbale in all Vue components.
+  - Cache is global to Lunaris instead of being specific to each store.
 - Fix :
   - Local store were not considerated as valid store for lunaris.begin/lunaris.commit.
   - When using n times a store as filter source, n events `filterUpdated` were fired.
@@ -12,6 +13,7 @@
   - The validation did not return the callback for a the store with no map.
   - The directive `v-lunaris` did not work with radio values.
   - The store collection did not delete index values.
+  - An insert / update / delete in a store did not globally invalidate the cache.
 
 ## 1.6.1
 *2018-11-19*

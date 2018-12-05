@@ -254,4 +254,34 @@ function createUrl (store, method, primaryKeyValue) {
   return _request;
 }
 
-exports.create = createUrl;
+/**
+ * Generate get request from urlObj
+ * @param {Object} store
+ * @param {Object} cacheObj {
+ *  isRequiredOptionsFilled    : {Boolean}
+ *  constructedRequiredOptions : {String}
+ *  requiredOptions            : {Object} { <source:attribute:operator> : {Array} }
+ *  optionalOptions            : {Object} { <source:attribute:operator> : {Array} }
+ *  cache                      : {Object}
+ * }
+ */
+function generateRequest (store, urlObj) {
+  var _request = '/';
+  var _url     = store.url || store.name;
+
+  _request += _url;
+  _request += urlObj.constructedRequiredOptions;
+
+  var _options = [];
+  var _keys    = Object.keys(urlObj.optionalOptions);
+  for (var i = 0; i < _keys.length; i++) {
+    _options.push(urlObj.optionalOptions[_keys[i]]);
+  }
+  var _search = _getSearchOption(_options);
+  _request += '?limit=' + urlObj.cache.limit + '&offset=' + urlObj.cache.offset + '&' + _search[0] + '=' + _search[1];
+
+  return _request;
+}
+
+exports.create           = createUrl;
+exports.createForOffline = generateRequest;

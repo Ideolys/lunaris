@@ -6,11 +6,13 @@ var utils          = require('./utils.js');
 var logger         = require('./logger.js');
 var http           = require('./http.js');
 var offline        = require('./offline.js');
+var cache          = require('./cache.js');
 
 module.exports = {
   _stores             : lunarisExports._stores,
   _collection         : collection.collection,
   _resetVersionNumber : collection.resetVersionNumber,
+  _cache              : cache,
 
   utils  : utils,
   logger : logger,

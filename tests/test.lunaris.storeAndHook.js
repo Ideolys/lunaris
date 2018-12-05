@@ -50,6 +50,7 @@ describe('lunaris store', () => {
     lastError = [];
     lastTip   = [];
     lunaris._stores.lunarisErrors.data.clear();
+    lunaris._cache.clear();
     setTimeout(() => {
       collection.resetVersionNumber();
       done();
@@ -2199,11 +2200,12 @@ describe('lunaris store', () => {
         should(Object.isFrozen(items[0])).eql(true);
         should(Object.isFrozen(items[1])).eql(true);
         should(_hasBeenCalled).eql(false);
-        should(lunaris._stores['optional'].cache._cache()).eql([
-          [
-            { 0 : 2, limit : 2, offset : 2 },
-            [4]
-          ]
+        should(lunaris._cache._cache()).eql([
+          {
+            hash   : '78fad25dacde61528cc6f5211db36df8',
+            ids    : [4],
+            stores : ['optional']
+          }
         ]);
         done();
       });
