@@ -864,7 +864,8 @@ describe('offline filters', () => {
         limit  : 4,
         offset : 0,
         0      : ['B', 'C']
-      }
+      },
+      constructedRequiredOptions : ''
     };
 
     var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);

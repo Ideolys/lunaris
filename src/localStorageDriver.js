@@ -74,6 +74,10 @@ function initIndexedDB (versionNumber, stores, callback) {
       if (!_db.objectStoreNames.contains('_states')) {
         _db.createObjectStore('_states', { keyPath : 'store' });
       }
+
+      if (!_db.objectStoreNames.contains('cache')) {
+        _db.createObjectStore('cache', { keyPath : 'hash' });
+      }
     };
   });
 }

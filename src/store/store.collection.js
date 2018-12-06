@@ -125,10 +125,8 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
           }
         }
       }
-      value._id    = _currentId;
       value._rowId = _currentRowId++;
       localDatabase.add(_storeName, value);
-      _currentId++;
       return _data.push(value);
     }
 
@@ -151,6 +149,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       localDatabase.add(_storeName, value);
       return _data.push(value);
     }
+
 
     _arrayIdValues = _indexes.id[0];
     _search        = index.binarySearch(_arrayIdValues, _id);

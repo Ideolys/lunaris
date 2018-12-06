@@ -2405,7 +2405,7 @@ describe('Schema', () => {
         label : ['string'],
       };
       var _schema = schema.analyzeDescriptor(_objectDescriptor);
-      should(_schema.getPrimaryKey({ id : 0, label : 'A'})).eql('0');
+      should(_schema.getPrimaryKey({ id : 0, label : 'A'})).eql(0);
     });
 
     it('should return null if no value has been find', () => {

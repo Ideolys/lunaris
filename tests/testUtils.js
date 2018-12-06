@@ -1,7 +1,6 @@
 const storeMap    = require('../lib/_builder/store/schema');
 const validateMap = require('../lib/_builder/store/validate');
 const collection  = require('../src/store/store.collection');
-const cache       = require('../src/store/store.cache');
 /**
  * Utils
  */
@@ -20,10 +19,9 @@ exports.initStore = function initStore (name, map, joinDescriptor, storesToPropa
   _store.getPrimaryKeyFn       = map ? _store.meta.getPrimaryKey : null;
   _store.setPrimaryKeyFn       = map ? _store.meta.setPrimaryKey : null;
   _store.isStoreObject         = !map ? false : !Array.isArray(map) ? true : false;
-  _store.data                  = collection.collection(_store.meta.getPrimaryKeyFn, _store.isStoreObject, joinDescriptor, null, _store.meta.reflexiveFn);
+  _store.data                  = collection.collection(_store.getPrimaryKeyFn, _store.isStoreObject, joinDescriptor, null, _store.meta.reflexiveFn);
   _store.storesToPropagate     = storesToPropagate || [];
   _store.filterFns             = _store.meta ? storeMap.getFilterFns(compilatedStores, _store.meta.compilation, _store.filters) : null;
   _store.massOperations        = {};
-  _store.cache                 = cache.cache();
   return _store;
 };

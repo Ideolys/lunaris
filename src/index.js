@@ -7,12 +7,12 @@ var logger             = require('./logger.js');
 var http               = require('./http.js');
 var offline            = require('./offline.js');
 var localStorageDriver = require('./localStorageDriver.js');
-var cache              = require('./store/store.cache.js');
+var cache              = require('./cache.js');
 
 module.exports = {
   _stores             : lunarisExports._stores,
   _collection         : collection.collection,
-  _cache              : cache.cache,
+  _cache              : cache,
   _resetVersionNumber : collection.resetVersionNumber,
   _indexedDB          : localStorageDriver.indexedDB,
 

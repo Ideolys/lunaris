@@ -9,6 +9,11 @@
  *   ...
  * ]
  */
+
+var logger             = require('./logger.js');
+var localStorageDriver = require('./localStorageDriver.js');
+var database           = localStorageDriver.indexedDB;
+
 // https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript/14853974
 Array.prototype.equals = function (array) {
   // if the other array is a falsy value, return
@@ -62,6 +67,7 @@ function _getOrUpdateIds (store, hash, ids) {
   if (_isFilterMatchValue && ids) {
     if (_cacheValue.stores.indexOf(store) === -1) {
       _cacheValue.stores.push(store);
+      database.upsert('cache', _cacheValue);
     }
 
     return _cacheValue.ids = ids;
@@ -78,6 +84,19 @@ function _getOrUpdateIds (store, hash, ids) {
 module.exports = {
 
   /**
+   * Init cache values from browser db
+   */
+  init : function () {
+    database.getAll('cache', function (err, res) {
+      if (err) {
+        logger.warn('Error when init cache', err);
+      }
+
+      cache = res;
+    });
+  },
+
+  /**
    * Add values to cache
    * @param {String} store
    * @param {String} hash route hashed
@@ -87,11 +106,14 @@ module.exports = {
     var _res = _getOrUpdateIds(store, hash, ids);
 
     if (!_res) {
-      cache.push({
+      var _caheObj = {
         hash   : hash,
         ids    : ids,
         stores : [store]
-      });
+      };
+
+      cache.push(_caheObj);
+      database.upsert('cache', _caheObj);
     }
   },
 
@@ -104,6 +126,7 @@ module.exports = {
   invalidate : function invalidate (store) {
     for (var i = cache.length - 1; i >= 0; i--) {
       if (cache[i].stores.indexOf(store) !== -1) {
+        database.delete('cache', cache[i].hash);
         cache.splice(i, 1);
       }
     }
@@ -113,6 +136,7 @@ module.exports = {
    * Clear cache values
    */
   clear : function () {
+    database.clear('cache');
     cache = [];
   },
 

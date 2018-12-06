@@ -4,7 +4,7 @@ var utils              = require('../utils.js');
 var storeUtils         = require('./store.utils.js');
 var http               = require('../http.js');
 var logger             = require('../logger.js');
-var cache              = require('./store.cache.js');
+var cache              = require('../cache.js');
 var md5                = require('../md5.js');
 var url                = require('./store.url.js');
 var template           = require('./store.template.js');
@@ -28,8 +28,7 @@ lunarisExports._stores.lunarisErrors = {
   isLocal               : true,
   storesToPropagate     : [],
   isStoreObject         : false,
-  massOperations        : {},
-  cache                 : cache.cache()
+  massOperations        : {}
 };
 
 /**

@@ -15,6 +15,7 @@ describe('local storage', () => {
       lunaris.clear('@test');
       lunaris.clear('@http');
       lunaris.clear('@http.filter');
+      lunaris._cache.clear();
       setTimeout(done, 100);
     });
   });
@@ -71,7 +72,7 @@ describe('local storage', () => {
       });
     });
 
-    it('should update the state : get', done => {
+    it.only('should update the state : get', done => {
       var _hook = () => {
         setTimeout(() => {
           lunaris._indexedDB.get('_states', 'http', (err, data) => {
@@ -88,11 +89,22 @@ describe('local storage', () => {
                 currentId    : 4,
                 currentRowId : 4,
                 index        : [[1, 2, 3], [1, 2, 3]]
-              },
-              cache : [
-                [{ limit : 50, offset : 0 }, [1, 2, 3]]
-              ],
+              }
             }));
+
+            lunaris._indexedDB.getAll('cache', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).eql([
+                {
+                  hash  : '',
+                  ids   : [1, 2, 3],
+                  store : 'http'
+                }
+              ]);
+            });
 
             lunaris.removeHook('get@http', _hook);
             done();

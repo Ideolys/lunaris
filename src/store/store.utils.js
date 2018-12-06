@@ -203,9 +203,8 @@ function getJSONPatchPath (path) {
  * Save
  * @param {Object} store
  * @param {Object} collection
- * @param {Object} cache
  */
-function saveState (store, collection, cache) {
+function saveState (store, collection) {
   if (!lunarisExports.isBrowser) {
     return;
   }
@@ -222,8 +221,7 @@ function saveState (store, collection, cache) {
       currentId    : collection.getCurrentId(),
       currentRowId : collection.getCurrentRowId(),
       index        : collection.getIndexId()
-    },
-    cache : cache.cache()
+    }
   };
 
   database.upsert('_states', _state);

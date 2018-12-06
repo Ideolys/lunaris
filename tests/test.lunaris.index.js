@@ -3,7 +3,7 @@ const http               = require('../src/http');
 const localStorageDriver = require('../src/localStorageDriver');
 const lunarisExports     = require('../src/exports');
 lunarisExports.isBrowser = false;
-const cache              = require('../src/store/store.cache');
+const cache              = require('../src/cache');
 
 const stopWordsFR        = require('stopword').fr;
 lunarisExports.stopwords = stopWordsFR;
@@ -78,7 +78,7 @@ describe('lunaris index', () => {
 
   it('_cache() should be defined', () => {
     should(index._cache).be.ok();
-    should(index._cache).be.a.Function();
+    should(index._cache).be.an.Object();
   });
 
   it('OPERATIONS should be defined', () => {

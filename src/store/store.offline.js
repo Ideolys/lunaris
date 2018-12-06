@@ -19,7 +19,7 @@ function _preloadCache (store, filterValues, data) {
   for (var j = 0; j < _len && j < store.paginationLimit; j++) {
     _ids.push(data[j]._id);
   }
-  cache.add(utils.clone(cacheFilter), _ids);
+  cache.add(store.name, md5(url.createForOffline(store, filterValues)), _ids);
 
   if (_len <= store.paginationLimit) {
     return data;

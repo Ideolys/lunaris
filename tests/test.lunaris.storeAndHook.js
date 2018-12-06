@@ -2008,6 +2008,7 @@ describe('lunaris store', () => {
         if (_currentId === 0) {
           should(item).be.an.Object();
           should(item).eql([{
+            _rowId   : 1,
             _id      : 1,
             id       : 0,
             _version : [1]
@@ -2018,6 +2019,7 @@ describe('lunaris store', () => {
         }
 
         should(item).eql([{
+          _rowId   : 2,
           _id      : 2,
           id       : 1,
           _version : [2]
@@ -2221,7 +2223,7 @@ describe('lunaris store', () => {
         should(_hasBeenCalled).eql(false);
         should(lunaris._cache._cache()).eql([
           {
-            hash   : '78fad25dacde61528cc6f5211db36df8',
+            hash   : 'b1b3e8380e9bd4286a475008a69781f1',
             ids    : [1, 2],
             stores : ['optional']
           },
@@ -2963,11 +2965,10 @@ describe('lunaris store', () => {
           return;
         }
 
-
         should(items).eql([
-          { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [4] },
-          { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [4] },
-          { _rowId : 3, _id : 6, id : 10, label : 'E', _version : [4] }
+          { _rowId : 4, _id : 1, id : 20, label : 'B', _version : [4] },
+          { _rowId : 5, _id : 2, id : 30, label : 'D', _version : [4] },
+          { _rowId : 6, _id : 6, id : 10, label : 'E', _version : [4] }
         ]);
 
         should(nbCallsPagination2).eql(2);
