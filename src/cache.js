@@ -126,7 +126,7 @@ module.exports = {
   invalidate : function invalidate (store) {
     for (var i = cache.length - 1; i >= 0; i--) {
       if (cache[i].stores.indexOf(store) !== -1) {
-        database.delete('cache', cache[i].hash);
+        database.del('cache', cache[i].hash);
         cache.splice(i, 1);
       }
     }
