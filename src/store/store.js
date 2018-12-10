@@ -399,6 +399,25 @@ function _processNextGetRequest (store) {
 }
 
 /**
+ * Insert and return cache values in store collection
+ * @param {*} store
+ * @param {*} collection
+ * @param {*} values
+ */
+function _transformGetCache (collection, values) {
+  var _version = collection.begin();
+  if (Array.isArray(values)) {
+    for (var i = 0; i < values.length; i++) {
+      collection.add(values[i], _version);
+    }
+  }
+  else {
+    collection.add(values, _version);
+  }
+  return collection.commit(_version);
+}
+
+/**
  * Make get
  * @param {String} store
  * @param {*} primaryKeyValue
@@ -422,7 +441,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
 
       if (_cacheValues) {
         if (_cacheValues.length) {
-          afterAction(_options.store, 'get', _cacheValues);
+          afterAction(_options.store, 'get', _transformGetCache(_options.collection, _cacheValues));
           return callback(store);
         }
         afterAction(_options.store, 'get', []);
@@ -467,7 +486,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
           return callback(store);
         }
 
-        cache.add(_options.store.name, md5(_request), data);
+        cache.add(_options.store.name, md5(_request), utils.clone(data));
 
         for (var i = 0; i < data.length; i++) {
           _options.collection.upsert(data[i], _version);
@@ -478,7 +497,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         }
       }
       else {
-        cache.add(_options.store.name, md5(_request), data);
+        cache.add(_options.store.name, md5(_request), utils.clone(data));
         _options.collection.upsert(data, _version);
       }
 

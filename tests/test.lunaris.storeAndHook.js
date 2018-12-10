@@ -2838,8 +2838,10 @@ describe('lunaris store', () => {
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
-      lunaris._stores['pagination2']            = initStore('pagination2');
-      lunaris._stores['pagination2'].filters    = [{
+      lunaris._stores['pagination2'] = initStore('pagination2', [{
+        id : ['<<int>>']
+      }]);
+      lunaris._stores['pagination2'].filters = [{
         source          : '@pagination2.param.site',
         sourceAttribute : 'site',
         localAttribute  : 'site',
@@ -2859,10 +2861,11 @@ describe('lunaris store', () => {
           return;
         }
 
+
         should(items).eql([
-          { _id : 1, id : 20, label : 'B', _version : [2] },
-          { _id : 2, id : 30, label : 'D', _version : [2] },
-          { _id : 3, id : 10, label : 'E', _version : [2] }
+          { _id : 1, id : 20, label : 'B', _version : [3] },
+          { _id : 2, id : 30, label : 'D', _version : [3] },
+          { _id : 3, id : 10, label : 'E', _version : [3] }
         ]);
 
         should(nbCallsPagination2).eql(1);
