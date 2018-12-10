@@ -430,12 +430,13 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       }
 
       if (!offline.isOnline || _options.store.isLocal) {
-        afterAction(_options.store, 'get', storeOffline.filter(
+        var _res = storeOffline.filter(
           _options.store,
           _options.collection,
           _request
-        ));
-        if (_options.store.isFilter) {
+        );
+        afterAction(_options.store, 'get', _res);
+        if (_options.store.isFilter && ((_options.store.isStoreObject && _res) || (!_options.store.isStoreObject && _res.length))) {
           hook.pushToHandlers(_options.store, 'filterUpdated');
         }
         return callback(store);

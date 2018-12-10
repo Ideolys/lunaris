@@ -1837,6 +1837,34 @@ describe('lunaris store', () => {
       lunaris.get('@store1');
     });
 
+    it('should not fire the event filterUpdated for GET : store object', done => {
+      lunaris._stores['store1']          = initStore('store1');
+      lunaris._stores['store1'].isLocal  = true;
+      lunaris._stores['store1'].isFilter = true;
+      lunaris._stores['optional'] = initStore('optional', null, null, null, [{
+        source          : '@store1',
+        sourceAttribute : 'id',
+        localAttribute  : 'id',
+        operator        : '='
+      }]);
+
+      var _hasBeenCalled = false;
+      lunaris.hook('filterUpdated@store1', () => {
+        _hasBeenCalled = true;
+      });
+
+      lunaris.hook('errorHttp@optional', err => {
+        _hasBeenCalled = true;
+      });
+
+      setTimeout(() => {
+        should(_hasBeenCalled).eql(false);
+        done();
+      }, 100);
+
+      lunaris.get('@store1');
+    });
+
     it('should fire the event filterUpdated for GET : store array', done => {
       lunaris._stores['store1']          = initStore('store1');
       lunaris._stores['store1'].isFilter = true;
