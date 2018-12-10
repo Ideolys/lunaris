@@ -7,6 +7,19 @@ var md5            = require('../md5.js');
 var url            = require('./store.url.js');
 
 /**
+ * Delete fields
+ * @param {Object} obj
+ * @returns {Object}
+ */
+function _transformCacheData (obj) {
+  var _clonedData = utils.clone(obj);
+  delete _clonedData._id;
+  delete _clonedData._version;
+  delete _clonedData._rowId;
+  return _clonedData;
+}
+
+/**
  * Preload
  * @param {Object} store
  * @param {Object} cache
@@ -17,10 +30,7 @@ function _preloadCache (store, filterValues, data) {
   var _len = data.length;
   var _cacheValues = [];
   for (var j = 0; j < _len && j < store.paginationLimit; j++) {
-    delete data[j]._id;
-    delete data[j]._version;
-    delete data[j]._rowId;
-    _cacheValues.push(data[j]);
+    _cacheValues.push(_transformCacheData(data[j]));
   }
   cache.add(store.name, md5(url.createForOffline(store, filterValues)), _cacheValues);
 
@@ -31,10 +41,7 @@ function _preloadCache (store, filterValues, data) {
   var _dataToReturn = data.slice(0, store.paginationLimit);
   _cacheValues  = [];
   for (var i = store.paginationLimit; i < _len; i++) {
-    delete data[i]._id;
-    delete data[i]._version;
-    delete data[i]._rowId;
-    _cacheValues.push(data[i]);
+    _cacheValues.push(_transformCacheData(data[i]));
 
     if (i % store.paginationLimit || i + 1 === _len) {
       filterValues.cache.offset += store.paginationLimit;

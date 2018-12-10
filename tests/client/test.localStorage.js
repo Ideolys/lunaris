@@ -100,7 +100,11 @@ describe('local storage', () => {
               should(data).eql([
                 {
                   hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
-                  ids    : [1, 2, 3],
+                  values : [
+                    { id : 1, label : 'A' },
+                    { id : 2, label : 'B' },
+                    { id : 3, label : 'C' }
+                  ],
                   stores : ['http']
                 }
               ]);
@@ -151,7 +155,11 @@ describe('local storage', () => {
                 should(data).eql([
                   {
                     hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
-                    ids    : [1, 2, 3],
+                    values : [
+                      { id : 1, label : 'A' },
+                      { id : 2, label : 'B' },
+                      { id : 3, label : 'C' }
+                    ],
                     stores : ['http']
                   }
                 ]);
@@ -189,12 +197,18 @@ describe('local storage', () => {
               should(data).eql([
                 {
                   hash   : '3af72e6129fde9d173dc7af03f9089ab',
-                  ids    : [2],
+                  values : [
+                    { id : 2, label : 'B' }
+                  ],
                   stores : ['http']
                 },
                 {
                   hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
-                  ids    : [1, 2, 3],
+                  values : [
+                    { id : 1, label : 'A' },
+                    { id : 2, label : 'B' },
+                    { id : 3, label : 'C' }
+                  ],
                   stores : ['http']
                 }
               ]);
@@ -726,7 +740,11 @@ describe('local storage', () => {
             should(_lunaris._cache._cache()).eql([
               {
                 hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
-                ids    : [1, 2, 3],
+                values : [
+                  { id : 1, label : 'A' },
+                  { id : 2, label : 'B' },
+                  { id : 3, label : 'C' }
+                ],
                 stores : ['http']
               }
             ]);
