@@ -20,13 +20,15 @@ function _preloadCache (store, filterValues, data) {
   }
 
   var _dataToReturn = data.slice(0, store.paginationLimit);
-  var _ids          = [];
+  var _cacheValues  = [];
   for (var i = store.paginationLimit; i < _len; i++) {
-    _ids.push(data[i]._id);
+    delete data[i]._id;
+    delete data[i]._version;
+    _cacheValues.push(data[i]);
 
     if (i % store.paginationLimit || i + 1 === _len) {
       filterValues.cache.offset += store.paginationLimit;
-      cache.add(store.name, md5(url.createForOffline(store, filterValues)), _ids);
+      cache.add(store.name, md5(url.createForOffline(store, filterValues)), _cacheValues);
     }
   }
 

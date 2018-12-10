@@ -22,7 +22,7 @@ describe('cache', () => {
       var _expectedValue = [
         {
           hash   : '6666cd76f96956469e7be39d750cc7d9',
-          ids    : [1, 2],
+          values : [1, 2],
           stores : ['store1']
         }
       ];
@@ -34,22 +34,22 @@ describe('cache', () => {
       cache.add('store1', md5('/'), [1, 2]);
       should(cache._cache()).eql([{
         hash   : '6666cd76f96956469e7be39d750cc7d9',
-        ids    : [1, 2],
+        values : [1, 2],
         stores : ['store1']
       }]);
       cache.add('store2', md5('/'), [1, 2]);
       should(cache._cache()).eql([{
         hash   : '6666cd76f96956469e7be39d750cc7d9',
-        ids    : [1, 2],
+        values : [1, 2],
         stores : ['store1', 'store2']
       }]);
     });
 
-    it ('should add the pagination values and the result _ids', () => {
+    it ('should add the pagination values and the result _values', () => {
       var _expectedValue = [
         {
           hash   : '35e78095e9f3eec8249a8921105f2200',
-          ids    : [1, 2],
+          values : [1, 2],
           stores : ['store1']
         }
       ];
@@ -68,7 +68,7 @@ describe('cache', () => {
       should(cache._cache()).eql([
         {
           hash   : '35e78095e9f3eec8249a8921105f2200',
-          ids    : [1, 2],
+          values : [1, 2],
           stores : ['store1']
         }
       ]);
@@ -77,7 +77,7 @@ describe('cache', () => {
       should(cache._cache()).eql([
         {
           hash   : '35e78095e9f3eec8249a8921105f2200',
-          ids    : [],
+          values : [],
           stores : ['store1']
         }
       ]);
@@ -100,12 +100,12 @@ describe('cache', () => {
       should(cache.get('store1', md5('/?offset=[false]'))).eql([1]);
     });
 
-    it('should return the cached ids', () => {
+    it('should return the cached values', () => {
       cache.add('/', md5('/?offset=0&limit=2'), [1, 2]);
       should(cache.get('/', md5('/?offset=0&limit=2'))).eql([1, 2]);
     });
 
-    it('should return the cached ids : multiple cached values', () => {
+    it('should return the cached values : multiple cached values', () => {
       cache.add('/', md5('/?offset=0&limit=2'), [1, 2]);
       cache.add('/', md5('/?offset=2&limit=4'), [3, 4]);
       cache.add('/', md5('/?offset=4&limit=6'), [5, 6]);
@@ -115,7 +115,7 @@ describe('cache', () => {
       should(cache.get('/', md5('/?offset=4&limit=6'))).eql([5, 6]);
     });
 
-    it('should return the cached ids : multiple different cached values', () => {
+    it('should return the cached values : multiple different cached values', () => {
       cache.add('/', md5('/?offset=0&limit=2&search=bla'), [1, 2]);
       cache.add('/', md5('/?offset=0&limit=2'), [1, 2, 3, 4]);
       cache.add('/', md5('/?offset=4&limit=6&mode=1'), [2, 3]);

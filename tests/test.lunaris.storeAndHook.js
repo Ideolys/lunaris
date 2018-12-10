@@ -2231,7 +2231,7 @@ describe('lunaris store', () => {
         should(lunaris._cache._cache()).eql([
           {
             hash   : '78fad25dacde61528cc6f5211db36df8',
-            ids    : [4],
+            values : [{ id : 4, label : 'D', site : { id : 2 } }],
             stores : ['optional']
           }
         ]);

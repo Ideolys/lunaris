@@ -418,11 +418,11 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       if (!_request) {
         return callback(store);
       }
-      var _ids = cache.get(store.name, md5(_request.request));
+      var _cacheValues = cache.get(store.name, md5(_request.request));
 
-      if (_ids) {
-        if (_ids.length) {
-          afterAction(_options.store, 'get', _options.collection.getAll(_ids));
+      if (_cacheValues) {
+        if (_cacheValues.length) {
+          afterAction(_options.store, 'get', _cacheValues);
           return callback(store);
         }
         afterAction(_options.store, 'get', []);
@@ -467,6 +467,8 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
           return callback(store);
         }
 
+        cache.add(_options.store.name, md5(_request), data);
+
         for (var i = 0; i < data.length; i++) {
           _options.collection.upsert(data[i], _version);
         }
@@ -476,22 +478,12 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         }
       }
       else {
+        cache.add(_options.store.name, md5(_request), data);
         _options.collection.upsert(data, _version);
       }
 
-      data     = _options.collection.commit(_version);
-      var _ids = [];
+      data = _options.collection.commit(_version);
 
-      if (store.isStoreObject) {
-        _ids.push(data._id);
-      }
-      else {
-        for (i = 0; i < data.length; i++) {
-          _ids.push(data[i]._id);
-        }
-      }
-
-      cache.add(_options.store.name, md5(_request), _ids);
       afterAction(_options.store, 'get', data);
       _propagate(_options.store, data, utils.OPERATIONS.INSERT);
       if (_options.store.isFilter) {
