@@ -1854,6 +1854,34 @@ describe('lunaris store', () => {
       lunaris.get('@store1');
     });
 
+    it('should not fire the event filterUpdated for GET : store object', done => {
+      lunaris._stores['store1']          = initStore('store1');
+      lunaris._stores['store1'].isLocal  = true;
+      lunaris._stores['store1'].isFilter = true;
+      lunaris._stores['optional'] = initStore('optional', null, null, null, [{
+        source          : '@store1',
+        sourceAttribute : 'id',
+        localAttribute  : 'id',
+        operator        : '='
+      }]);
+
+      var _hasBeenCalled = false;
+      lunaris.hook('filterUpdated@store1', () => {
+        _hasBeenCalled = true;
+      });
+
+      lunaris.hook('errorHttp@optional', err => {
+        _hasBeenCalled = true;
+      });
+
+      setTimeout(() => {
+        should(_hasBeenCalled).eql(false);
+        done();
+      }, 100);
+
+      lunaris.get('@store1');
+    });
+
     it('should fire the event filterUpdated for GET : store array', done => {
       lunaris._stores['store1']          = initStore('store1');
       lunaris._stores['store1'].isFilter = true;
@@ -2229,7 +2257,7 @@ describe('lunaris store', () => {
           },
           {
             hash   : '78fad25dacde61528cc6f5211db36df8',
-            ids    : [4],
+            values : [{ id : 4, label : 'D', site : { id : 2 } }],
             stores : ['optional']
           }
         ]);
@@ -2848,8 +2876,10 @@ describe('lunaris store', () => {
       lunaris._stores['pagination2.param.site'].data.add({
         site : 1
       });
-      lunaris._stores['pagination2']            = initStore('pagination2');
-      lunaris._stores['pagination2'].filters    = [{
+      lunaris._stores['pagination2'] = initStore('pagination2', [{
+        id : ['<<int>>']
+      }]);
+      lunaris._stores['pagination2'].filters = [{
         source          : '@pagination2.param.site',
         sourceAttribute : 'site',
         localAttribute  : 'site',
@@ -2869,10 +2899,11 @@ describe('lunaris store', () => {
           return;
         }
 
+
         should(items).eql([
-          { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
-          { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
-          { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
+          { _rowId : 4, _id : 1, id : 20, label : 'B', _version : [3] },
+          { _rowId : 5, _id : 2, id : 30, label : 'D', _version : [3] },
+          { _rowId : 6, _id : 3, id : 10, label : 'E', _version : [3] }
         ]);
 
         should(nbCallsPagination2).eql(1);

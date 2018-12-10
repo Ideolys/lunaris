@@ -3,7 +3,7 @@
  * [
  *   {
  *     hash   : hash,
- *     ids    : [ids],
+ *     values    : [values],
  *     stores : [store1, storeN]
  *   },
  *   ...
@@ -47,9 +47,9 @@ var cache = [];
 /**
  * @param {String} store
  * @param {String} hash route hashed
- * @param {Array} ids [int]
+ * @param {Array} values [int]
  */
-function _getOrUpdateIds (store, hash, ids) {
+function _getOrUpdatevalues (store, hash, values) {
   var _cacheValue = null;
   for (var i = 0; i < cache.length; i++) {
     var _isFilterMatchValue = false;
@@ -61,16 +61,16 @@ function _getOrUpdateIds (store, hash, ids) {
     }
   }
 
-  if (_isFilterMatchValue && !ids) {
-    return _cacheValue.ids;
+  if (_isFilterMatchValue && !values) {
+    return _cacheValue.values;
   }
-  if (_isFilterMatchValue && ids) {
+  if (_isFilterMatchValue && values) {
     if (_cacheValue.stores.indexOf(store) === -1) {
       _cacheValue.stores.push(store);
       database.upsert('cache', _cacheValue);
     }
 
-    return _cacheValue.ids = ids;
+    return _cacheValue.values = values;
   }
 
   return _cacheValue;
@@ -100,15 +100,15 @@ module.exports = {
    * Add values to cache
    * @param {String} store
    * @param {String} hash route hashed
-   * @param {Array} ids [int]
+   * @param {Array} values [object]
    */
-  add : function (store, hash, ids) {
-    var _res = _getOrUpdateIds(store, hash, ids);
+  add : function (store, hash, values) {
+    var _res = _getOrUpdatevalues(store, hash, values);
 
     if (!_res) {
       var _caheObj = {
         hash   : hash,
-        ids    : ids,
+        values : values,
         stores : [store]
       };
 
@@ -117,10 +117,10 @@ module.exports = {
     }
   },
 
-  get : _getOrUpdateIds,
+  get : _getOrUpdatevalues,
 
   /**
-   * Invalidate one or many ids for a store
+   * Invalidate one or many values for a store
    * @param {String} store
    */
   invalidate : function invalidate (store) {

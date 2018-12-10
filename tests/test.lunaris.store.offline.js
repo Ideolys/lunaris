@@ -720,12 +720,28 @@ describe('offline filters', () => {
     should(cache._cache()).eql([
       {
         hash   : md5('/store?limit=2&offset=0&search=label' + encodeURIComponent(':[B,C]')),
-        ids    : [3, 4],
+        values : [
+          {
+            id    : 3,
+            label : 'B'
+          }, {
+            id    : 4,
+            label : 'B'
+          }
+        ],
         stores : ['store']
       },
       {
         hash   : md5('/store?limit=2&offset=2&search=label' + encodeURIComponent(':[B,C]')),
-        ids    : [5, 6],
+        values : [
+          {
+            id    : 5,
+            label : 'C'
+          }, {
+            id    : 6,
+            label : 'C'
+          }
+        ],
         stores : ['store']
       }
     ]);
@@ -803,12 +819,23 @@ describe('offline filters', () => {
     should(cache._cache()).eql([
       {
         hash   : md5('/store?limit=2&offset=0&search=label' + encodeURIComponent(':[B,C]')),
-        ids    : [3, 4],
+        values : [
+          {
+            id    : 3,
+            label : 'B'
+          }, {
+            id    : 4,
+            label : 'B'
+          }
+        ],
         stores : ['store']
       },
       {
         hash   : md5('/store?limit=2&offset=2&search=label' + encodeURIComponent(':[B,C]')),
-        ids    : [5],
+        values : [{
+          id    : 5,
+          label : 'C'
+        }],
         stores : ['store']
       }
     ]);
@@ -900,7 +927,21 @@ describe('offline filters', () => {
 
     should(cache._cache()).eql([{
       hash   : md5('/store?limit=4&offset=0&search=label' + encodeURIComponent(':[B,C]')),
-      ids    : [3, 4, 5, 6],
+      values : [
+        {
+          id    : 3,
+          label : 'B'
+        }, {
+          id    : 4,
+          label : 'B'
+        }, {
+          id    : 5,
+          label : 'C'
+        }, {
+          id    : 6,
+          label : 'C'
+        }
+      ],
       stores : ['store']
     }]);
   });

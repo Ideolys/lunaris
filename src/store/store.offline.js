@@ -15,24 +15,30 @@ var url            = require('./store.url.js');
  */
 function _preloadCache (store, filterValues, data) {
   var _len = data.length;
-  var _ids = [];
+  var _cacheValues = [];
   for (var j = 0; j < _len && j < store.paginationLimit; j++) {
-    _ids.push(data[j]._id);
+    delete data[j]._id;
+    delete data[j]._version;
+    delete data[j]._rowId;
+    _cacheValues.push(data[j]);
   }
-  cache.add(store.name, md5(url.createForOffline(store, filterValues)), _ids);
+  cache.add(store.name, md5(url.createForOffline(store, filterValues)), _cacheValues);
 
   if (_len <= store.paginationLimit) {
     return data;
   }
 
   var _dataToReturn = data.slice(0, store.paginationLimit);
-  _ids              = [];
+  _cacheValues  = [];
   for (var i = store.paginationLimit; i < _len; i++) {
-    _ids.push(data[i]._id);
+    delete data[i]._id;
+    delete data[i]._version;
+    delete data[i]._rowId;
+    _cacheValues.push(data[i]);
 
     if (i % store.paginationLimit || i + 1 === _len) {
       filterValues.cache.offset += store.paginationLimit;
-      cache.add(store.name, md5(url.createForOffline(store, filterValues)), _ids);
+      cache.add(store.name, md5(url.createForOffline(store, filterValues)), _cacheValues);
     }
   }
 

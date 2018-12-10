@@ -16,6 +16,7 @@
   - An insert / update / delete in a store did not globally invalidate the cache.
   - Fix collection object duplication where object was inserted with a PK = null and then updated with PK != null.
   - Fix store's path error when displaying builder error.
+  - Fix store FilterUpdated event. An empty local store cannot longer send the event.
 
 ## 1.6.1
 *2018-11-19*

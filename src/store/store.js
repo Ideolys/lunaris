@@ -404,6 +404,25 @@ function _processNextGetRequest (store) {
 }
 
 /**
+ * Insert and return cache values in store collection
+ * @param {*} store
+ * @param {*} collection
+ * @param {*} values
+ */
+function _transformGetCache (collection, values) {
+  var _version = collection.begin();
+  if (Array.isArray(values)) {
+    for (var i = 0; i < values.length; i++) {
+      collection.add(values[i], _version);
+    }
+  }
+  else {
+    collection.add(values, _version);
+  }
+  return collection.commit(_version);
+}
+
+/**
  * Make get
  * @param {String} store
  * @param {*} primaryKeyValue
@@ -423,11 +442,11 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       if (!_request) {
         return callback(store);
       }
-      var _ids = cache.get(store.name, md5(_request.request));
+      var _cacheValues = cache.get(store.name, md5(_request.request));
 
-      if (_ids) {
-        if (_ids.length) {
-          afterAction(_options.store, 'get', _options.collection.getAll(_ids));
+      if (_cacheValues) {
+        if (_cacheValues.length) {
+          afterAction(_options.store, 'get', _transformGetCache(_options.collection, _cacheValues));
           return callback(store);
         }
         afterAction(_options.store, 'get', []);
@@ -435,12 +454,13 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       }
 
       if (!offline.isOnline || _options.store.isLocal) {
-        afterAction(_options.store, 'get', storeOffline.filter(
+        var _res = storeOffline.filter(
           _options.store,
           _options.collection,
           _request
-        ));
-        if (_options.store.isFilter) {
+        );
+        afterAction(_options.store, 'get', _res);
+        if (_options.store.isFilter && ((_options.store.isStoreObject && _res) || (!_options.store.isStoreObject && _res.length))) {
           hook.pushToHandlers(_options.store, 'filterUpdated');
         }
         storeUtils.saveState(_options.store, _options.collection, _options.cache);
@@ -472,6 +492,8 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
           return callback(store);
         }
 
+        cache.add(_options.store.name, md5(_request), utils.clone(data));
+
         for (var i = 0; i < data.length; i++) {
           _options.collection.upsert(data[i], _version);
         }
@@ -481,22 +503,12 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         }
       }
       else {
+        cache.add(_options.store.name, md5(_request), utils.clone(data));
         _options.collection.upsert(data, _version);
       }
 
-      data     = _options.collection.commit(_version);
-      var _ids = [];
+      data = _options.collection.commit(_version);
 
-      if (store.isStoreObject) {
-        _ids.push(data._id);
-      }
-      else {
-        for (i = 0; i < data.length; i++) {
-          _ids.push(data[i]._id);
-        }
-      }
-
-      cache.add(_options.store.name, md5(_request), _ids);
       afterAction(_options.store, 'get', data);
       _propagate(_options.store, data, utils.OPERATIONS.INSERT);
       if (_options.store.isFilter) {
