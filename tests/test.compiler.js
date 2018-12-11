@@ -1,7 +1,7 @@
 const should      = require('should');
 const compiler    = require('../lib/_builder/compiler').test;
 const vueCompiler = require('vue-template-compiler');
-const transpile   = require('vue-template-es2015-compiler');
+// const transpile   = require('vue-template-es2015-compiler');
 const path        = require('path');
 const fs          = require('fs');
 
@@ -217,7 +217,7 @@ describe('Test vue compilation', () => {
       should(/staticRenderFns/.test(_compiled)).eql(true);
     });
 
-    it('should replace template by render and staticRenderFns : \`', () => {
+    it('should replace template by render and staticRenderFns : `', () => {
       var _vueFile = `
         exports.default = {
           template : \`./template_simple.js\`,
@@ -322,7 +322,7 @@ describe('Test vue compilation', () => {
 
         var _template = `
           <ul class="bla bloop">
-            <li v-for="item in items">{{ item.id ? \'1\' : \'2\' }}</li>
+            <li v-for="item in items">{{ item.id ? '1' : '2' }}</li>
           </ul>
         `;
         var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : false });
@@ -355,7 +355,7 @@ describe('Test vue compilation', () => {
 
         var _template = `
           <ul class="bla bloop">
-            <li v-for="item in items">{{ item.id ? \'1\' : \'2\' }}</li>
+            <li v-for="item in items">{{ item.id ? '1' : '2' }}</li>
           </ul>
         `;
         var _compiled = compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.js'), _file, { isProduction : false });
@@ -642,6 +642,15 @@ describe('Test vue compilation', () => {
       should(_res).eql('<div><h1>GET vue</h1></div>');
     });
 
+    it('should render <h1> : no space after route', () => {
+      var _html = '<div>{{# GET /vue}}<h1>GET vue</h1>{{#}}</div>';
+      var _res  = compiler.profileTemplate(_html, {
+        'GET /vue' : true
+      });
+
+      should(_res).eql('<div><h1>GET vue</h1></div>');
+    });
+
     it('should render <h1> and not <h2>', () => {
       var _html = '<div>{{# GET /vue }}<h1>GET vue</h1>{{#}}{{# POST /vue }}<h2>POST vue</h2>{{#}}</div>';
       var _res  = compiler.profileTemplate(_html, {
@@ -710,7 +719,46 @@ describe('Test vue compilation', () => {
       should(_res).eql('<div><h1>GET vue</h1></div>');
     });
 
-    // todo negation
+    it('should render <h2> in other right', () => {
+      var _html = `
+        <div>
+          {{# GET /vue }}
+            <h1>GET vue</h1>
+            {{# GET /vue-2 }}
+              <h2>CANNOT GET vue-2</h2>
+            {{#}}
+            {{# GET /vue-3 }}
+              <h2>GET vue-3</h2>
+            {{#}}
+          {{#}}
+        </div>
+      `;
+      var _res  = compiler.profileTemplate(_html, {
+        'GET /vue'   : true,
+        'GET /vue-3' : true
+      });
 
+      should(_res.replace(/\n/g, '').replace(/\s/g, '')).eql('<div><h1>GETvue</h1><h2>GETvue-3</h2></div>');
+    });
+
+    it('should render <h2> in other right : else', () => {
+      var _html = `
+        <div>
+          {{# GET /vue }}
+            <h1>GET vue</h1>
+            {{# GET /vue-2 }}
+              <h2>CANNOT GET vue-2</h2>
+            {{##}}
+              <h2>GET vue-3</h2>
+            {{#}}
+          {{#}}
+        </div>
+      `;
+      var _res  = compiler.profileTemplate(_html, {
+        'GET /vue'   : true,
+      });
+
+      should(_res.replace(/\n/g, '').replace(/\s/g, '')).eql('<div><h1>GETvue</h1><h2>GETvue-3</h2></div>');
+    });
   });
 });
