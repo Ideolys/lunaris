@@ -1085,7 +1085,32 @@ describe('lunaris internal collection', () => {
       should(_index[1]).have.lengthOf(1);
       should(_index[1]).eql([1]);
 
-      _collection.remove(1);
+      _collection.remove({ _id : 1 });
+      var _data = _collection._getAll();
+      should(_data).have.length(1);
+      should(_data[0]).eql({ _id : 1, id : 10, _version : [1, 2]});
+      should(_collection.get(2)).eql(null);
+
+      _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(0);
+      should(_index[0]).eql([]);
+      should(_index[1]).have.lengthOf(0);
+      should(_index[1]).eql([]);
+    });
+
+    it('should remove the item by PK', () => {
+      var _collection = collection(null, getPrimaryKey);
+      _collection.add({ id : 10 });
+
+      var _index = _collection._getIndexId();
+      should(_index).have.lengthOf(2);
+      should(_index[0]).have.lengthOf(1);
+      should(_index[0]).eql([10]);
+      should(_index[1]).have.lengthOf(1);
+      should(_index[1]).eql([1]);
+
+      _collection.remove({ id : 10 }, null, true);
       var _data = _collection._getAll();
       should(_data).have.length(1);
       should(_data[0]).eql({ _id : 1, id : 10, _version : [1, 2]});
@@ -1103,7 +1128,7 @@ describe('lunaris internal collection', () => {
       var _collection = collection(null, getPrimaryKey);
       _collection.add({ id : 10 });
       _collection.add({ id : 20 });
-      _collection.remove(2);
+      _collection.remove({ _id : 2 });
       var _values = _collection._getAll();
       should(_values).have.length(2);
       should(_values[0]).eql({ _id : 1, id : 10, _version : [1]   });
@@ -1133,8 +1158,8 @@ describe('lunaris internal collection', () => {
       should(_index[1]).eql([1, 2]);
 
       _version = _collection.begin();
-      _collection.remove(2, _version);
-      _collection.remove(1, _version);
+      _collection.remove({ _id : 2 }, _version);
+      _collection.remove({ _id : 1 }, _version);
       _collection.commit(_version);
 
       var _values = _collection._getAll();
@@ -1185,7 +1210,7 @@ describe('lunaris internal collection', () => {
       var _collection = collection();
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
-      _collection.remove(1);
+      _collection.remove({ _id : 1 });
       _collection.upsert({ _id : 2, id : 2, label : 'A' });
       _collection.add({ id : 3 });
 
@@ -1199,7 +1224,7 @@ describe('lunaris internal collection', () => {
       var _collection = collection();
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
-      _collection.remove(1);
+      _collection.remove({ _id : 1 });
       _collection.upsert({ _id : 2, id : 2, label : 'A' });
 
       var _items = _collection.getAll([1, 2]);
@@ -1501,8 +1526,8 @@ describe('lunaris internal collection', () => {
       _collection.commit(_version);
 
       _version = _collection.begin();
-      _collection.remove(2, _version);
-      _collection.remove(1, _version);
+      _collection.remove({ _id : 2 }, _version);
+      _collection.remove({ _id : 1 }, _version);
       _collection.commit(_version);
 
       var _values = _collection._getAll();
@@ -1519,8 +1544,8 @@ describe('lunaris internal collection', () => {
       should(_values[3]).eql({ _id : 1, id : 1, _version : [3]   });
 
       _version = _collection.begin();
-      _collection.remove(1, _version);
-      _collection.remove(2, _version);
+      _collection.remove({ _id : 1 }, _version);
+      _collection.remove({ _id : 2 }, _version);
       _collection.commit(_version);
 
       _values = _collection._getAll();
@@ -1561,7 +1586,7 @@ describe('lunaris internal collection', () => {
       var _version    = _collection.begin();
       _collection.add({ id : 1, test : 1 }            , _version);
       _collection.upsert({ _id : 1, id : 1, test : 2 }, _version);
-      _collection.remove(1, _version);
+      _collection.remove({ _id : 1 }, _version);
       _collection.commit(_version);
       should(_collection.get(1)).eql(null);
       _collection.rollback(_version);
@@ -1574,7 +1599,7 @@ describe('lunaris internal collection', () => {
       _collection.add({ id : 1, test : 1 });
 
       var _version = _collection.begin();
-      _collection.remove(1, _version);
+      _collection.remove({ _id : 1 }, _version);
       _collection.add({ id : 1, test : 2 }, _version);
       _collection.commit(_version);
 

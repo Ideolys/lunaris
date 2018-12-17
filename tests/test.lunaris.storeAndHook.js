@@ -1183,7 +1183,13 @@ describe('lunaris store', () => {
       lunaris._stores['store1'].primaryKey = 'id';
       lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
+      var _nbCalls = false;
       lunaris.hook('delete@store1', data => {
+        _nbCalls++;
+        // delete is sent before and after HTTP DELETE
+        if (_nbCalls > 1) {
+          return;
+        }
         _isDeleteHook = true;
         should(data).be.an.Array().and.have.lengthOf(1);
         should(data).eql([{ _id : 1, id : 2, label : 'A', _version : [1, 2] }]);
@@ -1191,16 +1197,50 @@ describe('lunaris store', () => {
 
       lunaris.hook('deleted@store1', (data, message) => {
         _isDeletedHook = true;
-        should(data.query).be.ok();
-        should(data.params).be.ok();
-        should(data.query).eql({});
-        should(data.params).eql({ id : '2' });
+        should(data).eql({ id : '2' });
 
         should(message).eql('${the} store1 has been successfully ${deleted}');
 
         if (_isDeletedHook && _isDeleteHook) {
           done();
         }
+      });
+
+      lunaris.hook('errorHttp@store1', (err) => {
+        done(err);
+      });
+
+      lunaris.insert('@store1', { id : 2, label : 'A' });
+      should(_store.data.get(1)).eql(_expectedValue);
+      lunaris.delete('@store1', _expectedValue);
+    });
+
+    it('should delete the value and execute the hooks, even if a GET have resurected the deleted primary key', done => {
+      var _store = initStore('store1', [{
+        id : ['<<int>>']
+      }]);
+      var _expectedValue                        = { _id : 1, id : 2, label : 'A', _version : [1] };
+      lunaris._stores['store1']                 = _store;
+      lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
+
+      var _nbCalls = false;
+      lunaris.hook('delete@store1', data => {
+        _nbCalls++;
+        // delete is sent before and after HTTP DELETE
+        if (_nbCalls === 1) {
+          should(data).be.an.Array().and.have.lengthOf(1);
+          should(data).eql([{ _id : 1, id : 2, label : 'A', _version : [1, 2] }]);
+          should(_store.data.getAll()).have.lengthOf(0);
+
+          // we simulate collection insert
+          _store.data.add({ id : 2, label : 'A' });
+          return;
+        }
+
+        should(data).be.an.Array().and.have.lengthOf(1);
+        should(data).eql([{ _id : 2, id : 2, label : 'A', _version : [3, 5] }]);
+        should(_store.data.getAll()).have.lengthOf(0);
+        done();
       });
 
       lunaris.hook('errorHttp@store1', (err) => {
@@ -1226,10 +1266,7 @@ describe('lunaris store', () => {
 
       lunaris.hook('deleted@store1', (data, message) => {
         _isDeletedHook = true;
-        should(data.query).be.ok();
-        should(data.params).be.ok();
-        should(data.query).eql({});
-        should(data.params).eql({ id : '1' });
+        should(data).eql({ id : '1' });
 
         should(message).eql('${the} store1 has been successfully ${deleted}');
 
@@ -4036,13 +4073,13 @@ describe('lunaris store', () => {
                 },
               ],
               store2Values : [
-                { _id : 1, id : 1, label : 'A-2', _version : [4] }
+                { _id : 1, id : 1, label : 'A-2', _version : [6] }
               ],
-              _version : [5]
+              _version : [7]
             }
           ]);
           done();
-        }, 20);
+        }, 200);
       }, 50);
     });
 
@@ -4353,11 +4390,27 @@ function _startServer (callback) {
   var _postPutDelHandler = (req, res) => {
     delete req.body._version;
 
-    return res.json({ success : true, error : null, message : null, data : {
-      body   : req.body,
-      query  : req.query,
-      params : req.params
-    }});
+    if (req.method === 'DELETE') {
+      // We do not send any body for a DELETE request
+      return setTimeout(() => {
+        res.json({
+          success : true,
+          error   : null,
+          message : null,
+          data    : req.params
+        });
+      }, 200);
+    }
+    return res.json({
+      success : true,
+      error   : null,
+      message : null,
+      data    : {
+        body   : req.body,
+        query  : req.query,
+        params : req.params
+      }
+    });
   };
   server.post('/store_insert_put'      , _postPutDelHandler);
   server.get('/methods'                , _postPutDelHandler);
