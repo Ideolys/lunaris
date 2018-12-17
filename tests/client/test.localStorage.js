@@ -16,7 +16,7 @@ describe('local storage', () => {
       lunaris.clear('@http');
       lunaris.clear('@http.filter');
       lunaris._cache.clear();
-      setTimeout(done, 120);
+      setTimeout(done, 200);
     });
   });
 
@@ -336,7 +336,7 @@ describe('local storage', () => {
               done();
             });
           });
-        }, 50);
+        }, 60);
       };
       lunaris.hook('get@http', _hook);
       lunaris.get('@http');
@@ -378,98 +378,7 @@ describe('local storage', () => {
               });
             });
           });
-        }, 10);
-      };
-      var _insertedHook = () => {
-        lunaris._indexedDB.getAll('http', (err, data) => {
-          if (err) {
-            done(err);
-          }
-
-          should(data).be.an.Array().and.have.lengthOf(2);
-          should(data[0]).eql({
-            id       : 1,
-            label    : 'A',
-            _rowId   : 1,
-            _id      : 1,
-            _version : [1, 2]
-          });
-          should(data[1]).eql({
-            id       : 1,
-            label    : 'A',
-            post     : true,
-            _rowId   : 2,
-            _id      : 1,
-            _version : [2]
-          });
-
-          setTimeout(() => {
-            lunaris._indexedDB.get('_states', 'http', (err, data) => {
-              if (err) {
-                done(err);
-              }
-
-              should(data).be.an.Object();
-              should(data).eql({
-                store      : 'http',
-                collection : {
-                  currentId    : 2,
-                  currentRowId : 3,
-                  index        : [[1], [1]]
-                },
-                massOperations : {},
-                pagination     : { limit : 50, offset : 0, currentPage : 1 }
-              });
-
-              lunaris.removeHook('insert@http'  , _insertHook);
-              lunaris.removeHook('inserted@http', _insertedHook);
-              done();
-            });
-          }, 60);
-        });
-      };
-      lunaris.hook('insert@http', _insertHook);
-      lunaris.hook('inserted@http', _insertedHook);
-      lunaris.insert('@http', { id : 1, label : 'A' });
-    });
-
-    it('should update the state : insert', done => {
-      var _insertHook = () => {
-        setTimeout(() => {
-          lunaris._indexedDB.get('_states', 'http', (err, data) => {
-            if (err) {
-              done(err);
-            }
-
-            should(data).be.an.Object();
-            should(data).eql({
-              store      : 'http',
-              collection : {
-                currentId    : 2,
-                currentRowId : 2,
-                index        : [[1], [1]]
-              },
-              massOperations : {},
-              pagination     : { limit : 50, offset : 0, currentPage : 1 }
-            });
-
-
-            lunaris._indexedDB.getAll('http', (err, data) => {
-              if (err) {
-                done(err);
-              }
-
-              should(data).be.an.Array().and.have.lengthOf(1);
-              should(data[0]).eql({
-                id       : 1,
-                label    : 'A',
-                _rowId   : 1,
-                _id      : 1,
-                _version : [1]
-              });
-            });
-          });
-        }, 20);
+        }, 40);
       };
       var _insertedHook = () => {
         lunaris._indexedDB.getAll('http', (err, data) => {
@@ -798,16 +707,18 @@ describe('local storage', () => {
     it('should update the collection data store when deleting', done => {
       var _collection = lunaris._collection(null, null, null, null, null, null, 'test');
       _collection.add({ id : 1 });
-      _collection.remove(1);
-      lunaris._indexedDB.getAll('test', (err, data) => {
-        if (err) {
-          done(err);
-        }
+      _collection.remove({ _id : 1, id : 1 });
+      setTimeout(() => {
+        lunaris._indexedDB.getAll('test', (err, data) => {
+          if (err) {
+            done(err);
+          }
 
-        should(data).be.an.Array().and.have.lengthOf(1);
-        should(data[0]).eql({ id : 1, _id : 1, _rowId : 1, _version : [1, 2] });
-        done();
-      });
+          should(data).be.an.Array().and.have.lengthOf(1);
+          should(data[0]).eql({ id : 1, _id : 1, _rowId : 1, _version : [1, 2] });
+          done();
+        });
+      }, 20);
     });
 
     it('should not duplicate values items within the same transaction', done => {
@@ -848,7 +759,7 @@ describe('local storage', () => {
       var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, null, 'test');
       var _version = _collection.begin();
       _collection.add({ id : 10 }, _version);
-      _collection.remove(1, _version);
+      _collection.remove({ id : 10 }, _version, true);
       _collection.commit(_version);
       lunaris._indexedDB.getAll('test', (err, data) => {
         if (err) {

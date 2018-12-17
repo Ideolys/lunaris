@@ -1235,7 +1235,7 @@ describe('lunaris store', () => {
       var _store = initStore('store1', [{
         id : ['<<int>>']
       }]);
-      var _expectedValue                        = { _id : 1, id : 2, label : 'A', _version : [1] };
+      var _expectedValue                        = { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1] };
       lunaris._stores['store1']                 = _store;
       lunaris._stores['store1'].successTemplate = '$pronounMale $storeName has been successfully $method';
 
@@ -1245,7 +1245,7 @@ describe('lunaris store', () => {
         // delete is sent before and after HTTP DELETE
         if (_nbCalls === 1) {
           should(data).be.an.Array().and.have.lengthOf(1);
-          should(data).eql([{ _id : 1, id : 2, label : 'A', _version : [1, 2] }]);
+          should(data).eql([{ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] }]);
           should(_store.data.getAll()).have.lengthOf(0);
 
           // we simulate collection insert
@@ -1254,7 +1254,7 @@ describe('lunaris store', () => {
         }
 
         should(data).be.an.Array().and.have.lengthOf(1);
-        should(data).eql([{ _id : 2, id : 2, label : 'A', _version : [3, 5] }]);
+        should(data).eql([{ _rowId : 2, _id : 2, id : 2, label : 'A', _version : [3, 5] }]);
         should(_store.data.getAll()).have.lengthOf(0);
         done();
       });
@@ -4166,9 +4166,9 @@ describe('lunaris store', () => {
                 },
               ],
               store2Values : [
-                { _rowId : 1, _id : 1, id : 1, label : 'A-2', _version : [6] }
+                { _rowId : 1, _id : 1, id : 1, label : 'A-2', _version : [5] }
               ],
-              _version : [7]
+              _version : [6]
             }
           ]);
           done();

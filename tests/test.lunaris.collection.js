@@ -1122,10 +1122,10 @@ describe('lunaris internal collection', () => {
       _collection.remove({ _id : 1 });
       var _data = _collection._getAll();
       should(_data).have.length(1);
-      should(_data[0]).eql({ _id : 1, id : 10, _version : [1, 2]});
+      should(_data[0]).eql({ _rowId : 1, _id : 1, id : 10, _version : [1, 2]});
       should(_collection.get(2)).eql(null);
 
-      _index = _collection._getIndexId();
+      _index = _collection.getIndexId();
       should(_index).have.lengthOf(2);
       should(_index[0]).have.lengthOf(0);
       should(_index[0]).eql([]);
@@ -1134,10 +1134,10 @@ describe('lunaris internal collection', () => {
     });
 
     it('should remove the item by PK', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey);
       _collection.add({ id : 10 });
 
-      var _index = _collection._getIndexId();
+      var _index = _collection.getIndexId();
       should(_index).have.lengthOf(2);
       should(_index[0]).have.lengthOf(1);
       should(_index[0]).eql([10]);
