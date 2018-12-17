@@ -582,6 +582,34 @@ function upsert (store, value, isLocal, retryOptions) {
 }
 
 /**
+ * Delete value in collection
+ * @param {Object} store
+ * @param {Object} collection
+ * @param {*} value
+ * @param {Boolean} isError
+ */
+function _delete (store, collection, value, isLocal) {
+  var _version = collection.begin();
+  collection.remove(value, _version, !isLocal);
+  value = collection.commit(_version);
+  var _isArray = Array.isArray(value);
+  if (isLocal && ((!_isArray && !value) || (_isArray && !value.length))) {
+    throw new Error('You cannot delete a value not in the store!');
+  }
+  afterAction(store, 'delete', value);
+  _propagate(store, value, utils.OPERATIONS.DELETE);
+  _propagateReflexive(store, collection, value, utils.OPERATIONS.DELETE);
+
+  if (!store.isStoreObject) {
+    value = value[0];
+  }
+
+  cache.invalidate(store.name);
+  storeUtils.saveState(store, collection);
+  return [_version, value];
+}
+
+/**
  * Delete a value from a store
  * @param {String} store
  * @param {*} value
@@ -601,23 +629,9 @@ function deleteStore (store, value, retryOptions, isLocal) {
 
     var _version;
     if (!retryOptions) {
-      _version = _options.collection.begin();
-      _options.collection.remove(value._id, _version);
-      value = _options.collection.commit(_version);
-      var _isArray = Array.isArray(value);
-      if ((!_isArray && !value) || (_isArray && !value.length)) {
-        throw new Error('You cannot delete a value not in the store!');
-      }
-      afterAction(_options.store, 'delete', value);
-      _propagate(_options.store, value, utils.OPERATIONS.DELETE);
-      _propagateReflexive(_options.store, _options.collection, value, utils.OPERATIONS.DELETE);
-
-      if (!store.isStoreObject) {
-        value = value[0];
-      }
-
-      cache.invalidate(_options.store.name);
-      storeUtils.saveState(_options.store, _options.collection, _options.cache);
+      var _res = _delete(_options.store, _options.collection, value, true);
+      _version = _res[0];
+      value    = _res[1];
     }
     else {
       _version = retryOptions.version;
@@ -652,6 +666,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
         return hook.pushToHandlers(_options.store, 'errorHttp', [_error, value]);
       }
 
+      value = _delete(_options.store, _options.collection, data);
       afterAction(_options.store, 'deleted', data, template.getSuccess(null, _options.store, 'DELETE', false));
     });
   }

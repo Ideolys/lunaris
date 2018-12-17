@@ -279,23 +279,34 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
 
   /**
    * Remove an item with the given id / value
-   * @param {*} id
+   * @param {Object} value
    * @param {Int} versionNumber force versionNumber (must call begin() first)
-   * @returns {Boolean} true if the value has been removed, of false if not
+   * @param {Boolean} isPK is primaryKey
    */
-  function remove (id, versionNumber) {
+  function remove (value, versionNumber, isPK) {
     if (versionNumber && !_isTransactionCommit) {
-      _addTransaction(versionNumber, { _id : id }, OPERATIONS.DELETE);
+      _addTransaction(versionNumber, { value : value, isPK : !!isPK }, OPERATIONS.DELETE);
       return;
     }
 
-    if (_getPrimaryKey) {
-      var _obj = get(id);
-      var _id  = _getPrimaryKey(_obj);
-      _removeFromIndex(id, _id);
+    if (_getPrimaryKey && !isPK) {
+      var _obj = get(value._id);
+      if (_obj) {
+        _removeFromIndex(value._id, _getPrimaryKey(_obj));
+      }
+    }
+    else if (_getPrimaryKey && isPK) {
+      var _pk            = _getPrimaryKey(value);
+      var _arrayIdValues = _indexes.id[0];
+      var _search        = index.binarySearch(_arrayIdValues, _pk);
+
+      if (_search.found) {
+        value._id = _indexes.id[1][_search.index];
+        _removeFromIndex(_indexes.id[1][_search.index], _pk);
+      }
     }
 
-    return upsert({ _id : id }, versionNumber, true);
+    return upsert({ _id : value._id }, versionNumber, true);
   }
 
   /**
@@ -357,7 +368,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
         add(_objToRollback[j], _version);
       }
       else {
-        remove(_objToRollback[j]._id, _version);
+        remove({ _id : _objToRollback[j]._id }, _version, false);
       }
     }
     return _internalCommit(_version);
@@ -410,7 +421,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
         _res.push(upsert(_transaction[i][1]));
       }
       else {
-        var _remove = remove(_transaction[i][1]._id);
+        var _remove = remove(_transaction[i][1].value, null, _transaction[i][1].isPK);
         // The _id can be unedfined
         if (_remove) {
           _res.push(_remove);
