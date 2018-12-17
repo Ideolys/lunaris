@@ -1,7 +1,7 @@
 # Lunaris
 
 ## 1.7.0
-*2018-XX-XX*
+*2018-12-17*
 - Features :
   - Add `vm.components` that references every vuejs components.
   - `vm.globlas` is availbale in all Vue components.
