@@ -19,6 +19,7 @@
   - Fix store FilterUpdated event. An empty local store cannot longer send the event.
   - Fix template compilation when imbricating rights.
   - When deleting a value from a store, the value could have been not deleted if the same value were inserted in the meantime.
+  - Fix translations by enabling profiling.
 
 ## 1.6.1
 *2018-11-19*
