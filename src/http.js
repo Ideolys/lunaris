@@ -13,9 +13,12 @@ function request (method, request, body, callback) {
     'Content-Type' : 'application/json'
   };
 
-  if (body) {
+  if (body && lunarisExports.isProduction) {
     _headers['Content-Encoding'] = 'gzip';
     _body                        = pako.gzip(JSON.stringify(body));
+  }
+  else if (body) {
+    _body = JSON.stringify(body);
   }
 
   fetch(lunarisExports.baseUrl + request, {

@@ -1,8 +1,10 @@
 # Lunaris
 
-## 1.8.0
+## 1.7.1
 - Features:
+  - Do not compress the body of HTTP requests in development mode.
 - Fix:
+  - For GET HTTP request, if the cache value was an object, an empty array whould be returned.
 
 ## 1.7.0
 *2018-12-17*
