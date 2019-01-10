@@ -557,6 +557,23 @@ describe('Validate', () => {
           should(_computedResult).eql(_expectedResult);
         });
 
+        it('should validate array with 2 objects and validate optional value : undefined', () => {
+          var _objectDescriptor = [{
+            id        : ['<<int>>'],
+            continent : ['string', 'optional']
+          }];
+          var _objectToCheck = [{
+            id        : 1,
+            continent : 'france'
+          },{
+            id : null
+          }];
+          var _expectedResult     = [];
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _computedResult     = validate.buildValidateFunction(_analyzedDescriptor.compilation)(_objectToCheck, null, false);
+          should(_computedResult).eql(_expectedResult);
+        });
+
         it('should validate array with 2 objects and validate optional object value', () => {
           var _objectDescriptor = [{
             id        : ['<<int>>'],
@@ -568,8 +585,7 @@ describe('Validate', () => {
             id        : 1,
             continent : { id : 2 }
           },{
-            id        : null,
-            continent : null
+            id : null
           }];
           var _expectedResult     = [];
           var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);

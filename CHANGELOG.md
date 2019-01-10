@@ -3,6 +3,7 @@
 ## 1.7.1
 - Features:
   - Do not compress the body of HTTP requests in development mode.
+  - Validation function supports undefined values for optional attributes.
 - Fix:
   - For GET HTTP request, if the cache value was an object, an empty array whould be returned.
 
