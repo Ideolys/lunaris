@@ -10,7 +10,8 @@ var lunarisExports = require('./exports.js');
 function request (method, request, body, callback) {
   var _body    = null;
   var _headers = {
-    'Content-Type' : 'application/json'
+    'Content-Type'   : 'application/json',
+    'Client-Version' : 2
   };
 
   if (body && lunarisExports.isProduction) {

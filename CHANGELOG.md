@@ -4,6 +4,7 @@
 - Features:
   - Do not compress the body of HTTP requests in development mode.
   - Validation function supports undefined values for optional attributes.
+  - Add header `Content-Version` with value equals to `2`.
 - Fix:
   - For GET HTTP request, if the cache value was an object, an empty array whould be returned.
 
