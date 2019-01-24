@@ -7,7 +7,7 @@ console.tip = function () {
   lastTip = [arguments[0], arguments[1]];
 };
 
-describe.only('Store plugin', () => {
+describe('Store plugin', () => {
 
   afterEach(() => {
     lastError = [];
