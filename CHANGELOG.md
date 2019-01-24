@@ -7,6 +7,7 @@
   - Add header `Content-Version` with value equals to `2`.
 - Fix:
   - For GET HTTP request, if the cache value was an object, an empty array whould be returned.
+  - Fix removeHook. When removing hooks, the function were looking at the same function definition and not the reference.
 
 ## 1.7.0
 *2018-12-17*

@@ -250,6 +250,8 @@ lunaris._vue = {
      * @param {Object} _this instance vue
      */
     function _registerHooks (_this) {
+      // We must reference hook fn. bind() rename the fn
+      _this.hooks = {};
       var _hooks = _this.$options.storeHooks;
       if (!_hooks) {
         return;
@@ -265,7 +267,8 @@ lunaris._vue = {
         if (typeof _hook !== 'function') {
           return lunaris.logger.warn('Error in component \'' + _this.$options.name + '\':', 'vm.storeHooks.' + _hookKeys[i] + ' must be a Function!');
         }
-        lunaris.hook(_hookKeys[i], _hook.bind(_this));
+        _this.hooks[_hookKeys[i]] = _hook.bind(_this);
+        lunaris.hook(_hookKeys[i], _this.hooks[_hookKeys[i]]);
       }
     }
 
@@ -282,8 +285,10 @@ lunaris._vue = {
 
       var _hookKeys = Object.keys(_hooks);
       for (var i = 0; i < _hookKeys.length; i++) {
-        var _hook = _hooks[_hookKeys[i]];
-        lunaris.removeHook(_hookKeys[i], _hook.bind(_this));
+        var _hook = _this.hooks[_hookKeys[i]];
+        if (_hook) {
+          lunaris.removeHook(_hookKeys[i], _hook);
+        }
       }
 
       var _internalHooks = _this.$options.internalStoreHooks;
