@@ -9,7 +9,7 @@ var lunarisExports = require('./exports.js');
  * @param {Options} { 'Content-Type' }
  */
 function request (method, request, body, callback, options) {
-  var _body               = null;
+  var _body               = body;
   var _defaultContentType = 'application/json';
   var _headers            = {
     'Client-Version' : 2
