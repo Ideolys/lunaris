@@ -445,7 +445,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       var _cacheValues = cache.get(store.name, md5(_request.request));
 
       if (_cacheValues) {
-        if (_cacheValues.length) {
+        if (typeof _cacheValues === 'object') {
           afterAction(_options.store, 'get', _transformGetCache(_options.collection, _cacheValues));
           return callback(store);
         }

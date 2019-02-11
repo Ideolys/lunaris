@@ -158,7 +158,7 @@ function removeHook (hook, handler) {
 
 
     for (var i = 0; i < _handlers.length; i++) {
-      if (_handlers[i].toString() === handler.toString()) {
+      if (_handlers[i] === handler) {
         _handlers.splice(i, 1);
       }
     }

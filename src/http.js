@@ -15,16 +15,25 @@ function setup (options) {
  * @param {String} method
  * @param {Object} body
  * @param {Function} callback
+ * @param {Options} { 'Content-Type' }
  */
-function request (method, request, body, callback) {
-  var _body    = null;
-  var _headers = {
-    'Content-Type' : 'application/json'
+function request (method, request, body, callback, options) {
+  var _body               = body;
+  var _defaultContentType = 'application/json';
+  var _headers            = {
+    'Client-Version' : 2
   };
 
-  if (body) {
-    _headers['Content-Encoding'] = 'gzip';
-    _body                        = pako.gzip(JSON.stringify(body));
+  options = options || {};
+  _headers['Content-Type'] = options['Content-Type'] || _defaultContentType;
+
+  if (_headers['Content-Type'] === _defaultContentType && body) {
+    _body = JSON.stringify(body);
+
+    if (lunarisExports.isProduction) {
+      _headers['Content-Encoding'] = 'gzip';
+      _body                        = pako.gzip(body);
+    }
   }
 
   fetch(lunarisExports.baseUrl + request, {

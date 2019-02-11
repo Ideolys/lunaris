@@ -1,7 +1,17 @@
 # Lunaris
 
+## 1.7.1
+- Features:
+  - Do not compress the body of HTTP requests in development mode.
+  - Validation function supports undefined values for optional attributes.
+  - Add header `Content-Version` with value equals to `2`.
+  - Allow multiple stores definition in one file. In module.exports, define an array of store objet instead of a store object `module.exports = [ {}, {}, ... ]`.
+- Fix:
+  - For GET HTTP request, if the cache value was an object, an empty array whould be returned.
+  - Fix removeHook. When removing hooks, the function was looking at the same function definition and not the reference.
+
 ## 1.7.0
-*2018-XX-XX*
+*2018-12-17*
 - Features :
   - Add `vm.components` that references every vuejs components.
   - `vm.globlas` is availbale in all Vue components.

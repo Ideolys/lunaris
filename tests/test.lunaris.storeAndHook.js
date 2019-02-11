@@ -40,21 +40,19 @@ lunaris._stores.lunarisErrors.data = collection.collection();
 
 var nbCallsPagination2 = 0;
 
-describe('lunaris store', () => {
+describe('lunaris store', function () {
+  this.retries(3);
 
   before(done => {
     _startServer(done);
   });
 
-  beforeEach(done => {
+  beforeEach(() => {
+    collection.resetVersionNumber();
     lastError = [];
     lastTip   = [];
     lunaris._stores.lunarisErrors.data.clear();
     lunaris._cache.clear();
-    setTimeout(() => {
-      collection.resetVersionNumber();
-      done();
-    }, 5);
   });
 
   after(done => {
@@ -3997,8 +3995,14 @@ describe('lunaris store', () => {
       lunaris.insert('@store1', [{ id : 1, label : 'A' }, { id : 2, label : 'B' }]);
       lunaris.update('@store1', { _id : 2, id : 2, label : 'B-2' });
 
-      setTimeout(() => {
-        should(_storeToPropagate.data.getAll()).eql([
+      var _nbCalls = 0;
+      lunaris.hook('update@propagate', (objects) => {
+        _nbCalls++;
+        if (_nbCalls !== 2) {
+          return;
+        }
+
+        should(objects).eql([
           {
             _rowId       : 9,
             _id          : 1,
@@ -4094,7 +4098,7 @@ describe('lunaris store', () => {
           }
         ]);
         done();
-      }, 100);
+      });
     });
 
     it('should propagate to a store with multiple joins', done => {
@@ -4126,11 +4130,8 @@ describe('lunaris store', () => {
         done(err);
       });
 
-      lunaris.insert('@store1', { id : 1, label : 'A-1' });
-      lunaris.insert('@propagate', [{ id : 1 }]);
-
-      setTimeout(() => {
-        should(_storeToPropagate.data.getAll()).eql([
+      lunaris.hook('insert@propagate', (objects) => {
+        should(objects).eql([
           {
             _rowId       : 1,
             _id          : 1,
@@ -4148,38 +4149,40 @@ describe('lunaris store', () => {
             _version     : [3]
           }
         ]);
-
         lunaris.insert('@store2', { id : 1, label : 'A-2' });
-        setTimeout(() => {
-          should(_storeToPropagate.data.getAll()).eql([
-            {
-              _rowId       : 2,
-              _id          : 1,
-              id           : 1,
-              store1Values : [
-                {
-                  _rowId   : 1,
-                  _id      : 1,
-                  id       : 1,
-                  label    : 'A-1',
-                  _version : [1],
-                },
-              ],
-              store2Values : [
-                { _rowId : 1, _id : 1, id : 1, label : 'A-2', _version : [5] }
-              ],
-              _version : [6]
-            }
-          ]);
-          done();
-        }, 200);
-      }, 50);
+      });
+
+      lunaris.hook('update@propagate', (objects) => {
+        should(objects).eql([
+          {
+            _rowId       : 2,
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              {
+                _rowId   : 1,
+                _id      : 1,
+                id       : 1,
+                label    : 'A-1',
+                _version : [1],
+              },
+            ],
+            store2Values : [
+              { _rowId : 1, _id : 1, id : 1, label : 'A-2', _version : [4] }
+            ],
+            _version : [5]
+          }
+        ]);
+        done();
+      });
+
+      lunaris.insert('@store1', { id : 1, label : 'A-1' });
+      lunaris.insert('@propagate', [{ id : 1 }]);
     });
 
   });
 
-  describe('propagateReflexive', () => {
-
+  describe('propagateReflexive', function () {
     it('should update objects : update', done => {
       var _objectDescriptor = [{
         id     : ['<<id>>'],
@@ -4188,11 +4191,8 @@ describe('lunaris store', () => {
       }];
 
       var _store                = initStore('store1', _objectDescriptor);
+      _store.isLocal            = true;
       lunaris._stores['store1'] = _store;
-
-      lunaris.hook('errorHttp@store1', err => {
-        done(err);
-      });
 
 
       var _parentObj = {
@@ -4290,6 +4290,7 @@ describe('lunaris store', () => {
       }];
 
       var _store                = initStore('store1', _objectDescriptor);
+      _store.isLocal            = true;
       lunaris._stores['store1'] = _store;
 
       lunaris.hook('errorHttp@store1', err => {
@@ -4693,6 +4694,26 @@ describe('Lunaris hooks', () => {
     it('should remove one handler from a list of handlers', () => {
       var _handler1             = function handler1 () {};
       var _handler2             = function handler2 () {};
+      lunaris._stores['store1'] = { hooks : [] };
+      lunaris.hook('get@store1', _handler1);
+      lunaris.hook('get@store1', _handler2);
+      should(lunaris._stores['store1'].hooks).be.an.Array();
+      should(lunaris._stores['store1'].hooks.get).have.length(2);
+      should(lunaris._stores['store1'].hooks.get[0]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[0]).eql(_handler1);
+      should(lunaris._stores['store1'].hooks.get[1]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[1]).eql(_handler2);
+      lunaris.removeHook('get@store1', _handler1);
+      should(lunaris._stores['store1'].hooks).be.an.Array();
+      should(lunaris._stores['store1'].hooks.get).have.length(1);
+      should(lunaris._stores['store1'].hooks.get[0]).be.a.Function();
+      should(lunaris._stores['store1'].hooks.get[0]).eql(_handler2);
+      delete lunaris._stores['store1'];
+    });
+
+    it('should remove one handler from a list of handlers', () => {
+      var _handler1             = function handler1 () {};
+      var _handler2             = function handler1 () {};
       lunaris._stores['store1'] = { hooks : [] };
       lunaris.hook('get@store1', _handler1);
       lunaris.hook('get@store1', _handler2);
