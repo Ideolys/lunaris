@@ -8,7 +8,7 @@
   - Allow multiple stores definition in one file. In module.exports, define an array of store objet instead of a store object `module.exports = [ {}, {}, ... ]`.
 - Fix:
   - For GET HTTP request, if the cache value was an object, an empty array whould be returned.
-  - Fix removeHook. When removing hooks, the function were looking at the same function definition and not the reference.
+  - Fix removeHook. When removing hooks, the function was looking at the same function definition and not the reference.
 
 ## 1.7.0
 *2018-12-17*
