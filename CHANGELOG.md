@@ -5,6 +5,7 @@
   - Do not compress the body of HTTP requests in development mode.
   - Validation function supports undefined values for optional attributes.
   - Add header `Content-Version` with value equals to `2`.
+  - Allow multiple stores definition in one file. In module.exports, define an array of store objet instead of a store object `module.exports = [ {}, {}, ... ]`.
 - Fix:
   - For GET HTTP request, if the cache value was an object, an empty array whould be returned.
   - Fix removeHook. When removing hooks, the function were looking at the same function definition and not the reference.
