@@ -1,6 +1,6 @@
 # Lunaris
 
-## 1.7.1
+## 1.8.0
 - Features:
   - Do not compress the body of HTTP requests in development mode.
   - Validation function supports undefined values for optional attributes.
