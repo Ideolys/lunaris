@@ -11,6 +11,7 @@ var template        = require('./store.template.js');
 var collection      = require('./store.collection.js');
 var offline         = require('../offline.js');
 var storeOffline    = require('./store.offline.js');
+var transaction     = require('./store.transaction.js');
 var OPERATIONS      = utils.OPERATIONS;
 var emptyObject     = {};
 var getRequestQueue = {};
@@ -121,17 +122,18 @@ function beforeAction (store, value, isNoValue) {
  * @param {String} event
  * @param {Object/Array} value
  * @param {String} message
+ * @param {Int} transactionId
  */
-function afterAction (store, event, value, message) {
+function afterAction (store, event, value, message, transactionId) {
   var _value = null;
   if (value) {
     _value = utils.cloneAndFreeze(value);
   }
   if (message) {
-    return hook.pushToHandlers(store, event, [_value, message]);
+    return hook.pushToHandlers(store, event, [_value, message], false, transactionId);
   }
 
-  hook.pushToHandlers(store, event, _value, Array.isArray(_value));
+  hook.pushToHandlers(store, event, _value, Array.isArray(_value), transactionId);
 }
 
 /**
@@ -166,16 +168,16 @@ function setLunarisError (storeName, method, request, value, version, err, error
  * @param {Boolean} isMultipleItems
  * @param {Boolean} isUpdate
  * @param {Array} pathParts
+ * @param {Int} transactionId
  * @returns {Int} version
  */
-function _upsertCollection (store, collection, value, version, isMultipleItems, isUpdate, pathParts) {
+function _upsertCollection (store, collection, value, version, isMultipleItems, isUpdate, pathParts, transactionId) {
   var _ids        = [];
   var _inputValue = value;
 
   if (pathParts.length) {
     // set or upddate massOperations rules
     store.massOperations[pathParts.join('.')] = value;
-
     var _data = collection.getAll();
     version   = collection.begin();
     for (var i = 0; i < _data.length; i++) {
@@ -222,9 +224,8 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
 
   value = collection.commit(version);
 
-
   cache.invalidate(store.name);
-  afterAction(store, isUpdate ? 'update' : 'insert', value);
+  afterAction(store, isUpdate ? 'update' : 'insert', value, null, transactionId);
   _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT);
   if (isUpdate) {
     _propagateReflexive(store, collection, value,  utils.OPERATIONS.UPDATE);
@@ -256,18 +257,19 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
  * @param {*} value
  * @param {Boolean} isMultipleItems
  * @param {Int} version
+ * @param {Int} transactionId
  */
-function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version) {
+function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version, transactionId) {
   http.request(method, request, value, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, method, false);
       setLunarisError(store.name, method, request, value, version, err, _error);
       logger.warn(['lunaris.' + (isUpdate ? 'update' : 'insert') + '@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', [_error, utils.cloneAndFreeze(value)]);
+      return hook.pushToHandlers(store, 'errorHttp', [_error, utils.cloneAndFreeze(value)], false, transactionId);
     }
 
     if (method === OPERATIONS.PATCH) {
-      afterAction(store, 'patched');
+      afterAction(store, 'patched', null, null, transactionId);
       return;
     }
 
@@ -315,10 +317,10 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
       return;
     }
 
-    afterAction(store, 'update', value);
-    afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false));
+    afterAction(store, 'update', value, null, transactionId);
+    afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false), transactionId);
     if (store.isFilter) {
-      hook.pushToHandlers(store, 'filterUpdated');
+      hook.pushToHandlers(store, 'filterUpdated', null, false, transactionId);
     }
     _propagate(store, value, utils.OPERATIONS.UPDATE);
     _propagateReflexive(store, collection, value, utils.OPERATIONS.UPDATE);
@@ -335,11 +337,11 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
  * @param {Boolean} isUpdate
  * @param {Object} retryOptions
  */
-function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryOptions) {
+function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryOptions, transactionId) {
   var _isMultipleItems = Array.isArray(value);
   var _version;
   if (!retryOptions) {
-    var _res = _upsertCollection(store, collection, value, _version, _isMultipleItems, isUpdate, pathParts);
+    var _res = _upsertCollection(store, collection, value, _version, _isMultipleItems, isUpdate, pathParts, transactionId);
     _version = _res.version;
     value    = _res.value;
   }
@@ -347,9 +349,10 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
     _version = retryOptions.version;
   }
 
+
   if (store.isLocal || isLocal) {
     if (store.isFilter) {
-      hook.pushToHandlers(store, 'filterUpdated');
+      hook.pushToHandlers(store, 'filterUpdated', null, false, transactionId);
     }
     return;
   }
@@ -380,7 +383,7 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
     return;
   }
 
-  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version);
+  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, transactionId);
 }
 
 /**
@@ -549,6 +552,7 @@ function upsert (store, value, isLocal, retryOptions) {
       value = retryOptions.data;
     }
 
+
     var _options = beforeAction(store, value);
     if ((Array.isArray(value) && value[0]._id) || value._id) {
       _isUpdate = true;
@@ -557,17 +561,29 @@ function upsert (store, value, isLocal, retryOptions) {
       _isUpdate = false;
     }
 
+    if (transaction.isTransaction && !transaction.isCommitingTransaction) {
+      return transaction.addAction({
+        id        : transaction.getCurrentTransactionId(),
+        store     : _options.store.name,
+        operation : _isUpdate ? OPERATIONS.UPDATE : OPERATIONS.INSERT,
+        handler   : upsert,
+        arguments : arguments,
+        rollback  : _isUpdate ? upsert : deleteStore
+      });
+    }
+    var _transactionId = transaction.getCurrentTransactionId();
+
     if (_options.store.validateFn && !_options.pathParts) {
       return validate(store, _options.value, _isUpdate, function (res) {
         if (!res) {
           return;
         }
 
-        _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions);
+        _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions, _transactionId);
       }, _eventName);
     }
 
-    _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions);
+    _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions, _transactionId);
   }
   catch (e) {
     logger.warn([_eventName], e);
@@ -579,9 +595,10 @@ function upsert (store, value, isLocal, retryOptions) {
  * @param {Object} store
  * @param {Object} collection
  * @param {*} value
- * @param {Boolean} isError
+ * @param {Boolean} isLocal
+ * @param {Int} transactionId
  */
-function _delete (store, collection, value, isLocal) {
+function _delete (store, collection, value, isLocal, transactionId) {
   var _version = collection.begin();
   collection.remove(value, _version, !isLocal);
   value = collection.commit(_version);
@@ -589,7 +606,7 @@ function _delete (store, collection, value, isLocal) {
   if (isLocal && ((!_isArray && !value) || (_isArray && !value.length))) {
     throw new Error('You cannot delete a value not in the store!');
   }
-  afterAction(store, 'delete', value);
+  afterAction(store, 'delete', value, null, transactionId);
   _propagate(store, value, utils.OPERATIONS.DELETE);
   _propagateReflexive(store, collection, value, utils.OPERATIONS.DELETE);
 
@@ -618,10 +635,21 @@ function deleteStore (store, value, retryOptions, isLocal) {
       value = retryOptions.data;
     }
     var _options = beforeAction(store, value);
+    if (transaction.isTransaction && !transaction.isCommitingTransaction) {
+      return transaction.addAction({
+        id        : transaction.getCurrentTransactionId(),
+        store     : _options.store.name,
+        operation : OPERATIONS.DELETE,
+        handler   : deleteStore,
+        arguments : arguments,
+        rollback  : upsert
+      });
+    }
+    var _transactionId = transaction.getCurrentTransactionId();
 
     var _version;
     if (!retryOptions) {
-      var _res = _delete(_options.store, _options.collection, value, true);
+      var _res = _delete(_options.store, _options.collection, value, true, _transactionId);
       _version = _res[0];
       value    = _res[1];
     }
@@ -655,11 +683,14 @@ function deleteStore (store, value, retryOptions, isLocal) {
         var _error = template.getError(err, _options.store, 'DELETE', false);
         setLunarisError(_options.store.name, 'DELETE', _request, value, _version, err, _error);
         logger.warn(['lunaris.delete' + store], err);
-        return hook.pushToHandlers(_options.store, 'errorHttp', [_error, value]);
+        return hook.pushToHandlers(_options.store, 'errorHttp', [_error, value], false, _transactionId);
       }
 
-      value = _delete(_options.store, _options.collection, data);
-      afterAction(_options.store, 'deleted', data, template.getSuccess(null, _options.store, 'DELETE', false));
+      _res = _delete(_options.store, _options.collection, data, false, _transactionId)[1];
+      if (_res) {
+        value = _res;
+      }
+      afterAction(_options.store, 'deleted', value, template.getSuccess(null, _options.store, 'DELETE', false), _transactionId);
     });
   }
   catch (e) {
@@ -864,18 +895,15 @@ function validate (store, value, isUpdate, callback, eventName) {
   }
 }
 
-exports.get               = get;
-exports.getOne            = getOne;
-exports.insert            = upsert;
-// exports.insertFiltered = upsertFiltered;
-exports.update            = upsert;
-// exports.updateFiltered = upsertFiltered;
-exports.upsert            = upsert;
-exports.delete            = deleteStore;
-exports.clear             = clear;
-exports.retry             = retry;
-exports.rollback          = rollback;
-exports.getDefaultValue   = getDefaultValue;
-exports.validate          = validate;
-exports.setPagination     = setPagination;
-// exports.deleteFiltered = deleteFiltered;
+exports.get             = get;
+exports.getOne          = getOne;
+exports.insert          = upsert;
+exports.update          = upsert;
+exports.upsert          = upsert;
+exports.delete          = deleteStore;
+exports.clear           = clear;
+exports.retry           = retry;
+exports.rollback        = rollback;
+exports.getDefaultValue = getDefaultValue;
+exports.validate        = validate;
+exports.setPagination   = setPagination;

@@ -7,11 +7,13 @@ var logger         = require('./logger.js');
 var http           = require('./http.js');
 var offline        = require('./offline.js');
 var cache          = require('./cache.js');
+var transaction    = require('./store/store.transaction.js');
 
 module.exports = {
   _stores             : lunarisExports._stores,
   _collection         : collection.collection,
   _resetVersionNumber : collection.resetVersionNumber,
+  _resetTransaction   : transaction._reset,
   _cache              : cache,
 
   utils  : utils,
@@ -36,8 +38,8 @@ module.exports = {
   getDefaultValue : store.getDefaultValue,
   validate        : store.validate,
   setPagination   : store.setPagination,
-  begin           : hook.begin,
-  commit          : hook.commit,
+  begin           : transaction.begin,
+  commit          : transaction.commit,
 
   OPERATIONS : utils.OPERATIONS,
   constants  : lunarisExports.constants
