@@ -3233,6 +3233,9 @@ describe('lunaris store', function () {
       lunaris.hook('insert@store1', () => {
         _events.push('insert@store1');
       });
+      lunaris.hook('get@store1', () => {
+        _events.push('get@store1');
+      });
       lunaris.hook('inserted@store1', () => {
         _events.push('inserted@store1');
       });
@@ -3242,61 +3245,45 @@ describe('lunaris store', function () {
         { id : 1, label : 'A' },
         { id : 2, label : 'B' }
       ]);
+      lunaris.get('@store1');
       lunaris.insert('@multiple', [
         { id : 1, label : 'A' },
         { id : 2, label : 'B' }
       ]);
-      lunaris.commit();
-
-      setTimeout(() => {
+      lunaris.commit(() => {
         should(_events).eql([
           'insert@store1',
           'inserted@store1',
+          'get@store1',
           'insert@multiple',
           'inserted@multiple',
         ]);
         done();
-      }, 100);
+      });
     });
 
-    it('should commit multiple filter stores sequentially', done => {
-      lunaris._stores['multiple'] = initStore('multiple');
+    it('should commit multiple stores sequentially : GET', done => {
+      lunaris._stores['pagination'] = initStore('pagination');
       lunaris._stores['store1']   = initStore('store1');
 
       var _events = [];
-      lunaris.hook('insert@multiple', () => {
-        _events.push('insert@multiple');
+      lunaris.hook('get@pagination', () => {
+        _events.push('get@pagination');
       });
-      lunaris.hook('inserted@multiple', () => {
-        _events.push('inserted@multiple');
-      });
-      lunaris.hook('insert@store1', () => {
-        _events.push('insert@store1');
-      });
-      lunaris.hook('inserted@store1', () => {
-        _events.push('inserted@store1');
+      lunaris.hook('get@store1', () => {
+        _events.push('get@store1');
       });
 
       lunaris.begin();
-      lunaris.insert('@store1', [
-        { id : 1, label : 'A' },
-        { id : 2, label : 'B' }
-      ]);
-      lunaris.insert('@multiple', [
-        { id : 1, label : 'A' },
-        { id : 2, label : 'B' }
-      ]);
-      lunaris.commit();
-
-      setTimeout(() => {
+      lunaris.get('@store1');
+      lunaris.get('@pagination');
+      lunaris.commit(() => {
         should(_events).eql([
-          'insert@store1',
-          'inserted@store1',
-          'insert@multiple',
-          'inserted@multiple',
+          'get@store1',
+          'get@pagination'
         ]);
         done();
-      }, 100);
+      });
     });
 
     it('should commit multiple filter stores sequentially and fire the event "filterUpdated" once', done => {
@@ -3356,6 +3343,7 @@ describe('lunaris store', function () {
 
       lunaris.begin();
       lunaris.insert('@transaction_A', { id : 1 });
+      lunaris.insert('@transaction_A', { id : 2 });
       lunaris.insert('@transaction_B', { id : 1 });
       lunaris.commit();
 
@@ -3363,6 +3351,8 @@ describe('lunaris store', function () {
         should(_hasBeenCalledA).eql(0);
         should(_hasBeenCalledB).eql(1);
         should(_events).eql([
+          'insert@transaction_A',
+          'inserted@transaction_A',
           'insert@transaction_A',
           'inserted@transaction_A',
           'insert@transaction_B',
@@ -3529,6 +3519,37 @@ describe('lunaris store', function () {
       });
 
       lunaris.insert('@store1', { id : 1, label : 'A' });
+    });
+
+    it('should not rollback a store : GET', done => {
+      lunaris._stores['multiple1'] = initStore('multiple1'); // multiple1 must crash
+      var _events  = [];
+
+      lunaris.hook('insert@multiple1', () => {
+        _events.push('insert@multiple1');
+      });
+      lunaris.hook('inserted@multiple1', () => {
+        _events.push('inserted@multiple1');
+      });
+      lunaris.hook('update@multiple1', () => {
+        _events.push('update@multiple1');
+      });
+      lunaris.hook('updated@multiple1', () => {
+        _events.push('updated@multiple1');
+      });
+      lunaris.hook('delete@multiple1', () => {
+        _events.push('delete@multiple1');
+      });
+      lunaris.hook('deleted@multiple1', () => {
+        _events.push('deleted@multiple1');
+      });
+
+      lunaris.begin();
+      lunaris.get('@multiple1');
+      lunaris.commit(() => {
+        should(_events).eql([]);
+        done();
+      });
     });
   });
 

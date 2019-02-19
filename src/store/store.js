@@ -431,8 +431,9 @@ function _transformGetCache (collection, values) {
  */
 function _get (store, primaryKeyValue, retryOptions, callback) {
   try {
-    var _options = beforeAction(store, null, true);
-    var _request = '/';
+    var _options       = beforeAction(store, null, true);
+    var _request       = '/';
+    var _transactionId = transaction.getCurrentTransactionId();
 
     if (!retryOptions) {
       _request = url.create(_options.store, 'GET', primaryKeyValue);
@@ -444,10 +445,10 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
 
       if (_cacheValues) {
         if (typeof _cacheValues === 'object') {
-          afterAction(_options.store, 'get', _transformGetCache(_options.collection, _cacheValues));
+          afterAction(_options.store, 'get', _transformGetCache(_options.collection, _cacheValues), null, _transactionId);
           return callback(store);
         }
-        afterAction(_options.store, 'get', []);
+        afterAction(_options.store, 'get', [], null, _transactionId);
         return callback(store);
       }
 
@@ -457,9 +458,9 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
           _options.collection,
           _request
         );
-        afterAction(_options.store, 'get', _res);
+        afterAction(_options.store, 'get', _res, null, _transactionId);
         if (_options.store.isFilter && ((_options.store.isStoreObject && _res) || (!_options.store.isStoreObject && _res.length))) {
-          hook.pushToHandlers(_options.store, 'filterUpdated');
+          hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
         }
         return callback(store);
       }
@@ -475,7 +476,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         var _error = template.getError(err, _options.store, 'GET', true);
         setLunarisError(_options.store.name, 'GET', _request, null, null, err, _error);
         logger.warn(['lunaris.get' + store], err);
-        hook.pushToHandlers(_options.store, 'errorHttp', _error);
+        hook.pushToHandlers(_options.store, 'errorHttp', _error, false, _transactionId);
         return callback(store);
       }
 
@@ -506,7 +507,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
 
       data = _options.collection.commit(_version);
 
-      afterAction(_options.store, 'get', data);
+      afterAction(_options.store, 'get', data, null, _transactionId);
       _propagate(_options.store, data, utils.OPERATIONS.INSERT);
       if (_options.store.isFilter) {
         hook.pushToHandlers(_options.store, 'filterUpdated');
@@ -751,6 +752,17 @@ function clear (store, isSilent) {
 function get (store, primaryKeyValue, retryOptions) {
   if (!getRequestQueue[store]) {
     getRequestQueue[store] = [];
+  }
+
+  if (transaction.isTransaction && !transaction.isCommitingTransaction) {
+    return transaction.addAction({
+      id        : transaction.getCurrentTransactionId(),
+      store     : store.replace('@', ''),
+      operation : OPERATIONS.LIST,
+      handler   : _get,
+      arguments : [store, primaryKeyValue, retryOptions, function () {}],
+      rollback  : null
+    });
   }
 
   getRequestQueue[store].push([store, primaryKeyValue, retryOptions]);

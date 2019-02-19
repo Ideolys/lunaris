@@ -6,7 +6,7 @@
   - Validation function supports undefined values for optional attributes.
   - Add header `Content-Version` with value equals to `2`.
   - Allow multiple stores definition in one file. In module.exports, define an array of store objet instead of a store object `module.exports = [ {}, {}, ... ]`.
-  - Begin/Commit supports lunaris.insert/update/upsert/delete with local store or/and default store. The transaction ensure that each action is sequential.
+  - Begin/Commit supports lunaris.get/insert/update/upsert/delete with local store or/and default store. The transaction ensure that each action is sequential.
 - Fix:
   - For GET HTTP request, if the cache value was an object, an empty array whould be returned.
   - Fix removeHook. When removing hooks, the function was looking at the same function definition and not the reference.
