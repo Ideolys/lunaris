@@ -15,6 +15,7 @@ var transaction     = require('./store.transaction.js');
 var OPERATIONS      = utils.OPERATIONS;
 var emptyObject     = {};
 var getRequestQueue = {};
+var stores          = [];
 
 lunarisExports._stores.lunarisErrors = {
   name                  : 'lunarisErrors',
@@ -723,7 +724,7 @@ function setPagination (store, page, limit) {
  * @param {String} store
  * @param {Boolean} isSilent
  */
-function clear (store, isSilent) {
+function _clear (store, isSilent) {
   try {
     var _options = beforeAction(store, null, true);
 
@@ -739,6 +740,35 @@ function clear (store, isSilent) {
   catch (e) {
     logger.warn(['lunaris.clear' + store], e);
   }
+}
+
+/**
+ * Clear the store collection
+ * @param {String} store
+ * @param {Boolean} isSilent
+ */
+function clear (store, isSilent) {
+  // It is a regex, we must find the stores !
+  if (/\*$/.test(store)) {
+    if (!/^@/.test(store)) {
+      return logger.warn(['lunaris.clear'], new Error('The store key must begin by \'@\''));
+    }
+    if (!stores.length) {
+      stores = Object.keys(lunarisExports._stores);
+    }
+
+    var _keyLength = store.length - 2;
+    var _key       = store.slice(1, _keyLength + 1);
+    for (var i = 0; i < stores.length; i++) {
+      if (stores[i].slice(0, _keyLength) === _key) {
+        _clear('@' + stores[i], isSilent);
+      }
+    }
+
+    return;
+  }
+
+  _clear(store, isSilent);
 }
 
 /**

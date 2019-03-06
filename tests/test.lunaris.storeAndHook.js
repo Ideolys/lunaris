@@ -2481,6 +2481,116 @@ describe('lunaris store', function () {
         done();
       }, 200);
     });
+
+    it('should not clear multiple stores and not send events', done => {
+      var _hooks = {};
+      lunaris._stores['store.filter.A']         = initStore('store.filter.A');
+      lunaris._stores['store.filter.A'].isLocal = true;
+      lunaris._stores['store.filter.B']         = initStore('store.filter.B');
+      lunaris._stores['store.filter.B'].isLocal = true;
+      lunaris._stores['store.C']                = initStore('store.C');
+      lunaris._stores['store.C'].isLocal        = true;
+
+      lunaris.hook('reset@store.filter.A', () => {
+        _hooks['store.filter.A'] = true;
+      });
+      lunaris.hook('reset@store.filter.B', () => {
+        _hooks['store.filter.B'] = true;
+      });
+      lunaris.hook('reset@store.C', () => {
+        _hooks['store.C'] = true;
+      });
+
+      lunaris.insert('@store.filter.A', {
+        label : 'A'
+      });
+      lunaris.insert('@store.filter.B', {
+        label : 'B'
+      });
+      lunaris.insert('@store.C', {
+        label : 'C'
+      });
+
+      lunaris.clear('store.filter.*');
+      setTimeout(() => {
+        should(Object.keys(_hooks)).eql([]);
+        should(lastError.length).eql(2);
+        should(lastError[0]).eql('[Lunaris warn] lunaris.clear');
+        should(lastError[1]).eql(new Error('The store key must begin by \'@\''));
+        done();
+      }, 100);
+    });
+
+    it('should clear multiple stores and send events', done => {
+      var _hooks = {};
+      lunaris._stores['store.filter.A'] = initStore('store.filter.A');
+      lunaris._stores['store.filter.B'] = initStore('store.filter.B');
+      lunaris._stores['store.C']        = initStore('store.C');
+
+      lunaris.hook('reset@store.filter.A', () => {
+        _hooks['store.filter.A'] = true;
+      });
+      lunaris.hook('reset@store.filter.B', () => {
+        _hooks['store.filter.B'] = true;
+      });
+      lunaris.hook('reset@store.C', () => {
+        _hooks['store.C'] = true;
+      });
+
+      lunaris.insert('@store.filter.A', {
+        label : 'A'
+      });
+      lunaris.insert('@store.filter.B', {
+        label : 'B'
+      });
+      lunaris.insert('@store.C', {
+        label : 'C'
+      });
+
+      lunaris.clear('@store.filter.*');
+      setTimeout(() => {
+        should(_hooks).eql({
+          'store.filter.A' : true,
+          'store.filter.B' : true
+        });
+        should(lunaris._stores['store.filter.A'].data.getAll()).eql([]);
+        should(lunaris._stores['store.filter.B'].data.getAll()).eql([]);
+        should(lunaris._stores['store.C'].data.getAll()).eql([{
+          _id      : 1,
+          _version : [3],
+          label    : 'C'
+        }]);
+        done();
+      }, 100);
+    });
+
+    it('should clear multiple stores and not send events', done => {
+      lunaris._stores['store.filter.A'] = initStore('store.filter.A');
+      lunaris._stores['store.filter.B'] = initStore('store.filter.B');
+      lunaris._stores['store.C']        = initStore('store.C');
+
+      lunaris.insert('@store.filter.A', {
+        label : 'A'
+      });
+      lunaris.insert('@store.filter.B', {
+        label : 'B'
+      });
+      lunaris.insert('@store.C', {
+        label : 'C'
+      });
+
+      lunaris.clear('@store.filter.*');
+      setTimeout(() => {
+        should(lunaris._stores['store.filter.A'].data.getAll()).eql([]);
+        should(lunaris._stores['store.filter.B'].data.getAll()).eql([]);
+        should(lunaris._stores['store.C'].data.getAll()).eql([{
+          _id      : 1,
+          _version : [3],
+          label    : 'C'
+        }]);
+        done();
+      }, 100);
+    });
   });
 
   describe('rollback', () => {
