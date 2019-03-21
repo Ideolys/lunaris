@@ -4,6 +4,7 @@
 - Features:
   - Add syntax to clear multiple stores at the same time. Use `lunaris.clear('@myCommonStore*')`,
 - Fix:
+  - Fix store dependencies graph.
 
 ## 1.8.0
 *2019-03-04*
