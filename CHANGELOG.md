@@ -1,6 +1,7 @@
 # Lunaris
 
 ## 1.9.0
+*2019-04-01*
 - Features:
   - Add syntax to clear multiple stores at the same time. Use `lunaris.clear('@myCommonStore*')`,
 - Fix:
