@@ -1,6 +1,6 @@
 <template>
   <div class="lunaris-errors-resolver">
-    <h6 class="title is-4">Résolution d'erreurs</h6>
+    <h6 class="title is-4">Détails du problème</h6>
 
     <div>
       <div class="card" v-for="lunarisError in $lunarisErrors" :key="lunarisError._id">
@@ -92,7 +92,7 @@
   var _comp = Vue.extend(lunarisErrorsResolver);
   Vue.prototype.$lunarisErrorsResolver = {
     isOpened : false,
-    open     : function (params) {
+    open : function (params) {
       this.isOpened  = true;
       var _component = new _comp().$mount();
       document.getElementById('lunaris-errors-resolver').appendChild(_component.$el);

@@ -40,11 +40,11 @@ lunaris._vue = {
           };
 
           _this.$snackbar.open({
-            message    : err,
+            message    : 'Une erreur est survenue',
             type       : 'is-warning',
             position   : 'is-top',
             indefinite : true,
-            actionText : 'Résoudre',
+            actionText : 'Détails',
             queue      : false,
             onAction   : onAction
           });
