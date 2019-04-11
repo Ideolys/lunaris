@@ -40,7 +40,7 @@ lunaris._vue = {
           };
 
           _this.$snackbar.open({
-            message    : 'Une erreur est survenue',
+            message    : 'Un problème de serveur est survenue',
             type       : 'is-warning',
             position   : 'is-top',
             indefinite : true,
