@@ -65,7 +65,6 @@ catch (e) {
   exports.stopwords = [];
 }
 
-
 try {
   exports.compilationErrors = COMPILATION_ERRORS;
 }
