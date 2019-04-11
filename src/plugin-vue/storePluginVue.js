@@ -44,9 +44,8 @@ lunaris._vue = {
             type       : 'is-warning',
             position   : 'is-top',
             indefinite : true,
-            actionText : 'Détails',
-            queue      : false,
-            onAction   : onAction
+            actionText : 'Fermer',
+            queue      : false
           });
         };
       }
