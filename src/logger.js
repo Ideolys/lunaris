@@ -3,28 +3,43 @@ var exportsLunaris = require('./exports.js');
 var baseMessageError      = '[Lunaris warn] ';
 var baseMessageTip        = '[Lunaris tip] ';
 var baseMessageDeprecated = '[Lunaris deprecated]';
+var baseMessageLog        = '[Lunaris info]';
+
+/**
+ * Log message in the console
+ * @param {String/Array} strings
+ * @param {*} msg
+ * @param {String} baseMessage
+ */
+function log (strings, msg, baseMessage, fn) {
+  if (exportsLunaris.IS_PRODUCTION) {
+    return;
+  }
+
+  if (!Array.isArray(strings)) {
+    strings = [strings];
+  }
+
+  var _message = baseMessage + strings.join(' ');
+  if (!msg) {
+    return fn(_message);
+  }
+
+  fn(baseMessage + strings.join(' '), msg);
+}
 
 var logger = {
+  info : function (strings, msg) {
+    return log(strings, msg, baseMessageLog, console.log);
+  },
+
   /**
-   * Warn developper in the console
+   * Warn developper in thmsge console
    * @param {Array/String} strings
    * @param {*} error
    */
   warn : function warn (strings, error) {
-    if (exportsLunaris.IS_PRODUCTION) {
-      return;
-    }
-
-    if (!Array.isArray(strings)) {
-      strings = [strings];
-    }
-
-    var _message = baseMessageError + strings.join(' ');
-    if (!error) {
-      return console.warn(_message);
-    }
-
-    console.error(_message, error);
+    return log(strings, error, baseMessageError, console.error);
   },
 
   /**
@@ -33,20 +48,7 @@ var logger = {
    * @param {*} tip
    */
   tip : function tip (strings, tip) {
-    if (exportsLunaris.IS_PRODUCTION) {
-      return;
-    }
-
-    if (!Array.isArray(strings)) {
-      strings = [strings];
-    }
-
-    var _message = baseMessageTip + strings.join(' ');
-    if (!tip) {
-      return console.warn(_message);
-    }
-
-    console.warn(baseMessageTip + strings.join(' '), tip);
+    return log(strings, tip, baseMessageTip, console.warn);
   },
 
   /**
@@ -55,20 +57,7 @@ var logger = {
    * @param {*} info
    */
   deprecated : function deprecated (strings, info) {
-    if (exportsLunaris.IS_PRODUCTION) {
-      return;
-    }
-
-    if (!Array.isArray(strings)) {
-      strings = [strings];
-    }
-
-    var _message = baseMessageDeprecated + strings.join(' ');
-    if (!info) {
-      return console.warn(_message);
-    }
-
-    console.warn(_message, info);
+    return log(strings, info, baseMessageDeprecated, console.warn);
   }
 };
 
