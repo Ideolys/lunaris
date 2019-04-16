@@ -1,13 +1,14 @@
-var hook           = require('./store/store.hook.js');
-var store          = require('./store/store.js');
-var lunarisExports = require('./exports.js');
-var collection     = require('./store/store.collection.js');
-var utils          = require('./utils.js');
-var logger         = require('./logger.js');
-var http           = require('./http.js');
-var offline        = require('./offline.js');
-var cache          = require('./cache.js');
-var transaction    = require('./store/store.transaction.js');
+var hook               = require('./store/store.hook.js');
+var store              = require('./store/store.js');
+var lunarisExports     = require('./exports.js');
+var collection         = require('./store/store.collection.js');
+var utils              = require('./utils.js');
+var logger             = require('./logger.js');
+var http               = require('./http.js');
+var offline            = require('./offline.js');
+var cache              = require('./cache.js');
+var transaction    	   = require('./store/store.transaction.js');
+var websocket          = require('./websocket.js');
 
 module.exports = {
   _stores             : lunarisExports._stores,
@@ -23,8 +24,9 @@ module.exports = {
   removeHook     : hook.removeHook,
   pushToHandlers : hook.pushToHandlers,
 
-  http    : http,
-  offline : offline,
+  http         : http,
+  websocket    : websocket,
+  offline      : offline,
 
   get             : store.get,
   getOne          : store.getOne,
