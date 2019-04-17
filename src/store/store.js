@@ -511,7 +511,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       afterAction(_options.store, 'get', data, null, _transactionId);
       _propagate(_options.store, data, utils.OPERATIONS.INSERT);
       if (_options.store.isFilter) {
-        hook.pushToHandlers(_options.store, 'filterUpdated');
+        hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
       }
     });
   }
