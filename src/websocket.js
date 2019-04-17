@@ -1,10 +1,10 @@
 var logger = require('./logger.js');
 
-var ws                       = null;
-var lastInterval             = 200;
-var reconnectInterval        = 200;
-var reconnectIntervalMax     = (20 * 1000);
-var reconnectIntervalFactor  = 1.2; // multiply last interval to slow down reconnection frequency
+var ws                      = null;
+var lastInterval            = 200;
+var reconnectInterval       = 200;
+var reconnectIntervalMax    = (20 * 1000);
+var reconnectIntervalFactor = 1.2; // multiply last interval to slow down reconnection frequency
 
 var isReload = false;
 window.onbeforeunload = function () {
