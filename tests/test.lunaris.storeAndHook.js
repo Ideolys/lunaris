@@ -3396,6 +3396,31 @@ describe('lunaris store', function () {
       });
     });
 
+    it('should commit multiple stores sequentially : GET with a store filter', done => {
+      lunaris._stores['pagination']          = initStore('pagination');
+      lunaris._stores['pagination'].isFilter = true;
+      lunaris._stores['store1']              = initStore('store1');
+
+      var _events = [];
+      lunaris.hook('get@pagination', () => {
+        _events.push('get@pagination');
+      });
+      lunaris.hook('get@store1', () => {
+        _events.push('get@store1');
+      });
+
+      lunaris.begin();
+      lunaris.get('@store1');
+      lunaris.get('@pagination');
+      lunaris.commit(() => {
+        should(_events).eql([
+          'get@store1',
+          'get@pagination'
+        ]);
+        done();
+      });
+    });
+
     it('should commit multiple filter stores sequentially and fire the event "filterUpdated" once', done => {
       lunaris._stores['transaction'] = initStore('transaction');
       lunaris._stores['transaction'].filters[
