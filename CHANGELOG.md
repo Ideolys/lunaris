@@ -1,7 +1,6 @@
 # Lunaris
 
-## 1.10.0
-- Features:
+## 1.9.1
 - Fix:
   - When making an HTTP GET on a store filter, the transaction could never end.
 
