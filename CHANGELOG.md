@@ -3,6 +3,7 @@
 ## 1.10.0
 - Features:
 - Fix:
+  - When making an HTTP GET on a store filter, the transaction could never end.
 
 ## 1.9.0
 *2019-04-01*
