@@ -442,14 +442,17 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       if (!_request) {
         return callback(store);
       }
-      var _cacheValues = cache.get(store.name, md5(_request.request));
+
+      var _cacheValues = cache.get(_options.store.name, md5(_request.request));
 
       if (_cacheValues) {
         if (typeof _cacheValues === 'object') {
           afterAction(_options.store, 'get', _transformGetCache(_options.collection, _cacheValues), null, _transactionId);
-          return callback(store);
         }
-        afterAction(_options.store, 'get', [], null, _transactionId);
+        else {
+          afterAction(_options.store, 'get', [], null, _transactionId);
+        }
+        hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
         return callback(store);
       }
 

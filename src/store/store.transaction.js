@@ -87,6 +87,7 @@ function _end () {
   currentAction          = null;
   isRollback             = false;
   lastEvent              = null;
+
   _sendUniqueEvents();
 
   if (endFn) {
@@ -264,7 +265,7 @@ function _sendUniqueEvents () {
   var _eventByStores     = {};
 
   for (var i = 0; i < _stores.length; i++) {
-    var _deps = storeDependecies[_stores[i]];
+    var _deps         = storeDependecies[_stores[i]] || [];
     var _hasBeenAdded = false;
 
     for (var j = 0; j < _deps.length; j++) {

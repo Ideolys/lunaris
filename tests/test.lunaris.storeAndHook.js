@@ -28,10 +28,11 @@ eval(buildLunaris({
   BASE_URL           : "'http://localhost:" + port + "'",
   IS_PRODUCTION      : false,
   STORE_DEPENDENCIES : JSON.stringify({
-    transaction   : [],
-    transaction_1 : [],
-    transaction_A : ['transaction', 'transaction_1'],
-    transaction_B : ['transaction']
+    transaction       : [],
+    transaction_1     : [],
+    transaction_A     : ['transaction', 'transaction_1'],
+    transaction_B     : ['transaction'],
+    transaction_cache : ['pagination']
   }),
   IS_BROWSER : false
 }));
@@ -3370,6 +3371,50 @@ describe('lunaris store', function () {
         ]);
         done();
       });
+    });
+
+    it('should commit a store : GET with cache', done => {
+      var _store                    = initStore('pagination');
+      _store.isFilter               = true;
+      lunaris._stores['pagination'] = _store;
+
+      lunaris._stores['transaction_cache'] = initStore('transaction_cache');
+      lunaris._stores['transaction_cache'].filters[
+        {
+          source          : '@pagination',
+          sourceAttribute : 'label',
+          localAttribute  : 'label'
+        }
+      ];
+
+      var _events = [];
+      var _nbCalls = 0;
+      lunaris.hook('get@pagination', () => {
+        _nbCalls++;
+        _events.push('get@pagination');
+
+        if (_nbCalls === 1) {
+          lunaris.setPagination('@pagination');
+          lunaris.begin();
+          lunaris.get('@pagination');
+          lunaris.commit(() => {
+            setTimeout(() => {
+              should(_events).eql([
+                'get@pagination',
+                'get@pagination',
+                'filterUpdated@pagination'
+              ]);
+              done();
+            }, 200);
+          });
+        }
+      });
+
+      lunaris.hook('filterUpdated@pagination', () => {
+        _events.push('filterUpdated@pagination');
+      });
+
+      lunaris.get('@pagination');
     });
 
     it('should commit multiple stores sequentially : GET', done => {
