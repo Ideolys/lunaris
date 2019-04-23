@@ -6,9 +6,10 @@ var utils              = require('./utils.js');
 var logger             = require('./logger.js');
 var http               = require('./http.js');
 var offline            = require('./offline.js');
-var localStorageDriver = require('./localStorageDriver.js');
 var cache              = require('./cache.js');
 var transaction    	   = require('./store/store.transaction.js');
+var websocket          = require('./websocket.js');
+var localStorageDriver = require('./localStorageDriver.js');
 
 module.exports = {
   _stores             : lunarisExports._stores,
@@ -26,6 +27,7 @@ module.exports = {
   pushToHandlers : hook.pushToHandlers,
 
   http         : http,
+  websocket    : websocket,
   offline      : offline,
   localStorage : localStorageDriver.localStorage,
 
