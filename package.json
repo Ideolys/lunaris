@@ -36,7 +36,8 @@
     "karma-should": "1.0.0",
     "mocha": "5.2.0",
     "node-fetch": "2.2.0",
-    "should": "13.2.1"
+    "should": "13.2.1",
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v15.10.0"
   },
   "scripts": {
     "test": "./node_modules/.bin/mocha ./tests/test*.js -w",

@@ -1,4 +1,5 @@
 describe('local storage', () => {
+
   before(done => {
     lunaris._indexedDB.init(lunaris.constants.indexedDBNumber, [], (err) => {
       if (err) {
@@ -664,6 +665,103 @@ describe('local storage', () => {
         }, 200);
       };
       lunaris.hook('get@http', _hook);
+      lunaris.get('@http');
+    });
+
+    it('should invalidate a store from the server', done => {
+      var _insertedHook = () => {
+        lunaris._indexedDB.getAll('http', (err, data) => {
+          if (err) {
+            done(err);
+          }
+
+          should(data).be.an.Array().and.have.lengthOf(2);
+          should(data[0]).eql({
+            id       : 1,
+            label    : 'A',
+            _rowId   : 1,
+            _id      : 1,
+            _version : [1, 2]
+          });
+          should(data[1]).eql({
+            id       : 1,
+            label    : 'A',
+            post     : true,
+            _rowId   : 2,
+            _id      : 1,
+            _version : [2]
+          });
+
+          lunaris.websocket.send('INVALIDATE', 'GET /http', true);
+
+          setTimeout(() => {
+            lunaris._indexedDB.getAll('http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).be.an.Array().and.have.lengthOf(0);
+
+              lunaris._indexedDB.get('_states', 'http', (err, data) => {
+                if (err) {
+                  done(err);
+                }
+
+                should(data).be.an.Object();
+                should(data).eql({
+                  store      : 'http',
+                  collection : {
+                    currentId    : 2,
+                    currentRowId : 3,
+                    index        : [[1], [1]]
+                  },
+                  massOperations : {},
+                  pagination     : { limit : 50, offset : 0, currentPage : 1 }
+                });
+
+                lunaris.removeHook('inserted@http', _insertedHook);
+                done();
+              });
+            });
+          }, 100);
+        });
+      };
+
+      lunaris.hook('inserted@http', _insertedHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
+    it('should invalidate the cache when a store is invalidated from the server', done => {
+      var _getHook = () => {
+        var _isKeyInTheCache = false;
+        var _cache = lunaris._cache._cache();
+        for (var i = _cache.length - 1; i >= 0; i--) {
+          if (_cache[i].stores.indexOf('http') !== -1) {
+            _isKeyInTheCache = true;
+            break;
+          }
+        }
+
+        should(_isKeyInTheCache).eql(true);
+
+        lunaris.websocket.send('INVALIDATE', 'GET /http', true);
+
+        setTimeout(() => {
+          _isKeyInTheCache = false;
+          _cache           = lunaris._cache._cache();
+          for (var i = _cache.length - 1; i >= 0; i--) {
+            if (_cache[i].stores.indexOf('http') !== -1) {
+              _isKeyInTheCache = true;
+              break;
+            }
+          }
+          should(_isKeyInTheCache).eql(false);
+          lunaris.removeHook('get@http', _getHook);
+          done();
+        }, 100);
+      };
+
+      lunaris.hook('get@http', _getHook);
       lunaris.get('@http');
     });
   });

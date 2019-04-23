@@ -1211,7 +1211,7 @@ describe('lunaris store', function () {
 
       lunaris.hook('deleted@store1', (data, message) => {
         _isDeletedHook = true;
-        should(data).eql({ _id : 1, id : 2, label : 'A', _version : [1, 2] });
+        should(data).eql({ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] });
 
         should(message).eql('${the} store1 has been successfully ${deleted}');
 
@@ -1280,7 +1280,7 @@ describe('lunaris store', function () {
 
       lunaris.hook('deleted@store1', (data, message) => {
         _isDeletedHook = true;
-        should(data).eql({ id : 2, label : 'A', _id : 1, _version : [1, 2] });
+        should(data).eql({ _rowId : 1, id : 2, label : 'A', _id : 1, _version : [1, 2] });
 
         should(message).eql('${the} store1 has been successfully ${deleted}');
 
@@ -2590,6 +2590,7 @@ describe('lunaris store', function () {
         should(lunaris._stores['store.filter.B'].data.getAll()).eql([]);
         should(lunaris._stores['store.C'].data.getAll()).eql([{
           _id      : 1,
+          _rowId   : 1,
           _version : [3],
           label    : 'C'
         }]);
@@ -2618,6 +2619,7 @@ describe('lunaris store', function () {
         should(lunaris._stores['store.filter.B'].data.getAll()).eql([]);
         should(lunaris._stores['store.C'].data.getAll()).eql([{
           _id      : 1,
+          _rowId   : 1,
           _version : [3],
           label    : 'C'
         }]);

@@ -78,3 +78,28 @@ app.listen(serverPort, () => {
     karma.start();
   });
 });
+
+
+const uWS  = require('uWebSockets.js');
+const port = 4000;
+
+const appWS = uWS.App().ws('/*', {
+  /* Options */
+  compression      : 0,
+  maxPayloadLength : 16 * 1024 * 1024,
+  idleTimeout      : 0,
+  message          : (ws, message) => {
+    let messageJSON = JSON.parse(Buffer.from(message));
+
+    if (messageJSON.type === 'INVALIDATE') {
+      // Simulate server invalidation
+      ws.send(JSON.stringify({ type : 'INVALIDATE', data : messageJSON.data, success : true }));
+    }
+  }
+}).listen(port, (token) => {
+  if (token) {
+    console.log('[WS] Listening to port ' + port);
+  } else {
+    console.log('[WS] Failed to listen to port ' + port);
+  }
+});

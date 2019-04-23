@@ -10,6 +10,7 @@ var cache              = require('./cache.js');
 var transaction    	   = require('./store/store.transaction.js');
 var websocket          = require('./websocket.js');
 var localStorageDriver = require('./localStorageDriver.js');
+var invalidate         = require('./invalidate.js');
 
 module.exports = {
   _stores             : lunarisExports._stores,
@@ -45,6 +46,7 @@ module.exports = {
   setPagination   : store.setPagination,
   begin           : transaction.begin,
   commit          : transaction.commit,
+  invalidate      : invalidate,
 
   OPERATIONS : utils.OPERATIONS,
   constants  : lunarisExports.constants

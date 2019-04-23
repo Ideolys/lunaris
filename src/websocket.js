@@ -1,4 +1,6 @@
-var logger = require('./logger.js');
+var logger         = require('./logger.js');
+var invalidate     = require('./invalidate.js');
+var lunarisExports = require('./exports.js');
 
 var ws                      = null;
 var lastInterval            = 200;
@@ -7,9 +9,12 @@ var reconnectIntervalMax    = (20 * 1000);
 var reconnectIntervalFactor = 1.2; // multiply last interval to slow down reconnection frequency
 
 var isReload = false;
-window.onbeforeunload = function () {
-  isReload = true;
-};
+
+if (lunarisExports.isBrowser) {
+  window.onbeforeunload = function () {
+    isReload = true;
+  };
+}
 
 /**
  * Reconnect function when websocket closed
@@ -42,32 +47,50 @@ function connect (host) {
     logger.info('[Websocket]', 'Connected!');
   };
   ws.onerror = function (evt) {
-    console.log('error', evt);
   };
   ws.onclose = function (evt) {
-    console.log('close', evt);
-
     if (!isReload) {
       reconnect(host);
     }
   };
   ws.onmessage = function (msg) {
-    console.log(msg);
+    if (!msg.data) {
+      return;
+    }
+
+    try {
+      var message = JSON.parse(msg.data);
+
+      if (message.type === 'INVALIDATE') {
+        return invalidate(message.data);
+      }
+    }
+    catch (e) {
+      logger.warn('[Websocket] Cannot invalidate', e);
+    }
   };
 }
 
-function writeToServer (type, data, success) {
-  if (!ws) {
-    return;
-  }
-
-  ws.send(JSON.stringify({ type : type, data : data, sucess : success }));
+/**
+ * Send data from client to server
+ * @param {String} type
+ * @param {*} data
+ * @param {Boolean} success
+ */
+function _send (type, data, success) {
+  ws.send(JSON.stringify({ type : type, data : data, sucess : success || false }));
 }
 
 module.exports = {
   connect : connect,
 
-  send : function (topic, data) {
-    ws.send(topic, data);
+  /**
+   * Send data from client to server
+   * @param {String} type
+   * @param {*} data
+   * @param {Boolean} success
+   */
+  send : function (type, data, success) {
+    _send(type, data, success);
   }
 };
