@@ -71,3 +71,18 @@ try {
 catch (e) {
   exports.compilationErrors = [];
 }
+
+/**
+ * Urls grpah
+ * {
+ *   'GET /all'          : ['store_1', 'store_2'],
+ *   'GET /all/filter/#' : ['store_1'],
+ *   'GET /only          : ['store_3']
+ * }
+ */
+try {
+  exports.urlsGraph = URLS_GRAPH;
+}
+catch (e) {
+  exports.urlsGraph = {};
+}
