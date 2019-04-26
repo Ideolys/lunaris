@@ -6,7 +6,7 @@ var logger           = require('../logger.js');
 var offline          = require('../offline.js');
 var storeDependecies = exportsLunaris.storeDependencies;
 
-var eventsLocal = ['insert', 'update', 'delete', 'get', 'filterUpdated'];
+var eventsLocal = ['insert', 'update', 'delete', 'get', 'filterUpdated', 'reset'];
 
 var transactionIdGenerator = 0;
 
@@ -151,7 +151,7 @@ function pipe (store, event, payload, transactionId) {
 
   if (!currentAction.payload) {
     currentAction.payload = payload;
-    if (!store.isStoreObject && payload.length === 1) {
+    if (!store.isStoreObject && payload && payload.length === 1) {
       currentAction.payload = currentAction.payload[0];
     }
   }
@@ -176,6 +176,12 @@ function pipe (store, event, payload, transactionId) {
 
     isRollback = true;
     return rollback(store.name, payload);
+  }
+
+  if (currentAction.operation === OPERATIONS.RESET  && event === 'reset') {
+    _processNextAction();
+    lastEvent = event;
+    return;
   }
 
   if (
@@ -213,7 +219,7 @@ function rollback () {
       actions[i].payload
     ];
 
-    if (actions[i].operation === OPERATIONS.LIST) {
+    if (actions[i].operation === OPERATIONS.LIST || actions[i].operation === OPERATIONS.RESET) {
       continue;
     }
     else if (actions[i].operation === OPERATIONS.INSERT) {

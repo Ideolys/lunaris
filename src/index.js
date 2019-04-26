@@ -46,7 +46,10 @@ module.exports = {
   setPagination   : store.setPagination,
   begin           : transaction.begin,
   commit          : transaction.commit,
-  invalidate      : invalidate,
+  invalidate      : invalidate.invalidate,
+
+  initInvalidations : invalidate.init,
+  invalidations     : invalidate.invalidations,
 
   OPERATIONS : utils.OPERATIONS,
   constants  : lunarisExports.constants

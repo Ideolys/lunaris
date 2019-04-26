@@ -36,7 +36,8 @@ exports.OPERATIONS = {
   INSERT : 'POST',
   UPDATE : 'PUT',
   PATCH  : 'PATCH',
-  LIST   : 'GET'
+  LIST   : 'GET',
+  RESET  : 'RESET'
 };
 
 exports.OPERATORS = {

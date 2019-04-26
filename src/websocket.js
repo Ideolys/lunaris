@@ -45,6 +45,8 @@ function connect (host) {
   ws.onopen = function () {
     lastInterval = reconnectInterval;
     logger.info('[Websocket]', 'Connected!');
+
+    _send('GET_CACHE_INVALIDATIONS', null, true);
   };
   ws.onerror = function (evt) {
   };
@@ -62,7 +64,11 @@ function connect (host) {
       var message = JSON.parse(msg.data);
 
       if (message.type === 'INVALIDATE') {
-        return invalidate(message.data);
+        return invalidate.invalidate(message.data);
+      }
+
+      if (message.type === 'GET_CACHE_INVALIDATIONS') {
+        return invalidate.computeInvalidations(message.data);
       }
     }
     catch (e) {

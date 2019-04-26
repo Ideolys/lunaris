@@ -38,14 +38,15 @@ lunarisExports._stores.lunarisErrors = {
  * @param {Object} store
  * @param {String} hookKey
  * @param {Array} res
+ * @param {Int} transactionId
  */
-function _pushCommitResToHandlers (store, hookKey, res) {
+function _pushCommitResToHandlers (store, hookKey, res, transactionId) {
   if (res && res.length) {
     if (store.isStoreObject) {
       res = res[0];
     }
     res = utils.cloneAndFreeze(res);
-    hook.pushToHandlers(store, hookKey, res, Array.isArray(res));
+    hook.pushToHandlers(store, hookKey, res, Array.isArray(res), transactionId);
   }
 }
 
@@ -54,8 +55,9 @@ function _pushCommitResToHandlers (store, hookKey, res) {
  * @param {Object} store
  * @param {Object} data
  * @param {String} operation
+ * @param {Int} transactionId
  */
-function _propagate (store, data, operation) {
+function _propagate (store, data, operation, transactionId) {
   if (!store.storesToPropagate.length) {
     return;
   }
@@ -69,7 +71,7 @@ function _propagate (store, data, operation) {
     var _store            = storeUtils.getStore('@' + _storeToPropagate);
     var _collection       = storeUtils.getCollection(_store);
     var _res              = _collection.propagate(store.name, data, operation);
-    _pushCommitResToHandlers(_store, 'update', _res, Array.isArray(_res));
+    _pushCommitResToHandlers(_store, 'update', _res, transactionId);
   }
 }
 
@@ -79,14 +81,15 @@ function _propagate (store, data, operation) {
  * @param {Object} collection
  * @param {Object/Array} data parent objects
  * @param {String} operation
+ * @param {Int} transactionId
  */
-function _propagateReflexive (store, collection, data, operation) {
+function _propagateReflexive (store, collection, data, operation, transactionId) {
   if (!store.meta || (store.meta && !store.meta.meta.reflexive)) {
     return;
   }
 
   var _res = collection.propagateReflexive(data, operation);
-  _pushCommitResToHandlers(store, 'update', _res);
+  _pushCommitResToHandlers(store, 'update', _res, transactionId);
 }
 
 /**
@@ -228,9 +231,9 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
 
   cache.invalidate(store.name);
   afterAction(store, isUpdate ? 'update' : 'insert', value, null, transactionId);
-  _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT);
+  _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, transactionId);
   if (isUpdate) {
-    _propagateReflexive(store, collection, value,  utils.OPERATIONS.UPDATE);
+    _propagateReflexive(store, collection, value,  utils.OPERATIONS.UPDATE, transactionId);
   }
   storeUtils.saveState(store, collection, cache);
 
@@ -326,8 +329,8 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
     if (store.isFilter) {
       hook.pushToHandlers(store, 'filterUpdated', null, false, transactionId);
     }
-    _propagate(store, value, utils.OPERATIONS.UPDATE);
-    _propagateReflexive(store, collection, value, utils.OPERATIONS.UPDATE);
+    _propagate(store, value, utils.OPERATIONS.UPDATE, transactionId);
+    _propagateReflexive(store, collection, value, utils.OPERATIONS.UPDATE, transactionId);
     storeUtils.saveState(store, collection, cache);
   });
 }
@@ -515,7 +518,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       data = _options.collection.commit(_version);
 
       afterAction(_options.store, 'get', data, null, _transactionId);
-      _propagate(_options.store, data, utils.OPERATIONS.INSERT);
+      _propagate(_options.store, data, utils.OPERATIONS.INSERT, _transactionId);
       if (_options.store.isFilter) {
         hook.pushToHandlers(_options.store, 'filterUpdated');
       }
@@ -616,8 +619,8 @@ function _delete (store, collection, value, isLocal, transactionId) {
     throw new Error('You cannot delete a value not in the store!');
   }
   afterAction(store, 'delete', value, null, transactionId);
-  _propagate(store, value, utils.OPERATIONS.DELETE);
-  _propagateReflexive(store, collection, value, utils.OPERATIONS.DELETE);
+  _propagate(store, value, utils.OPERATIONS.DELETE, transactionId);
+  _propagateReflexive(store, collection, value, utils.OPERATIONS.DELETE, transactionId);
 
   if (!store.isStoreObject) {
     value = value[0];
@@ -737,6 +740,19 @@ function _clear (store, isSilent) {
   try {
     var _options = beforeAction(store, null, true);
 
+    if (transaction.isTransaction && !transaction.isCommitingTransaction) {
+      return transaction.addAction({
+        id        : transaction.getCurrentTransactionId(),
+        store     : _options.store.name,
+        operation : OPERATIONS.RESET,
+        handler   : _clear,
+        arguments : arguments,
+        rollback  : null
+      });
+    }
+
+    var _transactionId = transaction.getCurrentTransactionId();
+
     _options.collection.clear();
     _options.store.paginationCurrentPage = 1;
     _options.store.paginationOffset      = 0;
@@ -745,9 +761,9 @@ function _clear (store, isSilent) {
     indexedDB.clear(_options.store.name);
     cache.invalidate(_options.store.name);
     if (!isSilent) {
-      hook.pushToHandlers(_options.store, 'reset');
+      hook.pushToHandlers(_options.store, 'reset', null, false, _transactionId);
     }
-    _propagate(_options.store, null, utils.OPERATIONS.DELETE);
+    _propagate(_options.store, null, utils.OPERATIONS.DELETE, _transactionId);
     storeUtils.saveState(_options.store, _options.collection, _options.cache);
   }
   catch (e) {
