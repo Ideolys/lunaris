@@ -179,12 +179,6 @@ function pipe (store, event, payload, transactionId) {
     return rollback(store.name, payload);
   }
 
-  if (currentAction.operation === OPERATIONS.RESET  && event === 'reset') {
-    _processNextAction();
-    lastEvent = event;
-    return;
-  }
-
   if (
     (currentAction.operation === OPERATIONS.INSERT && event === 'inserted') ||
     (currentAction.operation === OPERATIONS.LIST   && event === 'get'     ) ||
@@ -220,7 +214,7 @@ function rollback () {
       actions[i].payload
     ];
 
-    if (actions[i].operation === OPERATIONS.LIST || actions[i].operation === OPERATIONS.RESET) {
+    if (actions[i].operation === OPERATIONS.LIST) {
       continue;
     }
     else if (actions[i].operation === OPERATIONS.INSERT) {

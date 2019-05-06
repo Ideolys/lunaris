@@ -1,8 +1,7 @@
-var indexedDB   = require('./localStorageDriver.js').indexedDB;
-var urlsGraph   = require('./exports.js').urlsGraph;
-var cache       = require('./cache.js');
-var store       = require('./store/store.js');
-var transaction = require('./store/store.transaction.js');
+var indexedDB = require('./localStorageDriver.js').indexedDB;
+var urlsGraph = require('./exports.js').urlsGraph;
+var cache     = require('./cache.js');
+var store     = require('./store/store.js');
 
 var clientLightUrlInvalidations = {};
 
@@ -65,10 +64,10 @@ module.exports = {
    * @param {Object} lightUrlInvalidations { lightUrl : timestamp }
    */
   computeInvalidations : function (lightUrlInvalidations) {
-    transaction.begin();
     for (var url in urlsGraph) {
       if (!lightUrlInvalidations[url] && !clientLightUrlInvalidations[url]) {
         this.invalidate(url);
+        continue;
       }
 
       if (!lightUrlInvalidations[url] && clientLightUrlInvalidations[url]) {
@@ -84,7 +83,5 @@ module.exports = {
         this.invalidate(url);
       }
     }
-
-    transaction.commit();
   }
 };

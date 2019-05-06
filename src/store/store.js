@@ -743,19 +743,6 @@ function _clear (store, isSilent) {
   try {
     var _options = beforeAction(store, null, true);
 
-    if (transaction.isTransaction && !transaction.isCommitingTransaction) {
-      return transaction.addAction({
-        id        : transaction.getCurrentTransactionId(),
-        store     : _options.store.name,
-        operation : OPERATIONS.RESET,
-        handler   : _clear,
-        arguments : arguments,
-        rollback  : null
-      });
-    }
-
-    var _transactionId = transaction.getCurrentTransactionId();
-
     _options.collection.clear();
     _options.store.paginationCurrentPage = 1;
     _options.store.paginationOffset      = 0;
@@ -764,9 +751,9 @@ function _clear (store, isSilent) {
     indexedDB.clear(_options.store.name);
     cache.invalidate(_options.store.name);
     if (!isSilent) {
-      hook.pushToHandlers(_options.store, 'reset', null, false, _transactionId);
+      hook.pushToHandlers(_options.store, 'reset', null, false);
     }
-    _propagate(_options.store, null, utils.OPERATIONS.DELETE, _transactionId);
+    _propagate(_options.store, null, utils.OPERATIONS.DELETE);
     storeUtils.saveState(_options.store, _options.collection, _options.cache);
   }
   catch (e) {
