@@ -569,7 +569,7 @@ function upsert (store, value, isLocal, retryOptions) {
 
 
     var _options = beforeAction(store, value);
-    if ((Array.isArray(value) && value[0]._id) || value._id) {
+    if ((Array.isArray(value) && (value[0]._id !== null && value[0]._id !== undefined)) || (value._id !== null && value._id !== undefined)) {
       _isUpdate = true;
     }
     if (retryOptions && retryOptions.method === OPERATIONS.INSERT) {

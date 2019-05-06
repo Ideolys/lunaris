@@ -113,7 +113,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    * @param {Boolean} isFromIndex
    */
   function _addToValues (value, versionNumber, isFromUpsert, isFromIndex) {
-    if (value._id && isFromUpsert) {
+    if (value._id !== null && value._id !== undefined && isFromUpsert) {
       if (_getPrimaryKey) {
         var _id = _getPrimaryKey(value);
         if (_id) {
@@ -144,7 +144,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     }
 
     _id = _getPrimaryKey(value);
-    if (!_id) {
+    if (!(_id !== null && value._id !== undefined)) {
       value._rowId = _currentRowId++;
       localDatabase.add(_storeName, value);
       return _data.push(value);
@@ -220,7 +220,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    * @returns {Object} inserted / updated value
    */
   function upsert (value, versionNumber, isRemove, isFromIndex) {
-    if (!value._id && !isRemove) {
+    if ((value._id === null || value._id === undefined) && !isRemove) {
       return add(value, versionNumber);
     }
 
