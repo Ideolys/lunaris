@@ -1,8 +1,13 @@
 # Lunaris
 
-## 1.10.0
-- Features:
+## 1.9.2
 - Fix:
+  - When making an HTTP GET, cache values were not used.
+  - When making an HTTP GET, the `filterUpdated` were never fired.
+
+## 1.9.1
+- Fix:
+  - When making an HTTP GET on a store filter, the transaction could never end.
 
 ## 1.9.0
 *2019-04-01*
