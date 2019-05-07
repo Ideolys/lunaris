@@ -85,14 +85,16 @@ module.exports = {
 
   /**
    * Init cache values from browser db
+   * @param {Function} callback
    */
-  init : function () {
+  init : function (callback) {
     database.getAll('cache', function (err, res) {
       if (err) {
         logger.warn('Error when init cache', err);
       }
 
-      cache = res;
+      cache = res || [];
+      callback();
     });
   },
 
