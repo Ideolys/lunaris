@@ -1,4 +1,4 @@
-describe('local storage', () => {
+describe.only('local storage', () => {
 
   before(done => {
     lunaris._indexedDB.init(lunaris.constants.indexedDBNumber, [], (err) => {
@@ -85,7 +85,6 @@ describe('local storage', () => {
             should(JSON.stringify(data)).eql(JSON.stringify({
               store          : 'http',
               massOperations : {},
-              pagination     : { limit : 50, offset : 50, currentPage : 2 },
               collection     : {
                 currentId    : 4,
                 currentRowId : 4,
@@ -144,8 +143,7 @@ describe('local storage', () => {
                   currentRowId : 4,
                   index        : [[1, 2, 3], [1, 2, 3]]
                 },
-                massOperations : {},
-                pagination     : { limit : 50, offset : 50, currentPage : 2 }
+                massOperations : {}
               });
 
               lunaris._indexedDB.getAll('cache', (err, data) => {
@@ -186,8 +184,7 @@ describe('local storage', () => {
                 currentRowId : 4,
                 index        : [[1, 2, 3], [1, 2, 3]]
               },
-              massOperations : {},
-              pagination     : { limit : 50, offset : 50, currentPage : 2 }
+              massOperations : {}
             });
 
             lunaris._indexedDB.getAll('cache', (err, data) => {
@@ -246,8 +243,7 @@ describe('local storage', () => {
                 currentRowId : 1,
                 index        : [[], []]
               },
-              massOperations : {},
-              pagination     : { limit : 50, offset : 0, currentPage : 1 }
+              massOperations : {}
             });
 
             lunaris._indexedDB.getAll('http', (err, data) => {
@@ -290,8 +286,7 @@ describe('local storage', () => {
               currentRowId : 1,
               index        : [[], []]
             },
-            massOperations : {},
-            pagination     : { limit : 50, offset : 100, currentPage : 2 }
+            massOperations : {}
           });
 
           lunaris._indexedDB.getAll('http', (err, data) => {
@@ -322,8 +317,7 @@ describe('local storage', () => {
                 currentRowId : 4,
                 index        : [[2, 3], [2, 3]]
               },
-              massOperations : {},
-              pagination     : { limit : 50, offset : 50, currentPage : 2 }
+              massOperations : {}
             });
 
             lunaris._indexedDB.getAll('cache', (err, data) => {
@@ -359,8 +353,7 @@ describe('local storage', () => {
                 currentRowId : 2,
                 index        : [[1], [1]]
               },
-              massOperations : {},
-              pagination     : { limit : 50, offset : 0, currentPage : 1 }
+              massOperations : {}
             });
 
 
@@ -418,8 +411,7 @@ describe('local storage', () => {
                   currentRowId : 3,
                   index        : [[1], [1]]
                 },
-                massOperations : {},
-                pagination     : { limit : 50, offset : 0, currentPage : 1 }
+                massOperations : {}
               });
 
               lunaris.removeHook('insert@http'  , _insertHook);
@@ -462,8 +454,7 @@ describe('local storage', () => {
                 currentRowId : 3,
                 index        : [[1], [1]]
               },
-              massOperations : {},
-              pagination     : { limit : 50, offset : 0, currentPage : 1 }
+              massOperations : {}
             });
 
             setTimeout(() => {
@@ -480,8 +471,7 @@ describe('local storage', () => {
                     currentRowId : 4,
                     index        : [[1], [1]]
                   },
-                  massOperations : {},
-                  pagination     : { limit : 50, offset : 0, currentPage : 1 }
+                  massOperations : {}
                 });
 
                 lunaris._indexedDB.getAll('http', (err, data) => {
@@ -548,8 +538,7 @@ describe('local storage', () => {
                   currentRowId : 5,
                   index        : [[1], [1]]
                 },
-                massOperations : {},
-                pagination     : { limit : 50, offset : 0, currentPage : 1 }
+                massOperations : {}
               });
 
               lunaris.removeHook('inserted@http', _insertedHook);
@@ -584,8 +573,7 @@ describe('local storage', () => {
               },
               massOperations : {
                 label : 'B'
-              },
-              pagination : { limit : 50, offset : 0, currentPage : 1 }
+              }
             });
 
             setTimeout(() => {
@@ -604,8 +592,7 @@ describe('local storage', () => {
                   },
                   massOperations : {
                     label : 'B'
-                  },
-                  pagination : { limit : 50, offset : 0, currentPage : 1 }
+                  }
                 });
 
                 lunaris._indexedDB.getAll('http', (err, data) => {
@@ -643,9 +630,6 @@ describe('local storage', () => {
               { id : 3, label : 'C', _rowId : 3, _id : 3, _version : [1] }
             ]);
             should(_lunaris._stores[_store].massOperations).eql({});
-            should(_lunaris._stores[_store].paginationLimit).eql(50);
-            should(_lunaris._stores[_store].paginationOffset).eql(50);
-            should(_lunaris._stores[_store].paginationCurrentPage).eql(2);
 
             should(_lunaris._cache._cache()).eql([
               {
@@ -668,7 +652,7 @@ describe('local storage', () => {
       lunaris.get('@http');
     });
 
-    it('should invalidate a store from the server', done => {
+    it.only('should invalidate a store from the server', done => {
       var _insertedHook = () => {
         lunaris._indexedDB.getAll('http', (err, data) => {
           if (err) {
@@ -704,8 +688,10 @@ describe('local storage', () => {
 
               lunaris._indexedDB.get('_states', 'http', (err, data) => {
                 if (err) {
-                  done(err);
+                  return done(err);
                 }
+
+                console.log(err, data);
 
                 should(data).be.an.Object();
                 should(data).eql({
@@ -715,8 +701,7 @@ describe('local storage', () => {
                     currentRowId : 3,
                     index        : [[1], [1]]
                   },
-                  massOperations : {},
-                  pagination     : { limit : 50, offset : 0, currentPage : 1 }
+                  massOperations : {}
                 });
 
                 lunaris.removeHook('inserted@http', _insertedHook);

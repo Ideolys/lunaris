@@ -212,12 +212,7 @@ function saveState (store, collection) {
   var _state = {
     store          : store.name,
     massOperations : store.massOperations,
-    pagination     : {
-      limit       : store.paginationLimit,
-      offset      : store.paginationOffset,
-      currentPage : store.paginationCurrentPage
-    },
-    collection : {
+    collection     : {
       currentId    : collection.getCurrentId(),
       currentRowId : collection.getCurrentRowId(),
       index        : collection.getIndexId()
