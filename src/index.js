@@ -48,8 +48,9 @@ module.exports = {
   commit          : transaction.commit,
   invalidate      : invalidate.invalidate,
 
-  initInvalidations : invalidate.init,
-  invalidations     : invalidate.invalidations,
+  initInvalidations     : invalidate.init,
+  _computeInvalidations : invalidate.computeInvalidations,
+  invalidations         : invalidate.invalidations,
 
   OPERATIONS : utils.OPERATIONS,
   constants  : lunarisExports.constants

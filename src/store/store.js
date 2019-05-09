@@ -235,7 +235,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
   if (isUpdate) {
     _propagateReflexive(store, collection, value,  utils.OPERATIONS.UPDATE, transactionId);
   }
-  storeUtils.saveState(store, collection, cache);
+  storeUtils.saveState(store, collection);
 
   if (!isMultipleItems && !store.isStoreObject) {
     value = value[0];
@@ -331,7 +331,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
     }
     _propagate(store, value, utils.OPERATIONS.UPDATE, transactionId);
     _propagateReflexive(store, collection, value, utils.OPERATIONS.UPDATE, transactionId);
-    storeUtils.saveState(store, collection, cache);
+    storeUtils.saveState(store, collection);
   });
 }
 
@@ -382,7 +382,7 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
       return;
     }
     _request = _request.request;
-    storeUtils.saveState(store, collection, cache);
+    storeUtils.saveState(store, collection);
   }
   else {
     _request = retryOptions.url;
@@ -456,11 +456,16 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       if (_cacheValues) {
         if (typeof _cacheValues === 'object') {
           afterAction(_options.store, 'get', _transformGetCache(_options.collection, _cacheValues), null, _transactionId);
+          storeUtils.saveState(_options.store, _options.collection);
         }
         else {
           afterAction(_options.store, 'get', [], null, _transactionId);
         }
-        hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
+
+        if (_options.store.isFilter) {
+          hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
+        }
+
         return callback(store);
       }
 
@@ -474,7 +479,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         if (_options.store.isFilter && ((_options.store.isStoreObject && _res) || (!_options.store.isStoreObject && _res.length))) {
           hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
         }
-        storeUtils.saveState(_options.store, _options.collection, _options.cache);
+        storeUtils.saveState(_options.store, _options.collection);
         return callback(store);
       }
 
@@ -525,7 +530,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       if (_options.store.isFilter) {
         hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
       }
-      storeUtils.saveState(_options.store, _options.collection, _options.cache);
+      storeUtils.saveState(_options.store, _options.collection);
     });
   }
   catch (e) {
@@ -727,7 +732,7 @@ function setPagination (store, page, limit) {
     _options.store.paginationLimit       = limit || _options.store.paginationLimit;
     _options.store.paginationCurrentPage = page  || 1;
     _options.store.paginationOffset      = _options.store.paginationCurrentPage === 1 ? 0 : _options.store.paginationLimit * _options.store.paginationCurrentPage;
-    storeUtils.saveState(_options.store, _options.collection, _options.cache);
+    storeUtils.saveState(_options.store, _options.collection);
   }
   catch (e) {
     logger.warn(['lunaris.setPagination' + store], e);
@@ -754,7 +759,7 @@ function _clear (store, isSilent) {
       hook.pushToHandlers(_options.store, 'reset', null, false);
     }
     _propagate(_options.store, null, utils.OPERATIONS.DELETE);
-    storeUtils.saveState(_options.store, _options.collection, _options.cache);
+    storeUtils.saveState(_options.store, _options.collection);
   }
   catch (e) {
     logger.warn(['lunaris.clear' + store], e);

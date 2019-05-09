@@ -6,7 +6,7 @@ var logger           = require('../logger.js');
 var offline          = require('../offline.js');
 var storeDependecies = exportsLunaris.storeDependencies;
 
-var eventsLocal = ['insert', 'update', 'delete', 'get', 'filterUpdated', 'reset'];
+var eventsLocal = ['insert', 'update', 'delete', 'get', 'filterUpdated'];
 
 var transactionIdGenerator = 0;
 

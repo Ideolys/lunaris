@@ -10,6 +10,8 @@ var reconnectIntervalFactor = 1.2; // multiply last interval to slow down reconn
 
 var isReload = false;
 
+var events = {};
+
 if (lunarisExports.isBrowser) {
   window.onbeforeunload = function () {
     isReload = true;
@@ -68,7 +70,11 @@ function connect (host) {
       }
 
       if (message.type === 'GET_CACHE_INVALIDATIONS') {
-        return invalidate.computeInvalidations(message.data);
+        if (events['initCacheInvalidations']) {
+          events['initCacheInvalidations'](message.data);
+        }
+
+        return;
       }
     }
     catch (e) {
@@ -98,5 +104,14 @@ module.exports = {
    */
   send : function (type, data, success) {
     _send(type, data, success);
+  },
+
+  /**
+   * Event emmitter
+   * @param {String} event
+   * @param {Function} handler
+   */
+  on : function (event, handler) {
+    events[event] = handler;
   }
 };
