@@ -1,4 +1,4 @@
-describe.only('local storage', () => {
+describe('local storage', () => {
 
   before(done => {
     lunaris._indexedDB.init(lunaris.constants.indexedDBNumber, [], (err) => {
@@ -372,7 +372,7 @@ describe.only('local storage', () => {
               });
             });
           });
-        }, 40);
+        }, 0);
       };
       var _insertedHook = () => {
         lunaris._indexedDB.getAll('http', (err, data) => {
@@ -418,7 +418,7 @@ describe.only('local storage', () => {
               lunaris.removeHook('inserted@http', _insertedHook);
               done();
             });
-          }, 60);
+          }, 100);
         });
       };
       lunaris.hook('insert@http', _insertHook);
@@ -620,7 +620,6 @@ describe.only('local storage', () => {
           var _lunaris = lunarisInstance();
           var _store   = 'http';
           setTimeout(() => {
-
             should(_lunaris._stores[_store].data.getIndexId()).eql([[1, 2, 3], [1, 2, 3]]);
             should(_lunaris._stores[_store].data.getCurrentId()).eql(4);
             should(_lunaris._stores[_store].data.getCurrentRowId()).eql(4);
@@ -645,14 +644,14 @@ describe.only('local storage', () => {
 
             lunaris.removeHook('get@http', _hook);
             done();
-          }, 200);
+          }, 700);
         }, 200);
       };
       lunaris.hook('get@http', _hook);
       lunaris.get('@http');
     });
 
-    it.only('should invalidate a store from the server', done => {
+    it('should invalidate a store from the server', done => {
       var _insertedHook = () => {
         lunaris._indexedDB.getAll('http', (err, data) => {
           if (err) {
@@ -691,15 +690,13 @@ describe.only('local storage', () => {
                   return done(err);
                 }
 
-                console.log(err, data);
-
                 should(data).be.an.Object();
                 should(data).eql({
                   store      : 'http',
                   collection : {
-                    currentId    : 2,
-                    currentRowId : 3,
-                    index        : [[1], [1]]
+                    currentId    : 1,
+                    currentRowId : 1,
+                    index        : [[], []]
                   },
                   massOperations : {}
                 });
