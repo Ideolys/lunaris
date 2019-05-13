@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.9.3
+- Fix:
+  - Simplify error message.
+
 ## 1.9.2
 - Fix:
   - When making an HTTP GET, cache values were not used.
