@@ -95,6 +95,11 @@ const appWS = uWS.App().ws('/*', {
       // Simulate server invalidation
       ws.send(JSON.stringify({ type : 'INVALIDATE', data : messageJSON.data, success : true }));
     }
+
+    if (messageJSON.type === 'GET_CACHE_INVALIDATIONS') {
+      // Simulate server invalidation
+      ws.send(JSON.stringify({ type : 'GET_CACHE_INVALIDATIONS', data : { 'GET /http' : Date.now() }, success : true }));
+    }
   }
 }).listen(port, (token) => {
   if (token) {

@@ -68,7 +68,7 @@ module.exports = {
 
   /**
    * Compute invalidations between server and client at websocket connection
-   * @param {Object} lightUrlInvalidations { lightUrl : timestamp }
+   * @param {Object} lightUrlInvalidations { lightUrl : timestamp }, invalidations from the server
    */
   computeInvalidations : function (lightUrlInvalidations, stores) {
     function searchAndRemove (url) {

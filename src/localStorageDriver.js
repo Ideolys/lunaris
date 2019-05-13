@@ -105,33 +105,53 @@ module.exports = {
     },
 
     /**
-     * IUpdate a value
+     * Update a value
      * @param {String} key
      * @param {*} value
+     * @param {Function} callback @optional
      */
-    upsert : function upsert (key, value) {
+    upsert : function upsert (key, value, callback) {
       if (!database) {
         return;
       }
 
       var _transaction = database.transaction([key], 'readwrite');
       var _objectStore = _transaction.objectStore(key);
-      _objectStore.put(value);
+      var _request     = _objectStore.put(value);
+
+      if (callback) {
+        _request.onsuccess = function onsuccess (e) {
+          callback(null, e.target.result);
+        };
+        _request.onerror = function onerror (e) {
+          callback(e);
+        };
+      }
     },
 
     /**
      * Delete a value
      * @param {String} key
      * @param {*} value
+     * @param {Function} callback @optional
      */
-    del : function del (key, value) {
+    del : function del (key, value, callback) {
       if (!database) {
         return;
       }
 
       var _transaction = database.transaction([key], 'readwrite');
       var _objectStore = _transaction.objectStore(key);
-      _objectStore.delete(value);
+      var _request     = _objectStore.delete(value);
+
+      if (callback) {
+        _request.onsuccess = function onsuccess (e) {
+          callback(null, e.target.result);
+        };
+        _request.onerror = function onerror (e) {
+          callback(e);
+        };
+      }
     },
 
     /**
