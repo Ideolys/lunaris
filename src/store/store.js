@@ -33,6 +33,142 @@ lunarisExports._stores.lunarisErrors = {
   massOperations        : {}
 };
 
+lunarisExports._stores.lunarisOfflineTransactions = {
+  name                  : 'lunarisOfflineTransactions',
+  data                  : collection.collection(),
+  filters               : [],
+  paginationLimit       : 50,
+  paginationOffset      : 0,
+  paginationCurrentPage : 1,
+  hooks                 : {},
+  isLocal               : true,
+  storesToPropagate     : [],
+  isStoreObject         : false,
+  massOperations        : {}
+};
+
+function _computeStoreTransactions (transactions, storeName, method, request, value) {
+  var _mustBeAdded  = true;
+  var _isArrayValue = Array.isArray(value);
+
+  if (!_isArrayValue) {
+    value = [value];
+  }
+
+  var _lengthValue = value.length;
+
+  var _nbInInserts = 0;
+
+  for (var j = _lengthValue - 1; j >= 0; j--) {
+    for (var i = transactions.length - 1; i >= 0; i--) {
+      var _transaction               = transactions[i];
+      var _isTransactionValueAnArray = Array.isArray(_transaction.value);
+
+      if (!_isTransactionValueAnArray) {
+        _transaction.value = [_transaction.value];
+      }
+
+      var _lengthTransactionValue = _transaction.value.length;
+
+      if (_transaction.store !== storeName) {
+        continue;
+      }
+
+      for (var k = _lengthTransactionValue  - 1; k >= 0; k--) {
+        if (_transaction.method === OPERATIONS.INSERT && method === OPERATIONS.UPDATE) {
+          if (value[j]._id !== _transaction.value[k]._id) {
+            continue;
+          }
+
+          _transaction.value[k] = value[j];
+          value.splice(j, 1);
+          _nbInInserts++;
+
+          if (!j && _nbInInserts === _lengthValue) {
+            _mustBeAdded = false;
+          }
+
+          break;
+        }
+
+        if (_transaction.method === OPERATIONS.UPDATE && method === OPERATIONS.UPDATE) {
+          if (value[j]._id !== _transaction.value[k]._id) {
+            continue;
+          }
+
+          _transaction.value[k] = value[j];
+
+          _mustBeAdded = false;
+          break;
+        }
+
+        if (
+          (_transaction.method === OPERATIONS.INSERT && method === OPERATIONS.DELETE) ||
+          (_transaction.method === OPERATIONS.UPDATE && method === OPERATIONS.DELETE)
+        ) {
+          if (value[j]._id !== _transaction.value[k]._id) {
+            continue;
+          }
+
+          _transaction.value.splice(k, 1);
+
+          if (!_transaction.value.length) {
+            transactions.splice(i, 1);
+          }
+
+          if (_transaction.method === OPERATIONS.INSERT) {
+            _mustBeAdded = false;
+          }
+        }
+
+        if (_transaction.method === OPERATIONS.DELETE && method === OPERATIONS.DELETE && _isArrayValue) {
+          _transaction.value.push(value[j]);
+          _mustBeAdded = false;
+          break;
+        }
+      }
+
+      if (!_isTransactionValueAnArray) {
+        _transaction.value = _transaction.value[0];
+      }
+    }
+  }
+
+  if (_mustBeAdded) {
+    transactions.push({
+      store   : storeName,
+      method  : method,
+      request : request,
+      value   : _isArrayValue ? value : value[0]
+    });
+  }
+
+  _mustBeAdded = true;
+
+  return transactions;
+}
+
+/**
+ * Save Http transactions into a store
+ * Make sure to compute actions before inserting in store
+ * POST / DELETE -> REMOVE POST AND DELETE
+ * PUT  / DELETE -> REMOVE PUT
+ * @param {String} storeName
+ * @param {String} method
+ * @param {String} request
+ * @param {Object/Array} value
+ */
+function setOfflineHttpTransaction (storeName, method, request, value) {
+  var _collection   = lunarisExports._stores.lunarisOfflineTransactions.data;
+
+  _collection.add({
+    store   : storeName,
+    method  : method,
+    request : request,
+    value   : value
+  });
+}
+
 /**
  * Push commit res objects to handlers
  * @param {Object} store
@@ -389,7 +525,7 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
   }
 
   if (!offline.isOnline) {
-    return;
+    return setOfflineHttpTransaction(store.name, _method, _request, value, _version);
   }
 
   _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version, transactionId);
@@ -974,3 +1110,5 @@ exports.rollback        = rollback;
 exports.getDefaultValue = getDefaultValue;
 exports.validate        = validate;
 exports.setPagination   = setPagination;
+
+exports._computeStoreTransactions = _computeStoreTransactions; // for tests
