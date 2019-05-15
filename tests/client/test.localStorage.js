@@ -16,6 +16,7 @@ describe('local storage', () => {
       lunaris.clear('@test');
       lunaris.clear('@http');
       lunaris.clear('@http.filter');
+      lunaris.clear('@lunarisOfflineTransactions');
       lunaris._cache.clear();
       setTimeout(done, 200);
     });
@@ -337,6 +338,34 @@ describe('local storage', () => {
       lunaris.get('@http');
     });
 
+    it('should save the HTTP transaction : delete offline', done => {
+      var _hook = () => {
+        lunaris.offline.isOnline = false;
+        lunaris.delete('@http', { _id : 1 });
+        setTimeout(() => {
+          lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
+            should(data).be.an.Array().and.have.lengthOf(1);
+            should(data[0].method).eql('DELETE');
+            should(data[0].store).eql('http');
+            should(data[0].url).eql('/http/1');
+            should(data[0].value).eql({
+              _id      : 1,
+              _rowId   : 1,
+              _version : [1, 2],
+              id       : 1,
+              label    : 'A'
+            });
+
+            lunaris.offline.isOnline = true;
+            lunaris.removeHook('get@http', _hook);
+            done();
+          });
+        }, 200);
+      };
+      lunaris.hook('get@http', _hook);
+      lunaris.get('@http');
+    });
+
     it('should update the state : insert', done => {
       var _insertHook = () => {
         setTimeout(() => {
@@ -423,6 +452,34 @@ describe('local storage', () => {
       };
       lunaris.hook('insert@http', _insertHook);
       lunaris.hook('inserted@http', _insertedHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
+    it('should save the HTTP transaction : insert offline', done => {
+      var _insertHook = () => {
+        setTimeout(() => {
+          lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
+            should(data).be.an.Array().and.have.lengthOf(1);
+            should(data[0].method).eql('POST');
+            should(data[0].store).eql('http');
+            should(data[0].url).eql('/http');
+            should(data[0].value).eql({
+              _id      : 1,
+              _rowId   : 1,
+              _version : [1],
+              id       : 1,
+              label    : 'A'
+            });
+
+            lunaris.offline.isOnline = true;
+            lunaris.removeHook('insert@http', _insertHook);
+            done();
+          });
+        }, 0);
+      };
+
+      lunaris.offline.isOnline = false;
+      lunaris.hook('insert@http', _insertHook);
       lunaris.insert('@http', { id : 1, label : 'A' });
     });
 
@@ -552,6 +609,44 @@ describe('local storage', () => {
       lunaris.hook('inserted@http', _insertedHook);
       lunaris.hook('update@http', _updateHook);
       lunaris.hook('updated@http', _updatedHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
+    it('should save the HTTP transaction : update offline', done => {
+      var _insertHook = (item) => {
+        item       = lunaris.utils.clone(item[0]);
+        item.label = 'A.1';
+
+        lunaris.update('@http', item);
+      };
+
+      var _updateHook = () => {
+        setTimeout(() => {
+          lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
+            should(data).be.an.Array().and.have.lengthOf(1);
+            should(data[0].method).eql('POST');
+            should(data[0].store).eql('http');
+            should(data[0].url).eql('/http');
+            should(data[0].value).eql({
+              _id      : 1,
+              _rowId   : 2,
+              _version : [3],
+              id       : 1,
+              label    : 'A.1'
+            });
+
+            lunaris.offline.isOnline = true;
+            lunaris.removeHook('insert@http', _insertHook);
+            lunaris.removeHook('update@http', _updateHook);
+            done();
+          });
+        }, 60);
+      };
+
+      lunaris.offline.isOnline = false;
+
+      lunaris.hook('insert@http', _insertHook);
+      lunaris.hook('update@http', _updateHook);
       lunaris.insert('@http', { id : 1, label : 'A' });
     });
 

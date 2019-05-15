@@ -35,7 +35,7 @@ lunarisExports._stores.lunarisErrors = {
 
 lunarisExports._stores.lunarisOfflineTransactions = {
   name                  : 'lunarisOfflineTransactions',
-  data                  : collection.collection(),
+  data                  : collection.collection(null, null, null, null, null, null, 'lunarisOfflineTransactions'),
   filters               : [],
   paginationLimit       : 50,
   paginationOffset      : 0,
@@ -174,8 +174,8 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
 function setOfflineHttpTransaction (storeName, method, request, value) {
   var _collection   = lunarisExports._stores.lunarisOfflineTransactions.data;
   var _transactions = _collection.getAll();
-  _collection.clear();
 
+  _clear('lunarisOfflineTransactions', true);
   _computeStoreTransactions(_transactions, storeName, method, request, value);
 
   for (var i = 0; i < _transactions.length; i++) {
@@ -324,10 +324,10 @@ function setLunarisError (storeName, method, request, value, version, err, error
  * @param {Boolean} isUpdate
  * @param {Array} pathParts
  * @param {Int} transactionId
+ * @param {String} request
  * @returns {Int} version
  */
-function _upsertCollection (store, collection, value, version, isMultipleItems, isUpdate, pathParts, transactionId) {
-  var _ids        = [];
+function _upsertCollection (store, collection, value, version, isMultipleItems, isUpdate, pathParts, transactionId, request) {
   var _inputValue = value;
 
   if (pathParts.length) {
@@ -352,7 +352,6 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
         storeUtils.setObjectPathValues(store.massOperations, value[i]);
 
         collection.upsert(value[i], version);
-        _ids.push(value[i]._id);
       }
     }
     else {
@@ -370,36 +369,55 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
       storeUtils.setObjectPathValues(store.massOperations, value);
 
       collection.upsert(value, version);
-
-      if (_ids) {
-        _ids.push(value._id);
-      }
     }
   }
 
   value = collection.commit(version);
 
   cache.invalidate(store.name);
+
+  // it's a patch !
+  var _requestValue = value;
+
+  if (!isMultipleItems && !store.isStoreObject) {
+    _requestValue = _requestValue[0];
+  }
+
+  if (pathParts.length) {
+    _inputValue = {
+      op    : 'replace',
+      path  : storeUtils.getJSONPatchPath(pathParts.join('.')),
+      value : _inputValue
+    };
+    _requestValue = _inputValue;
+  }
+
+  var _method  = isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT;
+
+  request = url.create(store, _method, storeUtils.getPrimaryKeyValue(
+    store,
+    _requestValue,
+    !isUpdate || (isUpdate && isMultipleItems))
+  );
+
+  // required filters consition not fullfilled
+  if (!request) {
+    return {};
+  }
+  request = request.request;
+
+  if (!offline.isOnline) {
+    setOfflineHttpTransaction(store.name, _method, request, !isMultipleItems && !store.isStoreObject ? value[0] : value);
+  }
+
   afterAction(store, isUpdate ? 'update' : 'insert', value, null, transactionId);
-  _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, transactionId);
+  _propagate(store, value, _method, transactionId);
   if (isUpdate) {
     _propagateReflexive(store, collection, value,  utils.OPERATIONS.UPDATE, transactionId);
   }
   storeUtils.saveState(store, collection);
 
-  if (!isMultipleItems && !store.isStoreObject) {
-    value = value[0];
-  }
-  // it's a patch !
-  if (pathParts.length) {
-    value = {
-      op    : 'replace',
-      path  : storeUtils.getJSONPatchPath(pathParts.join('.')),
-      value : _inputValue
-    };
-  }
-
-  return { version : version, value : value };
+  return { version : version, value : _requestValue, request : request };
 }
 
 /**
@@ -498,21 +516,10 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
 function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryOptions, transactionId) {
   var _isMultipleItems = Array.isArray(value);
   var _version;
-  if (!retryOptions) {
-    var _res = _upsertCollection(store, collection, value, _version, _isMultipleItems, isUpdate, pathParts, transactionId);
-    _version = _res.version;
-    value    = _res.value;
-  }
-  else {
-    _version = retryOptions.version;
-  }
 
-
-  if (store.isLocal || isLocal) {
-    if (store.isFilter) {
-      hook.pushToHandlers(store, 'filterUpdated', null, false, transactionId);
-    }
-    return;
+  var _request = '/';
+  if (retryOptions) {
+    _request = retryOptions.url;
   }
 
   var _method  = OPERATIONS.UPDATE;
@@ -523,23 +530,30 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
     _method = OPERATIONS.PATCH;
   }
 
-  var _request = '/';
-
   if (!retryOptions) {
-    _request = url.create(store, _method, storeUtils.getPrimaryKeyValue(store, value, !isUpdate || (isUpdate && _isMultipleItems)));
-    // required filters consition not fullfilled
+    var _res = _upsertCollection(store, collection, value, _version, _isMultipleItems, isUpdate, pathParts, transactionId, _request, _method);
+
+    _version = _res.version;
+    value    = _res.value;
+    _request = _res.request;
+
     if (!_request) {
       return;
     }
-    _request = _request.request;
-    storeUtils.saveState(store, collection);
   }
   else {
-    _request = retryOptions.url;
+    _version = retryOptions.version;
+  }
+
+  if (store.isLocal || isLocal) {
+    if (store.isFilter) {
+      hook.pushToHandlers(store, 'filterUpdated', null, false, transactionId);
+    }
+    return;
   }
 
   if (!offline.isOnline) {
-    return setOfflineHttpTransaction(store.name, _method, _request, value, _version);
+    return;
   }
 
   _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version, transactionId);
