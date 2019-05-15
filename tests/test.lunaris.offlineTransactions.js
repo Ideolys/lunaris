@@ -3,13 +3,12 @@ const computeOfflineTransactions = require('../src/store/store')._computeStoreTr
 const resetVersion               = require('../src/store/store.collection').resetVersionNumber;
 const collection                 = require('../src/store/store.collection').collection;
 const OPERATIONS                 = require('../src/utils').OPERATIONS;
-const clone                      = require('../src/utils').clone;
 
 const getPrimaryKey = (val) => {
   return val.id;
 };
 
-describe.only('Compute offline transactions', () => {
+describe('Compute offline transactions', () => {
 
   beforeEach(() => {
     resetVersion();
@@ -350,7 +349,6 @@ describe.only('Compute offline transactions', () => {
         _version : [1]
       }]);
     });
-
 
     it('should compute PUT->PUT to PUT', () => {
       let _collection = collection(getPrimaryKey);
@@ -752,6 +750,7 @@ describe.only('Compute offline transactions', () => {
       should(_transactions).eql([]);
     });
 
+
     it('should compute PUT->DELETE to DELETE', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
@@ -910,16 +909,24 @@ describe.only('Compute offline transactions', () => {
         ]
       );
 
-      should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.DELETE,
-        request : '/test',
-        value   : [
-          { _id : 1, id : 1, label : 'A' },
-          { _id : 2, id : 2, label : 'B' },
-          { _id : 3, id : 3, label : 'C' }
-        ]
-      }]);
+      should(_transactions).eql([
+        {
+          store   : 'test',
+          method  : OPERATIONS.DELETE,
+          request : '/test',
+          value   : [
+            { _id : 1, id : 1, label : 'A' },
+            { _id : 2, id : 2, label : 'B' }
+          ]
+        }, {
+          store   : 'test',
+          method  : OPERATIONS.DELETE,
+          request : '/test',
+          value   : [
+            { _id : 3, id : 3, label : 'C' }
+          ]
+        }
+      ]);
     });
 
     it('should compute POST->PUT->DELETE to nothing : multiple transactions && multiple items', () => {
@@ -958,7 +965,82 @@ describe.only('Compute offline transactions', () => {
 
       should(_transactions).eql([]);
     });
+  });
 
+  it('BOSS TEST', () => {
+    let _transactions  = [];
+
+    computeOfflineTransactions(_transactions, 'storeA', OPERATIONS.INSERT, '/storeA', [
+      { _id : 1, label : 'A' },
+      { _id : 2, label : 'B' },
+      { _id : 3, label : 'C' }
+    ]);
+    computeOfflineTransactions(_transactions, 'storeA', OPERATIONS.INSERT, '/storeA', [{ _id : 4, label : 'D' }]);
+    computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.INSERT, '/storeB', { _id : 1, label : 'a' });
+    computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.DELETE, '/storeB', { _id : 1, label : 'a' });
+    computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.INSERT, '/storeB', { _id : 2, label : 'b' });
+    computeOfflineTransactions(_transactions, 'storeA', OPERATIONS.DELETE, '/storeA', [{ _id : 5, label : 'E' }]);
+    computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.UPDATE, '/storeB', { _id : 2, label : 'b-1' });
+    computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.UPDATE, '/storeB', { _id : 2, label : 'b_1' });
+    computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.UPDATE, '/storeB', [
+      { _id : 2, label : 'b__1' },
+      { _id : 3, label : 'c' },
+      { _id : 4, label : 'd' },
+    ]);
+    computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.UPDATE, '/storeB', { _id : 4, label : 'd_1' });
+    computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.UPDATE, '/storeB', { _id : 3, label : 'c_1' });
+    computeOfflineTransactions(_transactions, 'storeA', OPERATIONS.UPDATE, '/storeA', [{ _id : 6, label : 'F.1' }]);
+    computeOfflineTransactions(_transactions, 'storeA', OPERATIONS.UPDATE, '/storeA', [{ _id : 6, label : 'F.2' }]);
+    computeOfflineTransactions(_transactions, 'storeA', OPERATIONS.DELETE, '/storeA', [
+      { _id : 6, label : 'F.2' },
+      { _id : 3, label : 'C' }
+    ]);
+
+    should(_transactions).eql([
+      {
+        store   : 'storeA',
+        method  : OPERATIONS.INSERT,
+        request : '/storeA',
+        value   : [
+          { _id : 1, label : 'A' },
+          { _id : 2, label : 'B' }
+        ]
+      }, {
+        store   : 'storeA',
+        method  : OPERATIONS.INSERT,
+        request : '/storeA',
+        value   : [
+          { _id : 4, label : 'D' }
+        ]
+      }, {
+        store   : 'storeB',
+        method  : OPERATIONS.INSERT,
+        request : '/storeB',
+        value   : [{ _id : 2, label : 'b__1' }]
+      }, {
+        store   : 'storeA',
+        method  : OPERATIONS.DELETE,
+        request : '/storeA',
+        value   : [
+          { _id : 5, label : 'E' }
+        ]
+      }, {
+        store   : 'storeB',
+        method  : OPERATIONS.UPDATE,
+        request : '/storeB',
+        value   : [
+          { _id : 3, label : 'c_1' },
+          { _id : 4, label : 'd_1' }
+        ]
+      }, {
+        store   : 'storeA',
+        method  : OPERATIONS.DELETE,
+        request : '/storeA',
+        value   : [
+          { _id : 6, label : 'F.2' }
+        ]
+      }
+    ]);
   });
 
 });

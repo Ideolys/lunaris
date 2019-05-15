@@ -47,6 +47,18 @@ lunarisExports._stores.lunarisOfflineTransactions = {
   massOperations        : {}
 };
 
+/**
+ * Compute offline HTTP transactions
+ * POST / DELETE -> do nothing
+ * PUT  / DELETE -> DELETE
+ * PUT  / PUT    -> PUT
+ * POST / PUT    -> POST
+ * @param {Array} transactions
+ * @param {String} storeName
+ * @param {String} method ex: GET, POST, etc.
+ * @param {String} request
+ * @param {Array/Object} value
+ */
 function _computeStoreTransactions (transactions, storeName, method, request, value) {
   var _mustBeAdded  = true;
   var _isArrayValue = Array.isArray(value);
@@ -56,7 +68,6 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
   }
 
   var _lengthValue = value.length;
-
   var _nbInInserts = 0;
 
   for (var j = _lengthValue - 1; j >= 0; j--) {
@@ -74,7 +85,7 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
         continue;
       }
 
-      for (var k = _lengthTransactionValue  - 1; k >= 0; k--) {
+      for (var k = _lengthTransactionValue - 1; k >= 0; k--) {
         if (_transaction.method === OPERATIONS.INSERT && method === OPERATIONS.UPDATE) {
           if (value[j]._id !== _transaction.value[k]._id) {
             continue;
@@ -97,8 +108,7 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
           }
 
           _transaction.value[k] = value[j];
-
-          _mustBeAdded = false;
+          _mustBeAdded          = false;
           break;
         }
 
@@ -117,15 +127,22 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
           }
 
           if (_transaction.method === OPERATIONS.INSERT) {
-            _mustBeAdded = false;
+            value.splice(j, 1);
+
+            if (!value.length) {
+              _mustBeAdded = false;
+            }
+
+            break;
           }
         }
 
-        if (_transaction.method === OPERATIONS.DELETE && method === OPERATIONS.DELETE && _isArrayValue) {
-          _transaction.value.push(value[j]);
-          _mustBeAdded = false;
-          break;
-        }
+        // Do not try to merge DELETE, it will be way to complicated to manage PUT->DELETE->DELETE with discontinuations
+        // if (_transaction.method === OPERATIONS.DELETE && method === OPERATIONS.DELETE && _isArrayValue) {
+        //   _transaction.value.push(value[j]);
+        //   _mustBeAdded = false;
+        //   break;
+        // }
       }
 
       if (!_isTransactionValueAnArray) {
@@ -143,16 +160,12 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
     });
   }
 
-  _mustBeAdded = true;
-
   return transactions;
 }
 
 /**
  * Save Http transactions into a store
  * Make sure to compute actions before inserting in store
- * POST / DELETE -> REMOVE POST AND DELETE
- * PUT  / DELETE -> REMOVE PUT
  * @param {String} storeName
  * @param {String} method
  * @param {String} request
@@ -160,13 +173,14 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
  */
 function setOfflineHttpTransaction (storeName, method, request, value) {
   var _collection   = lunarisExports._stores.lunarisOfflineTransactions.data;
+  var _transactions = _collection.getAll();
+  _collection.clear();
 
-  _collection.add({
-    store   : storeName,
-    method  : method,
-    request : request,
-    value   : value
-  });
+  _computeStoreTransactions(_transactions, storeName, method, request, value);
+
+  for (var i = 0; i < _transactions.length; i++) {
+    _collection.add(_transactions[i]);
+  }
 }
 
 /**
