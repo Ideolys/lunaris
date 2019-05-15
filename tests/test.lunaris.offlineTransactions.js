@@ -19,10 +19,10 @@ describe('Compute offline transactions', () => {
     let _value        = { id : 1, label : 'A' };
     let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.INSERT, '/test', _value);
     should(_transactions).eql([{
-      store   : 'test',
-      method  : OPERATIONS.INSERT,
-      request : '/test',
-      value   : _value
+      store  : 'test',
+      method : OPERATIONS.INSERT,
+      url    : '/test',
+      value  : _value
     }]);
   });
 
@@ -31,7 +31,7 @@ describe('Compute offline transactions', () => {
     let _valueInit  = {
       store   : 'test',
       method  : OPERATIONS.INSERT,
-      request : '/test',
+      url     : '/test',
       value   : { id : 1, label : 'A' },
       id      : 1,
       rowId   : 1,
@@ -43,10 +43,10 @@ describe('Compute offline transactions', () => {
     should(_transactions).eql([
       _valueInit,
       {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : _value
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : _value
       }
     ]);
   });
@@ -55,17 +55,17 @@ describe('Compute offline transactions', () => {
     it('should compute POST->PUT to POST', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.INSERT,
-        request  : '/test',
+        url      : '/test',
         value    : { _id : 1, id : 1, label : 'B' },
         _id      : 1,
         _rowId   : 1,
@@ -76,17 +76,17 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->PUT to PUT', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.UPDATE,
-        request  : '/test',
+        url      : '/test',
         value    : { _id : 1, id : 1, label : 'B' },
         _id      : 1,
         _rowId   : 1,
@@ -97,17 +97,17 @@ describe('Compute offline transactions', () => {
     it('should compute POST->PUT->PUT to POST', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.INSERT,
-        request  : '/test',
+        url      : '/test',
         value    : { _id : 1, id : 1, label : 'B' },
         _id      : 1,
         _rowId   : 1,
@@ -118,7 +118,7 @@ describe('Compute offline transactions', () => {
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.INSERT,
-        request  : '/test',
+        url      : '/test',
         value    : { _id : 1, id : 1, label : 'C' },
         _id      : 1,
         _rowId   : 1,
@@ -129,10 +129,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->DELETE to nothing', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
@@ -142,28 +142,28 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->DELETE to DELETE', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.DELETE,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.DELETE,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       }]);
     });
 
     it('should compute POST->PUT->DELETE to nothing', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
 
@@ -177,17 +177,17 @@ describe('Compute offline transactions', () => {
     it('should compute POST->PUT to POST', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }]
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', [{ _id : 1, id : 1, label : 'B' }]);
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.INSERT,
-        request  : '/test',
+        url      : '/test',
         value    : [{ _id : 1, id : 1, label : 'B' }],
         _id      : 1,
         _rowId   : 1,
@@ -198,17 +198,17 @@ describe('Compute offline transactions', () => {
     it('should compute POST->PUT to POST : POST has an object value', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', [{ _id : 1, id : 1, label : 'B' }]);
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.INSERT,
-        request  : '/test',
+        url      : '/test',
         value    : { _id : 1, id : 1, label : 'B' },
         _id      : 1,
         _rowId   : 1,
@@ -219,17 +219,17 @@ describe('Compute offline transactions', () => {
     it('should compute POST->PUT to POST : PUT has an object value', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }]
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.INSERT,
-        request  : '/test',
+        url      : '/test',
         value    : [{ _id : 1, id : 1, label : 'B' }],
         _id      : 1,
         _rowId   : 1,
@@ -240,10 +240,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->PUT to POST : multiple items', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(
@@ -258,7 +258,7 @@ describe('Compute offline transactions', () => {
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.INSERT,
-        request  : '/test',
+        url      : '/test',
         value    : [{ _id : 1, id : 1, label : 'A.1' }, { _id : 2, id : 2, label : 'B.1' }],
         _id      : 1,
         _rowId   : 1,
@@ -269,10 +269,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->PUT to POST : multiple items and discontinuation', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -289,10 +289,10 @@ describe('Compute offline transactions', () => {
         ]
       );
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A.1' },
           { _id : 2, id : 2, label : 'B.1' },
           { _id : 3, id : 3, label : 'C' }
@@ -306,10 +306,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->PUT to POST : multiple transactions && multiple items', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -336,13 +336,13 @@ describe('Compute offline transactions', () => {
       );
 
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [
-          { _id : 1, id : 1, label : 'A.1' },
-          { _id : 2, id : 2, label : 'B.1' },
-          { _id : 3, id : 3, label : 'C.1' }
+        store    : 'test',
+        method   : OPERATIONS.INSERT,
+        url      : '/test',
+        value    : [
+          { _id  : 1, id : 1, label : 'A.1' },
+          { _id  : 2, id : 2, label : 'B.1' },
+          { _id  : 3, id : 3, label : 'C.1' }
         ],
         _id      : 1,
         _rowId   : 1,
@@ -353,17 +353,17 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->PUT to PUT', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }]
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', [{ _id : 1, id : 1, label : 'B' }]);
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.UPDATE,
-        request  : '/test',
+        url      : '/test',
         value    : [{ _id : 1, id : 1, label : 'B' }],
         _id      : 1,
         _rowId   : 1,
@@ -374,17 +374,17 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->PUT to PUT : first PUT has an object value', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', [{ _id : 1, id : 1, label : 'B' }]);
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.UPDATE,
-        request  : '/test',
+        url      : '/test',
         value    : { _id : 1, id : 1, label : 'B' },
         _id      : 1,
         _rowId   : 1,
@@ -395,17 +395,17 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->PUT to PUT : second PUT has an object value', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }]
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.UPDATE,
-        request  : '/test',
+        url      : '/test',
         value    : [{ _id : 1, id : 1, label : 'B' }],
         _id      : 1,
         _rowId   : 1,
@@ -416,10 +416,10 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->PUT to PUT : multiple items', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(
@@ -434,7 +434,7 @@ describe('Compute offline transactions', () => {
       should(_transactions).eql([{
         store    : 'test',
         method   : OPERATIONS.UPDATE,
-        request  : '/test',
+        url      : '/test',
         value    : [{ _id : 1, id : 1, label : 'A.1' }, { _id : 2, id : 2, label : 'B.1' }],
         _id      : 1,
         _rowId   : 1,
@@ -445,10 +445,10 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->PUT to PUT : multiple items and discontinuation', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -465,10 +465,10 @@ describe('Compute offline transactions', () => {
         ]
       );
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A.1' },
           { _id : 2, id : 2, label : 'B.1' },
           { _id : 3, id : 3, label : 'C' }
@@ -482,10 +482,10 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->PUT to PUT : multiple transactions && multiple items', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -512,10 +512,10 @@ describe('Compute offline transactions', () => {
       );
 
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A.1' },
           { _id : 2, id : 2, label : 'B.1' },
           { _id : 3, id : 3, label : 'C.1' }
@@ -529,10 +529,10 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->PUT to PUT : multiple transactions && multiple items', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -559,10 +559,10 @@ describe('Compute offline transactions', () => {
       );
 
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A.1' },
           { _id : 2, id : 2, label : 'B.1' },
           { _id : 3, id : 3, label : 'C.1' }
@@ -576,10 +576,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->PUT to POST->PUT : discontinuations', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' }
         ]
@@ -597,10 +597,10 @@ describe('Compute offline transactions', () => {
 
       should(_transactions).eql([
         {
-          store   : 'test',
-          method  : OPERATIONS.INSERT,
-          request : '/test',
-          value   : [
+          store  : 'test',
+          method : OPERATIONS.INSERT,
+          url    : '/test',
+          value  : [
             { _id : 1, id : 1, label : 'A' },
             { _id : 2, id : 2, label : 'B.1' },
           ],
@@ -609,10 +609,10 @@ describe('Compute offline transactions', () => {
           _version : [1]
         },
         {
-          store   : 'test',
-          method  : OPERATIONS.UPDATE,
-          request : '/test',
-          value   : [
+          store  : 'test',
+          method : OPERATIONS.UPDATE,
+          url    : '/test',
+          value  : [
             { _id : 3, id : 3, label : 'C' }
           ]
         }
@@ -623,10 +623,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->DELETE to nothing', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }]
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
@@ -636,10 +636,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->DELETE to POST : POST has an object value', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
@@ -649,10 +649,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->DELETE to nothing : DELETE has an object value', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }]
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
@@ -662,10 +662,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->DELETE to nothing : multiple items', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(
@@ -683,10 +683,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->DELETE to POST : multiple items and discontinuation', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -703,10 +703,10 @@ describe('Compute offline transactions', () => {
         ]
       );
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [
           { _id : 3, id : 3, label : 'C' }
         ],
         _id      : 1,
@@ -718,10 +718,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->DELETE to nothing : multiple transactions && multiple items', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -754,64 +754,64 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->DELETE to DELETE', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }]
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.DELETE,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }]
+        store  : 'test',
+        method : OPERATIONS.DELETE,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }]
       }]);
     });
 
     it('should compute PUT->DELETE to DELETE : UPDATE has an object value', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.DELETE,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }]
+        store  : 'test',
+        method : OPERATIONS.DELETE,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }]
       }]);
     });
 
     it('should compute PUT->DELETE to DELETE : PUT has an object value', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }]
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.DELETE,
-        request : '/test',
-        value   : { _id : 1, id : 1, label : 'A' }
+        store  : 'test',
+        method : OPERATIONS.DELETE,
+        url    : '/test',
+        value  : { _id : 1, id : 1, label : 'A' }
       }]);
     });
 
     it('should compute PUT->DELETE to DELETE : multiple items', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(
@@ -824,20 +824,20 @@ describe('Compute offline transactions', () => {
         ]
       );
       should(_transactions).eql([{
-        store   : 'test',
-        method  : OPERATIONS.DELETE,
-        request : '/test',
-        value   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
+        store  : 'test',
+        method : OPERATIONS.DELETE,
+        url    : '/test',
+        value  : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
       }]);
     });
 
     it('should compute PUT->DELETE to DELETE : multiple items and discontinuation', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -855,10 +855,10 @@ describe('Compute offline transactions', () => {
       );
       should(_transactions).eql([
         {
-          store   : 'test',
-          method  : OPERATIONS.UPDATE,
-          request : '/test',
-          value   : [
+          store  : 'test',
+          method : OPERATIONS.UPDATE,
+          url    : '/test',
+          value  : [
             { _id : 3, id : 3, label : 'C' }
           ],
           _id      : 1,
@@ -866,10 +866,10 @@ describe('Compute offline transactions', () => {
           _version : [1]
         },
         {
-          store   : 'test',
-          method  : OPERATIONS.DELETE,
-          request : '/test',
-          value   : [
+          store  : 'test',
+          method : OPERATIONS.DELETE,
+          url    : '/test',
+          value  : [
             { _id : 1, id : 1, label : 'A' },
             { _id : 2, id : 2, label : 'B' }
           ]
@@ -880,10 +880,10 @@ describe('Compute offline transactions', () => {
     it('should compute PUT->DELETE to DELETE : multiple transactions && multiple items', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.UPDATE,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.UPDATE,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -911,18 +911,18 @@ describe('Compute offline transactions', () => {
 
       should(_transactions).eql([
         {
-          store   : 'test',
-          method  : OPERATIONS.DELETE,
-          request : '/test',
-          value   : [
+          store  : 'test',
+          method : OPERATIONS.DELETE,
+          url    : '/test',
+          value  : [
             { _id : 1, id : 1, label : 'A' },
             { _id : 2, id : 2, label : 'B' }
           ]
         }, {
-          store   : 'test',
-          method  : OPERATIONS.DELETE,
-          request : '/test',
-          value   : [
+          store  : 'test',
+          method : OPERATIONS.DELETE,
+          url    : '/test',
+          value  : [
             { _id : 3, id : 3, label : 'C' }
           ]
         }
@@ -932,10 +932,10 @@ describe('Compute offline transactions', () => {
     it('should compute POST->PUT->DELETE to nothing : multiple transactions && multiple items', () => {
       let _collection = collection(getPrimaryKey);
       let _valueInit  = {
-        store   : 'test',
-        method  : OPERATIONS.INSERT,
-        request : '/test',
-        value   : [
+        store  : 'test',
+        method : OPERATIONS.INSERT,
+        url    : '/test',
+        value  : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -998,45 +998,45 @@ describe('Compute offline transactions', () => {
 
     should(_transactions).eql([
       {
-        store   : 'storeA',
-        method  : OPERATIONS.INSERT,
-        request : '/storeA',
-        value   : [
+        store  : 'storeA',
+        method : OPERATIONS.INSERT,
+        url    : '/storeA',
+        value  : [
           { _id : 1, label : 'A' },
           { _id : 2, label : 'B' }
         ]
       }, {
-        store   : 'storeA',
-        method  : OPERATIONS.INSERT,
-        request : '/storeA',
-        value   : [
+        store  : 'storeA',
+        method : OPERATIONS.INSERT,
+        url    : '/storeA',
+        value  : [
           { _id : 4, label : 'D' }
         ]
       }, {
-        store   : 'storeB',
-        method  : OPERATIONS.INSERT,
-        request : '/storeB',
-        value   : [{ _id : 2, label : 'b__1' }]
+        store  : 'storeB',
+        method : OPERATIONS.INSERT,
+        url    : '/storeB',
+        value  : [{ _id : 2, label : 'b__1' }]
       }, {
-        store   : 'storeA',
-        method  : OPERATIONS.DELETE,
-        request : '/storeA',
-        value   : [
+        store  : 'storeA',
+        method : OPERATIONS.DELETE,
+        url    : '/storeA',
+        value  : [
           { _id : 5, label : 'E' }
         ]
       }, {
-        store   : 'storeB',
-        method  : OPERATIONS.UPDATE,
-        request : '/storeB',
-        value   : [
+        store  : 'storeB',
+        method : OPERATIONS.UPDATE,
+        url    : '/storeB',
+        value  : [
           { _id : 3, label : 'c_1' },
           { _id : 4, label : 'd_1' }
         ]
       }, {
-        store   : 'storeA',
-        method  : OPERATIONS.DELETE,
-        request : '/storeA',
-        value   : [
+        store  : 'storeA',
+        method : OPERATIONS.DELETE,
+        url    : '/storeA',
+        value  : [
           { _id : 6, label : 'F.2' }
         ]
       }

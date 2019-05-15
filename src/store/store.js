@@ -153,10 +153,10 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
 
   if (_mustBeAdded) {
     transactions.push({
-      store   : storeName,
-      method  : method,
-      request : request,
-      value   : _isArrayValue ? value : value[0]
+      store  : storeName,
+      method : method,
+      url    : request,
+      value  : _isArrayValue ? value : value[0]
     });
   }
 
@@ -846,7 +846,7 @@ function deleteStore (store, value, retryOptions, isLocal) {
     }
 
     if (!offline.isOnline) {
-      return;
+      return setOfflineHttpTransaction(_options.store.name, OPERATIONS.DELETE, _request, value);
     }
 
     http.request('DELETE', _request, null, function (err, data) {
