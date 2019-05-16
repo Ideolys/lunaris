@@ -98,25 +98,25 @@ module.exports = {
 > Dans la V2 toutes nos vues sont rendues entre les balises layout
 
 ```html
-<layout ref="ref">
+<e-layout ref="ref">
 ...
-</layout>
+</e-layout>
 ```
 
 Nous allons donc créer notre vue entre ces balises
 ```html
-<layout ref="scalesRef">
+<e-layout ref="scalesRef">
   <div  slot="middle-panel-body">
     <p>${Content of the page}</p>
   </div>
-</layout>
+</e-layout>
 ```
 
 Plusieurs choses:
 * "ref" c'est quoi ?
   Ça permet ensuite depuis le controller d’accéder à différentes actions sur notre vue.
 * Et le "slot" il sert à quoi ?
-  C'est un des éléments du layout ils se trouvent tous dans **client-v2/global-components/layout/layout.vue**
+  C'est un des éléments du layout ils se trouvent tous dans **client-v2/global-components/layout/e-layout.vue**
   [DOC Vue.js](https://vuejs.org/v2/guide/components-slots.html#ad)
 * "${}" ça fait quoi ?
   C'est le système de traduction universel à tous easilys, tout ce qui se trouve dans cet élément seras traduit.
@@ -125,13 +125,13 @@ Plusieurs choses:
 Désormais on va pouvoir ajouter un titre à notre écran:
 
 ```html
-<layout ref="scalesRef"
+<e-layout ref="scalesRef"
 middlePanelTitle="${Filters}">
   ...
-</layout>
+</e-layout>
 ```
 
-Si il te faut plus d'information pour la layout je t'invite à aller voir dans `client-v2/global-components/layout.vue`
+Si il te faut plus d'information pour la layout je t'invite à aller voir dans `client-v2/global-components/layout/`
 
 ## Suite
 
