@@ -20,12 +20,21 @@
 
 **Tous d'abord, nous allons retirer la barre de recherche placée en haut**
 
-Pour cela il va falloir rajouté un élément dans la balise `<layout>` de notre vue.
+Pour cela il va falloir recomposer le header du composant.
 
 *Fichier:* **index.html**
 ```html
-<layout ref="scales-res"
-  v-bind:isNoHeaderSearchInput="true">
+<e-layout ref="scales-res">
+  <div slot="middle-panel-header">
+    <div class="column is-paddingless">
+      <div class="field has-addons is-pulled-left">
+        <div class="title is-pulled-left ellipsis">{{ middlePanelTitle }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  ...
+</e-layout>
 ```
 
 ## Améliorer l'affichage des balances
@@ -74,9 +83,9 @@ module.exports = {
 }
 ```
 
-*Les élément retourné dans cette fonction seront partagés avec la vue*
+*Les éléments retournés dans cette fonction seront partagés avec la vue*
 
-aussi vous aurez besoins de méthodes.
+aussi vous aurez besoin de méthodes.
 
 ***exemple:***
 ```js
@@ -91,7 +100,7 @@ module.export = {
 }
 ```
 
-Et pour ouvrir le panneau de droite il suffis d'appeler la fonction suivante
+Et pour ouvrir le panneau de droite il est nécessaire d'instancier un nouveau composant, `e-layout-view`
 
 ```js
 this.$refs.scalesRef.openRightPanel();
@@ -99,19 +108,21 @@ this.$refs.scalesRef.openRightPanel();
 
 ### **Dans la vue**
 
-Le slot pour le panneau de droite sont les suivants:
+Les slots pour le composant sont:
 
-* right-panel-header
-* right-panel-body
-* right-panel-footer
+* header-title
+* body
+* footer
 
-Vous pouvez également définir le titre de cette fenetre graĉe à une propriété du layout:
+Vous pouvez également définir le titre de cette fenêtre grâce à une propriété du composant:
 
-* `rightPanelTitle`
+* `title`
 
-Pour activer le "footer" du layout il faudras définir cette propriété a `true`:
+Pour activer le "footer" du layout il faudra définir cette propriété à `true`:
 
-* `hasRightPanelFooter`
+* `isFooter`
+
+Une documentation pour l'utilisation du composant `e-layout-view` se trouve ici `client-v2/layout/README.md`
 
 ### **Résultat attendu**
 
@@ -142,7 +153,7 @@ module.exports = {
     value        : ['number', 0, 'min', 3, 'max', 10],
     anotherValue : ['number', 'optional'],
     subObject    : ['object', {
-      id    : ['<<int>>'],
+      id    : ['int'],
       label : ['string']
     }]
   }]
@@ -169,9 +180,9 @@ Pour automatiquement savoir si la fonction `lunaris.upsert` (dont nous parleront
 module.exports = {
   ...
   map : [{
+    id : ['<<int>>']
     ...
-  }],
-  primaryKey : 'id'
+  }]
 };
 ```
 
@@ -216,11 +227,10 @@ lunaris.validate('@monStore', donneesAValider, function (isValid, err) {
 
 **Ajouts des données au store**
 
-Pour ajouter / editer des données dans un store il y a plusieurs possibilitées:
+Pour ajouter / editer des données dans un store il y a plusieurs possibilités:
 
 * `lunaris.insert` Insère des données
-* `lunaris.updated` Edite des données
-* `lunaris.upsert` Insere ou edite des données en fonctionde l'existance ou non de ces dernière.
+* `lunaris.upsert` Insère ou édite des données en fonction de l'existance ou non de ces dernières.
 
 **exemple:**
 ```js
@@ -305,8 +315,6 @@ Nous allons découvrir le dernier type de filtre, il est déstiner à comparer d
 
 Si on utilise ce type de filtre dans un store lié à une API ceci l'ajouteras dans la partie search.
 
-**IL EST ACTUELLEMENT IMPOSSIBLE D'UTILISER CE TYPE DE FILTRE DANS UN STORE LOCAL**
-
 ***example***
 ```js
 module.exports = {
@@ -316,7 +324,7 @@ module.exports = {
     , {
       source          : '@store.filter.filterName'
       sourceAttribute : 'id',
-      localAttribute  : 'elem[id]',
+      localAttribute  : 'elem.id',
       operator        : '='
     }
   ]
@@ -324,7 +332,7 @@ module.exports = {
 }
 ```
 
-Ce filtre va ajouté à l'url `?search=elem[id]:=1` (Si @store.filter.filterName.id vaut 1)
+Ce filtre va ajouté à l'url `?search=elem.id:=1` (Si @store.filter.filterName.id vaut 1)
 
 Plusieurs operateurs sont disponibles:
   * `=` dans l'url `:=`
@@ -337,20 +345,18 @@ Plusieurs operateurs sont disponibles:
 
 ***example***
 ```html
-<filter-list
-  filterName="${Wastes}"
-  filterStore="@store.filter.filterName"
-  searchBy="id"
-  v-bind:dataFilter="$waste"
-  storeFilterSearch="@store.filter.filterNameSearch"
-></filter-list>
+<e-filter
+  title="${Wastes}"
+  store="@store.filter.filterName"
+  attributeValue="id"
+  storeSearch="@store.filter.filterNameSearch"
+></e-filter>
 ```
 
-* `filterName` Pour le titre / nom du filtre
-* `filterStore` Pour le store filtre
-* `searchBy` Pour l'élément par lequel on recherche
-* `dataFilter` La liste des éléments dans le filtre
-* `storeFilterSearch` Pour le filtre utilisé par la barre de recherche (optionnel)
+* `title` Pour le titre / nom du filtre
+* `store` Pour le store filtre
+* `attributeSearch` Pour l'élément par lequel on recherche
+* `storeSearch` Pour le filtre utilisé par la barre de recherche (optionnel)
 
 ### **Résultat attendu**
 
