@@ -86,6 +86,176 @@ function initIndexedDB (versionNumber, stores, callback) {
   });
 }
 
+var _queue       = [];
+var _currentItem = null;
+
+/**
+ * Start queue
+ */
+function _startQueue () {
+  if (!_currentItem && _queue.length === 1) {
+    _processQueue();
+  }
+}
+
+/**
+ * Process indexedDB queue
+ */
+function _processQueue () {
+  var _currentItem = _queue.shift();
+
+  if (!_currentItem) {
+    return;
+  }
+
+  var _callback = _currentItem[_currentItem.length - 1];
+
+  _currentItem[0](_currentItem[1], _currentItem[2], function (err, data) {
+    if (_callback) {
+      _callback(err, data);
+    }
+
+    _processQueue();
+  });
+}
+
+/**
+ * Add a value
+ * @param {String} key
+ * @param {*} value
+ * @param {Function} callback @optional
+ */
+function _add (key, value, callback) {
+  if (!database) {
+    return callback ();
+  }
+
+  var _transaction = database.transaction([key], 'readwrite');
+  var _objectStore = _transaction.objectStore(key);
+  var _request     = _objectStore.add(value);
+
+  _request.onsuccess = function onsuccess (e) {
+    callback(null, e.target.result);
+  };
+  _request.onerror = function onerror (e) {
+    callback(e);
+  };
+}
+
+/**
+ * Update a value
+ * @param {String} key
+ * @param {*} value
+ * @param {Function} callback @optional
+ */
+function _upsert (key, value, callback) {
+  if (!database) {
+    return callback();
+  }
+
+  var _transaction = database.transaction([key], 'readwrite');
+  var _objectStore = _transaction.objectStore(key);
+  var _request     = _objectStore.put(value);
+
+  _request.onsuccess = function onsuccess (e) {
+    callback(null, e.target.result);
+  };
+  _request.onerror = function onerror (e) {
+    callback(e);
+  };
+}
+
+/**
+ * Delete a value
+ * @param {String} key
+ * @param {*} value
+ * @param {Function} callback @optional
+ */
+function _del (key, value, callback) {
+  if (!database) {
+    return callback();
+  }
+
+  var _transaction = database.transaction([key], 'readwrite');
+  var _objectStore = _transaction.objectStore(key);
+  var _request     = _objectStore.delete(value);
+
+  _request.onsuccess = function onsuccess (e) {
+    callback(null, e.target.result);
+  };
+  _request.onerror = function onerror (e) {
+    callback(e);
+  };
+}
+
+/**
+ * Get a value
+ * @param {String} key
+ * @param {*} value
+ * @param {Function} callback
+ */
+function _get (key, value, callback) {
+  if (!database) {
+    return callback();
+  }
+
+  var _transaction = database.transaction([key], 'readwrite');
+  var _objectStore = _transaction.objectStore(key);
+  var _request     = _objectStore.get(value);
+
+  _request.onsuccess = function onsuccess (e) {
+    callback(null, e.target.result);
+  };
+  _request.onerror = function onerror (e) {
+    callback(e);
+  };
+}
+
+/**
+ * Get all value
+ * @param {String} key
+ * @param {Function} callback
+ */
+function _getAll (key, callback) {
+  if (!database) {
+    return callback();
+  }
+
+  var _transaction = database.transaction([key], 'readwrite');
+  var _objectStore = _transaction.objectStore(key);
+  var _request     = _objectStore.getAll();
+
+  _request.onsuccess = function onsuccess (e) {
+    callback(null, e.target.result);
+  };
+  _request.onerror = function onerror (e) {
+    callback(e);
+  };
+}
+
+/**
+ * Clear an object store
+ * @param {String} key
+ */
+function _clear (key, callback) {
+  if (!database) {
+    return callback();
+  }
+
+  var _transaction = database.transaction([key], 'readwrite');
+  var _objectStore = _transaction.objectStore(key);
+  var _request     = _objectStore.clear();
+
+  if (callback) {
+    _request.onsuccess = function onsuccess (e) {
+      callback(null, e.target.result);
+    };
+    _request.onerror = function onerror (e) {
+      callback(e);
+    };
+  }
+}
+
 module.exports = {
   indexedDB : {
     init : initIndexedDB,
@@ -93,15 +263,15 @@ module.exports = {
      * Add a value
      * @param {String} key
      * @param {*} value
+     * @param {Function} callback @optional
      */
-    add  : function add (key, value) {
+    add  : function add (key, value, callback) {
       if (!database) {
         return;
       }
 
-      var _transaction = database.transaction([key], 'readwrite');
-      var _objectStore = _transaction.objectStore(key);
-      _objectStore.add(value);
+      _queue.push([_add, key, value, callback]);
+      _startQueue();
     },
 
     /**
@@ -115,18 +285,8 @@ module.exports = {
         return;
       }
 
-      var _transaction = database.transaction([key], 'readwrite');
-      var _objectStore = _transaction.objectStore(key);
-      var _request     = _objectStore.put(value);
-
-      if (callback) {
-        _request.onsuccess = function onsuccess (e) {
-          callback(null, e.target.result);
-        };
-        _request.onerror = function onerror (e) {
-          callback(e);
-        };
-      }
+      _queue.push([_upsert, key, value, callback]);
+      _startQueue();
     },
 
     /**
@@ -140,18 +300,8 @@ module.exports = {
         return;
       }
 
-      var _transaction = database.transaction([key], 'readwrite');
-      var _objectStore = _transaction.objectStore(key);
-      var _request     = _objectStore.delete(value);
-
-      if (callback) {
-        _request.onsuccess = function onsuccess (e) {
-          callback(null, e.target.result);
-        };
-        _request.onerror = function onerror (e) {
-          callback(e);
-        };
-      }
+      _queue.push([_del, key, value, callback]);
+      _startQueue();
     },
 
     /**
@@ -160,21 +310,13 @@ module.exports = {
      * @param {*} value
      * @param {Function} callback
      */
-    get : function getAll (key, value, callback) {
+    get : function get (key, value, callback) {
       if (!database) {
         return;
       }
 
-      var _transaction = database.transaction([key], 'readwrite');
-      var _objectStore = _transaction.objectStore(key);
-      var _request     = _objectStore.get(value);
-
-      _request.onsuccess = function onsuccess (e) {
-        callback(null, e.target.result);
-      };
-      _request.onerror = function onerror (e) {
-        callback(e);
-      };
+      _queue.push([_get, key, value, callback]);
+      _startQueue();
     },
 
     /**
@@ -187,16 +329,8 @@ module.exports = {
         return;
       }
 
-      var _transaction = database.transaction([key], 'readwrite');
-      var _objectStore = _transaction.objectStore(key);
-      var _request     = _objectStore.getAll();
-
-      _request.onsuccess = function onsuccess (e) {
-        callback(null, e.target.result);
-      };
-      _request.onerror = function onerror (e) {
-        callback(e);
-      };
+      _queue.push([_getAll, key, callback]);
+      _startQueue();
     },
 
     /**
@@ -207,18 +341,9 @@ module.exports = {
       if (!database) {
         return;
       }
-      var _transaction = database.transaction([key], 'readwrite');
-      var _objectStore = _transaction.objectStore(key);
-      var _request     = _objectStore.clear();
 
-      if (callback) {
-        _request.onsuccess = function onsuccess (e) {
-          callback(null, e.target.result);
-        };
-        _request.onerror = function onerror (e) {
-          callback(e);
-        };
-      }
+      _queue.push([_clear, key, callback]);
+      _startQueue();
     }
   },
 
