@@ -18,6 +18,10 @@ describe('Compute offline transactions', () => {
     let _collection   = collection(null, false);
     let _value        = { id : 1, label : 'A' };
     let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.INSERT, '/test', _value);
+
+    should(_transactions[0].date).be.a.Number();
+    delete _transactions[0].date;
+
     should(_transactions).eql([{
       store  : 'test',
       method : OPERATIONS.INSERT,
@@ -40,6 +44,10 @@ describe('Compute offline transactions', () => {
     _collection.add(_valueInit);
     let _value        = { id : 2, label : 'B' };
     let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.INSERT, '/test', _value);
+
+    should(_transactions[1].date).be.a.Number();
+    delete _transactions[1].date;
+
     should(_transactions).eql([
       _valueInit,
       {
@@ -149,6 +157,10 @@ describe('Compute offline transactions', () => {
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
+
+      should(_transactions[0].date).be.a.Number();
+      delete _transactions[0].date;
+
       should(_transactions).eql([{
         store  : 'test',
         method : OPERATIONS.DELETE,
@@ -595,6 +607,9 @@ describe('Compute offline transactions', () => {
         ]
       );
 
+      should(_transactions[1].date).be.a.Number();
+      delete _transactions[1].date;
+
       should(_transactions).eql([
         {
           store  : 'test',
@@ -761,6 +776,10 @@ describe('Compute offline transactions', () => {
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
+
+      should(_transactions[0].date).be.a.Number();
+      delete _transactions[0].date;
+
       should(_transactions).eql([{
         store  : 'test',
         method : OPERATIONS.DELETE,
@@ -779,6 +798,10 @@ describe('Compute offline transactions', () => {
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
+
+      should(_transactions[0].date).be.a.Number();
+      delete _transactions[0].date;
+
       should(_transactions).eql([{
         store  : 'test',
         method : OPERATIONS.DELETE,
@@ -797,6 +820,10 @@ describe('Compute offline transactions', () => {
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
+
+      should(_transactions[0].date).be.a.Number();
+      delete _transactions[0].date;
+
       should(_transactions).eql([{
         store  : 'test',
         method : OPERATIONS.DELETE,
@@ -823,6 +850,10 @@ describe('Compute offline transactions', () => {
           { _id : 2, id : 2, label : 'B' }
         ]
       );
+
+      should(_transactions[0].date).be.a.Number();
+      delete _transactions[0].date;
+
       should(_transactions).eql([{
         store  : 'test',
         method : OPERATIONS.DELETE,
@@ -853,6 +884,10 @@ describe('Compute offline transactions', () => {
           { _id : 2, id : 2, label : 'B' }
         ]
       );
+
+      should(_transactions[1].date).be.a.Number();
+      delete _transactions[1].date;
+
       should(_transactions).eql([
         {
           store  : 'test',
@@ -908,6 +943,11 @@ describe('Compute offline transactions', () => {
           { _id : 3, id : 3, label : 'C' }
         ]
       );
+
+      should(_transactions[0].date).be.a.Number();
+      delete _transactions[0].date;
+      should(_transactions[1].date).be.a.Number();
+      delete _transactions[1].date;
 
       should(_transactions).eql([
         {
@@ -995,6 +1035,19 @@ describe('Compute offline transactions', () => {
       { _id : 6, label : 'F.2' },
       { _id : 3, label : 'C' }
     ]);
+
+    should(_transactions[0].date).be.a.Number();
+    delete _transactions[0].date;
+    should(_transactions[1].date).be.a.Number();
+    delete _transactions[1].date;
+    should(_transactions[2].date).be.a.Number();
+    delete _transactions[2].date;
+    should(_transactions[3].date).be.a.Number();
+    delete _transactions[3].date;
+    should(_transactions[4].date).be.a.Number();
+    delete _transactions[4].date;
+    should(_transactions[5].date).be.a.Number();
+    delete _transactions[5].date;
 
     should(_transactions).eql([
       {

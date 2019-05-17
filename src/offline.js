@@ -1,15 +1,6 @@
 var lunarisExports = require('./exports.js');
 var isOnline       = true;
 
-module.exports = {
-  get isOnline () {
-    return isOnline;
-  },
-  set isOnline (value) {
-    isOnline = value;
-  }
-};
-
 if (lunarisExports.isBrowser) {
   isOnline = navigator.onLine !== undefined ? navigator.onLine : true;
 
@@ -20,3 +11,12 @@ if (lunarisExports.isBrowser) {
     isOnline = false;
   });
 }
+
+module.exports = {
+  get isOnline () {
+    return isOnline;
+  },
+  set isOnline (value) {
+    isOnline = value;
+  }
+};

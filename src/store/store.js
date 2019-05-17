@@ -156,7 +156,8 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
       store  : storeName,
       method : method,
       url    : request,
-      value  : _isArrayValue ? value : value[0]
+      value  : _isArrayValue ? value : value[0],
+      date   : Date.now()
     });
   }
 
@@ -757,7 +758,7 @@ function upsert (store, value, isLocal, retryOptions) {
     }
     var _transactionId = transaction.getCurrentTransactionId();
 
-    if (_options.store.validateFn && !_storeParts.length) {
+    if (_options.store.validateFn && !_storeParts.length && !retryOptions) {
       return validate(store, _options.value, _isUpdate, function (res) {
         if (!res) {
           return;
