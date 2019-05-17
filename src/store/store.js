@@ -51,7 +51,7 @@ lunarisExports._stores.lunarisOfflineTransactions = {
 /**
  * Push offline HTTP transactions when online
  */
-function pushHttpTransactions () {
+function pushOfflineHttpTransactions () {
   indexedDB.getAll(OFFLINE_STORE, function (err, offlineTransactions) {
     if (err) {
       return;
