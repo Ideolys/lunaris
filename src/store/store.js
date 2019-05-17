@@ -17,6 +17,7 @@ var OPERATIONS      = utils.OPERATIONS;
 var emptyObject     = {};
 var getRequestQueue = {};
 var stores          = [];
+var OFFLINE_STORE   = 'lunarisOfflineTransactions';
 
 lunarisExports._stores.lunarisErrors = {
   name                  : 'lunarisErrors',
@@ -34,8 +35,8 @@ lunarisExports._stores.lunarisErrors = {
 };
 
 lunarisExports._stores.lunarisOfflineTransactions = {
-  name                  : 'lunarisOfflineTransactions',
-  data                  : collection.collection(null, null, null, null, null, null, 'lunarisOfflineTransactions'),
+  name                  : OFFLINE_STORE,
+  data                  : collection.collection(null, null, null, null, null, null, OFFLINE_STORE),
   filters               : [],
   paginationLimit       : 50,
   paginationOffset      : 0,
@@ -46,6 +47,40 @@ lunarisExports._stores.lunarisOfflineTransactions = {
   isStoreObject         : false,
   massOperations        : {}
 };
+
+/**
+ * Push offline HTTP transactions when online
+ */
+function pushHttpTransactions () {
+  indexedDB.getAll(OFFLINE_STORE, function (err, offlineTransactions) {
+    if (err) {
+      return;
+    }
+
+    function _processNextOfflineTransaction () {
+      var _currentTransaction = offlineTransactions.shift();
+
+      if (!_currentTransaction) {
+        return;
+      }
+
+      transaction.begin();
+      if (_currentTransaction.method === OPERATIONS.INSERT || _currentTransaction.method === OPERATIONS.UPDATE) {
+        upsert(_currentTransaction.store, _currentTransaction.value, false, _currentTransaction);
+      }
+
+      if (_currentTransaction.method === OPERATIONS.DELETE) {
+        deleteStore(_currentTransaction.store, _currentTransaction.value, _currentTransaction);
+      }
+
+      transaction.commit(function () {
+        indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
+      });
+    }
+
+    _processNextOfflineTransaction();
+  });
+}
 
 /**
  * Compute offline HTTP transactions
