@@ -26,7 +26,7 @@ describe('Compute offline transactions', () => {
       store  : 'test',
       method : OPERATIONS.INSERT,
       url    : '/test',
-      value  : _value
+      data   : _value
     }]);
   });
 
@@ -36,7 +36,7 @@ describe('Compute offline transactions', () => {
       store   : 'test',
       method  : OPERATIONS.INSERT,
       url     : '/test',
-      value   : { id : 1, label : 'A' },
+      data    : { id : 1, label : 'A' },
       id      : 1,
       rowId   : 1,
       version : [1]
@@ -54,7 +54,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : _value
+        data   : _value
       }
     ]);
   });
@@ -66,7 +66,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
@@ -74,7 +74,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.INSERT,
         url      : '/test',
-        value    : { _id : 1, id : 1, label : 'B' },
+        data     : { _id : 1, id : 1, label : 'B' },
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -87,7 +87,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
@@ -95,7 +95,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.UPDATE,
         url      : '/test',
-        value    : { _id : 1, id : 1, label : 'B' },
+        data     : { _id : 1, id : 1, label : 'B' },
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -108,7 +108,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
@@ -116,7 +116,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.INSERT,
         url      : '/test',
-        value    : { _id : 1, id : 1, label : 'B' },
+        data     : { _id : 1, id : 1, label : 'B' },
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -127,7 +127,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.INSERT,
         url      : '/test',
-        value    : { _id : 1, id : 1, label : 'C' },
+        data     : { _id : 1, id : 1, label : 'C' },
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -140,7 +140,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
@@ -153,7 +153,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
@@ -165,7 +165,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.DELETE,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       }]);
     });
 
@@ -175,7 +175,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
 
@@ -192,7 +192,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', [{ _id : 1, id : 1, label : 'B' }]);
@@ -200,7 +200,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.INSERT,
         url      : '/test',
-        value    : [{ _id : 1, id : 1, label : 'B' }],
+        data     : [{ _id : 1, id : 1, label : 'B' }],
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -213,7 +213,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', [{ _id : 1, id : 1, label : 'B' }]);
@@ -221,7 +221,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.INSERT,
         url      : '/test',
-        value    : { _id : 1, id : 1, label : 'B' },
+        data     : { _id : 1, id : 1, label : 'B' },
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -234,7 +234,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
@@ -242,7 +242,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.INSERT,
         url      : '/test',
-        value    : [{ _id : 1, id : 1, label : 'B' }],
+        data     : [{ _id : 1, id : 1, label : 'B' }],
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -255,7 +255,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(
@@ -271,7 +271,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.INSERT,
         url      : '/test',
-        value    : [{ _id : 1, id : 1, label : 'A.1' }, { _id : 2, id : 2, label : 'B.1' }],
+        data     : [{ _id : 1, id : 1, label : 'A.1' }, { _id : 2, id : 2, label : 'B.1' }],
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -284,7 +284,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -304,7 +304,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A.1' },
           { _id : 2, id : 2, label : 'B.1' },
           { _id : 3, id : 3, label : 'C' }
@@ -321,7 +321,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -351,7 +351,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.INSERT,
         url      : '/test',
-        value    : [
+        data     : [
           { _id  : 1, id : 1, label : 'A.1' },
           { _id  : 2, id : 2, label : 'B.1' },
           { _id  : 3, id : 3, label : 'C.1' }
@@ -368,7 +368,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', [{ _id : 1, id : 1, label : 'B' }]);
@@ -376,7 +376,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.UPDATE,
         url      : '/test',
-        value    : [{ _id : 1, id : 1, label : 'B' }],
+        data     : [{ _id : 1, id : 1, label : 'B' }],
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -389,7 +389,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', [{ _id : 1, id : 1, label : 'B' }]);
@@ -397,7 +397,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.UPDATE,
         url      : '/test',
-        value    : { _id : 1, id : 1, label : 'B' },
+        data     : { _id : 1, id : 1, label : 'B' },
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -410,7 +410,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
@@ -418,7 +418,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.UPDATE,
         url      : '/test',
-        value    : [{ _id : 1, id : 1, label : 'B' }],
+        data     : [{ _id : 1, id : 1, label : 'B' }],
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -431,7 +431,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(
@@ -447,7 +447,7 @@ describe('Compute offline transactions', () => {
         store    : 'test',
         method   : OPERATIONS.UPDATE,
         url      : '/test',
-        value    : [{ _id : 1, id : 1, label : 'A.1' }, { _id : 2, id : 2, label : 'B.1' }],
+        data     : [{ _id : 1, id : 1, label : 'A.1' }, { _id : 2, id : 2, label : 'B.1' }],
         _id      : 1,
         _rowId   : 1,
         _version : [1]
@@ -460,7 +460,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -480,7 +480,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A.1' },
           { _id : 2, id : 2, label : 'B.1' },
           { _id : 3, id : 3, label : 'C' }
@@ -497,7 +497,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -527,7 +527,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A.1' },
           { _id : 2, id : 2, label : 'B.1' },
           { _id : 3, id : 3, label : 'C.1' }
@@ -544,7 +544,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -574,7 +574,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A.1' },
           { _id : 2, id : 2, label : 'B.1' },
           { _id : 3, id : 3, label : 'C.1' }
@@ -591,7 +591,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' }
         ]
@@ -615,7 +615,7 @@ describe('Compute offline transactions', () => {
           store  : 'test',
           method : OPERATIONS.INSERT,
           url    : '/test',
-          value  : [
+          data   : [
             { _id : 1, id : 1, label : 'A' },
             { _id : 2, id : 2, label : 'B.1' },
           ],
@@ -627,7 +627,7 @@ describe('Compute offline transactions', () => {
           store  : 'test',
           method : OPERATIONS.UPDATE,
           url    : '/test',
-          value  : [
+          data   : [
             { _id : 3, id : 3, label : 'C' }
           ]
         }
@@ -641,7 +641,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
@@ -654,7 +654,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
@@ -667,7 +667,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
@@ -680,7 +680,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(
@@ -701,7 +701,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -721,7 +721,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 3, id : 3, label : 'C' }
         ],
         _id      : 1,
@@ -736,7 +736,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -772,7 +772,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
@@ -784,7 +784,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.DELETE,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }]
       }]);
     });
 
@@ -794,7 +794,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
@@ -806,7 +806,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.DELETE,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }]
       }]);
     });
 
@@ -816,7 +816,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
@@ -828,7 +828,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.DELETE,
         url    : '/test',
-        value  : { _id : 1, id : 1, label : 'A' }
+        data   : { _id : 1, id : 1, label : 'A' }
       }]);
     });
 
@@ -838,7 +838,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(
@@ -858,7 +858,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.DELETE,
         url    : '/test',
-        value  : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
+        data   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
       }]);
     });
 
@@ -868,7 +868,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -893,7 +893,7 @@ describe('Compute offline transactions', () => {
           store  : 'test',
           method : OPERATIONS.UPDATE,
           url    : '/test',
-          value  : [
+          data   : [
             { _id : 3, id : 3, label : 'C' }
           ],
           _id      : 1,
@@ -904,7 +904,7 @@ describe('Compute offline transactions', () => {
           store  : 'test',
           method : OPERATIONS.DELETE,
           url    : '/test',
-          value  : [
+          data   : [
             { _id : 1, id : 1, label : 'A' },
             { _id : 2, id : 2, label : 'B' }
           ]
@@ -918,7 +918,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.UPDATE,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -954,7 +954,7 @@ describe('Compute offline transactions', () => {
           store  : 'test',
           method : OPERATIONS.DELETE,
           url    : '/test',
-          value  : [
+          data   : [
             { _id : 1, id : 1, label : 'A' },
             { _id : 2, id : 2, label : 'B' }
           ]
@@ -962,7 +962,7 @@ describe('Compute offline transactions', () => {
           store  : 'test',
           method : OPERATIONS.DELETE,
           url    : '/test',
-          value  : [
+          data   : [
             { _id : 3, id : 3, label : 'C' }
           ]
         }
@@ -975,7 +975,7 @@ describe('Compute offline transactions', () => {
         store  : 'test',
         method : OPERATIONS.INSERT,
         url    : '/test',
-        value  : [
+        data   : [
           { _id : 1, id : 1, label : 'A' },
           { _id : 2, id : 2, label : 'B' },
           { _id : 3, id : 3, label : 'C' }
@@ -1054,7 +1054,7 @@ describe('Compute offline transactions', () => {
         store  : 'storeA',
         method : OPERATIONS.INSERT,
         url    : '/storeA',
-        value  : [
+        data   : [
           { _id : 1, label : 'A' },
           { _id : 2, label : 'B' }
         ]
@@ -1062,26 +1062,26 @@ describe('Compute offline transactions', () => {
         store  : 'storeA',
         method : OPERATIONS.INSERT,
         url    : '/storeA',
-        value  : [
+        data   : [
           { _id : 4, label : 'D' }
         ]
       }, {
         store  : 'storeB',
         method : OPERATIONS.INSERT,
         url    : '/storeB',
-        value  : [{ _id : 2, label : 'b__1' }]
+        data   : [{ _id : 2, label : 'b__1' }]
       }, {
         store  : 'storeA',
         method : OPERATIONS.DELETE,
         url    : '/storeA',
-        value  : [
+        data   : [
           { _id : 5, label : 'E' }
         ]
       }, {
         store  : 'storeB',
         method : OPERATIONS.UPDATE,
         url    : '/storeB',
-        value  : [
+        data   : [
           { _id : 3, label : 'c_1' },
           { _id : 4, label : 'd_1' }
         ]
@@ -1089,7 +1089,7 @@ describe('Compute offline transactions', () => {
         store  : 'storeA',
         method : OPERATIONS.DELETE,
         url    : '/storeA',
-        value  : [
+        data   : [
           { _id : 6, label : 'F.2' }
         ]
       }

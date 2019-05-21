@@ -50,18 +50,19 @@ lunarisExports._stores.lunarisOfflineTransactions = {
 
 /**
  * Push offline HTTP transactions when online
+ * @param {Function} callback
  */
-function pushOfflineHttpTransactions () {
+function pushOfflineHttpTransactions (callback) {
   indexedDB.getAll(OFFLINE_STORE, function (err, offlineTransactions) {
     if (err) {
-      return;
+      return callback();
     }
 
     function _processNextOfflineTransaction () {
       var _currentTransaction = offlineTransactions.shift();
 
       if (!_currentTransaction) {
-        return;
+        return callback();
       }
 
       transaction.begin();
@@ -108,13 +109,13 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
   for (var j = _lengthValue - 1; j >= 0; j--) {
     for (var i = transactions.length - 1; i >= 0; i--) {
       var _transaction               = transactions[i];
-      var _isTransactionValueAnArray = Array.isArray(_transaction.value);
+      var _isTransactionValueAnArray = Array.isArray(_transaction.data);
 
       if (!_isTransactionValueAnArray) {
-        _transaction.value = [_transaction.value];
+        _transaction.data = [_transaction.data];
       }
 
-      var _lengthTransactionValue = _transaction.value.length;
+      var _lengthTransactionValue = _transaction.data.length;
 
       if (_transaction.store !== storeName) {
         continue;
@@ -122,11 +123,11 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
 
       for (var k = _lengthTransactionValue - 1; k >= 0; k--) {
         if (_transaction.method === OPERATIONS.INSERT && method === OPERATIONS.UPDATE) {
-          if (value[j]._id !== _transaction.value[k]._id) {
+          if (value[j]._id !== _transaction.data[k]._id) {
             continue;
           }
 
-          _transaction.value[k] = value[j];
+          _transaction.data[k] = value[j];
           value.splice(j, 1);
           _nbInInserts++;
 
@@ -138,11 +139,11 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
         }
 
         if (_transaction.method === OPERATIONS.UPDATE && method === OPERATIONS.UPDATE) {
-          if (value[j]._id !== _transaction.value[k]._id) {
+          if (value[j]._id !== _transaction.data[k]._id) {
             continue;
           }
 
-          _transaction.value[k] = value[j];
+          _transaction.data[k] = value[j];
           _mustBeAdded          = false;
           break;
         }
@@ -151,13 +152,13 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
           (_transaction.method === OPERATIONS.INSERT && method === OPERATIONS.DELETE) ||
           (_transaction.method === OPERATIONS.UPDATE && method === OPERATIONS.DELETE)
         ) {
-          if (value[j]._id !== _transaction.value[k]._id) {
+          if (value[j]._id !== _transaction.data[k]._id) {
             continue;
           }
 
-          _transaction.value.splice(k, 1);
+          _transaction.data.splice(k, 1);
 
-          if (!_transaction.value.length) {
+          if (!_transaction.data.length) {
             transactions.splice(i, 1);
           }
 
@@ -181,7 +182,7 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
       }
 
       if (!_isTransactionValueAnArray) {
-        _transaction.value = _transaction.value[0];
+        _transaction.data = _transaction.data[0];
       }
     }
   }
@@ -191,7 +192,7 @@ function _computeStoreTransactions (transactions, storeName, method, request, va
       store  : storeName,
       method : method,
       url    : request,
-      value  : _isArrayValue ? value : value[0],
+      data   : _isArrayValue ? value : value[0],
       date   : Date.now()
     });
   }
@@ -361,9 +362,10 @@ function setLunarisError (storeName, method, request, value, version, err, error
  * @param {Array} pathParts
  * @param {Int} transactionId
  * @param {String} request
+ * @param {Boolean} isLocal
  * @returns {Int} version
  */
-function _upsertCollection (store, collection, value, version, isMultipleItems, isUpdate, pathParts, transactionId, request) {
+function _upsertCollection (store, collection, value, version, isMultipleItems, isUpdate, pathParts, transactionId, request, isLocal) {
   var _inputValue = value;
 
   if (pathParts.length) {
@@ -442,7 +444,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
   }
   request = request.request;
 
-  if (!offline.isOnline) {
+  if (!offline.isOnline && (!store.isLocal || !isLocal)) {
     setOfflineHttpTransaction(store.name, _method, request, !isMultipleItems && !store.isStoreObject ? value[0] : value);
   }
 
@@ -567,7 +569,7 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
   }
 
   if (!retryOptions) {
-    var _res = _upsertCollection(store, collection, value, _version, _isMultipleItems, isUpdate, pathParts, transactionId, _request, _method);
+    var _res = _upsertCollection(store, collection, value, _version, _isMultipleItems, isUpdate, pathParts, transactionId, _request, _method, isLocal);
 
     _version = _res.version;
     value    = _res.value;
@@ -766,7 +768,7 @@ function upsert (store, value, isLocal, retryOptions) {
     _isUpdate = true;
   }
 
-  var _eventName = 'lunaris.' + (_isUpdate ? 'update' : 'insert') + store;
+  var _eventName = 'lunaris.' + (_isUpdate ? 'update' : 'insert') + ' ' + store;
   try {
     if (retryOptions) {
       value = retryOptions.data;
@@ -1162,17 +1164,18 @@ function validate (store, value, isUpdate, callback, eventName) {
   }
 }
 
-exports.get             = get;
-exports.getOne          = getOne;
-exports.insert          = upsert;
-exports.update          = upsert;
-exports.upsert          = upsert;
-exports.delete          = deleteStore;
-exports.clear           = clear;
-exports.retry           = retry;
-exports.rollback        = rollback;
-exports.getDefaultValue = getDefaultValue;
-exports.validate        = validate;
-exports.setPagination   = setPagination;
+exports.get                         = get;
+exports.getOne                      = getOne;
+exports.insert                      = upsert;
+exports.update                      = upsert;
+exports.upsert                      = upsert;
+exports.delete                      = deleteStore;
+exports.clear                       = clear;
+exports.retry                       = retry;
+exports.rollback                    = rollback;
+exports.getDefaultValue             = getDefaultValue;
+exports.validate                    = validate;
+exports.setPagination               = setPagination;
+exports.pushOfflineHttpTransactions = pushOfflineHttpTransactions;
 
 exports._computeStoreTransactions = _computeStoreTransactions; // for tests
