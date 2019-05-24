@@ -1,7 +1,7 @@
 const schema     = require('../lib/_builder/store/schema');
 const aggregates = require('../src/store/store.aggregate');
 
-describe.only('Schema', () => {
+describe('Schema', () => {
 
   describe('analyzeDescriptor(obj)', () => {
 
@@ -4262,7 +4262,7 @@ describe.only('Schema', () => {
 
   });
 
-  describe.only('filters', () => {
+  describe('filters', () => {
     it('should throw an error if no source has been defined', () => {
       var _errorMap = [{
         id : ['<<int>>']
@@ -4270,10 +4270,10 @@ describe.only('Schema', () => {
 
       var _schema = schema.analyzeDescriptor(_errorMap);
       try {
-        schema.getFilterFns({}, _schema.compilation, [{}]);
+        schema.getFilterFns([], {}, _schema.compilation, [{}]);
       }
       catch (e) {
-        should(e).eql(new Error('A filter must have a source defined as : filter.source = @<store>'));
+        should(e).eql(new Error('in store.filters[0]: A filter must have a source defined as : filter.source = @<store>'));
       }
     });
 
@@ -4284,12 +4284,12 @@ describe.only('Schema', () => {
 
       var _schema = schema.analyzeDescriptor(_errorMap);
       try {
-        schema.getFilterFns({}, _schema.compilation, [{
+        schema.getFilterFns([], {}, _schema.compilation, [{
           source : '@errorFilter'
         }]);
       }
       catch (e) {
-        should(e).eql(new Error('A filter must have a source attribute defined as : filter.sourceAttribute = <attribute>'));
+        should(e).eql(new Error('in store.filters[0]: A filter must have a source attribute defined as : filter.sourceAttribute = <attribute>'));
       }
     });
 
@@ -4300,13 +4300,13 @@ describe.only('Schema', () => {
 
       var _schema = schema.analyzeDescriptor(_errorMap);
       try {
-        schema.getFilterFns({}, _schema.compilation, [{
+        schema.getFilterFns([], {}, _schema.compilation, [{
           source          : '@errorFilter',
           sourceAttribute : 'label'
         }]);
       }
       catch (e) {
-        should(e).eql(new Error('A filter must have a local attribute defined as : filter.localAttribute = <attribute>'));
+        should(e).eql(new Error('in store.filters[0]: A filter must have a local attribute defined as : filter.localAttribute = <attribute>'));
       }
     });
 
@@ -4317,7 +4317,7 @@ describe.only('Schema', () => {
 
       var _schema = schema.analyzeDescriptor(_errorMap);
       try {
-        schema.getFilterFns({}, _schema.compilation, [{
+        schema.getFilterFns([], {}, _schema.compilation, [{
           source          : '@errorFilter',
           sourceAttribute : 'label',
           localAttribute  : 'site',
@@ -4325,7 +4325,45 @@ describe.only('Schema', () => {
         }]);
       }
       catch (e) {
-        should(e).eql(new Error('A filter must have a local attribute defined in the map!'));
+        should(e).eql(new Error('in store.filters[0]: A filter must have a local attribute defined in the map!'));
+      }
+    });
+
+    it('should throw an error if ILIKE operator is defined for not a string attribute ', () => {
+      var _errorMap = [{
+        id : ['<<int>>']
+      }];
+
+      var _schema = schema.analyzeDescriptor(_errorMap);
+      try {
+        schema.getFilterFns([], {}, _schema.compilation, [{
+          source          : '@errorFilter',
+          sourceAttribute : 'label',
+          localAttribute  : 'id',
+          operator        : 'ILIKE'
+        }]);
+      }
+      catch (e) {
+        should(e).eql(new Error('in store.filters[0]: ILIKE operator is only available for type string'));
+      }
+    });
+
+    it('should throw an error if operator does not exist ', () => {
+      var _errorMap = [{
+        id : ['<<int>>']
+      }];
+
+      var _schema = schema.analyzeDescriptor(_errorMap);
+      try {
+        schema.getFilterFns([], {}, _schema.compilation, [{
+          source          : '@errorFilter',
+          sourceAttribute : 'label',
+          localAttribute  : 'id',
+          operator        : '==='
+        }]);
+      }
+      catch (e) {
+        should(e).eql(new Error('in store.filters[0]: A filter must be one of the following [=,ILIKE,>,<,>=,<=]'));
       }
     });
 
@@ -4335,7 +4373,7 @@ describe.only('Schema', () => {
         label : ['string']
       }];
       var _schema = schema.analyzeDescriptor(_map);
-      var _fns    = schema.getFilterFns({}, _schema.compilation, [{
+      var _fns    = schema.getFilterFns([], {}, _schema.compilation, [{
         source          : '@errorFilter',
         sourceAttribute : 'label',
         localAttribute  : 'label',
@@ -4359,7 +4397,7 @@ describe.only('Schema', () => {
         label : ['string']
       }];
       var _schema = schema.analyzeDescriptor(_map);
-      var _fns    = schema.getFilterFns({}, _schema.compilation, [{
+      var _fns    = schema.getFilterFns([], {}, _schema.compilation, [{
         source          : '@errorFilter',
         sourceAttribute : 'label',
         localAttribute  : 'label',
@@ -4380,7 +4418,7 @@ describe.only('Schema', () => {
         }]
       }];
       var _schema = schema.analyzeDescriptor(_map);
-      var _fns    = schema.getFilterFns({}, _schema.compilation, [{
+      var _fns    = schema.getFilterFns([], {}, _schema.compilation, [{
         source          : '@errorFilter',
         sourceAttribute : 'label',
         localAttribute  : 'sub.label',
@@ -4402,7 +4440,7 @@ describe.only('Schema', () => {
         }]
       }];
       var _schema = schema.analyzeDescriptor(_map);
-      var _fns    = schema.getFilterFns({}, _schema.compilation, [{
+      var _fns    = schema.getFilterFns([], {}, _schema.compilation, [{
         source          : '@errorFilter',
         sourceAttribute : 'label',
         localAttribute  : 'sub.label',
@@ -4426,7 +4464,7 @@ describe.only('Schema', () => {
         }]
       }];
       var _schema = schema.analyzeDescriptor(_map);
-      var _fns    = schema.getFilterFns({}, _schema.compilation, [{
+      var _fns    = schema.getFilterFns([], {}, _schema.compilation, [{
         source          : '@errorFilter',
         sourceAttribute : 'label',
         localAttribute  : 'sub.sub.label',
@@ -4447,7 +4485,7 @@ describe.only('Schema', () => {
           label : ['string']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : true } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4466,7 +4504,7 @@ describe.only('Schema', () => {
           label : ['string']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : true } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4485,7 +4523,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : true } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4504,7 +4542,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : true } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4523,7 +4561,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : true } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4542,7 +4580,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : true } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4561,7 +4599,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : true } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4580,7 +4618,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({}, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], {}, _schema.compilation, [{
           source          : '@errorFilter',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4599,7 +4637,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : true } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4618,7 +4656,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : true } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4640,7 +4678,7 @@ describe.only('Schema', () => {
           label : ['string']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : false } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4659,7 +4697,7 @@ describe.only('Schema', () => {
           label : ['string']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : false } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4678,7 +4716,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : false } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4697,7 +4735,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : false } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4716,7 +4754,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : false } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4735,7 +4773,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : false } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4754,7 +4792,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : false } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4773,7 +4811,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({}, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], {}, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4792,7 +4830,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : false } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',
@@ -4811,7 +4849,7 @@ describe.only('Schema', () => {
           label : ['int']
         }];
         var _schema = schema.analyzeDescriptor(_map);
-        var _fns    = schema.getFilterFns({ source : { isStoreObject : false } }, _schema.compilation, [{
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
           source          : '@source',
           sourceAttribute : 'label',
           localAttribute  : 'label',

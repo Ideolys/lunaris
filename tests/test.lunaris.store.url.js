@@ -35,7 +35,8 @@ describe('store url', () => {
       source          : '@required.filter.A',
       sourceAttribute : 'label',
       localAttribute  : 'label',
-      isRequired      : true
+      isRequired      : true,
+      operator        : ['ILIKE']
     }];
     stores['required.filter.A'].isStoreObject = true;
     stores['required.filter.B'].isStoreObject = true;
@@ -45,19 +46,22 @@ describe('store url', () => {
         source          : '@required.filter.A',
         sourceAttribute : 'label',
         localAttribute  : 'label',
-        isRequired      : true
+        isRequired      : true,
+        operator        : ['ILIKE']
       }, {
         source          : '@required.filter.B',
         sourceAttribute : 'label',
         localAttribute  : 'label',
-        isRequired      : true
+        isRequired      : true,
+        operator        : ['ILIKE']
       }
     ];
     stores.optional.filters = [
       {
         source          : '@optional.filter.A',
         sourceAttribute : 'label',
-        localAttribute  : 'label'
+        localAttribute  : 'label',
+        operator        : ['ILIKE']
       }
     ];
     stores.optionalMultiple.filters = [
@@ -79,12 +83,14 @@ describe('store url', () => {
         source          : '@required.filter.A',
         sourceAttribute : 'label',
         localAttribute  : 'label',
-        isRequired      : true
+        isRequired      : true,
+        operator        : ['ILIKE']
       }, {
         source          : '@required.filter.B',
         sourceAttribute : 'label',
         localAttribute  : 'label',
-        isRequired      : true
+        isRequired      : true,
+        operator        : ['ILIKE']
       }, {
         source          : '@optional.filter.A',
         sourceAttribute : 'label',
@@ -101,7 +107,8 @@ describe('store url', () => {
       {
         source          : '@optional.filter.B',
         sourceAttribute : 'label',
-        localAttribute  : 'label'
+        localAttribute  : 'label',
+        operator        : ['ILIKE']
       }
     ];
     stores.where.filters = [
@@ -109,7 +116,8 @@ describe('store url', () => {
         source          : '@optional.filter.B',
         sourceAttribute : 'label',
         sourceWhere     : function (item) { return item.isChecked === true; },
-        localAttribute  : 'label'
+        localAttribute  : 'label',
+        operator        : ['ILIKE']
       }
     ];
     stores.whereObject.filters = [
@@ -118,7 +126,8 @@ describe('store url', () => {
         sourceAttribute : 'label',
         sourceWhere     : function (item, constants) { return item.isChecked === constants.TRUE; },
         localAttribute  : 'label',
-        isRequired      : true
+        isRequired      : true,
+        operator        : ['ILIKE']
       }
     ];
   });
@@ -514,7 +523,7 @@ describe('store url', () => {
     var _url         = url.createForOffline(testUtils.initStore('store'), {
       constructedRequiredOptions : '/A/a',
       optionalOptions            : {
-        0 : ['label', ['B', 'C'], 'ILIKE']
+        0 : [null, 'label', ['B', 'C'], 'ILIKE']
       },
       cache : {
         limit  : 2,
@@ -525,6 +534,8 @@ describe('store url', () => {
       encodeURIComponent(':') +
       encodeURIComponent('[B,C]')
     ;
+
+    console.log(decodeURIComponent(_url));
 
     should(_url).eql(_expectedUrl);
   });

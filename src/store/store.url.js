@@ -88,10 +88,13 @@ function _getFilterValuesHTTPRequest (store, method) {
       _nbRequiredFIlters++;
     }
 
+    var _operator = _filter.operator;
+
     if (!_sourceStore.isStoreObject) {
-      if (_filter.operator && _filter.operator !== 'ILIKE') {
-        throw new Error('Array filter must declare ILIKE operator or nothing!');
-      }
+      _operator = 'ILIKE';
+      // if (_filter.operator && _filter.operator !== 'ILIKE') {
+      //   throw new Error('Array filter must declare ILIKE operator or nothing!');
+      // }
     }
 
     for (var j = _sourceValue.length - 1; j >= 0; j--) {
@@ -113,7 +116,7 @@ function _getFilterValuesHTTPRequest (store, method) {
 
     if (_sourceValue !== undefined) {
       var _filterKey = i;
-      _value.push(_filter.attributeUrl, _filter.localAttribute, _sourceValue, _filter.operator || 'ILIKE');
+      _value.push(_filter.attributeUrl, _filter.localAttribute, _sourceValue, _operator);
 
       if (_methods.indexOf(method) !== -1) {
         if (_filter.isRequired) {
