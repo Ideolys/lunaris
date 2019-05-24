@@ -49,7 +49,7 @@ lunarisExports._stores.lunarisOfflineTransactions = {
 };
 
 /**
- * Push offline HTTP transactions when online
+ * Push offline HTTP transactions when online in queue
  * @param {Function} callback
  */
 function pushOfflineHttpTransactions (callback) {
@@ -950,12 +950,15 @@ function _clear (store, isSilent) {
   try {
     var _options = beforeAction(store, null, true);
 
-    _options.collection.clear();
+    if (offline.isOnline) {
+      indexedDB.clear(_options.store.name);
+      _options.collection.clear();
+    }
+
     _options.store.paginationCurrentPage = 1;
     _options.store.paginationOffset      = 0;
     _options.store.paginationLimit       = 50;
     _options.store.massOperations        = {};
-    indexedDB.clear(_options.store.name);
     cache.invalidate(_options.store.name);
     if (!isSilent) {
       hook.pushToHandlers(_options.store, 'reset', null, false);

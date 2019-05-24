@@ -115,6 +115,8 @@ function removeHook (hook, handler) {
 function pushToHandlers (store, hook, payload, isMultipleArgsPayload, transactionId) {
   var _storeHooks = store.hooks[hook];
 
+  // console.log(store.name, hook);
+
   if (!_storeHooks) {
     if (transaction.isCommitingTransaction) {
       transaction.pipe(store, hook, payload, transactionId);

@@ -97,16 +97,16 @@ function ilike (filterValue, objValue) {
 /**
  * Filter data by given filter
  * @param {Function} filterFn
- * @param {Array} filter [attribute, value, operator]
+ * @param {Array} filter [attributeUrl, attribute, value, operator]
  * @param {Array} data
  */
 function _reduce (filterFn, filter, data) {
-  if ((!filterFn && filter[2] !== OPERATORS.ILIKE) || !filter) {
+  if ((!filterFn && filter[3] !== OPERATORS.ILIKE) || !filter) {
     return;
   }
 
   for (var i = data.length - 1; i >= 0; i--) {
-    if (!filterFn.call(null, filter[1], data[i], ilike)) {
+    if (!filterFn.call(null, filter[2], data[i], ilike)) {
       data.splice(i, 1);
     }
   }
@@ -137,11 +137,19 @@ function filter (store, collection, filterValues) {
 
   var _requiredFilters = Object.keys(filterValues.requiredOptions);
   for (var i = 0; i < _requiredFilters.length; i++) {
+    if (!store.filterFns[_requiredFilters[i]]) {
+      continue;
+    }
+
     _reduce(store.filterFns[_requiredFilters[i]], filterValues.requiredOptions[_requiredFilters[i]], _data);
   }
 
   var _optionalFilters = Object.keys(filterValues.optionalOptions);
   for (i = 0; i < _optionalFilters.length; i++) {
+    if (!store.filterFns[_optionalFilters[i]]) {
+      continue;
+    }
+
     _reduce(store.filterFns[_optionalFilters[i]], filterValues.optionalOptions[_optionalFilters[i]], _data);
   }
 

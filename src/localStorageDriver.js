@@ -86,14 +86,15 @@ function initIndexedDB (versionNumber, stores, callback) {
   });
 }
 
-var _queue       = [];
-var _currentItem = null;
+var _queue      = [];
+var _isQueueing = false;
 
 /**
  * Start queue
  */
 function _startQueue () {
-  if (!_currentItem && _queue.length === 1) {
+  if (!_isQueueing) {
+    _isQueueing = true;
     _processQueue();
   }
 }
@@ -102,21 +103,24 @@ function _startQueue () {
  * Process indexedDB queue
  */
 function _processQueue () {
-  var _currentItem = _queue.shift();
+  let _currentItem = _queue.shift();
 
   if (!_currentItem) {
+    _isQueueing = false;
     return;
   }
 
   var _callback = _currentItem[_currentItem.length - 1];
-
-  _currentItem[0](_currentItem[1], _currentItem[2], function (err, data) {
+  var _args     = _currentItem.slice(1, _currentItem.length - 1);
+  _args.push(function (err, data) {
     if (_callback) {
       _callback(err, data);
     }
 
     _processQueue();
   });
+
+  _currentItem[0].apply(null, _args);
 }
 
 /**

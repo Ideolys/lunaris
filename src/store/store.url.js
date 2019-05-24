@@ -113,25 +113,25 @@ function _getFilterValuesHTTPRequest (store, method) {
 
     if (_sourceValue !== undefined) {
       var _filterKey = i;
-      _value.push(_filter.localAttribute, _sourceValue, _filter.operator || 'ILIKE');
+      _value.push(_filter.attributeUrl, _filter.localAttribute, _sourceValue, _filter.operator || 'ILIKE');
 
       if (_methods.indexOf(method) !== -1) {
         if (_filter.isRequired) {
           _nbRequiredFilledFilters++;
         }
 
-        if (_value[2] && !_filter.isRequired) {
+        if (_value[3] && !_filter.isRequired) {
           _filterValues.optionalOptions[_filterKey] = _value;
         }
         else {
           if (Array.isArray(_sourceValue)) {
             throw new Error('A required filter must be a store object!');
           }
-          _filterValues.constructedRequiredOptions += '/' + _value[0] + '/' + fixedEncodeURIComponent(_value[1]);
+          _filterValues.constructedRequiredOptions += '/' + (_value[0] || _value[1]) + '/' + fixedEncodeURIComponent(_value[2]);
           _filterValues.requiredOptions[_filterKey] = _value;
         }
 
-        _filterValues.cache[_filterKey] = _value[1];
+        _filterValues.cache[_filterKey] = _value[2];
       }
     }
   }
@@ -141,7 +141,7 @@ function _getFilterValuesHTTPRequest (store, method) {
 }
 
 /**
-* Construct searhc options
+* Construct search options
 * @param {Array} filterValues
 */
 function _getSearchOption (filterValues) {
@@ -149,14 +149,15 @@ function _getSearchOption (filterValues) {
   var _operators = utils.OPERATORS;
   for (var j = 0; j < filterValues.length; j++) {
     var _operator = utils.OPERATORS.ILIKE;
-    if (filterValues[j][2]) {
-      _operator = _operators[filterValues[j][2]] || _operator;
+    if (filterValues[j][3]) {
+      _operator = _operators[filterValues[j][3]] || _operator;
     }
-    var _value = filterValues[j][1];
+    var _value = filterValues[j][2];
     if (Array.isArray(_value)) {
       _value = '[' + _value.join(',') + ']';
     }
-    _search += filterValues[j][0] + fixedEncodeURIComponent(_operator) + fixedEncodeURIComponent(_value) + fixedEncodeURIComponent('+');
+    var _attribute = filterValues[j][0] || filterValues[j][1];
+    _search       += (_attribute) + fixedEncodeURIComponent(_operator) + fixedEncodeURIComponent(_value) + fixedEncodeURIComponent('+');
   }
   _search = _search.slice(0, _search.length - fixedEncodeURIComponent('+').length);
   return ['search', _search];

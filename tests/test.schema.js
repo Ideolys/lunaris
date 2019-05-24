@@ -1,7 +1,7 @@
 const schema     = require('../lib/_builder/store/schema');
 const aggregates = require('../src/store/store.aggregate');
 
-describe('Schema', () => {
+describe.only('Schema', () => {
 
   describe('analyzeDescriptor(obj)', () => {
 
@@ -4262,7 +4262,7 @@ describe('Schema', () => {
 
   });
 
-  describe('filters', () => {
+  describe.only('filters', () => {
     it('should throw an error if no source has been defined', () => {
       var _errorMap = [{
         id : ['<<int>>']
@@ -4310,7 +4310,7 @@ describe('Schema', () => {
       }
     });
 
-    it('should throw an error if no localAttribute has been defined', () => {
+    it('should throw an error if localAttribute is not in the map', () => {
       var _errorMap = [{
         id : ['<<int>>']
       }];
@@ -4320,11 +4320,12 @@ describe('Schema', () => {
         schema.getFilterFns({}, _schema.compilation, [{
           source          : '@errorFilter',
           sourceAttribute : 'label',
-          localAttribute  : 'element[id]'
+          localAttribute  : 'site',
+          operator        : '='
         }]);
       }
       catch (e) {
-        should(e).eql(new Error('A filter local attribute must not contain "[" or "]", use "." notation instead : path.to.my.element'));
+        should(e).eql(new Error('A filter must have a local attribute defined in the map!'));
       }
     });
 
