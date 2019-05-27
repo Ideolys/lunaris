@@ -13,6 +13,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['array']
@@ -43,6 +44,7 @@ describe('Schema', () => {
           arrParents : [],
           objParent  : '',
           name       : '',
+          uniqueName : 'main0',
           type       : 'array',
           obj        : {
             id : ['array']
@@ -76,6 +78,7 @@ describe('Schema', () => {
           arrParents : [],
           objParent  : '',
           name       : '',
+          uniqueName : 'main0',
           type       : 'object',
           obj        : {
             id : ['object']
@@ -105,6 +108,7 @@ describe('Schema', () => {
           arrParents : [],
           objParent  : '',
           name       : '',
+          uniqueName : 'main0',
           type       : 'object',
           obj        : {
             id : ['array', 'min', 1, 'max', 5]
@@ -135,6 +139,7 @@ describe('Schema', () => {
           arrParents : [],
           objParent  : '',
           name       : '',
+          uniqueName : 'main0',
           type       : 'object',
           obj        : {
             obj : ['array', 'min', 1, 'max', 5]
@@ -150,6 +155,7 @@ describe('Schema', () => {
           arrParents : [],
           objParent  : 'main0',
           name       : 'obj',
+          uniqueName : 'obj1',
           type       : 'array',
           obj        : {
             test : ['int']
@@ -205,6 +211,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               obj : ['array', 'min', 1, 'max', 5]
@@ -248,6 +255,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               obj : ['array', 'min', 1, 'max', 5]
@@ -286,6 +294,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               obj : ['array', 'min', 1, 'max', 5]
@@ -316,6 +325,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               obj : ['array', 'min', 1, 'max', 5]
@@ -346,6 +356,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               obj : ['array', 'min', 1, 'max', 5]
@@ -385,6 +396,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object', // TODO, strange?
             obj        : {
               obj : ['array', 'min', 1, 'max', 5]
@@ -907,6 +919,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id        : ['int'],
@@ -926,6 +939,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : 'main0',
             name       : 'countries',
+            uniqueName : 'countries1',
             type       : 'array',
             obj        : {
               id     : ['int'],
@@ -945,6 +959,7 @@ describe('Schema', () => {
             arrParents : ['countries1'],
             objParent  : 'countries1',
             name       : 'cities',
+            uniqueName : 'cities2',
             type       : 'array',
             obj        : {
               id   : ['int'],
@@ -968,6 +983,7 @@ describe('Schema', () => {
             arrParents : ['countries1', 'cities2'],
             objParent  : 'cities2',
             name       : 'info',
+            uniqueName : 'info3',
             type       : 'object',
             obj        : {
               temperature : ['string'],
@@ -987,6 +1003,7 @@ describe('Schema', () => {
             arrParents : ['countries1', 'cities2'],
             objParent  : 'info3',
             name       : 'goodies',
+            uniqueName : 'goodies4',
             type       : 'array',
             obj        : {
               id   : ['int'],
@@ -1008,6 +1025,7 @@ describe('Schema', () => {
             arrParents : ['countries1', 'cities2', 'goodies4'],
             objParent  : 'goodies4',
             name       : 'info',
+            uniqueName : 'info5',
             type       : 'object',
             obj        : {
               temperature : ['string'],
@@ -1108,6 +1126,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'array',
             obj        : {
               id        : ['int'],
@@ -1127,6 +1146,7 @@ describe('Schema', () => {
             arrParents : ['main0'],
             objParent  : 'main0',
             name       : 'countries',
+            uniqueName : 'countries1',
             type       : 'array',
             obj        : {
               id   : ['int'],
@@ -1148,6 +1168,7 @@ describe('Schema', () => {
             arrParents : ['main0', 'countries1'],
             objParent  : 'countries1',
             name       : 'info',
+            uniqueName : 'info2',
             type       : 'object',
             obj        : {
               temperature : ['string'],
@@ -1196,6 +1217,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['int']
@@ -1225,6 +1247,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['int', 'onValidate', () => {}]
@@ -1254,6 +1277,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['int', 'onValidate', () => {}]
@@ -1283,6 +1307,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['string']
@@ -1316,6 +1341,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['string']
@@ -1350,6 +1376,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['array', 'min', 1, 'max', 5]
@@ -1379,6 +1406,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['array', 'min', 1, 'max', 5]
@@ -1408,6 +1436,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['array', 'toNumber', 'min', 1, 'max', 5]
@@ -1437,6 +1466,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['array', 'toInt', 'min', 1, 'max', 5]
@@ -1466,6 +1496,7 @@ describe('Schema', () => {
             arrParents : [],
             objParent  : '',
             name       : '',
+            uniqueName : 'main0',
             type       : 'object',
             obj        : {
               id : ['array', 'toBoolean', 'min', 1, 'max', 5]

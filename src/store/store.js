@@ -768,7 +768,7 @@ function upsert (store, value, isLocal, retryOptions) {
     _isUpdate = true;
   }
 
-  var _eventName = 'lunaris.' + (_isUpdate ? 'update' : 'insert') + ' ' + store;
+  var _eventName = 'lunaris.' + (_isUpdate ? 'update' : 'insert') + store;
   try {
     if (retryOptions) {
       value = retryOptions.data;

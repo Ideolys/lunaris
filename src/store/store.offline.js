@@ -137,7 +137,7 @@ function filter (store, collection, filterValues) {
 
   var _requiredFilters = Object.keys(filterValues.requiredOptions);
   for (var i = 0; i < _requiredFilters.length; i++) {
-    if (!store.filterFns[_requiredFilters[i]]) {
+    if (store.filterFns[_requiredFilters[i]] === undefined) {
       continue;
     }
 
@@ -146,7 +146,7 @@ function filter (store, collection, filterValues) {
 
   var _optionalFilters = Object.keys(filterValues.optionalOptions);
   for (i = 0; i < _optionalFilters.length; i++) {
-    if (!store.filterFns[_optionalFilters[i]]) {
+    if (store.filterFns[_optionalFilters[i]] === undefined) {
       continue;
     }
 

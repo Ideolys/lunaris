@@ -110,7 +110,8 @@ describe('offline filters', () => {
         source          : '@source',
         sourceAttribute : 'label',
         localAttribute  : 'label',
-        isRequired      : true
+        isRequired      : true,
+        operator        : 'ILIKE',
       }
     ], { source : { isStoreObject : true }});
 
@@ -142,7 +143,7 @@ describe('offline filters', () => {
 
     var _filterValues = {
       requiredOptions : {
-        0 : ['label', 'B', 'ILIKE']
+        0 : [null, 'label', 'B', 'ILIKE']
       },
       optionalOptions : {},
       cache           : { limit : 2, offset : 0 }
@@ -180,12 +181,14 @@ describe('offline filters', () => {
         source          : '@source',
         sourceAttribute : 'label',
         localAttribute  : 'label',
-        isRequired      : true
+        isRequired      : true,
+        operator        : 'ILIKE',
       }, {
         source          : '@source',
         sourceAttribute : 'categoryId',
         localAttribute  : 'category.id',
-        isRequired      : true
+        isRequired      : true,
+        operator        : '=',
       }
     ], { source : { isStoreObject : true }});
 
@@ -223,8 +226,8 @@ describe('offline filters', () => {
 
     var _filterValues = {
       requiredOptions : {
-        0 : ['label'      , 'B', 'ILIKE'],
-        1 : ['category.id', 3  , 'ILIKE']
+        0 : [null, 'label'      , 'B', 'ILIKE'],
+        1 : [null, 'category.id', 3  , 'ILIKE']
       },
       optionalOptions : {},
       cache           : { limit : 2, offset : 0 }
@@ -287,7 +290,7 @@ describe('offline filters', () => {
     var _filterValues = {
       requiredOptions : {},
       optionalOptions : {
-        0 : ['label', 'pomme', 'ILIKE']
+        0 : [null, 'label', 'pomme', 'ILIKE']
       },
       cache : { limit : 2, offset : 0 }
     };
@@ -310,7 +313,7 @@ describe('offline filters', () => {
       }
     ]);
 
-    _filterValues.optionalOptions[0][1] = 'pomme chaude';
+    _filterValues.optionalOptions[0][2] = 'pomme chaude';
     _filteredValues                     = storeOffline.filter(_store, _store.data, _filterValues);
     should(_filteredValues).be.an.Array().and.have.lengthOf(1);
     should(_filteredValues).eql([
@@ -355,7 +358,7 @@ describe('offline filters', () => {
     var _filterValues = {
       requiredOptions : {},
       optionalOptions : {
-        0 : ['label', 'tu es une patate chaude', 'ILIKE']
+        0 : [null, 'label', 'tu es une patate chaude', 'ILIKE']
       },
       cache : { limit : 2, offset : 0 }
     };
@@ -410,7 +413,7 @@ describe('offline filters', () => {
     var _filterValues = {
       requiredOptions : {},
       optionalOptions : {
-        0 : ['label', 'purée', 'ILIKE']
+        0 : [null, 'label', 'purée', 'ILIKE']
       },
       cache : { limit : 2, offset : 0 }
     };
@@ -465,7 +468,7 @@ describe('offline filters', () => {
     var _filterValues = {
       requiredOptions : {},
       optionalOptions : {
-        0 : ['label', 'pattate', 'ILIKE']
+        0 : [null, 'label', 'pattate', 'ILIKE']
       },
       cache : { limit : 2, offset : 0 }
     };
@@ -502,12 +505,13 @@ describe('offline filters', () => {
         source          : '@source',
         sourceAttribute : 'label',
         localAttribute  : 'label',
-        isRequired      : true
+        isRequired      : true,
+        operator        : 'ILIKE',
       }, {
         source          : '@source',
         sourceAttribute : 'categoryId',
         localAttribute  : 'category.id',
-        operator        : 'ILIKE'
+        operator        : '='
       }
     ]);
 
@@ -545,10 +549,10 @@ describe('offline filters', () => {
 
     var _filterValues = {
       requiredOptions : {
-        0 : ['label'      , 'B', 'ILIKE']
+        0 : [null, 'label'      , 'B', 'ILIKE']
       },
       optionalOptions : {
-        1 : ['category.id', '4', 'ILIKE']
+        1 : [null, 'category.id', '4', 'ILIKE']
       },
       cache : { limit : 2, offset : 0 }
     };
@@ -610,7 +614,7 @@ describe('offline filters', () => {
     var _filterValues = {
       requiredOptions : {},
       optionalOptions : {
-        0 : ['label', ['B', 'C'], 'ILIKE']
+        0 : [null, 'label', ['B', 'C'], 'ILIKE']
       },
       cache : { limit : 4, offset : 0 }
     };
@@ -690,7 +694,7 @@ describe('offline filters', () => {
     var _filterValues = {
       requiredOptions : {},
       optionalOptions : {
-        0 : ['label', ['B', 'C'], 'ILIKE']
+        0 : [null, 'label', ['B', 'C'], 'ILIKE']
       },
       cache : {
         limit  : 2,
@@ -788,7 +792,7 @@ describe('offline filters', () => {
     var _filterValues = {
       requiredOptions : {},
       optionalOptions : {
-        0 : ['label', ['B', 'C'], 'ILIKE']
+        0 : [null, 'label', ['B', 'C'], 'ILIKE']
       },
       cache : {
         limit  : 2,
@@ -885,7 +889,7 @@ describe('offline filters', () => {
     var _filterValues = {
       requiredOptions : {},
       optionalOptions : {
-        0 : ['label', ['B', 'C'], 'ILIKE']
+        0 : [null, 'label', ['B', 'C'], 'ILIKE']
       },
       cache : {
         limit  : 4,
