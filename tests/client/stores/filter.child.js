@@ -5,7 +5,8 @@ module.exports = {
       source          : '@filter.parent',
       sourceAttribute : 'id',
       localAttribute  : 'parent.id',
-      isRequired      : true
+      isRequired      : true,
+      operator        : '='
     }
   ],
   map : [{

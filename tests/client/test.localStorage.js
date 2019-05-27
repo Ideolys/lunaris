@@ -195,7 +195,7 @@ describe('local storage', () => {
 
               should(data).eql([
                 {
-                  hash   : '3af72e6129fde9d173dc7af03f9089ab',
+                  hash   : '444ef5e87d409c6d4b2d4b8c7104b88d',
                   values : [
                     { id : 2, label : 'B' }
                   ],
@@ -348,7 +348,7 @@ describe('local storage', () => {
             should(data[0].method).eql('DELETE');
             should(data[0].store).eql('http');
             should(data[0].url).eql('/http/1');
-            should(data[0].value).eql({
+            should(data[0].data).eql({
               _id      : 1,
               _rowId   : 1,
               _version : [1, 2],
@@ -463,7 +463,7 @@ describe('local storage', () => {
             should(data[0].method).eql('POST');
             should(data[0].store).eql('http');
             should(data[0].url).eql('/http');
-            should(data[0].value).eql({
+            should(data[0].data).eql({
               _id      : 1,
               _rowId   : 1,
               _version : [1],
@@ -623,11 +623,11 @@ describe('local storage', () => {
       var _updateHook = () => {
         setTimeout(() => {
           lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
-            should(data).be.an.Array().and.have.lengthOf(1);
-            should(data[0].method).eql('POST');
-            should(data[0].store).eql('http');
-            should(data[0].url).eql('/http');
-            should(data[0].value).eql({
+            should(data).be.an.Array().and.have.lengthOf(2);
+            should(data[1].method).eql('POST');
+            should(data[1].store).eql('http');
+            should(data[1].url).eql('/http');
+            should(data[1].data).eql({
               _id      : 1,
               _rowId   : 2,
               _version : [3],

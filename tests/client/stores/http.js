@@ -4,7 +4,7 @@ module.exports = {
     source          : '@http.filter',
     sourceAttribute : 'label',
     localAttribute  : 'label',
-    operator        : '='
+    operator        : 'ILIKE'
   }],
   map : [{
     id    : ['<<int>>'],

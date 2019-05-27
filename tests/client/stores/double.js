@@ -5,12 +5,14 @@ module.exports = {
     {
       source          : '@filter.double',
       sourceAttribute : 'from',
-      localAttribute  : 'from'
+      localAttribute  : 'from',
+      operator        : '>='
     }, {
 
       source          : '@filter.double',
       sourceAttribute : 'to',
-      localAttribute  : 'to'
+      localAttribute  : 'to',
+      operator        : '<='
     }
   ],
   map : [{

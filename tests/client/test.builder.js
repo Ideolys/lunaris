@@ -97,7 +97,7 @@ describe('builder', () => {
     lunaris.insert('@filter.child', _childObj2);
     lunaris.insert('@filter.child', _childObj3);
 
-    lunaris.hook('get@filter.child', items => {
+    var _onGet = items => {
       should(items).eql([
         {
           id     : 2,
@@ -115,14 +115,18 @@ describe('builder', () => {
           },
           _rowId   : 2,
           _id      : 2,
-          _version : [3]
+          _version : [4]
         }
       ]);
+
+      lunaris.removeHook('get@filter.child', _onGet);
+      lunaris.offline.isOnline = true;
       done();
-    });
+    };
+
+    lunaris.hook('get@filter.child', _onGet);
 
     lunaris.get('@filter.child');
-    lunaris.offline.isOnline = true;
   });
 
   it('should set the id when inserting in offline', () => {
