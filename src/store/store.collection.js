@@ -113,10 +113,10 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    * @param {Boolean} isFromIndex
    */
   function _addToValues (value, versionNumber, isFromUpsert, isFromIndex) {
-    if (value._id !== null && value._id !== undefined && isFromUpsert) {
+    if (value._id  && isFromUpsert) {
       if (_getPrimaryKey) {
         var _id = _getPrimaryKey(value);
-        if (_id) {
+        if (_id !== null && _id !== undefined) {
           var _arrayIdValues = _indexes.id[0];
           var _search        = index.binarySearch(_arrayIdValues, _id);
           if (!_search.found) {
