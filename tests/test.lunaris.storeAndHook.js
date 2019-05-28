@@ -2484,7 +2484,7 @@ describe('lunaris store', function () {
     });
 
     it('should set the id when inserting : simpleKey && no map', () => {
-      lunaris._stores['required'] = initStore('required');
+      lunaris._stores['required']            = initStore('required');
       lunaris._stores['required'].primaryKey = ['id'];
 
       lunaris.insert('@required', { id : null, label : 'A' });

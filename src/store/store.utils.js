@@ -66,9 +66,11 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
   if (Array.isArray(_primaryKey)) {
     for (var i = 0; i < _primaryKey.length; i++) {
       var _value = value[_primaryKey[i]];
-      if (_value !== undefined || _value !== null) {
-        _id += _value + '-';
+      if (_value === undefined || _value === null) {
+        return null;
       }
+
+      _id += _value + '-';
     }
 
     if (_id !== '') {
@@ -93,6 +95,11 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
  * @returns {String}
  */
 function setPrimaryKeyValue (store, value, id) {
+  var _valueId = getPrimaryKeyValue(store, value, false);
+
+  if (_valueId !== null && _valueId !== undefined) {
+    return;
+  }
   var _id = '_';
   if (store.setPrimaryKeyFn) {
     return store.setPrimaryKeyFn.call(null, value, id);
@@ -104,15 +111,12 @@ function setPrimaryKeyValue (store, value, id) {
 
   var _primaryKey = store.primaryKey;
   if (Array.isArray(_primaryKey)) {
-    for (var i = 0; i < _primaryKey.length; i++) {
-      _id += (value[_primaryKey[i]] || id) + '-';
-      if (!value[_primaryKey[i]]) {
-        value[_primaryKey[i]] = '_' + id;
-      }
+    if (value[_primaryKey[0]] === null || value[_primaryKey[0]] === undefined) {
+      value[_primaryKey[0]] = '_' + id;
     }
 
-    if (_id !== '') {
-      _id = _id.slice(0, _id.length - 1);
+    if (_primaryKey.length > 1) {
+      return logger.tip('lunaris cannot set a composite primary key');
     }
 
     return _id;

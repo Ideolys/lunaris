@@ -2486,7 +2486,7 @@ describe('Schema', () => {
         type  : ['<<int>>']
       };
       var _schema = schema.analyzeDescriptor(_objectDescriptor);
-      should(_schema.setPrimaryKey({ id : null, label : 'A', type : 'B'}, 1)).eql('_1-B');
+      should(_schema.setPrimaryKey({ id : null, label : 'A', type : 'B'}, 1)).eql('_1');
     });
 
   });
