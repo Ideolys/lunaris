@@ -950,7 +950,7 @@ function _clear (store, isSilent) {
   try {
     var _options = beforeAction(store, null, true);
 
-    if (offline.isOnline) {
+    if (offline.isOnline || _options.store.isLocal) {
       indexedDB.clear(_options.store.name);
       _options.collection.clear();
     }
