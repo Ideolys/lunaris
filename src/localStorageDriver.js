@@ -32,7 +32,7 @@ function initIndexedDB (versionNumber, stores, callback) {
     return;
   }
   window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction || { READ_WRITE : 'readwrite' };
-  window.IDBKeyRange    = window.IDBKeyRange || window.webkitIDBKeyRange || window.msIDBKeyRange;
+  window.IDBKeyRange    = window.IDBKeyRange    || window.webkitIDBKeyRange    || window.msIDBKeyRange;
 
   _isDatabaseExists('lunaris', function (isExisted) {
     var _request;
@@ -203,7 +203,7 @@ function _get (key, value, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction([key], 'readwrite');
+  var _transaction = database.transaction([key], 'readonly');
   var _objectStore = _transaction.objectStore(key);
   var _request     = _objectStore.get(value);
 
@@ -225,7 +225,7 @@ function _getAll (key, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction([key], 'readwrite');
+  var _transaction = database.transaction([key], 'readonly');
   var _objectStore = _transaction.objectStore(key);
   var _request     = _objectStore.getAll();
 
