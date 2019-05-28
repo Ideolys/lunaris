@@ -57,7 +57,7 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
   if (!store.primaryKey) {
     logger.tip(
       'No primary key has been found, fallback to lunaris _id.',
-      'To declare a primary key, use the notation [\'<<int>>\'] in the map or add the \'primaryKey\' attribute in the store descrption.'
+      'To declare a primary key, use the notation [\'<<int>>\'] in the map or add the \'primaryKey\' attribute in the store description.'
     );
     return value._id;
   }

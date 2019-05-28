@@ -1288,7 +1288,7 @@ describe('lunaris store', function () {
         if (_isDeletedHook && _isDeleteHook) {
           should(lastTip.length).eql(2);
           should(lastTip[0]).eql('[Lunaris tip] No primary key has been found, fallback to lunaris _id.');
-          should(lastTip[1]).eql('To declare a primary key, use the notation [\'<<int>>\'] in the map or add the \'primaryKey\' attribute in the store descrption.');
+          should(lastTip[1]).eql('To declare a primary key, use the notation [\'<<int>>\'] in the map or add the \'primaryKey\' attribute in the store description.');
           done();
         }
       });
