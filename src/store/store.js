@@ -676,7 +676,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
           _options.store,
           _options.collection,
           _request
-          );
+        );
         afterAction(_options.store, 'get', _res, null, _transactionId);
         if (_options.store.isFilter && ((_options.store.isStoreObject && _res) || (!_options.store.isStoreObject && _res.length))) {
           hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);

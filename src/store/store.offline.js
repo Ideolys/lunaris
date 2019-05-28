@@ -32,6 +32,10 @@ function _preloadCache (store, filterValues, data) {
   for (var j = 0; j < _len && j < store.paginationLimit; j++) {
     _cacheValues.push(_transformCacheData(data[j]));
   }
+
+  filterValues.cache.offset = 0;
+  filterValues.cache.limit  = store.paginationLimit;
+
   cache.add(store.name, md5(url.createForOffline(store, filterValues)), _cacheValues);
 
   if (_len <= store.paginationLimit) {
@@ -40,13 +44,17 @@ function _preloadCache (store, filterValues, data) {
 
   var _dataToReturn = data.slice(0, store.paginationLimit);
   _cacheValues  = [];
+  var _n = 0;
   for (var i = store.paginationLimit; i < _len; i++) {
+    _n++;
     _cacheValues.push(_transformCacheData(data[i]));
 
-    if (i % store.paginationLimit || i + 1 === _len) {
+    if (!(_n % store.paginationLimit) || i + 1 === _len) {
       filterValues.cache.offset += store.paginationLimit;
       cache.add(store.name, md5(url.createForOffline(store, filterValues)), _cacheValues);
+      _cacheValues = [];
     }
+
   }
 
   return _dataToReturn;

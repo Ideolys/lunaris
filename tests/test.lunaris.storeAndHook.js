@@ -2338,7 +2338,7 @@ describe('lunaris store', function () {
         should(_hasBeenCalled).eql(false);
         should(lunaris._cache._cache()).eql([
           {
-            hash   : 'b1b3e8380e9bd4286a475008a69781f1',
+            hash   : '3bf9c704386d507fcbb9937429d5cdf8',
             values : [
               { id : 1, label : 'A', site : { id : 2 } },
               { id : 2, label : 'B', site : { id : 2 } }
@@ -2346,7 +2346,7 @@ describe('lunaris store', function () {
             stores : ['optional']
           },
           {
-            hash   : '78fad25dacde61528cc6f5211db36df8',
+            hash   : '69025bf6ea0bc4767ce95680392ed9ce',
             values : [{ id : 4, label : 'D', site : { id : 2 } }],
             stores : ['optional']
           }
