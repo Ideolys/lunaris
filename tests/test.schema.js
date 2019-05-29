@@ -1046,7 +1046,6 @@ describe.only('Schema', () => {
           continent : null,
           countries : []
         },
-        reflexiveFn : null,
         computedsFn : null
       };
 
@@ -1189,7 +1188,6 @@ describe.only('Schema', () => {
           continent : null,
           countries : []
         },
-        reflexiveFn : null,
         computedsFn : null
       };
 
