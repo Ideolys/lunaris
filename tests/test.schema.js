@@ -1,7 +1,8 @@
 const schema     = require('../lib/_builder/store/schema');
 const aggregates = require('../src/store/store.aggregate');
+const getJoinFns = require('../lib/_builder/store/joins');
 
-describe('Schema', () => {
+describe.only('Schema', () => {
 
   describe('analyzeDescriptor(obj)', () => {
 
@@ -1519,881 +1520,6 @@ describe('Schema', () => {
       });
     });
 
-    describe('joins', () => {
-
-      it('should find a join and define join functions', () => {
-        var _objectDescriptor = {
-          id       : ['<<id>>'],
-          elements : ['@elements']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-        should(_schema.meta.joins).eql({
-          elements : 'elements'
-        });
-
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = [
-          { _id : 1, id : 1, cost : 1 },
-          { _id : 2, id : 2, cost : 2 }
-        ];
-        var _joinValues = { elements : _expectedValues };
-        var _obj        = { id : 1 };
-        _joinFns.set(_obj, _joinValues);
-        should(_obj.elements).be.an.Array().and.eql(_expectedValues);
-
-        _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
-        should(_obj.elements).be.an.Array().and.eql(_expectedValues);
-
-        _expectedValues.splice(1, 1);
-        _joinFns.elements.delete(_obj, { _id : 2 });
-        should(_obj.elements).be.an.Array().and.eql(_expectedValues);
-
-        _joinFns.elements.delete(_obj, null);
-        should(_obj.elements).be.an.Array().and.have.lengthOf(0);
-      });
-
-      it('should find a join and define join functions for a store object', () => {
-        var _objectDescriptor = {
-          id       : ['<<id>>'],
-          elements : ['@elements']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-        should(_schema.meta.joins).eql({
-          elements : 'elements'
-        });
-
-        var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true } }, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = { _id : 1, id : 1, cost : 1 };
-        var _joinValues     = { elements : _expectedValues };
-        var _obj            = { id : 1 };
-        _joinFns.set(_obj, _joinValues, aggregates.aggregates);
-        should(_obj.elements).be.an.Object().and.eql(_expectedValues);
-
-        _expectedValues.cost = 2;
-        _joinFns.elements.insert(_obj, _expectedValues, aggregates.aggregates);
-        should(_obj.elements).be.an.Object().and.eql(_expectedValues);
-
-        _joinFns.elements.delete(_obj, aggregates.aggregates);
-        should(_obj.elements).be.eql(null);
-      });
-
-      it('should find multiple joins and define join functions', () => {
-        var _objectDescriptor = {
-          id           : ['<<id>>'],
-          elementsJoin : ['@elements'],
-          elements2    : ['@elements2']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-        should(_schema.meta.joins).eql({
-          elements  : 'elementsJoin',
-          elements2 : 'elements2'
-        });
-
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = [
-          { _id : 1, id : 1, cost : 1 },
-          { _id : 2, id : 2, cost : 2 }
-        ];
-        var _expectedValues2 = [
-          { _id : 1, id : 1, price : 1 },
-          { _id : 2, id : 2, price : 2 }
-        ];
-        var _joinValues = { elements : _expectedValues, elements2 : _expectedValues2 };
-        var _obj        = { id : 1 };
-        _joinFns.set(_obj, _joinValues);
-        should(_obj.elementsJoin).be.an.Array().and.eql(_expectedValues);
-        should(_obj.elements2).be.an.Array().and.eql(_expectedValues2);
-
-        _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _expectedValues2.push({ _id : 3, id : 3, price : 3 });
-        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
-        _joinFns.elements2.insert(_obj, { _id : 3, id : 3, price : 3 });
-        should(_obj.elementsJoin).be.an.Array().and.eql(_expectedValues);
-        should(_obj.elements2).be.an.Array().and.eql(_expectedValues2);
-
-        _expectedValues.splice(1, 1);
-        _expectedValues2.splice(1, 1);
-        _joinFns.elements.delete(_obj, { _id : 2 });
-        _joinFns.elements2.delete(_obj, { _id : 2 });
-        should(_obj.elementsJoin).be.an.Array().and.eql(_expectedValues);
-        should(_obj.elements2).be.an.Array().and.eql(_expectedValues2);
-      });
-
-      it('should find joins in sub object and define join functions', () => {
-        var _objectDescriptor = {
-          id     : ['<<id>>'],
-          object : ['object', {
-            elements : ['@elements']
-          }]
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-        should(_schema.meta.joins).eql({
-          elements : 'object.elements',
-        });
-
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = [
-          { _id : 1, id : 1, cost : 1 },
-          { _id : 2, id : 2, cost : 2 }
-        ];
-        var _joinValues = { elements : _expectedValues };
-        var _obj        = { id : 1, object : {} };
-        _joinFns.set(_obj, _joinValues);
-        should(_obj.object.elements).be.an.Array().and.eql(_expectedValues);
-
-        _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
-        should(_obj.object.elements).be.an.Array().and.eql(_expectedValues);
-
-        _expectedValues.splice(1, 1);
-        _joinFns.elements.delete(_obj, { _id : 2 });
-        should(_obj.object.elements).be.an.Array().and.eql(_expectedValues);
-      });
-
-      it('should find joins in sub array and define join functions', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          objects : ['array', {
-            id       : ['<<id>>'],
-            elements : ['@elements']
-          }]
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-        should(_schema.meta.joins).eql({
-          elements : 'objects.elements',
-        });
-
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = [
-          { _id : 1, id : 1, cost : 1 },
-          { _id : 2, id : 2, cost : 2 }
-        ];
-        var _joinValues = { elements : _expectedValues };
-        var _obj        = { id : 1, objects : [{ id : 1}, { id : 2 }]};
-        _joinFns.set(_obj, _joinValues);
-        should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
-
-        _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
-        should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
-
-        _expectedValues.splice(1, 1);
-        _joinFns.elements.delete(_obj, { _id : 2 });
-        should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
-      });
-
-      it('should find a join and set a custom property if a shortcut has been used and define join functions', () => {
-        var _objectDescriptor = {
-          id    : ['<<id>>'],
-          total : ['sumAgg', '@elements.cost']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-
-        should(_schema.meta.joins).eql({
-          elements : 'join_elements'
-        });
-        should(_schema.meta.externalAggregates).eql({
-          elements : ['sumAgg', 'total', 'join_elements.cost']
-        });
-
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = [
-          { _id : 1, id : 1, cost : 1 },
-          { _id : 2, id : 2, cost : 2 }
-        ];
-        var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues))};
-        var _obj        = { id : 1 };
-        _joinFns.set(_obj, _joinValues, aggregates.aggregates);
-        should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.total).be.a.Number().and.eql(3);
-
-        _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates);
-        should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.total).be.a.Number().and.eql(6);
-
-        _expectedValues.splice(1, 1);
-        _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
-        should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.total).be.a.Number().and.eql(4);
-      });
-
-      it('should find multiple joins and set a custom property if a shortcut has been used and define join functions', () => {
-        var _objectDescriptor = {
-          id     : ['<<id>>'],
-          total  : ['sumAgg', '@elements.cost'],
-          total2 : ['sumAgg', '@elements2.price']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-        should(_schema.meta.joins).eql({
-          elements  : 'join_elements',
-          elements2 : 'join_elements2'
-        });
-        should(_schema.meta.externalAggregates).eql({
-          elements  : ['sumAgg', 'total', 'join_elements.cost'],
-          elements2 : ['sumAgg', 'total2', 'join_elements2.price']
-        });
-
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = [
-          { _id : 1, id : 1, cost : 1 },
-          { _id : 2, id : 2, cost : 2 }
-        ];
-        var _expectedValues2 = [
-          { _id : 1, id : 1, price : 1 },
-          { _id : 2, id : 2, price : 4 }
-        ];
-        var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues)), elements2 : JSON.parse(JSON.stringify(_expectedValues2)) };
-        var _obj        = { id : 1 };
-        _joinFns.set(_obj, _joinValues, aggregates.aggregates);
-        should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.join_elements2).be.an.Array().and.eql(_expectedValues2);
-        should(_obj.total).be.a.Number().and.eql(3);
-        should(_obj.total2).be.a.Number().and.eql(5);
-
-        _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _expectedValues2.push({ _id : 3, id : 3, price : 2 });
-        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates);
-        _joinFns.elements2.insert(_obj, { _id : 3, id : 3, price : 2 }, aggregates.aggregates);
-        should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.join_elements2).be.an.Array().and.eql(_expectedValues2);
-        should(_obj.total).be.a.Number().and.eql(6);
-        should(_obj.total2).be.a.Number().and.eql(7);
-
-        _expectedValues.splice(1, 1);
-        _expectedValues2.splice(1, 1);
-        _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
-        _joinFns.elements2.delete(_obj, { _id : 2 }, aggregates.aggregates);
-        should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.join_elements2).be.an.Array().and.eql(_expectedValues2);
-        should(_obj.total).be.a.Number().and.eql(4);
-        should(_obj.total2).be.a.Number().and.eql(3);
-      });
-
-      it('should find joins in sub object and set a custom property if a shortcut has been used and define join functions', () => {
-        var _objectDescriptor = {
-          id     : ['<<id>>'],
-          object : ['object', {
-            total : ['sumAgg', '@elements.cost']
-          }]
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-        should(_schema.meta.joins).eql({
-          elements : 'object.join_elements'
-        });
-        should(_schema.meta.externalAggregates).eql({
-          elements : ['sumAgg', 'object.total', 'object.join_elements.cost'],
-        });
-
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = [
-          { _id : 1, id : 1, cost : 1 },
-          { _id : 2, id : 2, cost : 2 }
-        ];
-        var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues)) };
-        var _obj        = { id : 1, object : {} };
-        _joinFns.set(_obj, _joinValues, aggregates.aggregates);
-        should(_obj.object.join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.object.total).be.a.Number().and.eql(3);
-
-        _expectedValues.push({ _id : 3, id : 3, cost : 3 });
-        _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates);
-        should(_obj.object.join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.object.total).be.a.Number().and.eql(6);
-
-        _expectedValues.splice(1, 1);
-        _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
-        should(_obj.object.join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.object.total).be.a.Number().and.eql(4);
-      });
-
-      it('should find joins in sub array and set a custom property if a shortcut has been used and define join functions', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          objects : ['array', {
-            id    : ['<<id>>'],
-            total : ['sumAgg', '@elements.price']
-          }]
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-        should(_schema.meta.joins).eql({
-          elements : 'objects.join_elements'
-        });
-        should(_schema.meta.externalAggregates).eql({
-          elements : ['sumAgg', 'objects.total', 'objects.join_elements.price'],
-        });
-
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = [
-          { _id : 1, id : 1, price : 1 },
-          { _id : 2, id : 2, price : 2 }
-        ];
-        var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues)) };
-        var _obj        = { id : 1, objects : [{ id : 1}, { id : 2 }]};
-        _joinFns.set(_obj, _joinValues, aggregates.aggregates);
-        should(_obj.objects[0].join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[0].total).be.a.Number().and.eql(3);
-        should(_obj.objects[1].total).be.a.Number().and.eql(3);
-
-        _expectedValues.push({ _id : 3, id : 3, price : 3 });
-        _joinFns.elements.insert(_obj, { _id : 3, id : 3, price : 3 }, aggregates.aggregates);
-        should(_obj.objects[0].join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[0].total).be.a.Number().and.eql(6);
-        should(_obj.objects[1].total).be.a.Number().and.eql(6);
-
-        _expectedValues.splice(1, 1);
-        _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
-        should(_obj.objects[0].join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].join_elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[0].total).be.a.Number().and.eql(4);
-        should(_obj.objects[1].total).be.a.Number().and.eql(4);
-      });
-
-      it('should find joins in sub array and define join functions', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          objects : ['array', {
-            id       : ['<<id>>'],
-            total    : ['sumAgg', 'elements.price'],
-            elements : ['array', '@elements']
-          }]
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-        should(_schema.meta.joins).eql({
-          elements : 'objects.elements'
-        });
-        should(_schema.meta.externalAggregates).eql({
-          elements : ['sumAgg', 'objects.total', 'objects.elements.price'],
-        });
-
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = [
-          { _id : 1, id : 1, price : 1 },
-          { _id : 2, id : 2, price : 2 }
-        ];
-        var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues)) };
-        var _obj        = { id : 1, objects : [{ id : 1}, { id : 2 }]};
-        _joinFns.set(_obj, _joinValues, aggregates.aggregates);
-        should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[0].total).be.a.Number().and.eql(3);
-        should(_obj.objects[1].total).be.a.Number().and.eql(3);
-
-        _expectedValues.push({ _id : 3, id : 3, price : 3 });
-        _joinFns.elements.insert(_obj, { _id : 3, id : 3, price : 3 }, aggregates.aggregates);
-        should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[0].total).be.a.Number().and.eql(6);
-        should(_obj.objects[1].total).be.a.Number().and.eql(6);
-
-        _expectedValues.splice(1, 1);
-        _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
-        should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[0].total).be.a.Number().and.eql(4);
-        should(_obj.objects[1].total).be.a.Number().and.eql(4);
-      });
-
-      it('should find joins in sub array and define join functions (different order between aggregate and join)', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          objects : ['array', {
-            id       : ['<<id>>'],
-            elements : ['array', '@elements'],
-            total    : ['sumAgg', 'elements.price']
-          }]
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-        should(_schema.meta.joins).eql({
-          elements : 'objects.elements'
-        });
-        should(_schema.meta.externalAggregates).eql({
-          elements : ['sumAgg', 'objects.total', 'objects.elements.price'],
-        });
-
-        var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _expectedValues = [
-          { _id : 1, id : 1, price : 1 },
-          { _id : 2, id : 2, price : 2 }
-        ];
-        var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues)) };
-        var _obj        = { id : 1, objects : [{ id : 1}, { id : 2 }]};
-        _joinFns.set(_obj, _joinValues, aggregates.aggregates);
-        should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[0].total).be.a.Number().and.eql(3);
-        should(_obj.objects[1].total).be.a.Number().and.eql(3);
-
-        _expectedValues.push({ _id : 3, id : 3, price : 3 });
-        _joinFns.elements.insert(_obj, { _id : 3, id : 3, price : 3 }, aggregates.aggregates);
-        should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[0].total).be.a.Number().and.eql(6);
-        should(_obj.objects[1].total).be.a.Number().and.eql(6);
-
-        _expectedValues.splice(1, 1);
-        _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
-        should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
-        should(_obj.objects[0].total).be.a.Number().and.eql(4);
-        should(_obj.objects[1].total).be.a.Number().and.eql(4);
-      });
-
-      describe('aggregate', () => {
-        it('should set a value even there is no elements to aggregate : insert (root level)', () => {
-          var _objectDescriptor = {
-            id       : ['<<id>>'],
-            total    : ['sumAgg', 'elements.cost'],
-            elements : ['@elements']
-          };
-          var _schema  = schema.analyzeDescriptor(_objectDescriptor);
-
-          should(_schema.meta.joins).eql({
-            elements : 'elements'
-          });
-          should(_schema.meta.externalAggregates).eql({
-            elements : ['sumAgg', 'total', 'elements.cost'],
-          });
-
-          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-          var _obj = {
-            id       : 1,
-            elements : []
-          };
-          var _elements = [];
-          _joinFns.set(_obj, { elements : _elements }, aggregates.aggregates);
-          should(_obj.total).be.Number();
-          should(_obj.total).eql(0);
-        });
-
-        it('should not crash if the attribute does not exist : attribute key', () => {
-          var _objectDescriptor = {
-            id       : ['<<id>>'],
-            total    : ['sumAgg', 'elements.cost'],
-            elements : ['@elements']
-          };
-          var _schema = schema.analyzeDescriptor(_objectDescriptor);
-
-          should(_schema.meta.joins).eql({
-            elements : 'elements'
-          });
-          should(_schema.meta.externalAggregates).eql({
-            elements : ['sumAgg', 'total', 'elements.cost'],
-          });
-
-          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-          var _obj = {
-            id       : 1,
-            elements : []
-          };
-
-          _joinFns.set(_obj, { elements : null }, aggregates.aggregates);
-          should(_obj.total).be.Number();
-          should(_obj.total).eql(0);
-        });
-
-        it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
-          var _objectDescriptor = {
-            id       : ['<<int>>'],
-            elements : ['array', {
-              id    : ['<<int>>'],
-              total : ['sumAgg', 'costs.parts.cost'],
-              costs : ['array', {
-                id    : ['<<int>>'],
-                parts : ['@parts']
-              }]
-            }]
-          };
-          var _schema = schema.analyzeDescriptor(_objectDescriptor);
-
-          should(_schema.meta.joins).eql({
-            parts : 'elements.costs.parts'
-          });
-          should(_schema.meta.externalAggregates).eql({
-            parts : ['sumAgg', 'elements.total', 'elements.costs.parts.cost'],
-          });
-
-          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-          var _obj = {
-            id       : 1,
-            elements : [
-              {
-                id    : '1-1',
-                costs : [
-                  {
-                    id    : '1-1-1',
-                    parts : []
-                  },
-                  {
-                    id    : '1-1-2',
-                    parts : []
-                  }
-                ]
-              },
-              {
-                id    : '1-2',
-                costs : [
-                  {
-                    id    : '1-2-1',
-                    parts : []
-                  },
-                  {
-                    id    : '1-2-2',
-                    parts : []
-                  }
-                ]
-              }
-            ]
-          };
-          var _parts = [
-            { _id : 1, id : 1, cost : 1 },
-            { _id : 2, id : 2, cost : 5 },
-            { _id : 3, id : 3, cost : 4 },
-          ];
-
-          _joinFns.set(_obj, { parts : _parts }, aggregates.aggregates);
-          should(_obj.elements[0]['total']).be.Number().and.eql(20);
-          should(_obj.elements[1]['total']).be.Number().and.eql(20);
-          _joinFns.parts.insert(_obj, { id : 4, cost : 2 }, aggregates.aggregates);
-          should(_obj.elements[0]['total']).be.Number().and.eql(24);
-          should(_obj.elements[1]['total']).be.Number().and.eql(24);
-          _joinFns.parts.delete(_obj, { id : 3, _id : 3, cost : 4 }, aggregates.aggregates);
-          should(_obj.elements[0]['total']).be.Number().and.eql(16);
-          should(_obj.elements[1]['total']).be.Number().and.eql(16);
-        });
-
-        it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
-          var _objectDescriptor = {
-            id       : ['<<int>>'],
-            elements : ['object', {
-              id    : ['<<int>>'],
-              total : ['sumAgg', 'costs.parts.cost'],
-              costs : ['object', {
-                id    : ['<<int>>'],
-                parts : ['@parts']
-              }]
-            }]
-          };
-          var _schema = schema.analyzeDescriptor(_objectDescriptor);
-
-          should(_schema.meta.joins).eql({
-            parts : 'elements.costs.parts'
-          });
-          should(_schema.meta.externalAggregates).eql({
-            parts : ['sumAgg', 'elements.total', 'elements.costs.parts.cost'],
-          });
-
-          var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-          var _obj = {
-            id       : 1,
-            elements : {
-              id    : '1-1',
-              costs : {
-                id    : '1-1-1',
-                parts : []
-              }
-            }
-          };
-          var _parts = [
-            { _id : 1, id : 1, cost : 1 },
-            { _id : 2, id : 2, cost : 5 },
-            { _id : 3, id : 3, cost : 4 },
-          ];
-
-          _joinFns.set(_obj, { parts : _parts }, aggregates.aggregates);
-          should(_obj.elements['total']).be.Number().and.eql(10);
-          _joinFns.parts.insert(_obj, { id : 4, cost : 2 }, aggregates.aggregates);
-          should(_obj.elements['total']).be.Number().and.eql(12);
-          _joinFns.parts.delete(_obj, { id : 3, _id : 3, cost : 4 }, aggregates.aggregates);
-          should(_obj.elements['total']).be.Number().and.eql(8);
-        });
-      });
-
-    });
-
-    describe('reflexive', () => {
-      it ('should find a reflexive', () => {
-        var _objectDescriptor = {
-          id       : ['<<id>>'],
-          elements : ['@elements']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'elements');
-        should(_schema.meta.joins).eql({});
-        should(_schema.meta.reflexive).eql('elements');
-      });
-
-      it ('should not find a reflexive', () => {
-        var _objectDescriptor = {
-          id       : ['<<id>>'],
-          elements : ['@elements']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element1');
-        should(_schema.meta.joins).eql({
-          elements : 'elements'
-        });
-        should(_schema.meta.reflexive).eql(null);
-      });
-
-      it ('should find a reflexive and build reflexiveFn', () => {
-        var _objectDescriptor = {
-          id       : ['<<id>>'],
-          elements : ['@elements']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'elements');
-        should(_schema.meta.joins).eql({});
-        should(_schema.meta.reflexive).eql('elements');
-        should(_schema.reflexiveFn).be.an.Object();
-        should(_schema.reflexiveFn.update).be.a.Function();
-        should(_schema.reflexiveFn.delete).be.a.Function();
-      });
-
-      it ('reflexiveFn should find and replace the object if id === id', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          label   : ['string'],
-          element : ['@element']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
-        var _parentObj = {
-          id      : 1,
-          label   : 'B',
-          element : null
-        };
-
-        var _childObj = {
-          id      : 2,
-          label   : 'A',
-          element : {
-            id    : 1,
-            label : 'A'
-          }
-        };
-
-        _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
-        should(_childObj.element).eql(
-          {
-            id    : 1,
-            label : 'B'
-          }
-        );
-      });
-
-      it ('reflexiveFn should return null if id !== id', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          label   : ['string'],
-          element : ['@element']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
-        var _parentObj = {
-          id      : 1,
-          label   : 'B',
-          element : null
-        };
-
-        var _childObj = {
-          id      : 2,
-          label   : 'A',
-          element : {
-            id    : 3,
-            label : 'A'
-          }
-        };
-
-        _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
-        should(_childObj).eql(null);
-      });
-
-      it ('reflexiveFn should find and replace the object if _id === _id', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          label   : ['string'],
-          element : ['@element']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
-        var _parentObj = {
-          _id     : 1,
-          id      : null,
-          label   : 'B',
-          element : null
-        };
-
-        var _childObj = {
-          _id     : 2,
-          id      : null,
-          label   : 'A',
-          element : {
-            _id   : 1,
-            id    : null,
-            label : 'A'
-          }
-        };
-
-        _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
-        should(_childObj.element.label).eql('B');
-      });
-
-      it ('reflexiveFn should return null if _id !== _id', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          label   : ['string'],
-          element : ['@element']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
-        var _parentObj = {
-          _id     : 1,
-          id      : null,
-          label   : 'B',
-          element : null
-        };
-
-        var _childObj = {
-          _id     : 2,
-          id      : null,
-          label   : 'A',
-          element : {
-            _id   : 3,
-            id    : null,
-            label : 'A'
-          }
-        };
-
-        _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
-        should(_childObj).eql(null);
-      });
-
-      it ('reflexiveFn should delete the object if _id === _id', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          label   : ['string'],
-          element : ['@element']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
-        var _parentObj = {
-          _id     : 1,
-          id      : null,
-          label   : 'B',
-          element : null
-        };
-
-        var _childObj = {
-          _id     : 2,
-          id      : null,
-          label   : 'A',
-          element : {
-            _id   : 1,
-            id    : null,
-            label : 'A'
-          }
-        };
-
-        _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
-        should(_childObj.element).eql(null);
-      });
-
-      it ('reflexiveFn should delete the object if id === id', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          label   : ['string'],
-          element : ['@element']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
-        var _parentObj = {
-          id      : 1,
-          label   : 'B',
-          element : null
-        };
-
-        var _childObj = {
-          id      : 2,
-          label   : 'A',
-          element : {
-            id    : 1,
-            label : 'A'
-          }
-        };
-
-        _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
-        should(_childObj.element).eql(null);
-      });
-
-      it ('reflexiveFn should return null if _id !== _id', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          label   : ['string'],
-          element : ['@element']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
-        var _parentObj = {
-          _id     : 1,
-          id      : null,
-          label   : 'B',
-          element : null
-        };
-
-        var _childObj = {
-          _id     : 2,
-          id      : null,
-          label   : 'A',
-          element : {
-            _id   : 3,
-            id    : null,
-            label : 'A'
-          }
-        };
-
-        _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
-        should(_childObj).eql(null);
-      });
-
-      it ('reflexiveFn should return null if id !== id', () => {
-        var _objectDescriptor = {
-          id      : ['<<id>>'],
-          label   : ['string'],
-          element : ['@element']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
-        var _parentObj = {
-          id      : 1,
-          label   : 'B',
-          element : null
-        };
-
-        var _childObj = {
-          id      : 2,
-          label   : 'A',
-          element : {
-            id    : 3,
-            label : 'A'
-          }
-        };
-
-        _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
-        should(_childObj).eql(null);
-      });
-    });
-
   });
 
   it('should throw an error if a property is a string and not an array', () => {
@@ -2410,6 +1536,880 @@ describe('Schema', () => {
     }
   });
 
+  describe.only('joins', () => {
+
+    it('should find a join and define join functions', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.joins).eql({
+        elements : 'elements'
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _joinValues = { elements : _expectedValues };
+      var _obj        = { id : 1 };
+      _joinFns.set(_obj, _joinValues);
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 });
+      should(_obj.elements).be.an.Array().and.eql(_expectedValues);
+
+      _joinFns.elements.delete(_obj, null);
+      should(_obj.elements).be.an.Array().and.have.lengthOf(0);
+    });
+
+    it('should find a join and define join functions for a store object', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.joins).eql({
+        elements : 'elements'
+      });
+
+      var _joinFns = getJoinFns({ elements : { isStoreObject : true } }, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = { _id : 1, id : 1, cost : 1 };
+      var _joinValues     = { elements : _expectedValues };
+      var _obj            = { id : 1 };
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates);
+      should(_obj.elements).be.an.Object().and.eql(_expectedValues);
+
+      _expectedValues.cost = 2;
+      _joinFns.elements.insert(_obj, _expectedValues, aggregates.aggregates);
+      should(_obj.elements).be.an.Object().and.eql(_expectedValues);
+
+      _joinFns.elements.delete(_obj, aggregates.aggregates);
+      should(_obj.elements).be.eql(null);
+    });
+
+    it('should find multiple joins and define join functions', () => {
+      var _objectDescriptor = {
+        id           : ['<<id>>'],
+        elementsJoin : ['@elements'],
+        elements2    : ['@elements2']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.joins).eql({
+        elements  : 'elementsJoin',
+        elements2 : 'elements2'
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _expectedValues2 = [
+        { _id : 1, id : 1, price : 1 },
+        { _id : 2, id : 2, price : 2 }
+      ];
+      var _joinValues = { elements : _expectedValues, elements2 : _expectedValues2 };
+      var _obj        = { id : 1 };
+      _joinFns.set(_obj, _joinValues);
+      should(_obj.elementsJoin).be.an.Array().and.eql(_expectedValues);
+      should(_obj.elements2).be.an.Array().and.eql(_expectedValues2);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _expectedValues2.push({ _id : 3, id : 3, price : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+      _joinFns.elements2.insert(_obj, { _id : 3, id : 3, price : 3 });
+      should(_obj.elementsJoin).be.an.Array().and.eql(_expectedValues);
+      should(_obj.elements2).be.an.Array().and.eql(_expectedValues2);
+
+      _expectedValues.splice(1, 1);
+      _expectedValues2.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 });
+      _joinFns.elements2.delete(_obj, { _id : 2 });
+      should(_obj.elementsJoin).be.an.Array().and.eql(_expectedValues);
+      should(_obj.elements2).be.an.Array().and.eql(_expectedValues2);
+    });
+
+    it('should find joins in sub object and define join functions', () => {
+      var _objectDescriptor = {
+        id     : ['<<id>>'],
+        object : ['object', {
+          elements : ['@elements']
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.joins).eql({
+        elements : 'object.elements',
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _joinValues = { elements : _expectedValues };
+      var _obj        = { id : 1, object : {} };
+      _joinFns.set(_obj, _joinValues);
+      should(_obj.object.elements).be.an.Array().and.eql(_expectedValues);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+      should(_obj.object.elements).be.an.Array().and.eql(_expectedValues);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 });
+      should(_obj.object.elements).be.an.Array().and.eql(_expectedValues);
+    });
+
+    it('should find joins in sub array and define join functions', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        objects : ['array', {
+          id       : ['<<id>>'],
+          elements : ['@elements']
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.joins).eql({
+        elements : 'objects.elements',
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _joinValues = { elements : _expectedValues };
+      var _obj        = { id : 1, objects : [{ id : 1}, { id : 2 }]};
+      _joinFns.set(_obj, _joinValues);
+      should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 });
+      should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 });
+      should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
+    });
+
+    it('should find a join and set a custom property if a shortcut has been used and define join functions', () => {
+      var _objectDescriptor = {
+        id    : ['<<id>>'],
+        total : ['sumAgg', '@elements.cost']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+      should(_schema.meta.joins).eql({
+        elements : 'join_elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sumAgg', 'total', 'join_elements.cost']
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues))};
+      var _obj        = { id : 1 };
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates);
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(3);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates);
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(6);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.total).be.a.Number().and.eql(4);
+    });
+
+    it('should find multiple joins and set a custom property if a shortcut has been used and define join functions', () => {
+      var _objectDescriptor = {
+        id     : ['<<id>>'],
+        total  : ['sumAgg', '@elements.cost'],
+        total2 : ['sumAgg', '@elements2.price']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.joins).eql({
+        elements  : 'join_elements',
+        elements2 : 'join_elements2'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements  : ['sumAgg', 'total', 'join_elements.cost'],
+        elements2 : ['sumAgg', 'total2', 'join_elements2.price']
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _expectedValues2 = [
+        { _id : 1, id : 1, price : 1 },
+        { _id : 2, id : 2, price : 4 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues)), elements2 : JSON.parse(JSON.stringify(_expectedValues2)) };
+      var _obj        = { id : 1 };
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates);
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.join_elements2).be.an.Array().and.eql(_expectedValues2);
+      should(_obj.total).be.a.Number().and.eql(3);
+      should(_obj.total2).be.a.Number().and.eql(5);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _expectedValues2.push({ _id : 3, id : 3, price : 2 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates);
+      _joinFns.elements2.insert(_obj, { _id : 3, id : 3, price : 2 }, aggregates.aggregates);
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.join_elements2).be.an.Array().and.eql(_expectedValues2);
+      should(_obj.total).be.a.Number().and.eql(6);
+      should(_obj.total2).be.a.Number().and.eql(7);
+
+      _expectedValues.splice(1, 1);
+      _expectedValues2.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
+      _joinFns.elements2.delete(_obj, { _id : 2 }, aggregates.aggregates);
+      should(_obj.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.join_elements2).be.an.Array().and.eql(_expectedValues2);
+      should(_obj.total).be.a.Number().and.eql(4);
+      should(_obj.total2).be.a.Number().and.eql(3);
+    });
+
+    it('should find joins in sub object and set a custom property if a shortcut has been used and define join functions', () => {
+      var _objectDescriptor = {
+        id     : ['<<id>>'],
+        object : ['object', {
+          total : ['sumAgg', '@elements.cost']
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.joins).eql({
+        elements : 'object.join_elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sumAgg', 'object.total', 'object.join_elements.cost'],
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 2 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues)) };
+      var _obj        = { id : 1, object : {} };
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates);
+      should(_obj.object.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.object.total).be.a.Number().and.eql(3);
+
+      _expectedValues.push({ _id : 3, id : 3, cost : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, cost : 3 }, aggregates.aggregates);
+      should(_obj.object.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.object.total).be.a.Number().and.eql(6);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
+      should(_obj.object.join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.object.total).be.a.Number().and.eql(4);
+    });
+
+    it('should find joins in sub array and set a custom property if a shortcut has been used and define join functions', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        objects : ['array', {
+          id    : ['<<id>>'],
+          total : ['sumAgg', '@elements.price']
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.joins).eql({
+        elements : 'objects.join_elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sumAgg', 'objects.total', 'objects.join_elements.price'],
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, price : 1 },
+        { _id : 2, id : 2, price : 2 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues)) };
+      var _obj        = { id : 1, objects : [{ id : 1}, { id : 2 }]};
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates);
+      should(_obj.objects[0].join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[0].total).be.a.Number().and.eql(3);
+      should(_obj.objects[1].total).be.a.Number().and.eql(3);
+
+      _expectedValues.push({ _id : 3, id : 3, price : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, price : 3 }, aggregates.aggregates);
+      should(_obj.objects[0].join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[0].total).be.a.Number().and.eql(6);
+      should(_obj.objects[1].total).be.a.Number().and.eql(6);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
+      should(_obj.objects[0].join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].join_elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[0].total).be.a.Number().and.eql(4);
+      should(_obj.objects[1].total).be.a.Number().and.eql(4);
+    });
+
+    it('should find joins in sub array and define join functions', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        objects : ['array', {
+          id       : ['<<id>>'],
+          total    : ['sumAgg', 'elements.price'],
+          elements : ['array', '@elements']
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.joins).eql({
+        elements : 'objects.elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sumAgg', 'objects.total', 'objects.elements.price'],
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, price : 1 },
+        { _id : 2, id : 2, price : 2 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues)) };
+      var _obj        = { id : 1, objects : [{ id : 1}, { id : 2 }]};
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates);
+      should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[0].total).be.a.Number().and.eql(3);
+      should(_obj.objects[1].total).be.a.Number().and.eql(3);
+
+      _expectedValues.push({ _id : 3, id : 3, price : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, price : 3 }, aggregates.aggregates);
+      should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[0].total).be.a.Number().and.eql(6);
+      should(_obj.objects[1].total).be.a.Number().and.eql(6);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
+      should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[0].total).be.a.Number().and.eql(4);
+      should(_obj.objects[1].total).be.a.Number().and.eql(4);
+    });
+
+    it('should find joins in sub array and define join functions (different order between aggregate and join)', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        objects : ['array', {
+          id       : ['<<id>>'],
+          elements : ['array', '@elements'],
+          total    : ['sumAgg', 'elements.price']
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.joins).eql({
+        elements : 'objects.elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sumAgg', 'objects.total', 'objects.elements.price'],
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _expectedValues = [
+        { _id : 1, id : 1, price : 1 },
+        { _id : 2, id : 2, price : 2 }
+      ];
+      var _joinValues = { elements : JSON.parse(JSON.stringify(_expectedValues)) };
+      var _obj        = { id : 1, objects : [{ id : 1}, { id : 2 }]};
+      _joinFns.set(_obj, _joinValues, aggregates.aggregates);
+      should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[0].total).be.a.Number().and.eql(3);
+      should(_obj.objects[1].total).be.a.Number().and.eql(3);
+
+      _expectedValues.push({ _id : 3, id : 3, price : 3 });
+      _joinFns.elements.insert(_obj, { _id : 3, id : 3, price : 3 }, aggregates.aggregates);
+      should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[0].total).be.a.Number().and.eql(6);
+      should(_obj.objects[1].total).be.a.Number().and.eql(6);
+
+      _expectedValues.splice(1, 1);
+      _joinFns.elements.delete(_obj, { _id : 2 }, aggregates.aggregates);
+      should(_obj.objects[0].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[1].elements).be.an.Array().and.eql(_expectedValues);
+      should(_obj.objects[0].total).be.a.Number().and.eql(4);
+      should(_obj.objects[1].total).be.a.Number().and.eql(4);
+    });
+
+    describe('aggregate', () => {
+      it('should set a value even there is no elements to aggregate : insert (root level)', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          total    : ['sumAgg', 'elements.cost'],
+          elements : ['@elements']
+        };
+        var _schema  = schema.analyzeDescriptor(_objectDescriptor);
+
+        should(_schema.meta.joins).eql({
+          elements : 'elements'
+        });
+        should(_schema.meta.externalAggregates).eql({
+          elements : ['sumAgg', 'total', 'elements.cost'],
+        });
+
+        var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+        var _obj = {
+          id       : 1,
+          elements : []
+        };
+        var _elements = [];
+        _joinFns.set(_obj, { elements : _elements }, aggregates.aggregates);
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(0);
+      });
+
+      it('should not crash if the attribute does not exist : attribute key', () => {
+        var _objectDescriptor = {
+          id       : ['<<id>>'],
+          total    : ['sumAgg', 'elements.cost'],
+          elements : ['@elements']
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+        should(_schema.meta.joins).eql({
+          elements : 'elements'
+        });
+        should(_schema.meta.externalAggregates).eql({
+          elements : ['sumAgg', 'total', 'elements.cost'],
+        });
+
+        var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+        var _obj = {
+          id       : 1,
+          elements : []
+        };
+
+        _joinFns.set(_obj, { elements : null }, aggregates.aggregates);
+        should(_obj.total).be.Number();
+        should(_obj.total).eql(0);
+      });
+
+      it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          elements : ['array', {
+            id    : ['<<int>>'],
+            total : ['sumAgg', 'costs.parts.cost'],
+            costs : ['array', {
+              id    : ['<<int>>'],
+              parts : ['@parts']
+            }]
+          }]
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+        should(_schema.meta.joins).eql({
+          parts : 'elements.costs.parts'
+        });
+        should(_schema.meta.externalAggregates).eql({
+          parts : ['sumAgg', 'elements.total', 'elements.costs.parts.cost'],
+        });
+
+        var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+        var _obj = {
+          id       : 1,
+          elements : [
+            {
+              id    : '1-1',
+              costs : [
+                {
+                  id    : '1-1-1',
+                  parts : []
+                },
+                {
+                  id    : '1-1-2',
+                  parts : []
+                }
+              ]
+            },
+            {
+              id    : '1-2',
+              costs : [
+                {
+                  id    : '1-2-1',
+                  parts : []
+                },
+                {
+                  id    : '1-2-2',
+                  parts : []
+                }
+              ]
+            }
+          ]
+        };
+        var _parts = [
+          { _id : 1, id : 1, cost : 1 },
+          { _id : 2, id : 2, cost : 5 },
+          { _id : 3, id : 3, cost : 4 },
+        ];
+
+        _joinFns.set(_obj, { parts : _parts }, aggregates.aggregates);
+        should(_obj.elements[0]['total']).be.Number().and.eql(20);
+        should(_obj.elements[1]['total']).be.Number().and.eql(20);
+        _joinFns.parts.insert(_obj, { id : 4, cost : 2 }, aggregates.aggregates);
+        should(_obj.elements[0]['total']).be.Number().and.eql(24);
+        should(_obj.elements[1]['total']).be.Number().and.eql(24);
+        _joinFns.parts.delete(_obj, { id : 3, _id : 3, cost : 4 }, aggregates.aggregates);
+        should(_obj.elements[0]['total']).be.Number().and.eql(16);
+        should(_obj.elements[1]['total']).be.Number().and.eql(16);
+      });
+
+      it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
+        var _objectDescriptor = {
+          id       : ['<<int>>'],
+          elements : ['object', {
+            id    : ['<<int>>'],
+            total : ['sumAgg', 'costs.parts.cost'],
+            costs : ['object', {
+              id    : ['<<int>>'],
+              parts : ['@parts']
+            }]
+          }]
+        };
+        var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+        should(_schema.meta.joins).eql({
+          parts : 'elements.costs.parts'
+        });
+        should(_schema.meta.externalAggregates).eql({
+          parts : ['sumAgg', 'elements.total', 'elements.costs.parts.cost'],
+        });
+
+        var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+        var _obj = {
+          id       : 1,
+          elements : {
+            id    : '1-1',
+            costs : {
+              id    : '1-1-1',
+              parts : []
+            }
+          }
+        };
+        var _parts = [
+          { _id : 1, id : 1, cost : 1 },
+          { _id : 2, id : 2, cost : 5 },
+          { _id : 3, id : 3, cost : 4 },
+        ];
+
+        _joinFns.set(_obj, { parts : _parts }, aggregates.aggregates);
+        should(_obj.elements['total']).be.Number().and.eql(10);
+        _joinFns.parts.insert(_obj, { id : 4, cost : 2 }, aggregates.aggregates);
+        should(_obj.elements['total']).be.Number().and.eql(12);
+        _joinFns.parts.delete(_obj, { id : 3, _id : 3, cost : 4 }, aggregates.aggregates);
+        should(_obj.elements['total']).be.Number().and.eql(8);
+      });
+    });
+
+  });
+
+  describe('reflexive', () => {
+    it ('should find a reflexive', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'elements');
+      should(_schema.meta.joins).eql({});
+      should(_schema.meta.reflexive).eql('elements');
+    });
+
+    it ('should not find a reflexive', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element1');
+      should(_schema.meta.joins).eql({
+        elements : 'elements'
+      });
+      should(_schema.meta.reflexive).eql(null);
+    });
+
+    it ('should find a reflexive and build reflexiveFn', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'elements');
+      should(_schema.meta.joins).eql({});
+      should(_schema.meta.reflexive).eql('elements');
+      should(_schema.reflexiveFn).be.an.Object();
+      should(_schema.reflexiveFn.update).be.a.Function();
+      should(_schema.reflexiveFn.delete).be.a.Function();
+    });
+
+    it ('reflexiveFn should find and replace the object if id === id', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+      var _parentObj = {
+        id      : 1,
+        label   : 'B',
+        element : null
+      };
+
+      var _childObj = {
+        id      : 2,
+        label   : 'A',
+        element : {
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
+      should(_childObj.element).eql(
+        {
+          id    : 1,
+          label : 'B'
+        }
+      );
+    });
+
+    it ('reflexiveFn should return null if id !== id', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+      var _parentObj = {
+        id      : 1,
+        label   : 'B',
+        element : null
+      };
+
+      var _childObj = {
+        id      : 2,
+        label   : 'A',
+        element : {
+          id    : 3,
+          label : 'A'
+        }
+      };
+
+      _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
+      should(_childObj).eql(null);
+    });
+
+    it ('reflexiveFn should find and replace the object if _id === _id', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+      var _parentObj = {
+        _id     : 1,
+        id      : null,
+        label   : 'B',
+        element : null
+      };
+
+      var _childObj = {
+        _id     : 2,
+        id      : null,
+        label   : 'A',
+        element : {
+          _id   : 1,
+          id    : null,
+          label : 'A'
+        }
+      };
+
+      _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
+      should(_childObj.element.label).eql('B');
+    });
+
+    it ('reflexiveFn should return null if _id !== _id', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+      var _parentObj = {
+        _id     : 1,
+        id      : null,
+        label   : 'B',
+        element : null
+      };
+
+      var _childObj = {
+        _id     : 2,
+        id      : null,
+        label   : 'A',
+        element : {
+          _id   : 3,
+          id    : null,
+          label : 'A'
+        }
+      };
+
+      _childObj = _schema.reflexiveFn.update(_schema.getPrimaryKey, _parentObj, _childObj);
+      should(_childObj).eql(null);
+    });
+
+    it ('reflexiveFn should delete the object if _id === _id', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+      var _parentObj = {
+        _id     : 1,
+        id      : null,
+        label   : 'B',
+        element : null
+      };
+
+      var _childObj = {
+        _id     : 2,
+        id      : null,
+        label   : 'A',
+        element : {
+          _id   : 1,
+          id    : null,
+          label : 'A'
+        }
+      };
+
+      _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
+      should(_childObj.element).eql(null);
+    });
+
+    it ('reflexiveFn should delete the object if id === id', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+      var _parentObj = {
+        id      : 1,
+        label   : 'B',
+        element : null
+      };
+
+      var _childObj = {
+        id      : 2,
+        label   : 'A',
+        element : {
+          id    : 1,
+          label : 'A'
+        }
+      };
+
+      _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
+      should(_childObj.element).eql(null);
+    });
+
+    it ('reflexiveFn should return null if _id !== _id', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+      var _parentObj = {
+        _id     : 1,
+        id      : null,
+        label   : 'B',
+        element : null
+      };
+
+      var _childObj = {
+        _id     : 2,
+        id      : null,
+        label   : 'A',
+        element : {
+          _id   : 3,
+          id    : null,
+          label : 'A'
+        }
+      };
+
+      _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
+      should(_childObj).eql(null);
+    });
+
+    it ('reflexiveFn should return null if id !== id', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        label   : ['string'],
+        element : ['@element']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor, 'element');
+      var _parentObj = {
+        id      : 1,
+        label   : 'B',
+        element : null
+      };
+
+      var _childObj = {
+        id      : 2,
+        label   : 'A',
+        element : {
+          id    : 3,
+          label : 'A'
+        }
+      };
+
+      _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
+      should(_childObj).eql(null);
+    });
+  });
 
   describe('getPrimaryKey', () => {
 
@@ -4058,7 +4058,7 @@ describe('Schema', () => {
         elements : ['sumAgg', 'total', 'join_elements', _fn]
       });
 
-      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
       var _expectedValues = [
         { _id : 1, id : 1, cost : 1 },
@@ -4100,7 +4100,7 @@ describe('Schema', () => {
         elements : ['sumAgg', 'total', 'join_elements', _fn]
       });
 
-      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
       var _expectedValues = [
         { _id : 1, id : 1, cost : 1 },
@@ -4141,7 +4141,7 @@ describe('Schema', () => {
         elements : ['sumAgg', 'total', 'join_elements', _fn]
       });
 
-      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
       var _expectedValues = [
         { _id : 1, id : 1, cost : 1 },
@@ -4183,7 +4183,7 @@ describe('Schema', () => {
         elements : ['sumAgg', 'total', 'elements', _fn]
       });
 
-      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
       var _expectedValues = [
         { _id : 1, id : 1, cost : 1 },
@@ -4226,7 +4226,7 @@ describe('Schema', () => {
         elements : ['sumAgg', 'total', 'elements', _fn]
       });
 
-      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
       var _expectedValues = [
         { _id : 1, id : 1, cost : 1 },
@@ -4249,7 +4249,7 @@ describe('Schema', () => {
       should(_obj.total).be.a.Number().and.eql(8);
     });
 
-    it('should find a join nd define join functions and find transformer function and init constants', () => {
+    it('should find a join, define join functions, find transformer function and init constants', () => {
       var _fn = function (element, obj, constants) {
         return element.cost * constants.tva;
       };
@@ -4268,7 +4268,7 @@ describe('Schema', () => {
         elements : ['sumAgg', 'total', 'elements', _fn]
       });
 
-      var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
       var _expectedValues = [
         { _id : 1, id : 1, cost : 1 },
