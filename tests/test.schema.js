@@ -2,6 +2,10 @@ const schema     = require('../lib/_builder/store/schema');
 const aggregates = require('../src/store/store.aggregate');
 const getJoinFns = require('../lib/_builder/store/joins');
 
+function getPrimaryKey (object) {
+  return object.id;
+}
+
 describe.only('Schema', () => {
 
   describe('analyzeDescriptor(obj)', () => {
@@ -2406,6 +2410,387 @@ describe.only('Schema', () => {
       _childObj = _schema.reflexiveFn.delete(_schema.getPrimaryKey, _parentObj, _childObj);
       should(_childObj).eql(null);
     });
+  });
+
+  describe.only('reference', () => {
+
+    it ('should set reference in meta descriptor', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['string']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object();
+    });
+
+    it ('should throw an error if no store has been set : undefined', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['ref']
+      };
+
+      try {
+        schema.analyzeDescriptor(_objectDescriptor);
+      }
+      catch (e) {
+        should(e.message).eql('Lunaris.map: for attribute "elements", the "ref" has no store');
+      }
+    });
+
+    it ('should throw an error if no store has been set : empty string', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['ref', '']
+      };
+
+      try {
+        schema.analyzeDescriptor(_objectDescriptor);
+      }
+      catch (e) {
+        should(e.message).eql('Lunaris.map: for attribute "elements", the "ref" has no store');
+      }
+    });
+
+    it ('should throw an error if no store has been set : no @', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['ref', 'elements']
+      };
+
+      try {
+        schema.analyzeDescriptor(_objectDescriptor);
+      }
+      catch (e) {
+        should(e.message).eql('Lunaris.map: for attribute "elements", the "ref" has no store');
+      }
+    });
+
+    it ('should throw an error if the store has been set two times : undefined', () => {
+      var _objectDescriptor = {
+        id          : ['<<id>>'],
+        elements    : ['ref', '@elements'],
+        elementsBis : ['ref', '@elements']
+      };
+
+      try {
+        schema.analyzeDescriptor(_objectDescriptor);
+      }
+      catch (e) {
+        should(e.message).eql('Lunaris.map: for attribute "elementsBis", the store "elements" is already referenced');
+      }
+    });
+
+    it ('should find a reference', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        elements : 'elements'
+      });
+    });
+
+    it ('should set a complete path : sub array', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', {
+          id   : ['<<int>>'],
+          type : ['object', 'ref', '@type']
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        type : 'elements.type'
+      });
+    });
+
+    it('should set a complete path : sub object', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', {
+          id   : ['<<int>>'],
+          type : ['object', 'ref', '@type']
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        type : 'elements.type'
+      });
+    });
+
+    it('should define the function', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', {
+          id   : ['<<int>>'],
+          type : ['object', 'ref', '@type']
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.referencesFn).be.an.Object();
+      should(_schema.referencesFn.type).be.a.Function();
+    });
+
+    it('should define the function for each referenced stores', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', {
+          id   : ['<<int>>'],
+          type : ['object', 'ref', '@type']
+        }],
+        task : ['object', 'ref', '@task']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.referencesFn).be.an.Object();
+      should(_schema.referencesFn.type).be.a.Function();
+      should(_schema.referencesFn.task).be.a.Function();
+    });
+
+    it ('should replace the object : root array', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        elements : 'elements'
+      });
+
+      var _baseObject = {
+        id       : 1,
+        elements : [{
+          id : 2
+        }]
+      };
+
+      var _referencedObject = {
+        id    : 2,
+        label : 'A'
+      };
+
+      _schema.referencesFn.elements(getPrimaryKey, _referencedObject, _baseObject);
+
+      should(_baseObject).eql({
+        id       : 1,
+        elements : [{
+          id    : 2,
+          label : 'A'
+        }]
+      });
+    });
+
+    it ('should replace the object : root object', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        element : ['object', 'ref', '@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        elements : 'element'
+      });
+
+      var _baseObject = {
+        id      : 1,
+        element : {
+          id : 2
+        }
+      };
+
+      var _referencedObject = {
+        id    : 2,
+        label : 'A'
+      };
+
+      _schema.referencesFn.elements(getPrimaryKey, _referencedObject, _baseObject);
+
+      should(_baseObject).eql({
+        id      : 1,
+        element : {
+          id    : 2,
+          label : 'A'
+        }
+      });
+    });
+
+    it ('should not replace the object if the ids mismatch', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        elements : 'elements'
+      });
+
+      var _baseObject = {
+        id       : 1,
+        elements : [{
+          id : 2
+        }]
+      };
+
+      var _referencedObject = {
+        id    : 1,
+        label : 'A'
+      };
+
+      _schema.referencesFn.elements(getPrimaryKey, _referencedObject, _baseObject);
+
+      should(_baseObject).eql({
+        id       : 1,
+        elements : [{
+          id : 2
+        }]
+      });
+    });
+
+    it ('should not replace the object if the id = null', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        elements : 'elements'
+      });
+
+      var _baseObject = {
+        id       : 1,
+        elements : [{
+          id : null
+        }]
+      };
+
+      var _referencedObject = {
+        id    : null,
+        label : 'A'
+      };
+
+      _schema.referencesFn.elements(getPrimaryKey, _referencedObject, _baseObject);
+
+      should(_baseObject).eql({
+        id       : 1,
+        elements : [{
+          id : null
+        }]
+      });
+    });
+
+    it ('should not replace the object if the id = undefined', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        elements : 'elements'
+      });
+
+      var _baseObject = {
+        id       : 1,
+        elements : [{
+          label : 'A'
+        }]
+      };
+
+      var _referencedObject = {
+        id    : 1,
+        label : 'A'
+      };
+
+      _schema.referencesFn.elements(getPrimaryKey, _referencedObject, _baseObject);
+
+      should(_baseObject).eql({
+        id       : 1,
+        elements : [{
+          label : 'A'
+        }]
+      });
+    });
+
+    it ('should replace the object : root object', () => {
+      var _objectDescriptor = {
+        id      : ['<<id>>'],
+        element : ['object', 'ref', '@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        elements : 'element'
+      });
+
+      var _baseObject = {
+        id      : 1,
+        element : {
+          id : 2
+        }
+      };
+
+      var _referencedObject = {
+        id    : 2,
+        label : 'A'
+      };
+
+      _schema.referencesFn.elements(getPrimaryKey, _referencedObject, _baseObject);
+
+      should(_baseObject).eql({
+        id      : 1,
+        element : {
+          id    : 2,
+          label : 'A'
+        }
+      });
+    });
+
+    it('should replace the objects : object and array', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@type'],
+        task     : ['object', 'ref', '@task']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+      var _baseObject = {
+        id       : 1,
+        elements : [
+          { id : 2 },
+          { id : 3 },
+        ],
+        task : {
+          id : 1
+        }
+      };
+
+      var _referencedObjectType = {
+        id    : 3,
+        label : 'A'
+      };
+      var _referencedObjectTask = {
+        id    : 1,
+        label : 'Task-1'
+      };
+
+      _schema.referencesFn.type(getPrimaryKey, _referencedObjectType, _baseObject);
+      _schema.referencesFn.task(getPrimaryKey, _referencedObjectTask, _baseObject);
+
+      should(_baseObject).eql({
+        id       : 1,
+        elements : [
+          {
+            id : 2
+          },
+          {
+            id    : 3,
+            label : 'A'
+          }
+        ],
+        task : {
+          id    : 1,
+          label : 'Task-1'
+        }
+      });
+    });
+
   });
 
   describe('getPrimaryKey', () => {
