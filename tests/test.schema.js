@@ -1536,7 +1536,7 @@ describe.only('Schema', () => {
     }
   });
 
-  describe.only('joins', () => {
+  describe('joins', () => {
 
     it('should find a join and define join functions', () => {
       var _objectDescriptor = {
@@ -1972,184 +1972,183 @@ describe.only('Schema', () => {
       should(_obj.objects[0].total).be.a.Number().and.eql(4);
       should(_obj.objects[1].total).be.a.Number().and.eql(4);
     });
-
-    describe('aggregate', () => {
-      it('should set a value even there is no elements to aggregate : insert (root level)', () => {
-        var _objectDescriptor = {
-          id       : ['<<id>>'],
-          total    : ['sumAgg', 'elements.cost'],
-          elements : ['@elements']
-        };
-        var _schema  = schema.analyzeDescriptor(_objectDescriptor);
-
-        should(_schema.meta.joins).eql({
-          elements : 'elements'
-        });
-        should(_schema.meta.externalAggregates).eql({
-          elements : ['sumAgg', 'total', 'elements.cost'],
-        });
-
-        var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _obj = {
-          id       : 1,
-          elements : []
-        };
-        var _elements = [];
-        _joinFns.set(_obj, { elements : _elements }, aggregates.aggregates);
-        should(_obj.total).be.Number();
-        should(_obj.total).eql(0);
-      });
-
-      it('should not crash if the attribute does not exist : attribute key', () => {
-        var _objectDescriptor = {
-          id       : ['<<id>>'],
-          total    : ['sumAgg', 'elements.cost'],
-          elements : ['@elements']
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-
-        should(_schema.meta.joins).eql({
-          elements : 'elements'
-        });
-        should(_schema.meta.externalAggregates).eql({
-          elements : ['sumAgg', 'total', 'elements.cost'],
-        });
-
-        var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _obj = {
-          id       : 1,
-          elements : []
-        };
-
-        _joinFns.set(_obj, { elements : null }, aggregates.aggregates);
-        should(_obj.total).be.Number();
-        should(_obj.total).eql(0);
-      });
-
-      it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
-        var _objectDescriptor = {
-          id       : ['<<int>>'],
-          elements : ['array', {
-            id    : ['<<int>>'],
-            total : ['sumAgg', 'costs.parts.cost'],
-            costs : ['array', {
-              id    : ['<<int>>'],
-              parts : ['@parts']
-            }]
-          }]
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-
-        should(_schema.meta.joins).eql({
-          parts : 'elements.costs.parts'
-        });
-        should(_schema.meta.externalAggregates).eql({
-          parts : ['sumAgg', 'elements.total', 'elements.costs.parts.cost'],
-        });
-
-        var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _obj = {
-          id       : 1,
-          elements : [
-            {
-              id    : '1-1',
-              costs : [
-                {
-                  id    : '1-1-1',
-                  parts : []
-                },
-                {
-                  id    : '1-1-2',
-                  parts : []
-                }
-              ]
-            },
-            {
-              id    : '1-2',
-              costs : [
-                {
-                  id    : '1-2-1',
-                  parts : []
-                },
-                {
-                  id    : '1-2-2',
-                  parts : []
-                }
-              ]
-            }
-          ]
-        };
-        var _parts = [
-          { _id : 1, id : 1, cost : 1 },
-          { _id : 2, id : 2, cost : 5 },
-          { _id : 3, id : 3, cost : 4 },
-        ];
-
-        _joinFns.set(_obj, { parts : _parts }, aggregates.aggregates);
-        should(_obj.elements[0]['total']).be.Number().and.eql(20);
-        should(_obj.elements[1]['total']).be.Number().and.eql(20);
-        _joinFns.parts.insert(_obj, { id : 4, cost : 2 }, aggregates.aggregates);
-        should(_obj.elements[0]['total']).be.Number().and.eql(24);
-        should(_obj.elements[1]['total']).be.Number().and.eql(24);
-        _joinFns.parts.delete(_obj, { id : 3, _id : 3, cost : 4 }, aggregates.aggregates);
-        should(_obj.elements[0]['total']).be.Number().and.eql(16);
-        should(_obj.elements[1]['total']).be.Number().and.eql(16);
-      });
-
-      it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
-        var _objectDescriptor = {
-          id       : ['<<int>>'],
-          elements : ['object', {
-            id    : ['<<int>>'],
-            total : ['sumAgg', 'costs.parts.cost'],
-            costs : ['object', {
-              id    : ['<<int>>'],
-              parts : ['@parts']
-            }]
-          }]
-        };
-        var _schema = schema.analyzeDescriptor(_objectDescriptor);
-
-        should(_schema.meta.joins).eql({
-          parts : 'elements.costs.parts'
-        });
-        should(_schema.meta.externalAggregates).eql({
-          parts : ['sumAgg', 'elements.total', 'elements.costs.parts.cost'],
-        });
-
-        var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-
-        var _obj = {
-          id       : 1,
-          elements : {
-            id    : '1-1',
-            costs : {
-              id    : '1-1-1',
-              parts : []
-            }
-          }
-        };
-        var _parts = [
-          { _id : 1, id : 1, cost : 1 },
-          { _id : 2, id : 2, cost : 5 },
-          { _id : 3, id : 3, cost : 4 },
-        ];
-
-        _joinFns.set(_obj, { parts : _parts }, aggregates.aggregates);
-        should(_obj.elements['total']).be.Number().and.eql(10);
-        _joinFns.parts.insert(_obj, { id : 4, cost : 2 }, aggregates.aggregates);
-        should(_obj.elements['total']).be.Number().and.eql(12);
-        _joinFns.parts.delete(_obj, { id : 3, _id : 3, cost : 4 }, aggregates.aggregates);
-        should(_obj.elements['total']).be.Number().and.eql(8);
-      });
-    });
-
   });
 
-  describe('reflexive', () => {
+  describe('aggregate', () => {
+    it('should set a value even there is no elements to aggregate : insert (root level)', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        total    : ['sumAgg', 'elements.cost'],
+        elements : ['@elements']
+      };
+      var _schema  = schema.analyzeDescriptor(_objectDescriptor);
+
+      should(_schema.meta.joins).eql({
+        elements : 'elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sumAgg', 'total', 'elements.cost'],
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _obj = {
+        id       : 1,
+        elements : []
+      };
+      var _elements = [];
+      _joinFns.set(_obj, { elements : _elements }, aggregates.aggregates);
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(0);
+    });
+
+    it('should not crash if the attribute does not exist : attribute key', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        total    : ['sumAgg', 'elements.cost'],
+        elements : ['@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+      should(_schema.meta.joins).eql({
+        elements : 'elements'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        elements : ['sumAgg', 'total', 'elements.cost'],
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _obj = {
+        id       : 1,
+        elements : []
+      };
+
+      _joinFns.set(_obj, { elements : null }, aggregates.aggregates);
+      should(_obj.total).be.Number();
+      should(_obj.total).eql(0);
+    });
+
+    it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
+      var _objectDescriptor = {
+        id       : ['<<int>>'],
+        elements : ['array', {
+          id    : ['<<int>>'],
+          total : ['sumAgg', 'costs.parts.cost'],
+          costs : ['array', {
+            id    : ['<<int>>'],
+            parts : ['@parts']
+          }]
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+      should(_schema.meta.joins).eql({
+        parts : 'elements.costs.parts'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        parts : ['sumAgg', 'elements.total', 'elements.costs.parts.cost'],
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _obj = {
+        id       : 1,
+        elements : [
+          {
+            id    : '1-1',
+            costs : [
+              {
+                id    : '1-1-1',
+                parts : []
+              },
+              {
+                id    : '1-1-2',
+                parts : []
+              }
+            ]
+          },
+          {
+            id    : '1-2',
+            costs : [
+              {
+                id    : '1-2-1',
+                parts : []
+              },
+              {
+                id    : '1-2-2',
+                parts : []
+              }
+            ]
+          }
+        ]
+      };
+      var _parts = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 5 },
+        { _id : 3, id : 3, cost : 4 },
+      ];
+
+      _joinFns.set(_obj, { parts : _parts }, aggregates.aggregates);
+      should(_obj.elements[0]['total']).be.Number().and.eql(20);
+      should(_obj.elements[1]['total']).be.Number().and.eql(20);
+      _joinFns.parts.insert(_obj, { id : 4, cost : 2 }, aggregates.aggregates);
+      should(_obj.elements[0]['total']).be.Number().and.eql(24);
+      should(_obj.elements[1]['total']).be.Number().and.eql(24);
+      _joinFns.parts.delete(_obj, { id : 3, _id : 3, cost : 4 }, aggregates.aggregates);
+      should(_obj.elements[0]['total']).be.Number().and.eql(16);
+      should(_obj.elements[1]['total']).be.Number().and.eql(16);
+    });
+
+    it('should update aggregate values : insert (imbricated aggregate with object between two)', () => {
+      var _objectDescriptor = {
+        id       : ['<<int>>'],
+        elements : ['object', {
+          id    : ['<<int>>'],
+          total : ['sumAgg', 'costs.parts.cost'],
+          costs : ['object', {
+            id    : ['<<int>>'],
+            parts : ['@parts']
+          }]
+        }]
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+
+      should(_schema.meta.joins).eql({
+        parts : 'elements.costs.parts'
+      });
+      should(_schema.meta.externalAggregates).eql({
+        parts : ['sumAgg', 'elements.total', 'elements.costs.parts.cost'],
+      });
+
+      var _joinFns = getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
+
+      var _obj = {
+        id       : 1,
+        elements : {
+          id    : '1-1',
+          costs : {
+            id    : '1-1-1',
+            parts : []
+          }
+        }
+      };
+      var _parts = [
+        { _id : 1, id : 1, cost : 1 },
+        { _id : 2, id : 2, cost : 5 },
+        { _id : 3, id : 3, cost : 4 },
+      ];
+
+      _joinFns.set(_obj, { parts : _parts }, aggregates.aggregates);
+      should(_obj.elements['total']).be.Number().and.eql(10);
+      _joinFns.parts.insert(_obj, { id : 4, cost : 2 }, aggregates.aggregates);
+      should(_obj.elements['total']).be.Number().and.eql(12);
+      _joinFns.parts.delete(_obj, { id : 3, _id : 3, cost : 4 }, aggregates.aggregates);
+      should(_obj.elements['total']).be.Number().and.eql(8);
+    });
+  });
+
+  describe.skip('reflexive', () => {
     it ('should find a reflexive', () => {
       var _objectDescriptor = {
         id       : ['<<id>>'],
