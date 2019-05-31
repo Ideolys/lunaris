@@ -1,6 +1,7 @@
 # Lunaris
 
 ## 1.9.3
+*2019-05-31*
 - Features:
   - Add name and description for each route.
   - Upgrade buefy version from 0.7.2 to 0.7.6.
