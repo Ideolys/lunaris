@@ -1502,7 +1502,7 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null,
+              references         : {},
               computedFns        : {}
             },
             onValidate  : { },
@@ -1521,7 +1521,7 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               id : []
@@ -1551,7 +1551,7 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null,
+              references         : {},
               computedFns        : {}
             },
             onValidate  : { },
@@ -1570,7 +1570,7 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               id : null
@@ -1600,7 +1600,7 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null,
+              references         : {},
               computedFns        : {}
             },
             onValidate  : { },
@@ -1619,7 +1619,7 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               id : []
@@ -1653,7 +1653,7 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null,
+              references         : {},
               computedFns        : {}
             },
             onValidate  : { },
@@ -1672,7 +1672,7 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               id : null
@@ -1707,7 +1707,7 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null,
+              references         : {},
               computedFns        : {}
             },
             onValidate  : { },
@@ -1740,7 +1740,7 @@ describe('Validate', () => {
                 keys : [ 'test' ]
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               obj : []
@@ -1771,7 +1771,7 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null,
+              references         : {},
               computedFns        : {}
             },
             onValidate  : { },
@@ -1792,7 +1792,7 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               obj : []
@@ -1825,7 +1825,7 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null,
+              references         : {},
               computedFns        : {}
             },
             onValidate  : { },
@@ -1846,7 +1846,7 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               obj : []
@@ -1875,7 +1875,7 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null,
+              references         : {},
               computedFns        : {}
             },
             onValidate  : { },
@@ -1894,7 +1894,7 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               obj : []
@@ -1923,7 +1923,7 @@ describe('Validate', () => {
               aggregatesSort     : [],
               externalAggregates : {},
               joins              : {},
-              reflexive          : null,
+              references         : {},
               computedFns        : {}
             },
             onValidate  : { },
@@ -1942,7 +1942,7 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               obj : []
@@ -1969,7 +1969,7 @@ describe('Validate', () => {
               sortGroup : {
                 idMenu : 0
               },
-              reflexive          : null,
+              references         : {},
               sortMandatory      : [],
               primaryKey         : [],
               aggregates         : {},
@@ -1994,7 +1994,7 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               obj : []
@@ -2036,7 +2036,7 @@ describe('Validate', () => {
               sortGroup : {
                 idMenu : 0
               },
-              reflexive          : null,
+              references         : {},
               sortMandatory      : [],
               primaryKey         : ['obj'],
               aggregates         : {},
@@ -2061,7 +2061,7 @@ describe('Validate', () => {
                 objTrans   : {obj : 'idMenu'},
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               obj : []
@@ -2140,7 +2140,7 @@ describe('Validate', () => {
                 'idCity',
                 'idGoodies'
               ],
-              reflexive          : null,
+              references         : {},
               primaryKey         : ['id'],
               aggregates         : {},
               aggregatesSort     : [],
@@ -2226,7 +2226,7 @@ describe('Validate', () => {
                 keys       : []
               }
             },
-            reflexiveFn        : null,
+            referencesFn       : { update : null, get : null },
             virtualCompilation : {},
             defaultValue       : {
               id        : null,

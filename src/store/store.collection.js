@@ -42,11 +42,11 @@ function incrementVersionNumber () {
  *  collections : {Object} key / value (store / value to store)
  * }
  * @param {Function} aggregateFn function to set aggregate values
- * @param {Object} reflexiveFns { update : {Function}, delete : {Function} }
+ * @param {Object} referencesFns { update : { storeN : Function }, get : { storeN : Function } }
  * @param {Function} computedsFn function to set computed properties
  * @param {String} storeName
  */
-function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, reflexiveFns, computedsFn, storeName) {
+function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, referencesFns, computedsFn, storeName) {
   var _data                     = [];
   var _currentId                = 1;
   var _currentRowId             = 1;
@@ -58,8 +58,6 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   var _joins                    = joinsDescriptor ? Object.keys(_joinsDescriptor.joins) : [];
   var _getPrimaryKey            = getPrimaryKeyFn;
   var _aggregateFn              = aggregateFn;
-  var _reflexiveUpdateFn        = reflexiveFns ? reflexiveFns.update : null;
-  var _reflexiveDeleteFn        = reflexiveFns ? reflexiveFns.delete : null;
   var _computedsFn              = computedsFn;
   var _storeName                = storeName;
 
@@ -493,58 +491,17 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     return _internalCommit(_version);
   }
 
-  /**
-   * Propagate reflexive update
-   * @param {Object/Array} data objects to delete or insert
-   * @param {String} operation
-   */
-  function propagateReflexive (data, operation) {
-    if (!_reflexiveUpdateFn) {
-      return;
-    }
-
-    if (data && !Array.isArray(data)) {
-      data = [data];
-    }
-
-    var _version = begin();
-    for (var i = 0; i < _data.length; i++) {
-      var _item         = _data[i];
-      var _lowerVersion = _item._version[0];
-      var _upperVersion = _item._version[1];
-      for (var j = 0; j < data.length; j++) {
-        if (_lowerVersion <= currentVersionNumber && !_upperVersion && _item._id !== data[j]._id) {
-          // Remember, we cannot directly edit a value from the collection (clone)
-          var _obj = utils.clone(_item);
-          if (operation === OPERATIONS.DELETE) {
-            _obj = _reflexiveDeleteFn(_getPrimaryKey, data[j], _obj);
-          }
-          else if (operation === OPERATIONS.UPDATE) {
-            _obj = _reflexiveUpdateFn(_getPrimaryKey, data[j], _obj);
-          }
-
-          if (_obj) {
-            upsert(_obj, _version);
-          }
-        }
-      }
-    }
-
-    return _internalCommit(_version);
-  }
-
   return {
-    get                : get,
-    add                : add,
-    upsert             : upsert,
-    remove             : remove,
-    clear              : clear,
-    getFirst           : getFirst,
-    begin              : begin,
-    commit             : commit,
-    rollback           : rollback,
-    propagate          : propagate,
-    propagateReflexive : propagateReflexive,
+    get       : get,
+    add       : add,
+    upsert    : upsert,
+    remove    : remove,
+    clear     : clear,
+    getFirst  : getFirst,
+    begin     : begin,
+    commit    : commit,
+    rollback  : rollback,
+    propagate : propagate,
 
     getIndexId : function () {
       return _indexes.id;

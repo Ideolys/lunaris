@@ -263,23 +263,6 @@ function _propagate (store, data, operation, transactionId) {
 }
 
 /**
- * Update reflexive deps
- * @param {Object} store
- * @param {Object} collection
- * @param {Object/Array} data parent objects
- * @param {String} operation
- * @param {Int} transactionId
- */
-function _propagateReflexive (store, collection, data, operation, transactionId) {
-  if (!store.meta || (store.meta && !store.meta.meta.reflexive)) {
-    return;
-  }
-
-  var _res = collection.propagateReflexive(data, operation);
-  _pushCommitResToHandlers(store, 'update', _res, transactionId);
-}
-
-/**
  * Before action :
  *  - check args
  * @param {String} store
@@ -450,9 +433,6 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
 
   afterAction(store, isUpdate ? 'update' : 'insert', value, null, transactionId);
   _propagate(store, value, _method, transactionId);
-  if (isUpdate) {
-    _propagateReflexive(store, collection, value,  utils.OPERATIONS.UPDATE, transactionId);
-  }
   storeUtils.saveState(store, collection);
 
   return { version : version, value : _requestValue, request : request };
@@ -536,7 +516,6 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
       hook.pushToHandlers(store, 'filterUpdated', null, false, transactionId);
     }
     _propagate(store, value, utils.OPERATIONS.UPDATE, transactionId);
-    _propagateReflexive(store, collection, value, utils.OPERATIONS.UPDATE, transactionId);
     storeUtils.saveState(store, collection);
   });
 }
@@ -830,7 +809,6 @@ function _delete (store, collection, value, isLocal, transactionId) {
   }
   afterAction(store, 'delete', value, null, transactionId);
   _propagate(store, value, utils.OPERATIONS.DELETE, transactionId);
-  _propagateReflexive(store, collection, value, utils.OPERATIONS.DELETE, transactionId);
 
   if (!store.isStoreObject) {
     value = value[0];
