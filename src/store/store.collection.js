@@ -42,11 +42,15 @@ function incrementVersionNumber () {
  *  collections : {Object} key / value (store / value to store)
  * }
  * @param {Function} aggregateFn function to set aggregate values
- * @param {Object} referencesFns { update : { storeN : Function }, get : { storeN : Function } }
  * @param {Function} computedsFn function to set computed properties
  * @param {String} storeName
+ * @param {Object} referencesDescriptor {
+ *  referencesFn : { get : { storeN : fn }, update : { storeN : fn } },
+ *  getPrimaryKeyFns : { storeN : fn },
+ *  collections      : {Object} key / value (store / value to store)
+ * }
  */
-function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, referencesFns, computedsFn, storeName) {
+function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, computedsFn, storeName, referencesDescriptor) {
   var _data                     = [];
   var _currentId                = 1;
   var _currentRowId             = 1;
@@ -56,6 +60,8 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   var _isStoreObject            = isStoreObject   || false;
   var _joinsDescriptor          = joinsDescriptor || {};
   var _joins                    = joinsDescriptor ? Object.keys(_joinsDescriptor.joins) : [];
+  var _referencesDescriptor     = referencesDescriptor || {};
+  var _references               = _referencesDescriptor.referencesFn ? Object.keys(referencesDescriptor.referencesFn.get) : [];
   var _getPrimaryKey            = getPrimaryKeyFn;
   var _aggregateFn              = aggregateFn;
   var _computedsFn              = computedsFn;
@@ -104,6 +110,36 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   }
 
   /**
+   * Complete current object with referenced object
+   * @param {Object} value
+   */
+  function _setReferencedValues (value) {
+    if (!_references.length) {
+      return;
+    }
+
+    for (var i = 0; i < _references.length; i++) {
+      var _collection = _referencesDescriptor.collections[_references[i]];
+
+      if (!_collection) {
+        continue;
+      }
+
+      var _pkFn             = _referencesDescriptor.getPrimaryKeyFns[_references[i]];
+      var _ids              = _referencesDescriptor.referencesFn.get[_references[i]](_pkFn, value);
+      var _referencedValues = _collection.getAll(_ids, true);
+
+      if (!Array.isArray(_referencedValues)) {
+        _referencedValues = [_referencedValues];
+      }
+
+      for (var j = 0; j < _referencedValues.length; j++) {
+        _referencesDescriptor.referencesFn.update[_references[i]](_pkFn, _referencedValues[j], value);
+      }
+    }
+  }
+
+  /**
    * Add value to the array of collection values and set the index id
    * @param {Object} value
    * @param {Int} versionNumber
@@ -128,6 +164,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return _data.push(value);
     }
 
+    _setReferencedValues(value);
     _setJoinValues(value);
     if (_aggregateFn) {
       _aggregateFn(value, aggregates, lunarisExports.constants, logger);
@@ -491,17 +528,55 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     return _internalCommit(_version);
   }
 
+  /**
+   * Propagate reference operations
+   * @param {String} store
+   * @param {Object/Array} data referenced object(s)
+   */
+  function propagateReferences (store, data) {
+    if (!_referencesDescriptor.referencesFn) {
+      return;
+    }
+
+    if (data && !Array.isArray(data)) {
+      data = [data];
+    }
+
+    var _version = begin();
+    for (var i = 0; i < _data.length; i++) {
+      var _item         = _data[i];
+      var _lowerVersion = _item._version[0];
+      var _upperVersion = _item._version[1];
+      if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
+        // Remember, we cannot directly edit a value from the collection (clone)
+        var _obj = utils.clone(_item);
+        if (data && data.length) {
+          for (var j = 0; j < data.length; j++) {
+            _obj = _referencesDescriptor.referencesFn.update[store](_referencesDescriptor.getPrimaryKeyFns[store], data[j], _obj);
+          }
+
+          upsert(_obj, _version);
+        }
+
+      }
+    }
+
+
+    return _internalCommit(_version);
+  }
+
   return {
-    get       : get,
-    add       : add,
-    upsert    : upsert,
-    remove    : remove,
-    clear     : clear,
-    getFirst  : getFirst,
-    begin     : begin,
-    commit    : commit,
-    rollback  : rollback,
-    propagate : propagate,
+    get                 : get,
+    add                 : add,
+    upsert              : upsert,
+    remove              : remove,
+    clear               : clear,
+    getFirst            : getFirst,
+    begin               : begin,
+    commit              : commit,
+    rollback            : rollback,
+    propagate           : propagate,
+    propagateReferences : propagateReferences,
 
     getIndexId : function () {
       return _indexes.id;
@@ -536,18 +611,26 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
      * only for tests
      * @param {Array} ids
      */
-    getAll : function (ids) {
+    getAll : function (ids, isPK) {
       var _items = [];
       for (var i = 0; i < _data.length; i++) {
         var _item = _data[i];
         var _lowerVersion = _item._version[0];
         var _upperVersion = _item._version[1];
         if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
+          if (isPK && _getPrimaryKey && ids.indexOf(_getPrimaryKey(_item)) !== -1 ) {
+            _items.push(_item);
+            continue;
+          }
+
           if (ids && ids.indexOf(_item._id) !== -1) {
             _items.push(_item);
+            continue;
           }
-          else if (!ids) {
+
+          if (!ids) {
             _items.push(_item);
+            continue;
           }
         }
       }

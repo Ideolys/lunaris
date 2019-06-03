@@ -263,6 +263,26 @@ function _propagate (store, data, operation, transactionId) {
 }
 
 /**
+ * Propagate references to the dependent stores (joins)
+ * @param {Object} store
+ * @param {Object} data
+ * @param {Int} transactionId
+ */
+function _propagateReferences (store, data, transactionId) {
+  if (!store.storesToPropagateReferences.length) {
+    return;
+  }
+
+  for (var i = 0; i < store.storesToPropagateReferences.length; i++) {
+    var _storeToPropagate = store.storesToPropagateReferences[i];
+    var _store            = storeUtils.getStore('@' + _storeToPropagate);
+    var _collection       = storeUtils.getCollection(_store);
+    var _res              = _collection.propagateReferences(store.name, data);
+    _pushCommitResToHandlers(_store, 'update', _res, transactionId);
+  }
+}
+
+/**
  * Before action :
  *  - check args
  * @param {String} store
@@ -432,6 +452,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
   }
 
   afterAction(store, isUpdate ? 'update' : 'insert', value, null, transactionId);
+  _propagateReferences(store, value, transactionId);
   _propagate(store, value, _method, transactionId);
   storeUtils.saveState(store, collection);
 
@@ -515,6 +536,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
     if (store.isFilter) {
       hook.pushToHandlers(store, 'filterUpdated', null, false, transactionId);
     }
+    _propagateReferences(store, value, transactionId);
     _propagate(store, value, utils.OPERATIONS.UPDATE, transactionId);
     storeUtils.saveState(store, collection);
   });
@@ -566,6 +588,8 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
     if (store.isFilter) {
       hook.pushToHandlers(store, 'filterUpdated', null, false, transactionId);
     }
+    _propagateReferences(store, value, transactionId);
+    _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, transactionId);
     return;
   }
 
@@ -707,6 +731,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
       data = _options.collection.commit(_version);
 
       afterAction(_options.store, 'get', data, null, _transactionId);
+      _propagateReferences(_options.store, data, _transactionId);
       _propagate(_options.store, data, utils.OPERATIONS.INSERT, _transactionId);
       if (_options.store.isFilter) {
         hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
@@ -808,6 +833,7 @@ function _delete (store, collection, value, isLocal, transactionId) {
     throw new Error('You cannot delete a value not in the store!');
   }
   afterAction(store, 'delete', value, null, transactionId);
+  _propagateReferences(store, value, transactionId);
   _propagate(store, value, utils.OPERATIONS.DELETE, transactionId);
 
   if (!store.isStoreObject) {
