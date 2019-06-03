@@ -1077,6 +1077,56 @@ describe('lunaris internal collection', () => {
       should(_items).be.an.Array().and.have.lengthOf(1);
       should(_items[0]).eql({ _rowId : 3, _id : 2, id : 2, label : 'A', _version : [3] });
     });
+
+    it('should return the valid items in the collection filtered by ids with PK', () => {
+      var _collection = collection(item => { return item.id; });
+      _collection.add({ id : 10 });
+      _collection.add({ id : 20 });
+      _collection.add({ id : 30 });
+      _collection.remove({ _id : 1 });
+      _collection.upsert({ _rowId : 3, _id : 2, id : 20, label : 'A' });
+
+      var _items = _collection.getAll([10, 20, 30], true);
+      should(_items).be.an.Array().and.have.lengthOf(2);
+      should(_items[0]).eql({ _rowId : 3, _id : 3, id : 30, _version : [3] });
+      should(_items[1]).eql({ _rowId : 4, _id : 2, id : 20, label : 'A', _version : [4] });
+    });
+
+    it('should return the valid items in the collection filtered by ids with PK : fallback to _id if no getPrimaryKey function', () => {
+      var _collection = collection();
+      _collection.add({ id : 10 });
+      _collection.add({ id : 20 });
+      _collection.add({ id : 30 });
+      _collection.remove({ _id : 1 });
+      _collection.upsert({ _rowId : 3, _id : 2, id : 20, label : 'A' });
+
+      var _items = _collection.getAll([10, 20, 30], true);
+      should(_items).be.an.Array().and.have.lengthOf(0);
+    });
+
+    it('should return the valid items in the collection filtered by ids', () => {
+      var _collection = collection();
+      _collection.add({ id : 10 });
+      _collection.add({ id : 20 });
+      _collection.add({ id : 30 });
+      _collection.remove({ _id : 1 });
+      _collection.upsert({ _rowId : 3, _id : 2, id : 20, label : 'A' });
+
+      var _items = _collection.getAll([]);
+      should(_items).be.an.Array().and.have.lengthOf(0);
+    });
+
+    it('should return the valid items in the collection filtered by ids with PK', () => {
+      var _collection = collection();
+      _collection.add({ id : 10 });
+      _collection.add({ id : 20 });
+      _collection.add({ id : 30 });
+      _collection.remove({ _id : 1 });
+      _collection.upsert({ _rowId : 3, _id : 2, id : 20, label : 'A' });
+
+      var _items = _collection.getAll([], true);
+      should(_items).be.an.Array().and.have.lengthOf(0);
+    });
   });
 
   describe('upsert()', () => {
