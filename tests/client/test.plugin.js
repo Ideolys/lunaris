@@ -43,12 +43,12 @@ describe('Store plugin', () => {
 
   it('should throw an error if store is not defined', () => {
     const vm = new Vue({
-      name   : 'test',
+      name   : 'test2',
       el     : '#app',
       stores : ['test2'],
     });
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] Error in component "test":');
+    should(lastError[0]).eql('[Lunaris warn] Error in component "test2":');
     should(lastError[1]).eql('Store "test2" has not been defined!');
     should(lastTip.length).eql(2);
     should(lastTip[0]).eql('[Lunaris tip] Please define a store in stores folder');
@@ -57,20 +57,20 @@ describe('Store plugin', () => {
 
   it('should throw an error if storeHooks is not an object', () => {
     const vm = new Vue({
-      name       : 'test',
+      name       : 'test3',
       el         : '#app',
       stores     : ['test'],
       storeHooks : function () {}
     });
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] Error in component "test":');
+    should(lastError[0]).eql('[Lunaris warn] Error in component "test3":');
     should(lastError[1]).eql('vm.storeHooks must be an Object!');
     vm.$destroy();
   });
 
   it('should throw an error if storeHooks hook is not a function', () => {
     const vm = new Vue({
-      name       : 'test',
+      name       : 'test4',
       el         : '#app',
       stores     : ['test'],
       storeHooks : {
@@ -78,7 +78,7 @@ describe('Store plugin', () => {
       }
     });
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] Error in component "test":');
+    should(lastError[0]).eql('[Lunaris warn] Error in component "test4":');
     should(lastError[1]).eql('vm.storeHooks.test must be a Function!');
     vm.$destroy();
   });
@@ -100,7 +100,7 @@ describe('Store plugin', () => {
     });
     var _hooks = Object.keys(lunaris._stores.test.hooks);
     should(_hooks).eql([
-      'inserted', 'updated', 'deleted', 'errorHttp', 'get', 'reset', 'insert', 'update', 'delete'
+      'inserted', 'updated', 'deleted', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
     ]);
 
     should(lunaris._stores.test.hooks.inserted).have.lengthOf(1);
@@ -114,6 +114,9 @@ describe('Store plugin', () => {
 
     should(lunaris._stores.test.hooks.errorHttp).have.lengthOf(1);
     should(lunaris._stores.test.hooks.errorHttp[0].name).eql('errorHttp');
+
+    should(lunaris._stores.test.hooks.error).have.lengthOf(1);
+    should(lunaris._stores.test.hooks.error[0].name).eql('errorHttp');
 
     should(lunaris._stores.test.hooks.get).have.lengthOf(1);
     should(lunaris._stores.test.hooks.get[0].name).eql('update');
@@ -141,7 +144,7 @@ describe('Store plugin', () => {
     var _hooks = Object.keys(lunaris._stores.test.hooks);
 
     should(_hooks).eql([
-      'inserted', 'updated', 'deleted', 'errorHttp', 'get', 'reset', 'insert', 'update', 'delete'
+      'inserted', 'updated', 'deleted', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
     ]);
 
     should(lunaris._stores.test.hooks.inserted).have.lengthOf(1);
@@ -155,6 +158,9 @@ describe('Store plugin', () => {
 
     should(lunaris._stores.test.hooks.errorHttp).have.lengthOf(1);
     should(lunaris._stores.test.hooks.errorHttp[0].name).eql('errorHttp');
+
+    should(lunaris._stores.test.hooks.error).have.lengthOf(1);
+    should(lunaris._stores.test.hooks.error[0].name).eql('errorHttp');
     vm.$destroy();
   });
 
@@ -167,7 +173,7 @@ describe('Store plugin', () => {
     var _hooks = Object.keys(lunaris._stores.test.hooks);
 
     should(_hooks).eql([
-      'inserted', 'updated', 'deleted', 'errorHttp', 'get', 'reset', 'insert', 'update', 'delete'
+      'inserted', 'updated', 'deleted', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
     ]);
 
     should(lunaris._stores.test.hooks.get).have.lengthOf(1);

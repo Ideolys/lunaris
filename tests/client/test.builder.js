@@ -3,13 +3,14 @@ describe('builder', () => {
   beforeEach(() => {
     lunaris.clear('@child');
     lunaris.clear('@childAggregate');
-    lunaris.clear('@parent');
-    lunaris.clear('@childParent');
     lunaris.clear('@computed');
     lunaris.clear('@filter.parent');
     lunaris.clear('@filter.child');
     lunaris.clear('@filter.double');
     lunaris.clear('@double');
+    lunaris.clear('@parent');
+    lunaris.clear('@http');
+    lunaris.clear('@reference');
     lunaris._resetVersionNumber();
   });
 
@@ -211,7 +212,7 @@ describe('builder', () => {
           _total_state : {
             value : 4
           },
-          parent   : [
+          parent : [
             {
               _rowId   : 1,
               _id      : 1,
@@ -269,148 +270,24 @@ describe('builder', () => {
         ]
       }]);
     });
+  });
 
-    it('should propagate reflexive update', done => {
-      var _parentObj = {
-        id     : 1,
-        label  : 'A',
-        parent : null
-      };
+  it('should reference an object of the store when inserting', done => {
+    var _referencedObj = { id : 10, label : 'A' };
+    var _obj           = { id : 20, http : { id : 10 }};
 
-      var _childObj = {
-        id     : 2,
-        label  : 'A-1',
-        parent : {
-          _id   : 1,
-          id    : 1,
-          label : 'A'
-        }
-      };
+    var _hook = references => {
+      should(references[0].http.id).eql(10);
+      should(references[0].http.label).eql('A');
+      should(references[0].http._id).eql(1);
 
-      var _childObj2 = {
-        id     : 3,
-        label  : 'A-2',
-        parent : {
-          _id   : 1,
-          id    : 1,
-          label : 'A'
-        }
-      };
+      lunaris.removeHook('insert@reference', _hook);
+      done();
+    };
 
-      var _childObj3 = {
-        id     : 4,
-        label  : 'C',
-        parent : null
-      };
-
-      lunaris.insert('@childParent', _parentObj);
-      lunaris.insert('@childParent', _childObj);
-      lunaris.insert('@childParent', _childObj2);
-      lunaris.insert('@childParent', _childObj3);
-
-      var _nbCalled = 0;
-      lunaris.hook('update@childParent', items => {
-        _nbCalled++;
-        if (_nbCalled === 2) {
-          should(items).eql([
-            {
-              id     : 2,
-              label  : 'A-1',
-              parent : {
-                _rowId   : 5,
-                id       : 1,
-                label    : 'B',
-                _id      : 1,
-                _version : [5]
-              },
-              _rowId   : 6,
-              _id      : 2,
-              _version : [6]
-            },
-            {
-              id     : 3,
-              label  : 'A-2',
-              parent : {
-                _rowId   : 5,
-                id       : 1,
-                label    : 'B',
-                _id      : 1,
-                _version : [5]
-              },
-              _rowId   : 7,
-              _id      : 3,
-              _version : [6]
-            }
-          ]);
-          done();
-        }
-      });
-
-      lunaris.update('@childParent', { _id : 1, id : 1, label : 'B' });
-    });
-
-    it('should propagate reflexive delete', done => {
-      var _parentObj = {
-        id     : 1,
-        label  : 'A',
-        parent : null
-      };
-
-      var _childObj = {
-        id     : 2,
-        label  : 'A-1',
-        parent : {
-          _id   : 1,
-          id    : 1,
-          label : 'A'
-        }
-      };
-
-      var _childObj2 = {
-        id     : 3,
-        label  : 'A-2',
-        parent : {
-          _id   : 1,
-          id    : 1,
-          label : 'A'
-        }
-      };
-
-      var _childObj3 = {
-        id     : 4,
-        label  : 'C',
-        parent : null
-      };
-
-      lunaris.insert('@childParent', _parentObj);
-      lunaris.insert('@childParent', _childObj);
-      lunaris.insert('@childParent', _childObj2);
-      lunaris.insert('@childParent', _childObj3);
-
-      lunaris.hook('update@childParent', items => {
-        should(items).eql([
-          {
-            id       : 2,
-            label    : 'A-1',
-            parent   : null,
-            _rowId   : 5,
-            _id      : 2,
-            _version : [6]
-          },
-          {
-            id       : 3,
-            label    : 'A-2',
-            parent   : null,
-            _rowId   : 6,
-            _id      : 3,
-            _version : [6]
-          }
-        ]);
-        done();
-      });
-
-      lunaris.delete('@childParent', { _id : 1 });
-    });
+    lunaris.hook('insert@reference', _hook);
+    lunaris.insert('@http', _referencedObj);
+    lunaris.insert('@reference', _obj);
   });
 
 });

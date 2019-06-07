@@ -69,6 +69,7 @@ lunaris._vue = {
           lunaris.hook.apply(null, ['updated@'   + _stores[i], _successFn]);
           lunaris.hook.apply(null, ['deleted@'   + _stores[i], _successFn]);
           lunaris.hook.apply(null, ['errorHttp@' + _stores[i], _errorFn]);
+          lunaris.hook.apply(null, ['error@'     + _stores[i], _errorFn]);
         }
       }
     }

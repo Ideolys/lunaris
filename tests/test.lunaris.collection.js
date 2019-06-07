@@ -786,6 +786,10 @@ describe('lunaris internal collection', () => {
           _rowId   : 1
         }
       ]);
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [[1], [[1]]]
+      });
     });
 
     it('should reference a store object', () => {
@@ -821,6 +825,10 @@ describe('lunaris internal collection', () => {
           _rowId   : 1
         }
       ]);
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [[1], [[1]]]
+      });
     });
 
     it('should reference a store and propagate multiple values', () => {
@@ -862,6 +870,10 @@ describe('lunaris internal collection', () => {
           _rowId   : 1
         }
       ]);
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [[1, 2, 3], [[1], [1], [1]]]
+      });
     });
 
     it('should reference a store and propagate multiple stores', () => {
@@ -915,6 +927,289 @@ describe('lunaris internal collection', () => {
           _rowId   : 1
         }
       ]);
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [[1, 2, 3], [[1], [1], [1]]],
+        type      : [[2], [[1]]]
+      });
+    });
+
+    it('should update refrences index when updating', () => {
+      var _objectDescriptor = [{
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@reference'],
+        type     : ['object', 'ref', '@type']
+      }];
+      var _referencedDescriptor = [{
+        id    : ['<<id>>'],
+        label : ['string']
+      }];
+      var _typeDescriptor = [{
+        id    : ['<<id>>'],
+        label : ['string']
+      }];
+      var _schemaObj  = schema.analyzeDescriptor(_objectDescriptor);
+      var _schemaRef  = schema.analyzeDescriptor(_referencedDescriptor);
+      var _schemaType = schema.analyzeDescriptor(_typeDescriptor);
+
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
+        referencesFn     : _schemaObj.referencesFn,
+        getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey, type : _schemaType.getPrimaryKey },
+        collections      : {
+          reference : _referenceCollection,
+          type      : _typeCollection
+        }
+      });
+
+      _referenceCollection.add({ id : 1, label : 'A' });
+      _referenceCollection.add({ id : 2, label : 'B' });
+      _referenceCollection.add({ id : 3, label : 'C' });
+
+      _typeCollection.add({ id : 1, label : 'Type_A' });
+      _typeCollection.add({ id : 2, label : 'Type_B' });
+
+      _objectCollection.add({ id : 1, elements : [{ id : 1 }, { id : 2 }, { id : 3 }], type : { id : 2 } });
+      should(_objectCollection._getAll()).eql([
+        {
+          id       : 1,
+          elements : [
+            { id : 1, label : 'A', _id : 1, _version : [1], _rowId : 1 },
+            { id : 2, label : 'B', _id : 2, _version : [2], _rowId : 2 },
+            { id : 3, label : 'C', _id : 3, _version : [3], _rowId : 3 }
+          ],
+          type     : { id : 2, label : 'Type_B', _id : 2, _version : [5], _rowId : 2 },
+          _id      : 1,
+          _version : [6],
+          _rowId   : 1
+        }
+      ]);
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [[1, 2, 3], [[1], [1], [1]]],
+        type      : [[2], [[1]]]
+      });
+
+      _objectCollection.upsert({
+        id       : 1,
+        elements : [
+          { id : 1, label : 'A', _id : 1, _version : [1], _rowId : 1 },
+          { id : 3, label : 'C', _id : 3, _version : [3], _rowId : 3 },
+          { id : 4 }
+        ],
+        type     : { id : 2, label : 'Type_B', _id : 2, _version : [5], _rowId : 2 },
+        _id      : 1,
+        _version : [6],
+        _rowId   : 1
+      });
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [[1, 3], [[1], [1]]],
+        type      : [[2], [[1]]]
+      });
+    });
+
+    it('should update refrences index when deleting', () => {
+      var _objectDescriptor = [{
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@reference'],
+        type     : ['object', 'ref', '@type']
+      }];
+      var _referencedDescriptor = [{
+        id    : ['<<id>>'],
+        label : ['string']
+      }];
+      var _typeDescriptor = [{
+        id    : ['<<id>>'],
+        label : ['string']
+      }];
+      var _schemaObj  = schema.analyzeDescriptor(_objectDescriptor);
+      var _schemaRef  = schema.analyzeDescriptor(_referencedDescriptor);
+      var _schemaType = schema.analyzeDescriptor(_typeDescriptor);
+
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
+        referencesFn     : _schemaObj.referencesFn,
+        getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey, type : _schemaType.getPrimaryKey },
+        collections      : {
+          reference : _referenceCollection,
+          type      : _typeCollection
+        }
+      });
+
+      _referenceCollection.add({ id : 1, label : 'A' });
+      _referenceCollection.add({ id : 2, label : 'B' });
+      _referenceCollection.add({ id : 3, label : 'C' });
+
+      _typeCollection.add({ id : 1, label : 'Type_A' });
+      _typeCollection.add({ id : 2, label : 'Type_B' });
+
+      _objectCollection.add({ id : 1, elements : [{ id : 1 }, { id : 2 }, { id : 3 }], type : { id : 2 } });
+      should(_objectCollection._getAll()).eql([
+        {
+          id       : 1,
+          elements : [
+            { id : 1, label : 'A', _id : 1, _version : [1], _rowId : 1 },
+            { id : 2, label : 'B', _id : 2, _version : [2], _rowId : 2 },
+            { id : 3, label : 'C', _id : 3, _version : [3], _rowId : 3 }
+          ],
+          type     : { id : 2, label : 'Type_B', _id : 2, _version : [5], _rowId : 2 },
+          _id      : 1,
+          _version : [6],
+          _rowId   : 1
+        }
+      ]);
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [[1, 2, 3], [[1], [1], [1]]],
+        type      : [[2], [[1]]]
+      });
+
+      _objectCollection.remove({ _id : 1 });
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [[], []],
+        type      : [[], []]
+      });
+    });
+
+    it('should update refrences index when updating &nd deleting multiple objects', () => {
+      var _objectDescriptor = [{
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@reference'],
+        type     : ['object', 'ref', '@type']
+      }];
+      var _referencedDescriptor = [{
+        id    : ['<<id>>'],
+        label : ['string']
+      }];
+      var _typeDescriptor = [{
+        id    : ['<<id>>'],
+        label : ['string']
+      }];
+      var _schemaObj  = schema.analyzeDescriptor(_objectDescriptor);
+      var _schemaRef  = schema.analyzeDescriptor(_referencedDescriptor);
+      var _schemaType = schema.analyzeDescriptor(_typeDescriptor);
+
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
+        referencesFn     : _schemaObj.referencesFn,
+        getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey, type : _schemaType.getPrimaryKey },
+        collections      : {
+          reference : _referenceCollection,
+          type      : _typeCollection
+        }
+      });
+
+      _referenceCollection.add({ id : 1, label : 'A' });
+      _referenceCollection.add({ id : 2, label : 'B' });
+      _referenceCollection.add({ id : 3, label : 'C' });
+      _referenceCollection.add({ id : 4, label : 'D' });
+      _referenceCollection.add({ id : 5, label : 'E' });
+
+      _typeCollection.add({ id : 1, label : 'Type_A' });
+      _typeCollection.add({ id : 2, label : 'Type_B' });
+
+      _objectCollection.add({ id : 1, elements : [{ id : 1 }, { id : 2 }, { id : 3 }], type : { id : 2 } });
+      _objectCollection.add({ id : 2, elements : [{ id : 1 }, { id : 4 }], type : { id : 2 } });
+      _objectCollection.add({ id : 3, elements : [{ id : 5 }], type : { id : 1 } });
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [
+          [1, 2, 3, 4, 5],
+          [[1, 2], [1], [1], [2], [3]]
+        ],
+        type : [
+          [1, 2],
+          [[3], [1, 2]]
+        ]
+      });
+
+      var _obj2 = utils.clone(_objectCollection.get(2));
+      _obj2.elements.shift();
+      _obj2.elements.push({ id : 3 });
+      _obj2.type = null;
+      _objectCollection.upsert(_obj2);
+
+      var _obj3 = utils.clone(_objectCollection.get(3));
+      _obj3.type = null;
+      _objectCollection.upsert(_obj3);
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [
+          [1, 2, 3, 4, 5],
+          [[1], [1], [1, 2], [2], [3]]
+        ],
+        type : [
+          [2],
+          [[1]]
+        ]
+      });
+    });
+
+    it('should update refrences index when clearing', () => {
+      var _objectDescriptor = [{
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@reference'],
+        type     : ['object', 'ref', '@type']
+      }];
+      var _referencedDescriptor = [{
+        id    : ['<<id>>'],
+        label : ['string']
+      }];
+      var _typeDescriptor = [{
+        id    : ['<<id>>'],
+        label : ['string']
+      }];
+      var _schemaObj  = schema.analyzeDescriptor(_objectDescriptor);
+      var _schemaRef  = schema.analyzeDescriptor(_referencedDescriptor);
+      var _schemaType = schema.analyzeDescriptor(_typeDescriptor);
+
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
+        referencesFn     : _schemaObj.referencesFn,
+        getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey, type : _schemaType.getPrimaryKey },
+        collections      : {
+          reference : _referenceCollection,
+          type      : _typeCollection
+        }
+      });
+
+      _referenceCollection.add({ id : 1, label : 'A' });
+      _referenceCollection.add({ id : 2, label : 'B' });
+      _referenceCollection.add({ id : 3, label : 'C' });
+
+      _typeCollection.add({ id : 1, label : 'Type_A' });
+      _typeCollection.add({ id : 2, label : 'Type_B' });
+
+      _objectCollection.add({ id : 1, elements : [{ id : 1 }, { id : 2 }, { id : 3 }], type : { id : 2 } });
+      should(_objectCollection._getAll()).eql([
+        {
+          id       : 1,
+          elements : [
+            { id : 1, label : 'A', _id : 1, _version : [1], _rowId : 1 },
+            { id : 2, label : 'B', _id : 2, _version : [2], _rowId : 2 },
+            { id : 3, label : 'C', _id : 3, _version : [3], _rowId : 3 }
+          ],
+          type     : { id : 2, label : 'Type_B', _id : 2, _version : [5], _rowId : 2 },
+          _id      : 1,
+          _version : [6],
+          _rowId   : 1
+        }
+      ]);
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : [[1, 2, 3], [[1], [1], [1]]],
+        type      : [[2], [[1]]]
+      });
+
+      _objectCollection.clear();
+
+      should(_objectCollection.getIndexReferences()).eql({});
     });
 
   });
@@ -1263,6 +1558,19 @@ describe('lunaris internal collection', () => {
       should(_collection.getIndexId()).eql([
         [1], [1]
       ]);
+    });
+  });
+
+  describe('setIndexReferences()', () => {
+    it('should be defined', () => {
+      should(collection().setIndexReferences).be.a.Function();
+    });
+
+    it('should set index id', () => {
+      var _collection = collection();
+      should(_collection.getIndexReferences()).eql({});
+      _collection.setIndexReferences({ store : [[1], [[1]]] });
+      should(_collection.getIndexReferences()).eql({ store : [[1], [[1]]] });
     });
   });
 

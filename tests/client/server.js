@@ -64,7 +64,7 @@ app.patch('/http', (req, res) => {
 app.listen(serverPort, () => {
   console.log('-- Server started on port ' + serverPort);
 
-  constants.indexedDBNumber = 3;
+  constants.indexedDBNumber = 4;
 
   build({
     baseUrl         : '"http://localhost:' + serverPort + '"',

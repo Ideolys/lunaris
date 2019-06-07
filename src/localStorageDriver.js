@@ -110,8 +110,9 @@ function _processQueue () {
     return;
   }
 
-  var _callback = _currentItem[_currentItem.length - 1];
-  var _args     = _currentItem.slice(1, _currentItem.length - 1);
+  var _callback = _currentItem.pop();
+  var _args     = _currentItem.slice(1);
+
   _args.push(function (err, data) {
     if (_callback) {
       _callback(err, data);

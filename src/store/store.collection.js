@@ -61,7 +61,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   var _joinsDescriptor          = joinsDescriptor || {};
   var _joins                    = joinsDescriptor ? Object.keys(_joinsDescriptor.joins) : [];
   var _referencesDescriptor     = referencesDescriptor || {};
-  var _references               = _referencesDescriptor.referencesFn ? Object.keys(referencesDescriptor.referencesFn.get) : [];
+  var _references               = _referencesDescriptor.referencesFn && referencesDescriptor.referencesFn.get ? Object.keys(referencesDescriptor.referencesFn.get) : [];
   var _getPrimaryKey            = getPrimaryKeyFn;
   var _aggregateFn              = aggregateFn;
   var _computedsFn              = computedsFn;
@@ -69,8 +69,12 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
 
   /**
    * id : [[id], [_id]]
+   * references : { storeN : [[_ids refrence store], [_ids local collection]] }
    */
-  var _indexes = { id : [[], []]};
+  var _indexes = {
+    id         : [[], []],
+    references : {}
+  };
 
   /**
    * Add transaction to the transactions
@@ -129,12 +133,78 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       var _ids              = _referencesDescriptor.referencesFn.get[_references[i]](_pkFn, value);
       var _referencedValues = _collection.getAll(_ids, true);
 
+      if (!_indexes.references[_references[i]]) {
+        _indexes.references[_references[i]] = [[], []];
+      }
+
       if (!Array.isArray(_referencedValues)) {
         _referencedValues = [_referencedValues];
       }
 
       for (var j = 0; j < _referencedValues.length; j++) {
         _referencesDescriptor.referencesFn.update[_references[i]](_pkFn, _referencedValues[j], value);
+
+        var _searchReferencedId = index.binarySearch(_indexes.references[_references[i]][0], _referencedValues[j]._id);
+        if (!_searchReferencedId.found) {
+          index.insertAt(_indexes.references[_references[i]][0], _searchReferencedId.index, _referencedValues[j]._id);
+          index.insertAt(_indexes.references[_references[i]][1], _searchReferencedId.index, []);
+        }
+
+        var _search = index.binarySearch(_indexes.references[_references[i]][1][_searchReferencedId.index], value._id);
+
+        if (!_search.found) {
+          index.insertAt(_indexes.references[_references[i]][1][_searchReferencedId.index], _search.index, value._id);
+        }
+      }
+    }
+  }
+
+  /**
+   * Update references index
+   * @param {Object} value
+   */
+  function _updateReferencesIndex (value) {
+    if (!_references.length) {
+      return;
+    }
+
+    for (var i = 0; i < _references.length; i++) {
+      var _collection = _referencesDescriptor.collections[_references[i]];
+
+      if (!_collection) {
+        continue;
+      }
+
+      var _pkFn             = _referencesDescriptor.getPrimaryKeyFns[_references[i]];
+      var _ids              = _referencesDescriptor.referencesFn.get[_references[i]](_pkFn, value);
+      var _referencedValues = _collection.getAll(_ids, true);
+
+      if (!_indexes.references[_references[i]]) {
+        _indexes.references[_references[i]] = [[], []];
+      }
+
+      if (!Array.isArray(_referencedValues)) {
+        _referencedValues = [_referencedValues];
+      }
+
+      for (var j = 0; j < _referencedValues.length; j++) {
+        var _searchReferencedId = index.binarySearch(_indexes.references[_references[i]][0], _referencedValues[j]._id);
+        if (!_searchReferencedId.found) {
+          continue;
+        }
+
+        var _search = index.binarySearch(_indexes.references[_references[i]][1][_searchReferencedId.index], value._id);
+
+        if (!_search.found) {
+          continue;
+        }
+
+        index.removeAt(_indexes.references[_references[i]][1][_searchReferencedId.index], _search.index);
+
+        if (!_indexes.references[_references[i]][1][_searchReferencedId.index].length) {
+          index.removeAt(_indexes.references[_references[i]][0], _searchReferencedId.index);
+          index.removeAt(_indexes.references[_references[i]][1], _searchReferencedId.index);
+        }
       }
     }
   }
@@ -160,17 +230,19 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
         }
       }
       value._rowId = _currentRowId++;
+      _setReferencedValues(value);
       localDatabase.add(_storeName, value);
       return _data.push(value);
     }
+
+    value._id = _currentId;
+    _currentId++;
 
     _setReferencedValues(value);
     _setJoinValues(value);
     if (_aggregateFn) {
       _aggregateFn(value, aggregates, lunarisExports.constants, logger);
     }
-    value._id = _currentId;
-    _currentId++;
 
     if (isFromIndex || !_getPrimaryKey) {
       value._rowId = _currentRowId++;
@@ -272,6 +344,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       if (_data[i]._id === value._id && _lowerVersion <= _version && _version <= _upperVersion) {
         var _objToUpdate     = utils.clone(value);
         _data[i]._version[1] = _version;
+        _updateReferencesIndex(_data[i]);
 
         //  During the same transaction :
         //   - If insert / update : the updated row will be merged with the inserted one
@@ -306,10 +379,11 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    * Clear the collection
    */
   function clear () {
-    _data         = [];
-    _currentId    = 1;
-    _currentRowId = 1;
-    _indexes.id   = [[], []];
+    _data               = [];
+    _currentId          = 1;
+    _currentRowId       = 1;
+    _indexes.id         = [[], []];
+    _indexes.references = {};
   }
 
   /**
@@ -582,12 +656,24 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return _indexes.id;
     },
 
+    getIndexReferences : function () {
+      return _indexes.references;
+    },
+
     /**
      * Set index id value
      * @param {Array} value
      */
     setIndexId : function (value) {
       _indexes.id = value;
+    },
+
+    /**
+     * Set index referneces
+     * @param {Array} value
+     */
+    setIndexReferences : function (value) {
+      _indexes.references = value;
     },
 
     /**

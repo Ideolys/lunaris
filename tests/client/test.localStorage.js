@@ -40,14 +40,14 @@ describe('local storage', () => {
 
   describe('state', () => {
     it('should update currentVersion state', () => {
-      var _collection = lunaris._collection(null, null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(null, null, null, null, null, 'test');
       should(lunaris.localStorage.get('lunaris:versionNumber')).eql(1);
       _collection.add({ id : 1 });
       should(lunaris.localStorage.get('lunaris:versionNumber')).eql(2);
     });
 
     it('should clear currentVersion state', () => {
-      var _collection = lunaris._collection(null, null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(null, null, null, null, null, 'test');
       should(lunaris.localStorage.get('lunaris:versionNumber')).eql(1);
       _collection.add({ id : 1 });
       should(lunaris.localStorage.get('lunaris:versionNumber')).eql(2);
@@ -89,9 +89,10 @@ describe('local storage', () => {
               store          : 'http',
               massOperations : {},
               collection     : {
-                currentId    : 4,
-                currentRowId : 4,
-                index        : [[1, 2, 3], [1, 2, 3]]
+                currentId       : 4,
+                currentRowId    : 4,
+                index           : [[1, 2, 3], [1, 2, 3]],
+                indexReferences : {}
               }
             }));
 
@@ -142,9 +143,10 @@ describe('local storage', () => {
               should(data).eql({
                 store      : 'http',
                 collection : {
-                  currentId    : 4,
-                  currentRowId : 4,
-                  index        : [[1, 2, 3], [1, 2, 3]]
+                  currentId       : 4,
+                  currentRowId    : 4,
+                  index           : [[1, 2, 3], [1, 2, 3]],
+                  indexReferences : {}
                 },
                 massOperations : {}
               });
@@ -183,9 +185,10 @@ describe('local storage', () => {
             should(data).eql({
               store      : 'http',
               collection : {
-                currentId    : 4,
-                currentRowId : 4,
-                index        : [[1, 2, 3], [1, 2, 3]]
+                currentId       : 4,
+                currentRowId    : 4,
+                index           : [[1, 2, 3], [1, 2, 3]],
+                indexReferences : {}
               },
               massOperations : {}
             });
@@ -241,9 +244,10 @@ describe('local storage', () => {
             should(data).eql({
               store      : 'http',
               collection : {
-                currentId    : 1,
-                currentRowId : 1,
-                index        : [[], []]
+                currentId       : 1,
+                currentRowId    : 1,
+                index           : [[], []],
+                indexReferences : {}
               },
               massOperations : {}
             });
@@ -287,9 +291,10 @@ describe('local storage', () => {
             should(data).eql({
               store      : 'http',
               collection : {
-                currentId    : 4,
-                currentRowId : 4,
-                index        : [[1, 2, 3], [1, 2, 3]]
+                currentId       : 4,
+                currentRowId    : 4,
+                index           : [[1, 2, 3], [1, 2, 3]],
+                indexReferences : {}
               },
               massOperations : {}
             });
@@ -334,9 +339,10 @@ describe('local storage', () => {
             should(data).eql({
               store      : 'test',
               collection : {
-                currentId    : 1,
-                currentRowId : 1,
-                index        : [[], []]
+                currentId       : 1,
+                currentRowId    : 1,
+                index           : [[], []],
+                indexReferences : {}
               },
               massOperations : {}
             });
@@ -379,9 +385,10 @@ describe('local storage', () => {
           should(data).eql({
             store      : 'http',
             collection : {
-              currentId    : 1,
-              currentRowId : 1,
-              index        : [[], []]
+              currentId       : 1,
+              currentRowId    : 1,
+              index           : [[], []],
+              indexReferences : {}
             },
             massOperations : {}
           });
@@ -410,9 +417,10 @@ describe('local storage', () => {
             should(data).eql({
               store      : 'http',
               collection : {
-                currentId    : 4,
-                currentRowId : 4,
-                index        : [[2, 3], [2, 3]]
+                currentId       : 4,
+                currentRowId    : 4,
+                index           : [[2, 3], [2, 3]],
+                indexReferences : {}
               },
               massOperations : {}
             });
@@ -474,9 +482,10 @@ describe('local storage', () => {
             should(data).eql({
               store      : 'http',
               collection : {
-                currentId    : 2,
-                currentRowId : 2,
-                index        : [[1], [1]]
+                currentId       : 2,
+                currentRowId    : 2,
+                index           : [[1], [1]],
+                indexReferences : {}
               },
               massOperations : {}
             });
@@ -511,7 +520,7 @@ describe('local storage', () => {
             label    : 'A',
             _rowId   : 1,
             _id      : 1,
-            _version : [1, 2]
+            _version : [1, 3]
           });
           should(data[1]).eql({
             id       : 1,
@@ -519,7 +528,7 @@ describe('local storage', () => {
             post     : true,
             _rowId   : 2,
             _id      : 1,
-            _version : [2]
+            _version : [3]
           });
 
           setTimeout(() => {
@@ -532,9 +541,10 @@ describe('local storage', () => {
               should(data).eql({
                 store      : 'http',
                 collection : {
-                  currentId    : 2,
-                  currentRowId : 3,
-                  index        : [[1], [1]]
+                  currentId       : 2,
+                  currentRowId    : 3,
+                  index           : [[1], [1]],
+                  indexReferences : {}
                 },
                 massOperations : {}
               });
@@ -603,9 +613,10 @@ describe('local storage', () => {
             should(data).eql({
               store      : 'http',
               collection : {
-                currentId    : 2,
-                currentRowId : 3,
-                index        : [[1], [1]]
+                currentId       : 2,
+                currentRowId    : 3,
+                index           : [[1], [1]],
+                indexReferences : {}
               },
               massOperations : {}
             });
@@ -620,9 +631,10 @@ describe('local storage', () => {
                 should(data).eql({
                   store      : 'http',
                   collection : {
-                    currentId    : 2,
-                    currentRowId : 4,
-                    index        : [[1], [1]]
+                    currentId       : 2,
+                    currentRowId    : 4,
+                    index           : [[1], [1]],
+                    indexReferences : {}
                   },
                   massOperations : {}
                 });
@@ -638,7 +650,7 @@ describe('local storage', () => {
                     label    : 'A',
                     _rowId   : 1,
                     _id      : 1,
-                    _version : [1, 2]
+                    _version : [1, 3]
                   });
                   should(data[1]).eql({
                     id       : 1,
@@ -646,14 +658,14 @@ describe('local storage', () => {
                     post     : true,
                     _rowId   : 2,
                     _id      : 1,
-                    _version : [2, 3]
+                    _version : [3, 5]
                   });
                   should(data[2]).eql({
                     id       : 1,
                     label    : 'B',
                     _rowId   : 3,
                     _id      : 1,
-                    _version : [3]
+                    _version : [5]
                   });
                 });
               });
@@ -674,7 +686,7 @@ describe('local storage', () => {
             put      : true,
             _rowId   : 4,
             _id      : 1,
-            _version : [4]
+            _version : [7]
           });
 
           setTimeout(() => {
@@ -687,9 +699,10 @@ describe('local storage', () => {
               should(data).eql({
                 store      : 'http',
                 collection : {
-                  currentId    : 2,
-                  currentRowId : 5,
-                  index        : [[1], [1]]
+                  currentId       : 2,
+                  currentRowId    : 5,
+                  index           : [[1], [1]],
+                  indexReferences : {}
                 },
                 massOperations : {}
               });
@@ -758,9 +771,10 @@ describe('local storage', () => {
             should(data).eql({
               store      : 'http',
               collection : {
-                currentId    : 1,
-                currentRowId : 1,
-                index        : [[], []]
+                currentId       : 1,
+                currentRowId    : 1,
+                index           : [[], []],
+                indexReferences : {}
               },
               massOperations : {
                 label : 'B'
@@ -777,9 +791,10 @@ describe('local storage', () => {
                 should(data).eql({
                   store      : 'http',
                   collection : {
-                    currentId    : 1,
-                    currentRowId : 1,
-                    index        : [[], []]
+                    currentId       : 1,
+                    currentRowId    : 1,
+                    index           : [[], []],
+                    indexReferences : {}
                   },
                   massOperations : {
                     label : 'B'
@@ -865,7 +880,7 @@ describe('local storage', () => {
               label    : 'A',
               _rowId   : 1,
               _id      : 1,
-              _version : [1, 2]
+              _version : [1, 3]
             });
             should(data[1]).eql({
               id       : 1,
@@ -873,7 +888,7 @@ describe('local storage', () => {
               post     : true,
               _rowId   : 2,
               _id      : 1,
-              _version : [2]
+              _version : [3]
             });
 
             lunaris.websocket.send('INVALIDATE', 'GET /http', true);
@@ -895,9 +910,10 @@ describe('local storage', () => {
                   should(data).eql({
                     store      : 'http',
                     collection : {
-                      currentId    : 1,
-                      currentRowId : 1,
-                      index        : [[], []]
+                      currentId       : 1,
+                      currentRowId    : 1,
+                      index           : [[], []],
+                      indexReferences : {}
                     },
                     massOperations : {}
                   });
@@ -958,6 +974,7 @@ describe('local storage', () => {
               var _lunaris = lunarisInstance();
               var _store   = 'http';
               setTimeout(() => {
+                should(_lunaris._stores[_store].data.getIndexReferences()).eql({});
                 should(_lunaris._stores[_store].data.getIndexId()).eql([[], []]);
                 should(_lunaris._stores[_store].data.getCurrentId()).eql(1);
                 should(_lunaris._stores[_store].data.getCurrentRowId()).eql(1);
@@ -988,6 +1005,7 @@ describe('local storage', () => {
               var _store   = 'http';
               setTimeout(() => {
                 should(_lunaris._stores[_store].data.getIndexId()).eql([[1, 2, 3], [1, 2, 3]]);
+                should(_lunaris._stores[_store].data.getIndexReferences()).eql({});
                 should(_lunaris._stores[_store].data.getCurrentId()).eql(4);
                 should(_lunaris._stores[_store].data.getCurrentRowId()).eql(4);
                 should(_lunaris._stores[_store].data.getAll()).eql([
@@ -1029,7 +1047,7 @@ describe('local storage', () => {
     }
 
     it('should add the object to the collection data store', done => {
-      var _collection = lunaris._collection(null, null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(null, null, null, null, null, 'test');
       _collection.add({ id : 1 });
       lunaris._indexedDB.getAll('test', (err, data) => {
         if (err) {
@@ -1043,7 +1061,7 @@ describe('local storage', () => {
     });
 
     it('should add the updaded object to the collection data store', done => {
-      var _collection = lunaris._collection(null, null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(null, null, null, null, null, 'test');
       _collection.add({ id : 1 });
       _collection.upsert({ _id : 1, id : 2 });
       lunaris._indexedDB.getAll('test', (err, data) => {
@@ -1059,7 +1077,7 @@ describe('local storage', () => {
     });
 
     it('should update the collection data store when deleting', done => {
-      var _collection = lunaris._collection(null, null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(null, null, null, null, null, 'test');
       _collection.add({ id : 1 });
       _collection.remove({ _id : 1, id : 1 });
       setTimeout(() => {
@@ -1076,7 +1094,7 @@ describe('local storage', () => {
     });
 
     it('should not duplicate values items within the same transaction', done => {
-      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, 'test');
       var _version = _collection.begin();
       _collection.add({ id : 10 }, _version);
       _collection.add({ id : 10 }, _version);
@@ -1094,7 +1112,7 @@ describe('local storage', () => {
     });
 
     it('should not duplicate values items not in the same transaction', done => {
-      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, 'test');
       _collection.add({ id : 10, label : 'A' });
       _collection.add({ id : 10, label : 'B' });
       lunaris._indexedDB.getAll('test', (err, data) => {
@@ -1110,7 +1128,7 @@ describe('local storage', () => {
     });
 
     it('should not add values if insert / delete in the same transaction', done => {
-      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, 'test');
       var _version = _collection.begin();
       _collection.add({ id : 10 }, _version);
       _collection.remove({ id : 10 }, _version, true);

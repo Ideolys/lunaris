@@ -169,7 +169,7 @@ function pipe (store, event, payload, transactionId) {
     return;
   }
 
-  if (event === 'errorHttp') {
+  if (event === 'errorHttp' || event === 'error') {
     if (isRollback) {
       // If there is an error in the rollback, we do not rollback the rollback, we stop the trnasaction
       return _end();

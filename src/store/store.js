@@ -21,7 +21,7 @@ var OFFLINE_STORE   = 'lunarisOfflineTransactions';
 
 lunarisExports._stores.lunarisErrors = {
   name                  : 'lunarisErrors',
-  data                  : collection.collection(null, null, null, null, null, null, 'lunarisErrors'),
+  data                  : collection.collection(null, null, null, null, null, 'lunarisErrors'),
   filters               : [],
   paginationLimit       : 50,
   paginationOffset      : 0,
@@ -36,7 +36,7 @@ lunarisExports._stores.lunarisErrors = {
 
 lunarisExports._stores.lunarisOfflineTransactions = {
   name                  : OFFLINE_STORE,
-  data                  : collection.collection(null, null, null, null, null, null, OFFLINE_STORE),
+  data                  : collection.collection(null, null, null, null, null, OFFLINE_STORE),
   filters               : [],
   paginationLimit       : 50,
   paginationOffset      : 0,
@@ -826,6 +826,31 @@ function upsert (store, value, isLocal, retryOptions) {
  */
 function _delete (store, collection, value, isLocal, transactionId) {
   var _version = collection.begin();
+
+  // If references, we must find if the id is stille referenced
+  var _storesToPropagateLength = store.storesToPropagateReferences.length;
+
+  if (_storesToPropagateLength) {
+    for (var i = 0; i < _storesToPropagateLength; i++) {
+      var _storeToPropagate = store.storesToPropagateReferences[i];
+      var _store            = storeUtils.getStore('@' + _storeToPropagate);
+      var _collection       = storeUtils.getCollection(_store);
+      var _references       = _collection.getIndexReferences();
+
+      if (!_references[store.name]) {
+        continue;
+      }
+
+      if (!utils.index.binarySearch(_references[store.name][0], value._id).found) {
+        continue;
+      }
+
+      var error   = '${Cannot delete the value, it is still referenced in the store} ' + _store.nameTranslated;
+      hook.pushToHandlers(store, 'error', [null, error], false, transactionId);
+      throw new Error('You cannot delete a value still referenced');
+    }
+  }
+
   collection.remove(value, _version, !isLocal);
   value = collection.commit(_version);
   var _isArray = Array.isArray(value);

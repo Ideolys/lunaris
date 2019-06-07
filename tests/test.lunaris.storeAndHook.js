@@ -42,7 +42,7 @@ lunaris._stores.lunarisErrors.data = collection.collection();
 var nbCallsPagination2 = 0;
 
 describe('lunaris store', function () {
-  this.retries(0);
+  this.retries(3);
 
   before(done => {
     _startServer(done);
@@ -4780,7 +4780,7 @@ describe('lunaris store', function () {
               },
             ],
             store2Values : [],
-            _version     : [3]
+            _version     : [4]
           }
         ]);
         lunaris.insert('@store2', { id : 1, label : 'A-2' });
@@ -4802,9 +4802,9 @@ describe('lunaris store', function () {
               },
             ],
             store2Values : [
-              { _rowId : 1, _id : 1, id : 1, label : 'A-2', _version : [4] }
+              { _rowId : 1, _id : 1, id : 1, label : 'A-2', _version : [5] }
             ],
-            _version : [5]
+            _version : [6]
           }
         ]);
         done();
@@ -4816,7 +4816,7 @@ describe('lunaris store', function () {
 
   });
 
-  describe.only('References propagation', () => {
+  describe('References propagation', () => {
     it('should propagate to a store object : GET', done => {
       var _store                = initStore('store1', null, null, null, null, null, null, ['reference']);
       lunaris._stores['store1'] = _store;
@@ -5294,6 +5294,154 @@ describe('lunaris store', function () {
 
       lunaris.insert('@reference', { id : 1, store1Values : [{ id : 20 }, { id : 10 }] });
       lunaris.update('@store1', { _id : 1, id : 20, label : 'B-1' });
+    });
+
+    it('should not propagate DELETE if the object is already referenced in one store', done => {
+      var _storeDescriptor = [{
+        id : ['<<int>>']
+      }];
+      var _store                = initStore('store1', _storeDescriptor, null, null, null, null, null, ['reference']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = {
+        id          : ['<<int>>'],
+        store1Value : ['object', 'ref', '@store1']
+      };
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
+        referencesFn     : _schema.referencesFn,
+        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
+        collections      : {
+          store1 : _store.data
+        }
+      });
+      _storeToPropagate.isLocal        = true;
+      _storeToPropagate.nameTranslated = '${reference}';
+      _store.isLocal                   = true;
+      lunaris._stores['reference'] = _storeToPropagate;
+
+      lunaris.hook('error@store1', (data, message) => {
+        should(data).not.ok();
+        should(message).eql('${Cannot delete the value, it is still referenced in the store} ${reference}');
+        should(lunaris.getOne('@store1', 1)).be.ok();
+        done();
+      });
+
+      _store.data.add({ id : 20, label : 'B' });
+      _storeToPropagate.data.add({ id : 1, store1Value : { id : 20 } });
+
+      lunaris.delete('@store1', { _id : 1 });
+    });
+
+    it('should not propagate DELETE if the object is already referenced in one store : multiple stores', done => {
+      var _storeMap = [{
+        id : ['<<int>>']
+      }];
+      var _store                = initStore('store1', _storeMap, null, null, null, null, null, ['reference', 'reference2']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = {
+        id           : ['<<int>>'],
+        store1Values : ['array', 'ref', '@store1']
+      };
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
+        referencesFn     : _schema.referencesFn,
+        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
+        collections      : {
+          store1 : _store.data
+        }
+      });
+
+      var _object2Descriptor = {
+        id          : ['<<int>>'],
+        store1Value : ['object', 'ref', '@store1']
+      };
+      var _schema2           = schema.analyzeDescriptor(_object2Descriptor);
+      var _storeToPropagate2 = initStore('reference2', _object2Descriptor, null, null, null, null, {
+        referencesFn     : _schema2.referencesFn,
+        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
+        collections      : {
+          store1 : _store.data
+        }
+      });
+
+      _storeToPropagate.isLocal     = true;
+      _storeToPropagate2.isLocal    = true;
+      _storeToPropagate.nameTranslated  = '${reference}';
+      _storeToPropagate2.nameTranslated = '${reference2}';
+      lunaris._stores['reference']  = _storeToPropagate;
+      lunaris._stores['reference2'] = _storeToPropagate2;
+
+      lunaris.hook('error@store1', (data, message) => {
+        should(data).not.ok();
+        should(message).eql('${Cannot delete the value, it is still referenced in the store} ${reference2}');
+        should(lunaris.getOne('@store1', 1)).be.ok();
+        done();
+      });
+
+      _store.data.add({ id : 20, label : 'B' });
+      _storeToPropagate.data.add({ id : 1, store1Values : [{ id : 30 }] });
+      _storeToPropagate.data.add({ id : 1, store1Values : [{ id : 30 }] });
+      _storeToPropagate2.data.add({ id : 1, store1Value : { id : 20 } });
+
+
+      lunaris.delete('@store1', { _id : 1 });
+    });
+
+    it('should not propagate DELETE if the object is already referenced in multiple stores', done => {
+      var _storeMap = [{
+        id : ['<<int>>']
+      }];
+      var _store                = initStore('store1', _storeMap, null, null, null, null, null, ['reference', 'reference2']);
+      lunaris._stores['store1'] = _store;
+
+      var _objectDescriptor     = {
+        id           : ['<<int>>'],
+        store1Values : ['array', 'ref', '@store1']
+      };
+      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
+      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
+        referencesFn     : _schema.referencesFn,
+        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
+        collections      : {
+          store1 : _store.data
+        }
+      });
+
+      var _object2Descriptor = {
+        id          : ['<<int>>'],
+        store1Value : ['object', 'ref', '@store1']
+      };
+      var _schema2           = schema.analyzeDescriptor(_object2Descriptor);
+      var _storeToPropagate2 = initStore('reference2', _object2Descriptor, null, null, null, null, {
+        referencesFn     : _schema2.referencesFn,
+        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
+        collections      : {
+          store1 : _store.data
+        }
+      });
+
+      _storeToPropagate.isLocal     = true;
+      _storeToPropagate2.isLocal    = true;
+      _storeToPropagate.nameTranslated  = '${reference}';
+      _storeToPropagate2.nameTranslated = '${reference2}';
+      lunaris._stores['reference']  = _storeToPropagate;
+      lunaris._stores['reference2'] = _storeToPropagate2;
+
+      lunaris.hook('error@store1', (data, message) => {
+        should(data).not.ok();
+        should(message).eql('${Cannot delete the value, it is still referenced in the store} ${reference}');
+        should(lunaris.getOne('@store1', 1)).be.ok();
+        done();
+      });
+
+      _store.data.add({ id : 20, label : 'B' });
+      _storeToPropagate.data.add({ id : 1, store1Values : [{ id : 20 }] });
+      _storeToPropagate2.data.add({ id : 1, store1Value : { id : 20 } });
+
+
+      lunaris.delete('@store1', { _id : 1 });
     });
   });
 

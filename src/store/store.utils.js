@@ -217,9 +217,10 @@ function saveState (store, collection) {
     store          : store.name,
     massOperations : store.massOperations,
     collection     : {
-      currentId    : collection.getCurrentId(),
-      currentRowId : collection.getCurrentRowId(),
-      index        : collection.getIndexId()
+      currentId       : collection.getCurrentId(),
+      currentRowId    : collection.getCurrentRowId(),
+      index           : collection.getIndexId(),
+      indexReferences : collection.getIndexReferences()
     }
   };
 
