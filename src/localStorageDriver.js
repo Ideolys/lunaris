@@ -100,6 +100,24 @@ function _startQueue () {
 }
 
 /**
+ * Add in queue
+ * If offline strategies are desactivated, the arguments will not be push to the queue
+ * @param {Array} args [handler fn, key, value, callback]
+ */
+function _addInQueue (args) {
+  if (!lunarisExports.isOfflineStrategies) {
+    var _callback = args.pop();
+    if (typeof _callback === 'function') {
+      _callback();
+    }
+    return ;
+  }
+
+  _queue.push(args);
+  _startQueue();
+}
+
+/**
  * Process indexedDB queue
  */
 function _processQueue () {
@@ -114,6 +132,7 @@ function _processQueue () {
   var _args     = _currentItem.slice(1);
 
   _args.push(function (err, data) {
+
     if (_callback) {
       _callback(err, data);
     }
@@ -127,7 +146,7 @@ function _processQueue () {
 /**
  * Add a value
  * @param {String} key
- * @param {*} value
+ * @param {Array/object} value
  * @param {Function} callback @optional
  */
 function _add (key, value, callback) {
@@ -137,20 +156,38 @@ function _add (key, value, callback) {
 
   var _transaction = database.transaction([key], 'readwrite');
   var _objectStore = _transaction.objectStore(key);
-  var _request     = _objectStore.add(value);
 
-  _request.onsuccess = function onsuccess (e) {
-    callback(null, e.target.result);
-  };
-  _request.onerror = function onerror (e) {
-    callback(e);
-  };
+  if (!Array.isArray(value)) {
+    value = [value];
+  }
+
+  var _cursor = 0;
+  function _next () {
+    var _request = _objectStore.add(value[_cursor]);
+    _cursor++;
+    _request.onsuccess = function onsuccess () {
+      if (_cursor === value.length) {
+        return callback();
+      }
+
+      _next();
+    };
+    _request.onerror = function onerror (e) {
+      if (_cursor === value.length) {
+        return callback(e);
+      }
+
+      _next();
+    };
+  }
+
+  _next();
 }
 
 /**
  * Update a value
  * @param {String} key
- * @param {*} value
+ * @param {Array/Object} value
  * @param {Function} callback @optional
  */
 function _upsert (key, value, callback) {
@@ -160,20 +197,38 @@ function _upsert (key, value, callback) {
 
   var _transaction = database.transaction([key], 'readwrite');
   var _objectStore = _transaction.objectStore(key);
-  var _request     = _objectStore.put(value);
 
-  _request.onsuccess = function onsuccess (e) {
-    callback(null, e.target.result);
-  };
-  _request.onerror = function onerror (e) {
-    callback(e);
-  };
+  if (!Array.isArray(value)) {
+    value = [value];
+  }
+
+  var _cursor = 0;
+  function _next () {
+    var _request = _objectStore.put(value[_cursor]);
+    _cursor++;
+    _request.onsuccess = function onsuccess () {
+      if (_cursor === value.length) {
+        return callback();
+      }
+
+      _next();
+    };
+    _request.onerror = function onerror (e) {
+      if (_cursor === value.length) {
+        return callback(e);
+      }
+
+      _next();
+    };
+  }
+
+  _next();
 }
 
 /**
  * Delete a value
  * @param {String} key
- * @param {*} value
+ * @param {Array/object} value
  * @param {Function} callback @optional
  */
 function _del (key, value, callback) {
@@ -183,14 +238,32 @@ function _del (key, value, callback) {
 
   var _transaction = database.transaction([key], 'readwrite');
   var _objectStore = _transaction.objectStore(key);
-  var _request     = _objectStore.delete(value);
 
-  _request.onsuccess = function onsuccess (e) {
-    callback(null, e.target.result);
-  };
-  _request.onerror = function onerror (e) {
-    callback(e);
-  };
+  if (!Array.isArray(value)) {
+    value = [value];
+  }
+
+  var _cursor = 0;
+  function _next () {
+    var _request = _objectStore.delete(value[_cursor]);
+    _cursor++;
+    _request.onsuccess = function onsuccess () {
+      if (_cursor === value.length) {
+        return callback();
+      }
+
+      _next();
+    };
+    _request.onerror = function onerror (e) {
+      if (_cursor === value.length) {
+        return callback(e);
+      }
+
+      _next();
+    };
+  }
+
+  _next();
 }
 
 /**
@@ -251,14 +324,12 @@ function _clear (key, callback) {
   var _objectStore = _transaction.objectStore(key);
   var _request     = _objectStore.clear();
 
-  if (callback) {
-    _request.onsuccess = function onsuccess (e) {
-      callback(null, e.target.result);
-    };
-    _request.onerror = function onerror (e) {
-      callback(e);
-    };
-  }
+  _request.onsuccess = function onsuccess (e) {
+    callback(null, e.target.result);
+  };
+  _request.onerror = function onerror (e) {
+    callback(e);
+  };
 }
 
 module.exports = {
@@ -275,8 +346,7 @@ module.exports = {
         return;
       }
 
-      _queue.push([_add, key, value, callback]);
-      _startQueue();
+      _addInQueue([_add, key, value, callback]);
     },
 
     /**
@@ -290,8 +360,7 @@ module.exports = {
         return;
       }
 
-      _queue.push([_upsert, key, value, callback]);
-      _startQueue();
+      _addInQueue([_upsert, key, value, callback]);
     },
 
     /**
@@ -305,8 +374,7 @@ module.exports = {
         return;
       }
 
-      _queue.push([_del, key, value, callback]);
-      _startQueue();
+      _addInQueue([_del, key, value, callback]);
     },
 
     /**
@@ -320,8 +388,7 @@ module.exports = {
         return;
       }
 
-      _queue.push([_get, key, value, callback]);
-      _startQueue();
+      _addInQueue([_get, key, value, callback]);
     },
 
     /**
@@ -334,8 +401,7 @@ module.exports = {
         return;
       }
 
-      _queue.push([_getAll, key, callback]);
-      _startQueue();
+      _addInQueue([_getAll, key, callback]);
     },
 
     /**
@@ -347,14 +413,13 @@ module.exports = {
         return;
       }
 
-      _queue.push([_clear, key, callback]);
-      _startQueue();
+      _addInQueue([_clear, key, callback]);
     }
   },
 
   localStorage : {
     get : function get (key) {
-      if (!lunarisExports.isBrowser) {
+      if (!lunarisExports.isBrowser || !lunarisExports.isOfflineStrategies) {
         return;
       }
       var _val = localStorage.getItem(key);
@@ -365,14 +430,14 @@ module.exports = {
     },
 
     set : function set (key, value) {
-      if (!lunarisExports.isBrowser) {
+      if (!lunarisExports.isBrowser || !lunarisExports.isOfflineStrategies) {
         return;
       }
       return localStorage.setItem(key, value ? JSON.stringify(value) : null);
     },
 
     clear : function clear (key) {
-      if (!lunarisExports.isBrowser) {
+      if (!lunarisExports.isBrowser || !lunarisExports.isOfflineStrategies) {
         return;
       }
       return localStorage.setItem(key, null);

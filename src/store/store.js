@@ -215,9 +215,11 @@ function setOfflineHttpTransaction (storeName, method, request, value) {
   _clear('lunarisOfflineTransactions', true);
   _computeStoreTransactions(_transactions, storeName, method, request, value);
 
+  var _version = _collection.begin();
   for (var i = 0; i < _transactions.length; i++) {
-    _collection.add(_transactions[i]);
+    _collection.add(_transactions[i], _version);
   }
+  _collection.commit(_version);
 }
 
 /**
@@ -269,7 +271,7 @@ function _propagate (store, data, operation, transactionId) {
  * @param {Int} transactionId
  */
 function _propagateReferences (store, data, transactionId) {
-  if (!store.storesToPropagateReferences.length) {
+  if (!store.storesToPropagateReferences || !store.storesToPropagateReferences.length) {
     return;
   }
 

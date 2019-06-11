@@ -67,12 +67,13 @@ app.listen(serverPort, () => {
   constants.indexedDBNumber = 4;
 
   build({
-    baseUrl         : '"http://localhost:' + serverPort + '"',
-    clientFolder    : __dirname,
-    storesFolder    : path.join(__dirname, 'stores'),
-    isProduction    : false,
-    constants       : constants,
-    indexedDBNumber : constants.indexedDBNumber
+    baseUrl             : '"http://localhost:' + serverPort + '"',
+    clientFolder        : __dirname,
+    storesFolder        : path.join(__dirname, 'stores'),
+    isProduction        : false,
+    constants           : constants,
+    indexedDBNumber     : constants.indexedDBNumber,
+    isOfflineStrategies : true
   }, (err, code) => {
     fs.writeFileSync(path.join(__dirname, 'testbuild.index.js'), code);
     karma.start();

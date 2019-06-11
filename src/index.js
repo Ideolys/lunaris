@@ -54,5 +54,6 @@ module.exports = {
   invalidations         : invalidate.invalidations,
 
   OPERATIONS : utils.OPERATIONS,
-  constants  : lunarisExports.constants
+  constants  : lunarisExports.constants,
+  exports    : lunarisExports
 };

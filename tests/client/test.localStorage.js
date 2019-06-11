@@ -1,4 +1,4 @@
-describe('local storage', () => {
+describe.only('local storage', () => {
 
   before(done => {
     lunaris._indexedDB.init(lunaris.constants.indexedDBNumber, [], (err) => {

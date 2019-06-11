@@ -71,12 +71,17 @@ module.exports = {
    * @param {Object} lightUrlInvalidations { lightUrl : timestamp }, invalidations from the server
    */
   computeInvalidations : function (lightUrlInvalidations, stores) {
+    var _storesToDeleteStates = [];
+    var _invalidations        = [];
+
     function searchAndRemove (url) {
       if (!urlsGraph[url]) {
         return;
       }
 
-      addInvalidation(url);
+      var dateInvalidations            = Date.now();
+      clientLightUrlInvalidations[url] = dateInvalidations;
+      _invalidations.push({ url : url, date : dateInvalidations });
 
       for (var i = 0, len = urlsGraph[url].length; i < len; i++) {
         var index = stores.indexOf(urlsGraph[url][i]);
@@ -85,7 +90,8 @@ module.exports = {
         }
 
         indexedDB.clear(stores[index]);
-        indexedDB.del('_states', stores[index]);
+        _storesToDeleteStates.push(stores[index]);
+
         cache.invalidate(stores[index]);
 
         stores.splice(index, 1);
@@ -109,6 +115,17 @@ module.exports = {
       if (clientLightUrlInvalidations[url] < lightUrlInvalidations[url]) {
         searchAndRemove(url);
       }
+    }
+
+    /**
+     * Push multiple invalidations at the same time
+     * Better performance for browser than n transactions
+     */
+    if (_storesToDeleteStates.length) {
+      indexedDB.del('_states', _storesToDeleteStates);
+    }
+    if (_invalidations.length) {
+      indexedDB.upsert('_invalidations', _invalidations);
     }
   }
 };

@@ -86,3 +86,10 @@ try {
 catch (e) {
   exports.urlsGraph = {};
 }
+
+try {
+  exports.isOfflineStrategies = IS_OFFLINE_STRATEGIES;
+}
+catch (e) {
+  exports.isOfflineStrategies = [];
+}
