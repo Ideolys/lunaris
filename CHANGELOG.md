@@ -15,6 +15,7 @@
   - Add builder option `isOfflineStrategies`. When `isOfflineStrategies` is false, websockets and browser storage are disable.
   - Add cache invalidation strategies
   - Add offline strategies: cache, offline filters, primary key generation.
+  - Add `lunaris.invalidate(@store)` to invalidate a store's cache
 - Fix:
 
 ## 1.9.3
