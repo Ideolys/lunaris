@@ -66,6 +66,10 @@ function _getFilterValuesHTTPRequest (store, method) {
     var _filter = store.filters[i];
     var _value  = [];
 
+    if (!offline.isOnline && _filter.isOffline === false) {
+      continue;
+    }
+
     var _sourceStore = storeUtils.getStore(_filter.source);
     var _sourceValue = storeUtils.getCollection(_sourceStore).getAll();
     if (_sourceValue && !Array.isArray(_sourceValue)) {

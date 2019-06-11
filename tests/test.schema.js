@@ -5034,6 +5034,28 @@ describe('Schema', () => {
       }
     });
 
+    it('should not throw an error if isOflfine === false', () => {
+      var _errorMap = [{
+        id : ['<<int>>']
+      }];
+
+      var _schema = schema.analyzeDescriptor(_errorMap);
+      var _error  = null;
+      try {
+        schema.getFilterFns([], {}, _schema.compilation, [{
+          source          : '@errorFilter',
+          sourceAttribute : 'label',
+          localAttribute  : 'id',
+          operator        : '=',
+          isOffline       : false
+        }]);
+      }
+      catch (e) {
+        _error = e;
+      }
+      should(_error).eql(null);
+    });
+
     it('should define a function for ILIKE operator', done => {
       var _map = [{
         id    : ['<<int>>'],

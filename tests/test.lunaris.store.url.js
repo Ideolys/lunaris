@@ -17,7 +17,8 @@ const stores             = {
   mix                 : testUtils.initStore('mix'),
   array               : testUtils.initStore('array'),
   where               : testUtils.initStore('where'),
-  whereObject         : testUtils.initStore('whereObject')
+  whereObject         : testUtils.initStore('whereObject'),
+  offlineFalse        : testUtils.initStore('offlineFalse')
 };
 const defaultStoresValue = JSON.parse(JSON.stringify(exportsLunaris._stores));
 const store              = require('../src/store/store');
@@ -128,6 +129,16 @@ describe('store url', () => {
         localAttribute  : 'label',
         isRequired      : true,
         operator        : ['ILIKE']
+      }
+    ];
+
+    stores.offlineFalse.filters = [
+      {
+        source          : '@optional.filter.B',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        operator        : ['ILIKE'],
+        isOffline       : false
       }
     ];
   });
@@ -538,5 +549,18 @@ describe('store url', () => {
     console.log(decodeURIComponent(_url));
 
     should(_url).eql(_expectedUrl);
+  });
+
+  it('should create the url but not include the optional filter when isOffline === false', () => {
+    store.upsert('@optional.filter.B', { label : 'cat' });
+    offline.isOnline = false;
+    var _url         = url.create(stores.optional, 'GET');
+    offline.isOnline = true;
+    var _expectedUrl = '/optional?limit=50&offset=0';
+    should(_url.request).eql(_expectedUrl);
+    should(_url.cache).eql({
+      limit  : 50,
+      offset : 0
+    });
   });
 });
