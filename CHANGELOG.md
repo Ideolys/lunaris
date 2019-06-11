@@ -6,7 +6,6 @@
   - Add `attributeUrl` option to customize filter name in the url.
   - Add filter validations:
     + `operator` fied is now required
-    + the default `operator` values is `=`
     + a filter must filter an attribute of the map (except with `isOffline = false`)
     + only type string can use `ILIKE` filter
   - Add store references. Example, use `attribute : ['object', 'ref', '@storeToReference']`. The reference can be an `object` or an `array`.
