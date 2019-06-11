@@ -1,11 +1,21 @@
 # Lunaris
 
+## 1.9.3
+*2019-05-31*
+- Features:
+  - Add name and description for each route.
+  - Upgrade buefy version from 0.7.2 to 0.7.6.
+- Fix:
+  - Simplify error message.
+
 ## 1.9.2
+**
 - Fix:
   - When making an HTTP GET, cache values were not used.
   - When making an HTTP GET, the `filterUpdated` were never fired.
 
 ## 1.9.1
+**
 - Fix:
   - When making an HTTP GET on a store filter, the transaction could never end.
 

@@ -27,7 +27,7 @@ function _replaceTemplateWords (store, method, methodFemale, template, isPlural)
  */
 function getError (err, store, method, isPlural, is) {
   if (!store.errorTemplate) {
-    return err.error + ' : ' + err.message;
+    return '${An error has occured}';
   }
 
   var _methods = {

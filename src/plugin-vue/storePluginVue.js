@@ -35,18 +35,18 @@ lunaris._vue = {
             return;
           }
 
-          var onAction = function () {
-            _this.$lunarisErrorsResolver.open();
-          };
+          // var onAction = function () {
+          //   _this.$lunarisErrorsResolver.open();
+          // };
 
           _this.$snackbar.open({
             message    : err,
             type       : 'is-warning',
             position   : 'is-top',
             indefinite : true,
-            actionText : 'Résoudre',
-            queue      : false,
-            onAction   : onAction
+            // actionText : '${Resolve}',
+            // queue      : false,
+            // onAction   : onAction
           });
         };
       }
