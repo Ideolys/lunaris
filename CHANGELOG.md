@@ -1,5 +1,22 @@
 # Lunaris
 
+## 1.10.0
+- Features:
+  - Add `isOffline` option to disable offline support for a filter.
+  - Add `attributeUrl` option to customize filter name in the url.
+  - Add filter validations:
+    + `operator` fied is now required
+    + the default `operator` values is `=`
+    + a filter must filter an attribute of the map (except with `isOffline = false`)
+    + only type string can use `ILIKE` filter
+  - Add store references. Example, use `attribute : ['object', 'ref', '@storeToReference']`. The reference can be an `object` or an `array`.
+  - Add IndexedDB
+  - Add localStorage `lunaris.localStorage`
+  - Add builder option `isOfflineStrategies`. When `isOfflineStrategies` is false, websockets and browser storage are disable.
+  - Add cache invalidation strategies
+  - Add offline strategies: cache, offline filters, primary key generation.
+- Fix:
+
 ## 1.9.3
 *2019-05-31*
 - Features:
