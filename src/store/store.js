@@ -662,7 +662,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
 
       if (_cacheValues) {
         if (typeof _cacheValues === 'object') {
-          afterAction(_options.store, 'get', _transformGetCache(_options.collection, _cacheValues), null, _transactionId);
+          afterAction(_options.store, 'get', _transformGetCache(_options.collection, utils.clone(_cacheValues)), null, _transactionId);
           storeUtils.saveState(_options.store, _options.collection);
         }
         else {
@@ -704,6 +704,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         hook.pushToHandlers(_options.store, 'errorHttp', _error, false, _transactionId);
         return callback(store);
       }
+
 
       var _version = _options.collection.begin();
       if (Array.isArray(data)) {

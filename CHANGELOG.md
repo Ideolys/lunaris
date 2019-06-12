@@ -16,6 +16,7 @@
   - Add offline strategies: cache, offline filters, primary key generation.
   - Add `lunaris.invalidate(@store)` to invalidate a store's cache
 - Fix:
+  - Fix cache in-memory values
 
 ## 1.9.3
 *2019-05-31*
