@@ -18,7 +18,8 @@ const stores             = {
   array               : testUtils.initStore('array'),
   where               : testUtils.initStore('where'),
   whereObject         : testUtils.initStore('whereObject'),
-  offlineFalse        : testUtils.initStore('offlineFalse')
+  offlineFalse        : testUtils.initStore('offlineFalse'),
+  attributeUrl        : testUtils.initStore('attributeUrl')
 };
 const defaultStoresValue = JSON.parse(JSON.stringify(exportsLunaris._stores));
 const store              = require('../src/store/store');
@@ -137,6 +138,17 @@ describe('store url', () => {
         source          : '@optional.filter.B',
         sourceAttribute : 'label',
         localAttribute  : 'label',
+        operator        : ['ILIKE'],
+        isOffline       : false
+      }
+    ];
+
+    stores.attributeUrl.filters = [
+      {
+        source          : '@optional.filter.B',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        attributeUrl    : 'LABEL',
         operator        : ['ILIKE'],
         isOffline       : false
       }
@@ -561,6 +573,22 @@ describe('store url', () => {
     should(_url.cache).eql({
       limit  : 50,
       offset : 0
+    });
+  });
+
+  it('should create the url by replacing localAttribute by attributeUrl', () => {
+    store.upsert('@optional.filter.B', { label : 'cat' });
+    var _url         = url.create(stores.attributeUrl, 'GET');
+    var _expectedUrl = '/attributeUrl?limit=50&offset=0&search=LABEL' +
+      encodeURIComponent(':') +
+      encodeURIComponent('[cat]')
+    ;
+
+    should(_url.request).eql(_expectedUrl);
+    should(_url.cache).eql({
+      limit  : 50,
+      offset : 0,
+      0      : ['cat']
     });
   });
 });
