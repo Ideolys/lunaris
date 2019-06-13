@@ -15,6 +15,7 @@
   - Add cache invalidation strategies
   - Add offline strategies: cache, offline filters, primary key generation.
   - Add `lunaris.invalidate(@store)` to invalidate a store's cache
+  - Add stores options `isErrornotification` and `isSuccessNotification`. If `false`, no toast will be displayed.
 - Fix:
   - Fix cache in-memory values
 

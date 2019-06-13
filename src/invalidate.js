@@ -89,7 +89,12 @@ module.exports = {
           continue;
         }
 
-        indexedDB.clear(stores[index]);
+        try {
+
+          indexedDB.clear(stores[index]);
+        } catch (e) {
+          console.log(e);
+        }
         _storesToDeleteStates.push(stores[index]);
 
         cache.invalidate(stores[index]);

@@ -132,7 +132,6 @@ function _processQueue () {
   var _args     = _currentItem.slice(1);
 
   _args.push(function (err, data) {
-
     if (_callback) {
       _callback(err, data);
     }
@@ -154,7 +153,13 @@ function _add (key, value, callback) {
     return callback ();
   }
 
-  var _transaction = database.transaction([key], 'readwrite');
+  var _transaction;
+  try {
+    _transaction = database.transaction([key], 'readwrite');
+  }
+  catch (e) {
+    return callback(e);
+  }
   var _objectStore = _transaction.objectStore(key);
 
   if (!Array.isArray(value)) {
@@ -195,7 +200,13 @@ function _upsert (key, value, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction([key], 'readwrite');
+  var _transaction;
+  try {
+    _transaction = database.transaction([key], 'readwrite');
+  }
+  catch (e) {
+    return callback(e);
+  }
   var _objectStore = _transaction.objectStore(key);
 
   if (!Array.isArray(value)) {
@@ -236,7 +247,14 @@ function _del (key, value, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction([key], 'readwrite');
+  var _transaction;
+  try {
+    _transaction = database.transaction([key], 'readwrite');
+  }
+  catch (e) {
+    return callback(e);
+  }
+
   var _objectStore = _transaction.objectStore(key);
 
   if (!Array.isArray(value)) {
@@ -277,7 +295,14 @@ function _get (key, value, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction([key], 'readonly');
+  var _transaction;
+  try {
+    _transaction = database.transaction([key], 'readonly');
+  }
+  catch (e) {
+    return callback(e);
+  }
+
   var _objectStore = _transaction.objectStore(key);
   var _request     = _objectStore.get(value);
 
@@ -299,7 +324,13 @@ function _getAll (key, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction([key], 'readonly');
+  var _transaction;
+  try {
+    _transaction = database.transaction([key], 'readonly');
+  }
+  catch (e) {
+    return callback(e);
+  }
   var _objectStore = _transaction.objectStore(key);
   var _request     = _objectStore.getAll();
 
@@ -320,7 +351,13 @@ function _clear (key, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction([key], 'readwrite');
+  var _transaction;
+  try {
+    _transaction = database.transaction([key], 'readwrite');
+  }
+  catch (e) {
+    return callback(e);
+  }
   var _objectStore = _transaction.objectStore(key);
   var _request     = _objectStore.clear();
 
