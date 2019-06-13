@@ -65,13 +65,13 @@ lunaris._vue = {
         });
 
         if (_stores[i].name !== 'lunarisErrors') {
-          if (lunaris._stores[_stores[i]].isSucessNotification === false) {
+          if (lunaris._stores[_stores[i]].isSucessNotification !== false) {
             lunaris.hook.apply(null, ['inserted@'  + _stores[i], _successFn]);
             lunaris.hook.apply(null, ['updated@'   + _stores[i], _successFn]);
             lunaris.hook.apply(null, ['deleted@'   + _stores[i], _successFn]);
           }
 
-          if (lunaris._stores[_stores[i]].isErrorNotification === false) {
+          if (lunaris._stores[_stores[i]].isErrorNotification !== false) {
             lunaris.hook.apply(null, ['errorHttp@' + _stores[i], _errorFn]);
           }
 
