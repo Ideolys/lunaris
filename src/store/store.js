@@ -67,14 +67,15 @@ function pushOfflineHttpTransactions (callback) {
 
       transaction.begin();
       if (_currentTransaction.method === OPERATIONS.INSERT || _currentTransaction.method === OPERATIONS.UPDATE) {
-        upsert(_currentTransaction.store, _currentTransaction.value, false, _currentTransaction);
+        upsert(_currentTransaction.store, _currentTransaction.data, false, _currentTransaction);
       }
 
       if (_currentTransaction.method === OPERATIONS.DELETE) {
-        deleteStore(_currentTransaction.store, _currentTransaction.value, _currentTransaction);
+        deleteStore(_currentTransaction.store, _currentTransaction.data, _currentTransaction);
       }
 
       transaction.commit(function () {
+        console.log(_currentTransaction);
         indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
       });
     }
