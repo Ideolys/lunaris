@@ -661,11 +661,29 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     },
 
     /**
+     * Set index id values
+     * @param {Array} values
+     */
+    setIndexId : function (values) {
+      _indexes.id = values;
+    },
+
+    /**
      * Set index id value
      * @param {Array} value
      */
-    setIndexId : function (value) {
-      _indexes.id = value;
+    setIndexIdValue : function (key, value) {
+      if (key === null || key === undefined || value === null || value === undefined) {
+        return;
+      }
+
+      var _search = index.binarySearch(_indexes.id[1], key);
+
+      if (!_search.found) {
+        return;
+      }
+
+      _indexes.id[0][_search.index] = value;
     },
 
     /**
