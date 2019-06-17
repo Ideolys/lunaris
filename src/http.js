@@ -52,7 +52,7 @@ function request (method, request, body, callback, options) {
     }
 
     // Redirection
-    if (decodeURIComponent(response.url).indexOf(request) === -1) {
+    if (decodeURIComponent(response.url).indexOf(decodeURIComponent(request)) === -1) {
       return window.location = response.url;
     }
 
