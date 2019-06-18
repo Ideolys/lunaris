@@ -17,6 +17,7 @@
   - Add `lunaris.invalidate(@store)` to invalidate a store's cache
   - Add stores options `isErrornotification` and `isSuccessNotification`. If `false`, no toast will be displayed.
   - Add primay key offline generation.
+  - Set error notification as a toast.
 - Fix:
   - Fix cache in-memory values
   - Improve lunaris tip when no primary key has been defined.

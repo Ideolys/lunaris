@@ -39,14 +39,21 @@ lunaris._vue = {
           //   _this.$lunarisErrorsResolver.open();
           // };
 
-          _this.$snackbar.open({
-            message    : err,
-            type       : 'is-warning',
-            position   : 'is-top',
-            indefinite : true,
-            // actionText : '${Resolve}',
-            // queue      : false,
-            // onAction   : onAction
+          // _this.$snackbar.open({
+          //   message    : err,
+          //   type       : 'is-warning',
+          //   position   : 'is-top',
+          //   indefinite : true,
+          //   actionText : '${Resolve}',
+          //   queue      : false,
+          //   onAction   : onAction
+          // });
+
+          _this.$toast.open({
+            message  : err,
+            type     : 'is-danger',
+            position : 'is-top-right',
+            duration : 3000
           });
         };
       }
