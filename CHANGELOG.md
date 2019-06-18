@@ -21,6 +21,7 @@
 - Fix:
   - Fix cache in-memory values
   - Improve lunaris tip when no primary key has been defined.
+  - Array attributes in store objet have an operator forced to ILIKE.
 
 ## 1.9.3
 *2019-05-31*
