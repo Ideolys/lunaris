@@ -185,21 +185,37 @@ exports.index = {
   },
 
   /**
+   * Get value
+   * @param {String/Int} value if string value equals '_integer', ex: '_1'
+   * @returns {Int}
+   */
+  getValue : function getValue (value) {
+    if (typeof value === 'string') {
+      return parseInt(value.slice(1), 10);
+    }
+
+    return value;
+  },
+
+  /**
    * BinarySearh
    * @param {Array} array
    * @param {*} value
    * @returns {Object} { found : Boolean, index : Int }
    */
   binarySearch : function binarySearch (array, value) {
-    var lo = 0;
-    var hi = array.length;
+    var lo  = 0;
+    var hi  = array.length;
+    var val = this.getValue(value);
     var compared;
     var mid;
-
+    var comparedValue;
 
     while (lo < hi) {
-      mid = ((lo + hi) / 2) | 0;
-      compared = this.sort(value, array[mid]);
+      mid           = ((lo + hi) / 2) | 0;
+      comparedValue = this.getValue(array[mid]);
+      compared      = this.sort(val, comparedValue);
+
       if (compared === 0) {
         return {
           found : true,

@@ -2226,7 +2226,7 @@ describe('lunaris store', function () {
 
       lunaris.hook('get@required', items => {
         should(items).eql([
-          { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] }
+          { _rowId : 5, _id : 1, id : 1, label : 'A', _version : [3] }
         ]);
         should(Object.isFrozen(items[0])).eql(true);
         should(_hasBeenCalled).eql(false);
@@ -2276,8 +2276,8 @@ describe('lunaris store', function () {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _rowId : 1, _id : 1, id : 1, label : 'A', site : { id : 1 }, _version : [2] },
-          { _rowId : 3, _id : 3, id : 3, label : 'C', site : { id : 1 }, _version : [2] },
+          { _rowId : 5, _id : 1, id : 1, label : 'A', site : { id : 1 }, _version : [3] },
+          { _rowId : 7, _id : 3, id : 3, label : 'C', site : { id : 1 }, _version : [3] },
         ]);
         should(Object.isFrozen(items[0])).eql(true);
         should(Object.isFrozen(items[1])).eql(true);
@@ -2330,8 +2330,8 @@ describe('lunaris store', function () {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _rowId : 1, _id : 1, id : 1, label : 'A', site : { id : 2 }, _version : [2] },
-          { _rowId : 2, _id : 2, id : 2, label : 'B', site : { id : 2 }, _version : [2] },
+          { _rowId : 5, _id : 1, id : 1, label : 'A', site : { id : 2 }, _version : [3] },
+          { _rowId : 6, _id : 2, id : 2, label : 'B', site : { id : 2 }, _version : [3] },
         ]);
         should(Object.isFrozen(items[0])).eql(true);
         should(Object.isFrozen(items[1])).eql(true);
