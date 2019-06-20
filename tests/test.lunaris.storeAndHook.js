@@ -1287,7 +1287,7 @@ describe('lunaris store', function () {
 
         if (_isDeletedHook && _isDeleteHook) {
           should(lastTip.length).eql(2);
-          should(lastTip[0]).eql('[Lunaris tip] No primary key has been found, fallback to lunaris _id.');
+          should(lastTip[0]).eql('[Lunaris tip] No primary key has been found in store "store1", fallback to lunaris object attribute "_id".');
           should(lastTip[1]).eql('To declare a primary key, use the notation [\'<<int>>\'] in the map or add the \'primaryKey\' attribute in the store description.');
           done();
         }
@@ -3110,6 +3110,66 @@ describe('lunaris store', function () {
           { _rowId : 6, _id : 3, id : 10, label : 'E', _version : [3] }
         ]);
 
+        should(nbCallsPagination2).eql(1);
+
+        done();
+      });
+
+      lunaris.hook('errorHttp@pagination2', err => {
+        done(err);
+      });
+
+      lunaris.get('@pagination2');
+    });
+
+    it('should cache the values and not save collection\'s attributes', done => {
+      var _nbPages                                            = 0;
+      lunaris._stores['pagination2.param.site']               = initStore('pagination2.param.site');
+      lunaris._stores['pagination2.param.site'].isStoreObject = true;
+      lunaris._stores['pagination2.param.site'].data.add({
+        site : 1
+      });
+      lunaris._stores['pagination2'] = initStore('pagination2', [{
+        id : ['<<int>>']
+      }]);
+      lunaris._stores['pagination2'].filters = [{
+        source          : '@pagination2.param.site',
+        sourceAttribute : 'site',
+        localAttribute  : 'site',
+        isRequired      : true
+      }];
+
+      lunaris.hook('get@pagination2', items => {
+        _nbPages++;
+        if (_nbPages === 1) {
+          should(items).eql([
+            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
+            { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
+          ]);
+          lunaris.setPagination('@pagination2', 1, 50);
+          lunaris.get('@pagination2');
+          return;
+        }
+
+        should(items).eql([
+          { _rowId : 4, _id : 1, id : 20, label : 'B', _version : [3] },
+          { _rowId : 5, _id : 2, id : 30, label : 'D', _version : [3] },
+          { _rowId : 6, _id : 3, id : 10, label : 'E', _version : [3] }
+        ]);
+
+        var _cacheRes =lunaris._cache._cache();
+        should(_cacheRes).have.lengthOf(1);
+        should(_cacheRes[0].values).have.lengthOf(3);
+        should(_cacheRes[0].values[0]._id).not.ok();
+        should(_cacheRes[0].values[0]._rowId).not.ok();
+        should(_cacheRes[0].values[0]._version).not.ok();
+        should(_cacheRes[0].values[1]._id).not.ok();
+        should(_cacheRes[0].values[1]._rowId).not.ok();
+        should(_cacheRes[0].values[1]._version).not.ok();
+        should(_cacheRes[0].values[2]._id).not.ok();
+        should(_cacheRes[0].values[2]._rowId).not.ok();
+        should(_cacheRes[0].values[2]._version).not.ok();
         should(nbCallsPagination2).eql(1);
 
         done();

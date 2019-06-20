@@ -55,6 +55,10 @@ exports.OPERATORS = {
  * @param {Object} child
  */
 exports.merge = function merge (parent, child) {
+  if (!child) {
+    return parent;
+  }
+
   if (typeof parent !== 'object' || typeof child !== 'object') {
     return;
   }

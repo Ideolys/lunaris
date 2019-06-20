@@ -67,14 +67,15 @@ function pushOfflineHttpTransactions (callback) {
 
       transaction.begin();
       if (_currentTransaction.method === OPERATIONS.INSERT || _currentTransaction.method === OPERATIONS.UPDATE) {
-        upsert(_currentTransaction.store, _currentTransaction.value, false, _currentTransaction);
+        upsert(_currentTransaction.store, _currentTransaction.data, false, _currentTransaction);
       }
 
       if (_currentTransaction.method === OPERATIONS.DELETE) {
-        deleteStore(_currentTransaction.store, _currentTransaction.value, _currentTransaction);
+        deleteStore(_currentTransaction.store, _currentTransaction.data, _currentTransaction);
       }
 
       transaction.commit(function () {
+        console.log(_currentTransaction);
         indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
       });
     }
@@ -662,7 +663,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
 
       if (_cacheValues) {
         if (typeof _cacheValues === 'object') {
-          afterAction(_options.store, 'get', _transformGetCache(_options.collection, _cacheValues), null, _transactionId);
+          afterAction(_options.store, 'get', _transformGetCache(_options.collection, utils.clone(_cacheValues)), null, _transactionId);
           storeUtils.saveState(_options.store, _options.collection);
         }
         else {
@@ -704,6 +705,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         hook.pushToHandlers(_options.store, 'errorHttp', _error, false, _transactionId);
         return callback(store);
       }
+
 
       var _version = _options.collection.begin();
       if (Array.isArray(data)) {

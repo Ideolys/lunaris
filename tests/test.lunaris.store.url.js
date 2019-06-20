@@ -5,20 +5,22 @@ exportsLunaris.constants = { TRUE : true };
 const testUtils          = require('./testUtils');
 const url                = require('../src/store/store.url');
 const stores             = {
-  noFilter            : testUtils.initStore('noFilter'),
-  'required.filter.A' : testUtils.initStore('required.filter.A'),
-  'required.filter.B' : testUtils.initStore('required.filter.B'),
-  required            : testUtils.initStore('required'),
-  requiredMultiple    : testUtils.initStore('requiredMultiple'),
-  'optional.filter.A' : testUtils.initStore('optional.filter.A'),
-  'optional.filter.B' : testUtils.initStore('optional.filter.B'),
-  optional            : testUtils.initStore('optional'),
-  optionalMultiple    : testUtils.initStore('optionalMultiple'),
-  mix                 : testUtils.initStore('mix'),
-  array               : testUtils.initStore('array'),
-  where               : testUtils.initStore('where'),
-  whereObject         : testUtils.initStore('whereObject'),
-  offlineFalse        : testUtils.initStore('offlineFalse')
+  noFilter             : testUtils.initStore('noFilter'),
+  'required.filter.A'  : testUtils.initStore('required.filter.A'),
+  'required.filter.B'  : testUtils.initStore('required.filter.B'),
+  required             : testUtils.initStore('required'),
+  requiredMultiple     : testUtils.initStore('requiredMultiple'),
+  'optional.filter.A'  : testUtils.initStore('optional.filter.A'),
+  'optional.filter.B'  : testUtils.initStore('optional.filter.B'),
+  optional             : testUtils.initStore('optional'),
+  optionalMultiple     : testUtils.initStore('optionalMultiple'),
+  mix                  : testUtils.initStore('mix'),
+  array                : testUtils.initStore('array'),
+  where                : testUtils.initStore('where'),
+  whereObject          : testUtils.initStore('whereObject'),
+  offlineFalse         : testUtils.initStore('offlineFalse'),
+  attributeUrl         : testUtils.initStore('attributeUrl'),
+  arrayAttrStoreObject : testUtils.initStore('arrayAttrStoreObject')
 };
 const defaultStoresValue = JSON.parse(JSON.stringify(exportsLunaris._stores));
 const store              = require('../src/store/store');
@@ -139,6 +141,27 @@ describe('store url', () => {
         localAttribute  : 'label',
         operator        : ['ILIKE'],
         isOffline       : false
+      }
+    ];
+
+    stores.attributeUrl.filters = [
+      {
+        source          : '@optional.filter.B',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        attributeUrl    : 'LABEL',
+        operator        : ['ILIKE'],
+        isOffline       : false
+      }
+    ];
+
+    stores.arrayAttrStoreObject.filters = [
+      {
+        source          : '@optional.filter.A',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        attributeUrl    : 'LABEL',
+        operator        : '='
       }
     ];
   });
@@ -561,6 +584,38 @@ describe('store url', () => {
     should(_url.cache).eql({
       limit  : 50,
       offset : 0
+    });
+  });
+
+  it('should create the url by replacing localAttribute by attributeUrl', () => {
+    store.upsert('@optional.filter.B', { label : 'cat' });
+    var _url         = url.create(stores.attributeUrl, 'GET');
+    var _expectedUrl = '/attributeUrl?limit=50&offset=0&search=LABEL' +
+      encodeURIComponent(':') +
+      encodeURIComponent('[cat]')
+    ;
+
+    should(_url.request).eql(_expectedUrl);
+    should(_url.cache).eql({
+      limit  : 50,
+      offset : 0,
+      0      : ['cat']
+    });
+  });
+
+  it('should create the url with array attribute in store object', () => {
+    store.upsert('@optional.filter.A', { label : ['cat', 'dog'] });
+    var _url         = url.create(stores.arrayAttrStoreObject, 'GET');
+    var _expectedUrl = '/arrayAttrStoreObject?limit=50&offset=0&search=LABEL' +
+      encodeURIComponent(':') +
+      encodeURIComponent('[cat,dog]')
+    ;
+
+    should(_url.request).eql(_expectedUrl);
+    should(_url.cache).eql({
+      limit  : 50,
+      offset : 0,
+      0      : ['cat', 'dog']
     });
   });
 });

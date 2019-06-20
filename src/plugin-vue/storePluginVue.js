@@ -39,14 +39,21 @@ lunaris._vue = {
           //   _this.$lunarisErrorsResolver.open();
           // };
 
-          _this.$snackbar.open({
-            message    : err,
-            type       : 'is-warning',
-            position   : 'is-top',
-            indefinite : true,
-            // actionText : '${Resolve}',
-            // queue      : false,
-            // onAction   : onAction
+          // _this.$snackbar.open({
+          //   message    : err,
+          //   type       : 'is-warning',
+          //   position   : 'is-top',
+          //   indefinite : true,
+          //   actionText : '${Resolve}',
+          //   queue      : false,
+          //   onAction   : onAction
+          // });
+
+          _this.$toast.open({
+            message  : err,
+            type     : 'is-danger',
+            position : 'is-top-right',
+            duration : 3000
           });
         };
       }
@@ -65,10 +72,16 @@ lunaris._vue = {
         });
 
         if (_stores[i].name !== 'lunarisErrors') {
-          lunaris.hook.apply(null, ['inserted@'  + _stores[i], _successFn]);
-          lunaris.hook.apply(null, ['updated@'   + _stores[i], _successFn]);
-          lunaris.hook.apply(null, ['deleted@'   + _stores[i], _successFn]);
-          lunaris.hook.apply(null, ['errorHttp@' + _stores[i], _errorFn]);
+          if (lunaris._stores[_stores[i]].isSucessNotification !== false) {
+            lunaris.hook.apply(null, ['inserted@'  + _stores[i], _successFn]);
+            lunaris.hook.apply(null, ['updated@'   + _stores[i], _successFn]);
+            lunaris.hook.apply(null, ['deleted@'   + _stores[i], _successFn]);
+          }
+
+          if (lunaris._stores[_stores[i]].isErrorNotification !== false) {
+            lunaris.hook.apply(null, ['errorHttp@' + _stores[i], _errorFn]);
+          }
+
           lunaris.hook.apply(null, ['error@'     + _stores[i], _errorFn]);
         }
       }

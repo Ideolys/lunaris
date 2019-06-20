@@ -6,7 +6,6 @@
   - Add `attributeUrl` option to customize filter name in the url.
   - Add filter validations:
     + `operator` fied is now required
-    + the default `operator` values is `=`
     + a filter must filter an attribute of the map (except with `isOffline = false`)
     + only type string can use `ILIKE` filter
   - Add store references. Example, use `attribute : ['object', 'ref', '@storeToReference']`. The reference can be an `object` or an `array`.
@@ -15,7 +14,14 @@
   - Add builder option `isOfflineStrategies`. When `isOfflineStrategies` is false, websockets and browser storage are disable.
   - Add cache invalidation strategies
   - Add offline strategies: cache, offline filters, primary key generation.
+  - Add `lunaris.invalidate(@store)` to invalidate a store's cache
+  - Add stores options `isErrornotification` and `isSuccessNotification`. If `false`, no toast will be displayed.
+  - Add primay key offline generation.
+  - Set error notification as a toast.
 - Fix:
+  - Fix cache in-memory values
+  - Improve lunaris tip when no primary key has been defined.
+  - Array attributes in store objet have an operator forced to ILIKE.
 
 ## 1.9.3
 *2019-05-31*
