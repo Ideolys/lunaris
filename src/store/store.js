@@ -128,8 +128,8 @@ function _pushDependentTransactionsInError (storesToUpdate) {
         continue;
       }
 
-      offlineTransactionsInError.splice(1, 1, offlineTransactions.splice(i, 1));
-      indexedDB.del(_transaction.store, _transaction._id);
+      indexedDB.del(OFFLINE_STORE, _transaction._id);
+      offlineTransactionsInError.splice(1, 0, offlineTransactions.splice(i, 1)[0]);
     }
   }
 }
@@ -141,6 +141,7 @@ function _saveTransactionsInError () {
   var _collection = lunarisExports._stores.lunarisOfflineTransactions.data;
 
   var _version = _collection.begin();
+
   for (var j = 0; j < offlineTransactionsInError.length; j++) {
     delete offlineTransactionsInError[j]._id;
     offlineTransactionsInError[j].isInError = true;

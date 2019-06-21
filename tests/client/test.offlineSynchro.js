@@ -1,4 +1,4 @@
-describe.only('Offline to online synchronisation', () => {
+describe('Offline to online synchronisation', () => {
 
   beforeEach(done => {
     lunaris.offline.isOnline = true;
@@ -571,9 +571,9 @@ describe.only('Offline to online synchronisation', () => {
 
   });
 
-  describe.only('Errors', () => {
+  describe('Errors', () => {
 
-    it('should set the offline transaction is error if the transaction failed', done => {
+    it('should set the offline transaction in error if the transaction failed', done => {
       lunaris.offline.isOnline = false;
 
       lunaris.insert('@offlineErrorSync', {
@@ -609,7 +609,7 @@ describe.only('Offline to online synchronisation', () => {
       });
     });
 
-    it('should push offline transaction and update referenced store', done => {
+    it('should should set the offline transactions in error if the transaction failed : referenced store', done => {
       lunaris.offline.isOnline = false;
 
       lunaris._stores.offlineArraySync.data.add({ id : 1, label : 'A' });
@@ -652,6 +652,7 @@ describe.only('Offline to online synchronisation', () => {
 
       lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, transactions) => {
         should(err).not.ok();
+
         should(transactions).be.an.Array().and.have.lengthOf(2);
         should(transactions[0].store).eql('offlineArraySync');
         should(transactions[0].method).eql('POST');
@@ -678,6 +679,7 @@ describe.only('Offline to online synchronisation', () => {
         lunaris._pushOfflineHttpTransactions(() => {
           lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, transactions) => {
             should(err).not.ok();
+
             should(transactions).be.an.Array().and.have.lengthOf(2);
 
             should(transactions[0].store).eql('offlineArraySync');
@@ -688,27 +690,27 @@ describe.only('Offline to online synchronisation', () => {
             let collectionItems = lunaris._stores.offlineArraySync.data.getAll();
             should(collectionItems).be.an.Array().and.have.lengthOf(4);
             should(collectionItems[0].id).be.a.Number().and.eql(1);
-            should(collectionItems[1].id).be.a.Number().and.eql(2);
-            should(collectionItems[2].id).be.a.Number().and.eql(3);
-            should(collectionItems[3].id).be.a.Number().and.eql(4);
+            should(collectionItems[1].id).be.a.String().and.eql('_2');
+            should(collectionItems[2].id).be.a.String().and.eql('_3');
+            should(collectionItems[3].id).be.a.String().and.eql('_4');
 
             collectionItems = lunaris._stores.offlineReferenceSync.data.getAll();
             should(collectionItems).be.an.Array().and.have.lengthOf(2);
-            should(collectionItems[0].id).be.a.Number().and.eql(1);
+            should(collectionItems[0].id).be.a.String().and.eql('_1');
             should(collectionItems[0].offlineArray).be.an.Array().and.have.lengthOf(2);
-            should(collectionItems[0].offlineArray[0].id).be.a.Number().and.eql(3);
+            should(collectionItems[0].offlineArray[0].id).be.a.String().and.eql('_3');
             should(collectionItems[0].offlineArray[1].id).be.a.Number().and.eql(1);
-            should(collectionItems[1].id).be.a.Number().and.eql(2);
+            should(collectionItems[1].id).be.a.String().and.eql('_2');
             should(collectionItems[1].offlineArray).be.an.Array().and.have.lengthOf(3);
-            should(collectionItems[1].offlineArray[0].id).be.a.Number().and.eql(2);
-            should(collectionItems[1].offlineArray[1].id).be.a.Number().and.eql(4);
-            should(collectionItems[1].offlineArray[2].id).be.a.Number().and.eql(3);
+            should(collectionItems[1].offlineArray[0].id).be.a.String().and.eql('_2');
+            should(collectionItems[1].offlineArray[1].id).be.a.String().and.eql('_4');
+            should(collectionItems[1].offlineArray[2].id).be.a.String().and.eql('_3');
 
             should(lunaris._stores.offlineArraySync.data.getIndexId()).eql([
-              [1, 2, 3, 4], [1, 2, 3, 4]
+              [1, '_2', '_3', '_4'], [1, 2, 3, 4]
             ]);
             should(lunaris._stores.offlineReferenceSync.data.getIndexId()).eql([
-              [1, 2], [1, 2]
+              ['_1', '_2'], [1, 2]
             ]);
             done();
           });
