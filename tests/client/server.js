@@ -68,6 +68,7 @@ app.patch('/http', (req, res) => {
  */
 app.post('/offlineArraySync', (req, res) => {
   let isMultiple = true;
+  let isError    = false;
 
   if (!Array.isArray(req.body)) {
     req.body = [req.body];
@@ -76,10 +77,14 @@ app.post('/offlineArraySync', (req, res) => {
 
   for (var i = 0; i < req.body.length; i++) {
     req.body[i].id = req.body[i]._id;
+
+    if (req.body[i].isError) {
+      isError = true;
+    }
   }
 
   res.json({
-    success : true,
+    success : isError ? false : true,
     error   : null,
     message : null,
     data    : isMultiple ? req.body : req.body[0]

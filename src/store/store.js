@@ -20,6 +20,7 @@ var stores                      = [];
 var OFFLINE_STORE               = 'lunarisOfflineTransactions';
 var isPushingOfflineTransaction = false;
 var offlineTransactions         = [];
+var offlineTransactionsInError  = [];
 
 lunarisExports._stores.lunarisErrors = {
   name                  : 'lunarisErrors',
@@ -105,6 +106,51 @@ function _updateOfflineTransactionData (storesToUpdate) {
 }
 
 /**
+ * Push dependent transaction in error to error array
+ * @param {Array} storesToUpdate
+ */
+function _pushDependentTransactionsInError (storesToUpdate) {
+  var _lengthStoresToUpdate = storesToUpdate.length;
+
+  if (!_lengthStoresToUpdate) {
+    return;
+  }
+
+
+  for (var i = offlineTransactions.length - 1; i >= 0; i--) {
+    var _transaction = offlineTransactions[i];
+    for (var j = 0; j < _lengthStoresToUpdate; j++)  {
+      if (_transaction.store !== storesToUpdate[j]) {
+        continue;
+      }
+
+      if (storesToUpdate.indexOf(_transaction.store) === -1) {
+        continue;
+      }
+
+      offlineTransactionsInError.splice(1, 1, offlineTransactions.splice(i, 1));
+      indexedDB.del(_transaction.store, _transaction._id);
+    }
+  }
+}
+
+/**
+ * Save transaction in error in collection
+ */
+function _saveTransactionsInError () {
+  var _collection = lunarisExports._stores.lunarisOfflineTransactions.data;
+
+  var _version = _collection.begin();
+  for (var j = 0; j < offlineTransactionsInError.length; j++) {
+    delete offlineTransactionsInError[j]._id;
+    offlineTransactionsInError[j].isInError = true;
+    _collection.add(offlineTransactionsInError[j], _version);
+  }
+  _collection.commit(_version);
+  offlineTransactionsInError = [];
+}
+
+/**
  * Push offline HTTP transactions when online in queue
  * @param {Function} callback
  */
@@ -120,6 +166,7 @@ function pushOfflineHttpTransactions (callback) {
 
       if (!_currentTransaction) {
         isPushingOfflineTransaction = false;
+        _saveTransactionsInError();
         return callback();
       }
 
@@ -132,7 +179,15 @@ function pushOfflineHttpTransactions (callback) {
         deleteStore(_currentTransaction.store, _currentTransaction.data, _currentTransaction);
       }
 
-      transaction.commit(function () {
+      transaction.commit(function (isError) {
+        // We must hold the transaction in error and its dependent transactions
+        if (isError) {
+          offlineTransactionsInError.push(_currentTransaction);
+          if (_currentTransaction.method === OPERATIONS.INSERT) {
+            _pushDependentTransactionsInError(storeUtils.getStore(_currentTransaction.store).storesToPropagateReferences);
+          }
+        }
+
         indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
       });
     }

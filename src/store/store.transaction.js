@@ -85,15 +85,15 @@ function _end () {
   currentActionIndex     = -1;
   currentTransactionId   = -1;
   currentAction          = null;
-  isRollback             = false;
   lastEvent              = null;
 
   _sendUniqueEvents();
 
   if (endFn) {
-    endFn();
+    endFn(isRollback);
   }
 
+  isRollback             = false;
   uniqueEvents           = {};
   endFn                  = null;
 }
