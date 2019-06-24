@@ -1,16 +1,70 @@
 describe('Offline to online synchronisation', () => {
 
   beforeEach(done => {
-    lunaris.offline.isOnline = true;
     lunaris.clear('@offlineArraySync');
     lunaris.clear('@offlineObjectSync');
     lunaris.clear('@offlineReferenceSync');
     lunaris.clear('@offlineReference');
     lunaris.clear('@offlineErrorSync');
+    lunaris.clear('@lunarisOfflineTransactions');
     lunaris._indexedDB.clear('lunarisOfflineTransactions', () => {
-      lunaris._stores.lunarisOfflineTransactions.data.clear();
+      lunaris.offline.isOnline = true;
       done();
     });
+  });
+
+  it('should have added the transaction to the collection', done => {
+    lunaris.offline.isOnline = false;
+
+    lunaris.insert('@offlineArraySync', {
+      label : 'A'
+    });
+
+    let collectionItems = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
+    should(collectionItems).be.an.Array().and.have.lengthOf(1);
+    should(collectionItems[0].store).eql('offlineArraySync');
+    should(collectionItems[0].method).eql('POST');
+    should(collectionItems[0].url).eql('/offlineArraySync');
+    should(collectionItems[0].data).be.an.Object();
+
+    lunaris.offline.isOnline = true;
+
+    lunaris._pushOfflineHttpTransactions(() => {
+      lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, transactions) => {
+        should(err).not.ok();
+        should(transactions).be.an.Array().and.have.lengthOf(0);
+
+        collectionItems = lunaris._stores.offlineArraySync.data.getAll();
+        should(collectionItems).be.an.Array().and.have.lengthOf(1);
+        should(collectionItems[0].id).be.a.Number().and.eql(1);
+
+        should(lunaris._stores.offlineArraySync.data.getIndexId()).eql([
+          [1], [1]
+        ]);
+        done();
+      });
+    });
+  });
+
+  it('should have populated the collection at application startup', done => {
+    lunaris.offline.isOnline = false;
+
+    lunaris.insert('@offlineArraySync', {
+      label : 'A'
+    });
+
+    let _lunaris = lunarisInstance();
+
+    setTimeout(() => {
+      should(_lunaris._stores[lunaris.utils.offlineStore].data.getCurrentId()).eql(2);
+      should(_lunaris._stores[lunaris.utils.offlineStore].data.getCurrentRowId()).eql(2);
+
+      _lunaris.websocket.stop(() => {
+        _lunaris = null;
+        lunaris.offline.isOnline = true;
+        done();
+      });
+    }, 160);
   });
 
   it('should push offline transaction of a store array: POST', done => {
@@ -609,7 +663,7 @@ describe('Offline to online synchronisation', () => {
       });
     });
 
-    it('should should set the offline transactions in error if the transaction failed : referenced store', done => {
+    it('should set the offline transactions in error if the transaction failed : referenced store', done => {
       lunaris.offline.isOnline = false;
 
       lunaris._stores.offlineArraySync.data.add({ id : 1, label : 'A' });

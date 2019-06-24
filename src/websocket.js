@@ -113,5 +113,28 @@ module.exports = {
    */
   on : function (event, handler) {
     events[event] = handler;
+  },
+
+  /**
+   * Close websocket
+   * @param {Function} callback @optional
+   */
+  stop : function (callback) {
+    if (!ws) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
+    // set isReload to avoid auto-reconnect mecanism
+    isReload = true;
+    ws.onclose = function () {
+      if (callback) {
+        callback();
+      }
+      isReload = false;
+    };
+    ws.close();
   }
 };

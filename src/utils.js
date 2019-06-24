@@ -31,6 +31,8 @@ exports.keepTheReferenceAndChangeTheAttributes = function (obj1, obj2) {
 exports.clone  = clone;
 exports.freeze = freeze;
 
+exports.offlineStore = 'lunarisOfflineTransactions';
+
 exports.OPERATIONS = {
   DELETE : 'DELETE',
   INSERT : 'POST',
