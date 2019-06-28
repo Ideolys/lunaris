@@ -1,5 +1,6 @@
 var hook               = require('./store/store.hook.js');
 var store              = require('./store/store.js');
+var storeUtils         = require('./store/store.utils.js');
 var lunarisExports     = require('./exports.js');
 var collection         = require('./store/store.collection.js');
 var utils              = require('./utils.js');
@@ -11,6 +12,8 @@ var transaction    	   = require('./store/store.transaction.js');
 var websocket          = require('./websocket.js');
 var localStorageDriver = require('./localStorageDriver.js');
 var invalidate         = require('./invalidate.js');
+
+utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
 
 module.exports = {
   _stores             : lunarisExports._stores,

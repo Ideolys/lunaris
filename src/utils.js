@@ -193,7 +193,12 @@ exports.index = {
    */
   getValue : function getValue (value) {
     if (typeof value === 'string') {
-      return parseInt(value.slice(1), 10);
+      var _value = parseInt(value.slice(1), 10);
+      if (isNaN(_value)) {
+        return value;
+      }
+
+      return _value;
     }
 
     return value;

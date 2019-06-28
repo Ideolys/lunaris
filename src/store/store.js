@@ -143,6 +143,7 @@ function _saveTransactionsInError () {
   var _version = _collection.begin();
 
   for (var j = 0; j < offlineTransactionsInError.length; j++) {
+    _collection.remove(utils.clone(offlineTransactionsInError[j]), _version);
     delete offlineTransactionsInError[j]._id;
     offlineTransactionsInError[j].isInError = true;
     _collection.add(offlineTransactionsInError[j], _version);
@@ -184,9 +185,15 @@ function pushOfflineHttpTransactions (callback) {
         if (_currentTransaction.method === OPERATIONS.INSERT) {
           _pushDependentTransactionsInError(storeUtils.getStore(_currentTransaction.store).storesToPropagateReferences);
         }
+        hook.pushToHandlers(lunarisExports._stores.lunarisOfflineTransactions, 'syncError');
+      }
+      else {
+        hook.pushToHandlers(lunarisExports._stores.lunarisOfflineTransactions, 'syncSuccess');
       }
 
-      indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
+      lunarisExports._stores.lunarisOfflineTransactions.data.remove(_currentTransaction);
+      _processNextOfflineTransaction();
+      // indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
     });
   }
 

@@ -24,6 +24,17 @@ function getStore (storeName) {
 }
 
 /**
+ * Get translated store's name
+ * @param {String} storeName
+ * @returns {String}
+ */
+function getTranslatedStoreName (storeName) {
+  var store = getStore(storeName);
+
+  return store.nameTranslated;
+}
+
+/**
  * Get store collection
  * @param {Object} store
  * @returns {Object}
@@ -236,15 +247,15 @@ function getCache (store) {
   return store.cache;
 }
 
-exports.getStore           = getStore;
-exports.getCollection      = getCollection;
-exports.getCache           = getCache;
-exports.getPrimaryKeyValue = getPrimaryKeyValue;
-exports.setPrimaryKeyValue = setPrimaryKeyValue;
-exports.checkArgs          = checkArgs;
-
-exports.getPathValue        = getPathValue;
-exports.setPathValue        = setPathValue;
-exports.setObjectPathValues = setObjectPathValues;
-exports.getJSONPatchPath    = getJSONPatchPath;
-exports.saveState           = saveState;
+exports.getStore               = getStore;
+exports.getCollection          = getCollection;
+exports.getCache               = getCache;
+exports.getPrimaryKeyValue     = getPrimaryKeyValue;
+exports.setPrimaryKeyValue     = setPrimaryKeyValue;
+exports.checkArgs              = checkArgs;
+exports.getTranslatedStoreName = getTranslatedStoreName;
+exports.getPathValue           = getPathValue;
+exports.setPathValue           = setPathValue;
+exports.setObjectPathValues    = setObjectPathValues;
+exports.getJSONPatchPath       = getJSONPatchPath;
+exports.saveState              = saveState;

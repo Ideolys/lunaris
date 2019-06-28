@@ -88,14 +88,16 @@ function _end () {
   lastEvent              = null;
 
   _sendUniqueEvents();
+  uniqueEvents = {};
 
   if (endFn) {
-    endFn(isRollback);
-  }
+    var _fn      = endFn;
+    var _isError = isRollback;
 
-  isRollback             = false;
-  uniqueEvents           = {};
-  endFn                  = null;
+    isRollback = false;
+    endFn      = null;
+    _fn(_isError);
+  }
 }
 
 
@@ -241,7 +243,6 @@ function rollback () {
       }
       _arguments[1] = _payload;
     }
-
 
     _actionsToRollback.push({
       id        : currentAction.id,

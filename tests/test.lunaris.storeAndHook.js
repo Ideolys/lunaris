@@ -3484,6 +3484,32 @@ describe('lunaris store', function () {
       }, 100);
     });
 
+    it('should commit same store sequentially', done => {
+      lunaris._stores['store1']   = initStore('store1');
+
+      var _events = [];
+      lunaris.hook('insert@store1', () => {
+        _events.push('insert@store1');
+      });
+      lunaris.hook('inserted@store1', () => {
+        _events.push('inserted@store1');
+      });
+
+      lunaris.begin();
+      lunaris.insert('@store1', { id : 1, label : 'A' });
+      lunaris.insert('@store1', { id : 2, label : 'B' });
+
+      lunaris.commit(() => {
+        should(_events).eql([
+          'insert@store1',
+          'inserted@store1',
+          'insert@store1',
+          'inserted@store1',
+        ]);
+        done();
+      });
+    });
+
     it('should commit multiple stores sequentially', done => {
       lunaris._stores['multiple'] = initStore('multiple');
       lunaris._stores['store1']   = initStore('store1');

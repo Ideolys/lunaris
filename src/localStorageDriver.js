@@ -1,5 +1,6 @@
-var logger         = require('./logger.js');
-var lunarisExports = require('./exports.js');
+var logger            = require('./logger.js');
+var lunarisExports    = require('./exports.js');
+var offlineVersionKey = 'lunaris:indexedDB_version';
 
 var database;
 function _isDatabaseExists (dbname, callback) {
@@ -37,6 +38,12 @@ function initIndexedDB (versionNumber, stores, callback) {
   _isDatabaseExists('lunaris', function (isExisted) {
     var _request;
     if (isExisted) {
+      var _lastVersionNumber = drivers.localStorage.get(offlineVersionKey);
+
+      if (versionNumber < _lastVersionNumber) {
+        versionNumber = _lastVersionNumber;
+      }
+
       _request = window.indexedDB.open('lunaris', versionNumber);
     }
     else {
@@ -62,6 +69,8 @@ function initIndexedDB (versionNumber, stores, callback) {
     };
 
     _request.onupgradeneeded = function (e) {
+      drivers.localStorage.set(offlineVersionKey, versionNumber);
+
       var _db = e.target.result;
 
       for (var i = 0; i < stores.length; i++) {
@@ -369,7 +378,7 @@ function _clear (key, callback) {
   };
 }
 
-module.exports = {
+var drivers = {
   indexedDB : {
     init : initIndexedDB,
     /**
@@ -481,3 +490,5 @@ module.exports = {
     }
   }
 };
+
+module.exports = drivers;
