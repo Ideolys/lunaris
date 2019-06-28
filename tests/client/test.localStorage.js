@@ -1,4 +1,4 @@
-describe.only('local storage', () => {
+describe('local storage', () => {
 
   before(done => {
     lunaris._indexedDB.init(lunaris.constants.indexedDBNumber, [], (err) => {
@@ -16,6 +16,7 @@ describe.only('local storage', () => {
       lunaris.clear('@test');
       lunaris.clear('@http');
       lunaris._indexedDB.clear('http');
+      lunaris._indexedDB.clear('_invalidations');
       lunaris._stores.http.data.clear();
       lunaris.clear('@http.filter');
       lunaris.clear('@lunarisOfflineTransactions');

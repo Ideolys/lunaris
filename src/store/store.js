@@ -1,23 +1,26 @@
-var lunarisExports  = require('../exports.js');
-var hook            = require('./store.hook.js');
-var utils           = require('../utils.js');
-var storeUtils      = require('./store.utils.js');
-var http            = require('../http.js');
-var logger          = require('../logger.js');
-var cache           = require('../cache.js');
-var md5             = require('../md5.js');
-var url             = require('./store.url.js');
-var template        = require('./store.template.js');
-var collection      = require('./store.collection.js');
-var offline         = require('../offline.js');
-var storeOffline    = require('./store.offline.js');
-var transaction     = require('./store.transaction.js');
-var indexedDB       = require('../localStorageDriver.js').indexedDB;
-var OPERATIONS      = utils.OPERATIONS;
-var emptyObject     = {};
-var getRequestQueue = {};
-var stores          = [];
-var OFFLINE_STORE   = 'lunarisOfflineTransactions';
+var lunarisExports              = require('../exports.js');
+var hook                        = require('./store.hook.js');
+var utils                       = require('../utils.js');
+var storeUtils                  = require('./store.utils.js');
+var http                        = require('../http.js');
+var logger                      = require('../logger.js');
+var cache                       = require('../cache.js');
+var md5                         = require('../md5.js');
+var url                         = require('./store.url.js');
+var template                    = require('./store.template.js');
+var collection                  = require('./store.collection.js');
+var offline                     = require('../offline.js');
+var storeOffline                = require('./store.offline.js');
+var transaction                 = require('./store.transaction.js');
+var indexedDB                   = require('../localStorageDriver.js').indexedDB;
+var OPERATIONS                  = utils.OPERATIONS;
+var emptyObject                 = {};
+var getRequestQueue             = {};
+var stores                      = [];
+var OFFLINE_STORE               = utils.offlineStore;
+var isPushingOfflineTransaction = false;
+var offlineTransactions         = [];
+var offlineTransactionsInError  = [];
 
 lunarisExports._stores.lunarisErrors = {
   name                  : 'lunarisErrors',
@@ -49,39 +52,153 @@ lunarisExports._stores.lunarisOfflineTransactions = {
 };
 
 /**
+ * get an object from a store's collection
+ * @param {String} storeName
+ * @param {Int} _id
+ * @returns {Object}
+ */
+function _getObjectFromCollection (storeName, _id) {
+  var _collection = storeUtils.getCollection(storeUtils.getStore(storeName));
+
+  if (!_collection) {
+    return;
+  }
+
+  return _collection.get(_id);
+}
+
+/**
+ * Update offline transaction data
+ * When an object has been POST, we must update the data in next transactions operations
+ * We only update stores that have references. Because, only references have an impact.
+ * @param {Array} storesToUpdate ['store1', 'storeN']
+ */
+function _updateOfflineTransactionData (storesToUpdate) {
+  var _lengthStoresToUpdate = storesToUpdate.length;
+
+  if (!_lengthStoresToUpdate) {
+    return;
+  }
+
+
+  for (var i = 0, len = offlineTransactions.length; i < len; i++) {
+    var _transaction = offlineTransactions[i];
+    for (var j = 0; j < _lengthStoresToUpdate; j++)  {
+      if (_transaction.store !== storesToUpdate[j]) {
+        continue;
+      }
+
+      if (storesToUpdate.indexOf(_transaction.store) === -1) {
+        continue;
+      }
+
+      if (Array.isArray(_transaction.data)) {
+        for (var k = 0; k < _transaction.data.length; k++) {
+          _transaction.data[k] = _getObjectFromCollection(storesToUpdate[j], _transaction.data[k]._id);
+        }
+
+        continue;
+      }
+
+      _transaction.data = _getObjectFromCollection(storesToUpdate[j], _transaction.data._id);
+    }
+  }
+}
+
+/**
+ * Push dependent transaction in error to error array
+ * @param {Array} storesToUpdate
+ */
+function _pushDependentTransactionsInError (storesToUpdate) {
+  var _lengthStoresToUpdate = storesToUpdate.length;
+
+  if (!_lengthStoresToUpdate) {
+    return;
+  }
+
+
+  for (var i = offlineTransactions.length - 1; i >= 0; i--) {
+    var _transaction = offlineTransactions[i];
+    for (var j = 0; j < _lengthStoresToUpdate; j++)  {
+      if (_transaction.store !== storesToUpdate[j]) {
+        continue;
+      }
+
+      if (storesToUpdate.indexOf(_transaction.store) === -1) {
+        continue;
+      }
+
+      indexedDB.del(OFFLINE_STORE, _transaction._id);
+      offlineTransactionsInError.splice(1, 0, offlineTransactions.splice(i, 1)[0]);
+    }
+  }
+}
+
+/**
+ * Save transaction in error in collection
+ */
+function _saveTransactionsInError () {
+  var _collection = lunarisExports._stores.lunarisOfflineTransactions.data;
+
+  var _version = _collection.begin();
+
+  for (var j = 0; j < offlineTransactionsInError.length; j++) {
+    _collection.remove(utils.clone(offlineTransactionsInError[j]), _version);
+    delete offlineTransactionsInError[j]._id;
+    offlineTransactionsInError[j].isInError = true;
+    _collection.add(offlineTransactionsInError[j], _version);
+  }
+  _collection.commit(_version);
+  offlineTransactionsInError = [];
+  storeUtils.saveState(lunarisExports._stores.lunarisOfflineTransactions, _collection);
+}
+
+/**
  * Push offline HTTP transactions when online in queue
  * @param {Function} callback
  */
 function pushOfflineHttpTransactions (callback) {
-  indexedDB.getAll(OFFLINE_STORE, function (err, offlineTransactions) {
-    if (err) {
+  offlineTransactions = lunarisExports._stores.lunarisOfflineTransactions.data.getAll();
+
+  function _processNextOfflineTransaction () {
+    var _currentTransaction = offlineTransactions.shift();
+
+    if (!_currentTransaction) {
+      isPushingOfflineTransaction = false;
+      _saveTransactionsInError();
       return callback();
     }
 
-    function _processNextOfflineTransaction () {
-      var _currentTransaction = offlineTransactions.shift();
-
-      if (!_currentTransaction) {
-        return callback();
-      }
-
-      transaction.begin();
-      if (_currentTransaction.method === OPERATIONS.INSERT || _currentTransaction.method === OPERATIONS.UPDATE) {
-        upsert(_currentTransaction.store, _currentTransaction.data, false, _currentTransaction);
-      }
-
-      if (_currentTransaction.method === OPERATIONS.DELETE) {
-        deleteStore(_currentTransaction.store, _currentTransaction.data, _currentTransaction);
-      }
-
-      transaction.commit(function () {
-        console.log(_currentTransaction);
-        indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
-      });
+    transaction.begin();
+    if (_currentTransaction.method === OPERATIONS.INSERT || _currentTransaction.method === OPERATIONS.UPDATE) {
+      upsert(_currentTransaction.store, _currentTransaction.data, false, _currentTransaction);
     }
 
-    _processNextOfflineTransaction();
-  });
+    if (_currentTransaction.method === OPERATIONS.DELETE) {
+      deleteStore(_currentTransaction.store, _currentTransaction.data, _currentTransaction);
+    }
+
+    transaction.commit(function (isError) {
+      // We must hold the transaction in error and its dependent transactions
+      if (isError) {
+        offlineTransactionsInError.push(_currentTransaction);
+        if (_currentTransaction.method === OPERATIONS.INSERT) {
+          _pushDependentTransactionsInError(storeUtils.getStore(_currentTransaction.store).storesToPropagateReferences);
+        }
+        hook.pushToHandlers(lunarisExports._stores.lunarisOfflineTransactions, 'syncError');
+      }
+      else {
+        hook.pushToHandlers(lunarisExports._stores.lunarisOfflineTransactions, 'syncSuccess');
+      }
+
+      lunarisExports._stores.lunarisOfflineTransactions.data.remove(_currentTransaction);
+      _processNextOfflineTransaction();
+      // indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
+    });
+  }
+
+  isPushingOfflineTransaction = true;
+  _processNextOfflineTransaction();
 }
 
 /**
@@ -213,14 +330,16 @@ function setOfflineHttpTransaction (storeName, method, request, value) {
   var _collection   = lunarisExports._stores.lunarisOfflineTransactions.data;
   var _transactions = _collection.getAll();
 
-  _clear('lunarisOfflineTransactions', true);
+  _clear(OFFLINE_STORE, true);
   _computeStoreTransactions(_transactions, storeName, method, request, value);
 
   var _version = _collection.begin();
   for (var i = 0; i < _transactions.length; i++) {
+    delete _transactions[i]._id;
     _collection.add(_transactions[i], _version);
   }
   _collection.commit(_version);
+  storeUtils.saveState(lunarisExports._stores.lunarisOfflineTransactions, _collection);
 }
 
 /**
@@ -268,7 +387,7 @@ function _propagate (store, data, operation, transactionId) {
 /**
  * Propagate references to the dependent stores (joins)
  * @param {Object} store
- * @param {Object} data
+ * @param {Object/Array} data
  * @param {Int} transactionId
  */
 function _propagateReferences (store, data, transactionId) {
@@ -358,6 +477,19 @@ function setLunarisError (storeName, method, request, value, version, err, error
 }
 
 /**
+ * Update collection index id value
+ * When offline push, we must replace offline generated primary key by new one returned by server
+ * @param {Object} store
+ * @param {Object} collection
+ * @param {Object} value
+ */
+function _updateCollectionIndexId (store, collection, value) {
+  var pkFn = store.getPrimaryKeyFn || storeUtils.getPrimaryKeyValue;
+
+  collection.setIndexIdValue(value._id, pkFn(value));
+}
+
+/**
  * Upsert collection
  * @param {Object} store
  * @param {Object} collection
@@ -388,13 +520,8 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
     version = collection.begin();
     if (isMultipleItems) {
       for (i = 0; i < value.length; i++) {
-        // If offline set PK
-        if (!offline.isOnline && !isUpdate) {
-          storeUtils.setPrimaryKeyValue(store, value[i], collection.getCurrentId());
-        }
         // Set value if mass operation have been applied to the store
         storeUtils.setObjectPathValues(store.massOperations, value[i]);
-
         collection.upsert(value[i], version);
       }
     }
@@ -417,6 +544,16 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
   }
 
   value = collection.commit(version);
+
+  // If offline set PK
+  if (isMultipleItems && !offline.isOnline && !isUpdate) {
+    version = collection.begin();
+    for (i = 0; i < value.length; i++) {
+      storeUtils.setPrimaryKeyValue(store, value[i], value[i]._id);
+      collection.upsert(value[i], version);
+    }
+    value = collection.commit(version);
+  }
 
   cache.invalidate(store.name);
 
@@ -455,7 +592,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
   }
 
   afterAction(store, isUpdate ? 'update' : 'insert', value, null, transactionId);
-  _propagateReferences(store, value, transactionId);
+  _propagateReferences(store, value, null, transactionId);
   _propagate(store, value, _method, transactionId);
   storeUtils.saveState(store, collection);
 
@@ -502,6 +639,11 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
       value        = utils.merge(value, data);
       var _version = collection.begin();
       collection.upsert(value, _version);
+
+      if (isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
+        _updateCollectionIndexId(store, collection, value);
+      }
+
       value = collection.commit(_version);
       // the value must have been deleted
       if (!value) {
@@ -517,17 +659,31 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
           for (var j = 0; j < data.length; j++) {
             if (value[i]._id === data[j]._id) {
               value[i] = utils.merge(utils.clone(value[i]), data[j]);
+
               collection.upsert(value[i], _version);
+
+              if (isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
+                _updateCollectionIndexId(store, collection, value[i]);
+              }
             }
           }
         }
         else {
           value[i] = utils.merge(value[i], data);
           collection.upsert(value[i], _version);
+
+          if (isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
+            _updateCollectionIndexId(store, collection, value[i]);
+          }
         }
       }
 
       value = collection.commit(_version);
+    }
+
+    if (isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
+      _propagateReferences(store, value, transactionId);
+      _updateOfflineTransactionData(store.storesToPropagateReferences);
     }
 
     if (!_isEvent) {

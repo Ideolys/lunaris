@@ -93,3 +93,10 @@ try {
 catch (e) {
   exports.isOfflineStrategies = [];
 }
+
+try {
+  exports.isOfflineSync = IS_OFFLINE_SYNC;
+}
+catch (e) {
+  exports.isOfflineSync = [];
+}

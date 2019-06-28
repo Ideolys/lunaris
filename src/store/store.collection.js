@@ -257,7 +257,6 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return _data.push(value);
     }
 
-
     _arrayIdValues = _indexes.id[0];
     _search        = index.binarySearch(_arrayIdValues, _id);
     // We upsert the last version of the object
@@ -616,6 +615,10 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       data = [data];
     }
 
+    if (!(data && data.length)) {
+      return;
+    }
+
     var _version = begin();
     for (var i = 0; i < _data.length; i++) {
       var _item         = _data[i];
@@ -624,14 +627,11 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
         // Remember, we cannot directly edit a value from the collection (clone)
         var _obj = utils.clone(_item);
-        if (data && data.length) {
-          for (var j = 0; j < data.length; j++) {
-            _obj = _referencesDescriptor.referencesFn.update[store](_referencesDescriptor.getPrimaryKeyFns[store], data[j], _obj);
-          }
-
-          upsert(_obj, _version);
+        for (var j = 0; j < data.length; j++) {
+          _obj = _referencesDescriptor.referencesFn.update[store](_referencesDescriptor.getPrimaryKeyFns[store], data[j], _obj);
         }
 
+        upsert(_obj, _version);
       }
     }
 
