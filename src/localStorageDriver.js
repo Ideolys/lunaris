@@ -50,8 +50,8 @@ function initIndexedDB (versionNumber, stores, callback) {
       _request = window.indexedDB.open('lunaris');
     }
 
-    _request.onError = function (e) {
-      logger.warn('Error when requesting indexedDB', e);
+    _request.onerror = function (e) {
+      logger.warn('Error when requesting indexedDB', e.target.error);
       if (callback) {
         callback(true);
       }
@@ -63,7 +63,7 @@ function initIndexedDB (versionNumber, stores, callback) {
         callback(null, database);
       }
 
-      database.onError = function (e) {
+      database.onerror = function (e) {
         logger.warn('[IndexedDB]', e.target.errorCode);
       };
     };
