@@ -13,7 +13,7 @@
         </div>
       </div>
       <div>
-        <h3 class="has-text-light subtitle subtitle-is-3" style="margin-top: 2rem">{{ getNumberOfOfflineTransactions() }} action(s) to synchronize</h3>
+        <h3 class="has-text-light subtitle subtitle-is-3" style="margin-top: 2rem">{{ getNumberOfOfflineTransactions() }} ${action(s) to synchronize}</h3>
         <div v-for="transaction in $lunarisOfflineTransactions" :key="transaction.id" style="padding-bottom: .3rem">
           <b-icon
             icon="circle"
@@ -52,7 +52,7 @@
         ${An error occured}
       </h3>
       <div>
-        <p class="subtitle is-4 has-text-light">The following action(s) have not been synchronized</p>
+        <p class="subtitle is-4 has-text-light">${The following action(s) have not been synchronized}</p>
         <div v-for="transaction in $lunarisOfflineTransactions" :key="transaction.id" style="padding-bottom: .3rem">
           <b-icon
             icon="circle"
