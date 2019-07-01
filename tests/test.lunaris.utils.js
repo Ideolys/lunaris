@@ -96,4 +96,104 @@ describe('utils', () => {
       });
     });
   });
+
+  describe('binarySearch', () => {
+
+    it('should not found the int in the collection', () => {
+      should(utils.index.binarySearch([], 0)).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], 1)).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], 1000)).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], -1)).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], -0)).eql({ index : 0, found : false });
+
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], 10)).eql({
+        index : 5,
+        found : false
+      });
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], -3)).eql({
+        index : 0,
+        found : false
+      });
+    });
+
+    it('should found the int in the collection', () => {
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], 0)).eql({
+        index : 2,
+        found : true
+      });
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], -1)).eql({
+        index : 1,
+        found : true
+      });
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], -1)).eql({
+        index : 1,
+        found : true
+      });
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], 2)).eql({
+        index : 4,
+        found : true
+      });
+    });
+
+    it('should not found the string in the collection : _int', () => {
+      should(utils.index.binarySearch([], '_0')).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], '_1')).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], '_1000')).eql({ index : 0, found : false });
+
+      should(utils.index.binarySearch(['_1', '_2', '_3'], '_10')).eql({
+        index : 3,
+        found : false
+      });
+      should(utils.index.binarySearch(['_1', '_2', '_4'], '_3')).eql({
+        index : 2,
+        found : false
+      });
+    });
+
+    it('should found the string in the collection : _int', () => {
+      should(utils.index.binarySearch(['_1', '_2', '_3'], '_2')).eql({
+        index : 1,
+        found : true
+      });
+      should(utils.index.binarySearch(['_1', '_2', '_4'], '_4')).eql({
+        index : 2,
+        found : true
+      });
+    });
+
+    it('should not found the string in the collection', () => {
+      should(utils.index.binarySearch([], '0')).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], '1')).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], '1000')).eql({ index : 0, found : false });
+      should(utils.index.binarySearch(['1', '2', '3'], '10')).eql({
+        index : 3,
+        found : false
+      });
+      should(utils.index.binarySearch(['1', '2', '4'], '3')).eql({
+        index : 2,
+        found : false
+      });
+      should(utils.index.binarySearch(['1-1-1', '1-1-2', '1-1-3'], '1-2-1')).eql({
+        index : 3,
+        found : false
+      });
+    });
+
+    it('should found the string in the collection', () => {
+      should(utils.index.binarySearch(['1', '2', '3'], '2')).eql({
+        index : 1,
+        found : true
+      });
+      should(utils.index.binarySearch(['1', '2', '4'], '4')).eql({
+        index : 2,
+        found : true
+      });
+      should(utils.index.binarySearch(['1-1-1', '1-1-2', '1-1-3'], '1-1-2')).eql({
+        index : 1,
+        found : true
+      });
+    });
+
+
+  });
 });

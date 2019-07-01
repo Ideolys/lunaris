@@ -193,9 +193,9 @@ exports.index = {
    */
   getValue : function getValue (value) {
     if (typeof value === 'string') {
-      var _value = parseInt(value.slice(1), 10);
-      if (isNaN(_value)) {
-        return value;
+      var _value = value.replace(/^_/, '');
+      if (/^-?[0-9]+$/.test(_value)) {
+        return parseInt(_value, 10);
       }
 
       return _value;
