@@ -1,6 +1,7 @@
 # Lunaris
 
 ## 1.10.0
+*2019-07-01*
 - Features:
   - Add `isOffline` option to disable offline support for a filter.
   - Add `attributeUrl` option to customize filter name in the url.
