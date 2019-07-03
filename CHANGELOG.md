@@ -1,5 +1,10 @@
 # Lunaris
 
+## 1.x.x
+- Features:
+- Fix:
+  - Display primary key tip only for array stores.
+
 ## 1.10.0
 *2019-07-01*
 - Features:

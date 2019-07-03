@@ -65,7 +65,7 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
   if (store.getPrimaryKeyFn) {
     return store.getPrimaryKeyFn.call(null, value);
   }
-  if (!store.primaryKey) {
+  if (!store.primaryKey && !store.isStoreObject) {
     logger.tip(
       'No primary key has been found in store "' + store.name + '", fallback to lunaris object attribute "_id".',
       'To declare a primary key, use the notation [\'<<int>>\'] in the map or add the \'primaryKey\' attribute in the store description.'
