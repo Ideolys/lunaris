@@ -2,6 +2,7 @@
 
 ## 1.x.x
 - Features:
+  - Add `lunaris._removeAllHooks` to remove all hooks.
 - Fix:
   - Display primary key tip only for array stores.
 

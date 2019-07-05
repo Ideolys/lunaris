@@ -1,5 +1,6 @@
-var logger      = require('../logger.js');
-var transaction = require('./store.transaction.js');
+var logger         = require('../logger.js');
+var transaction    = require('./store.transaction.js');
+var lunarisExports = require('../exports.js');
 
 transaction.registerHookFn(pushToHandlers);
 
@@ -35,8 +36,9 @@ function _isFunction (handler) {
  * @param {String} hook must be <action>@<store>
  * @param {Function} handler
  * @param {Boolean} isUnique default false, if true, check if the handler already exists
+ * @param {Boolean} isInternalHook
  */
-function registerHook (hook, handler, isUnique) {
+function registerHook (hook, handler, isUnique, isInternalHook) {
   try {
     _isFunction(handler);
     var _hook          = _extractHookAndStore(hook);
@@ -46,8 +48,13 @@ function registerHook (hook, handler, isUnique) {
       throw new Error('Cannot register hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
     }
 
+    if (!_store.isInternalHooks) {
+      _store.isInternalHooks = {};
+    }
+
     if (!_store.hooks[_hook.event]) {
-      _store.hooks[_hook.event] = [];
+      _store.hooks[_hook.event]           = [];
+      _store.isInternalHooks[_hook.event] = [];
     }
 
     if (isUnique) {
@@ -66,6 +73,7 @@ function registerHook (hook, handler, isUnique) {
     }
 
     _store.hooks[_hook.event].push(handler);
+    _store.isInternalHooks[_hook.event].push(isInternalHook || false);
   }
   catch (e) {
     logger.warn(['lunaris.hook:' + hook], e);
@@ -96,6 +104,7 @@ function removeHook (hook, handler) {
     for (var i = 0; i < _handlers.length; i++) {
       if (_handlers[i] === handler) {
         _handlers.splice(i, 1);
+        _store.isInternalHooks[_hook.event].splice(i, 1);
       }
     }
   }
@@ -146,6 +155,31 @@ function pushToHandlers (store, hook, payload, isMultipleArgsPayload, transactio
   }
 }
 
+/**
+ * Remove all hooks
+ * Internal hooks are not removed
+ */
+function removeAllHooks () {
+  var _stores = lunarisExports._stores;
+  for (var _storename in _stores) {
+    var _hooks = _stores[_storename].hooks;
+    for (var _hook in _hooks) {
+      var _handlers        = _hooks[_hook];
+      var _isInternalHooks =  _stores[_storename].isInternalHooks[_hook];
+
+      for (var i = _handlers.length - 1; i >= 0; i--) {
+        if (_isInternalHooks && _isInternalHooks[i]) {
+          continue;
+        }
+
+        _handlers.splice(i, 1);
+        _isInternalHooks.splice(i, 1);
+      }
+    }
+  }
+}
+
 exports.hook           = registerHook;
 exports.removeHook     = removeHook;
 exports.pushToHandlers = pushToHandlers;
+exports.removeAllHooks = removeAllHooks;

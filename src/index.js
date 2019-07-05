@@ -22,6 +22,7 @@ module.exports = {
   _cache              : cache,
   _resetVersionNumber : collection.resetVersionNumber,
   _indexedDB          : localStorageDriver.indexedDB,
+  _removeAllHooks     : hook.removeAllHooks,
 
   utils  : utils,
   logger : logger,
