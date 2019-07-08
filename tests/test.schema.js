@@ -2220,6 +2220,20 @@ describe('Schema', () => {
       }
     });
 
+    it ('should throw an error if the store is try to reference itself', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['ref', '@elements']
+      };
+
+      try {
+        schema.analyzeDescriptor(_objectDescriptor, 'elements');
+      }
+      catch (e) {
+        should(e.message).eql('Lunaris.map: for attribute "elements", the "ref" cannot be the current store');
+      }
+    });
+
     it ('should find a reference', () => {
       var _objectDescriptor = {
         id       : ['<<id>>'],
