@@ -1,12 +1,14 @@
 var logger         = require('./logger.js');
 var invalidate     = require('./invalidate.js');
 var lunarisExports = require('./exports.js');
+var offline        = require('./offline.js');
 
 var ws                      = null;
 var lastInterval            = 200;
 var reconnectInterval       = 200;
 var reconnectIntervalMax    = (20 * 1000);
 var reconnectIntervalFactor = 1.2; // multiply last interval to slow down reconnection frequency
+var timeout                 = null;
 
 var isReload = false;
 
@@ -32,7 +34,11 @@ function reconnect (host) {
 
   logger.info('[Websocket]', 'Reconnect to websocket server in ' + lastInterval.toFixed(2) + 'ms');
 
-  setTimeout(function () {
+  timeout = setTimeout(function () {
+    if (!offline.isOnline) {
+      clearTimeout(timeout);
+    }
+
     connect(host);
   }, lastInterval);
 }
@@ -113,5 +119,28 @@ module.exports = {
    */
   on : function (event, handler) {
     events[event] = handler;
+  },
+
+  /**
+   * Close websocket
+   * @param {Function} callback @optional
+   */
+  stop : function (callback) {
+    if (!ws) {
+      if (callback) {
+        callback();
+      }
+      return;
+    }
+
+    // set isReload to avoid auto-reconnect mecanism
+    isReload = true;
+    ws.onclose = function () {
+      if (callback) {
+        callback();
+      }
+      isReload = false;
+    };
+    ws.close();
   }
 };

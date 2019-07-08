@@ -2226,7 +2226,7 @@ describe('lunaris store', function () {
 
       lunaris.hook('get@required', items => {
         should(items).eql([
-          { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [2] }
+          { _rowId : 5, _id : 1, id : 1, label : 'A', _version : [3] }
         ]);
         should(Object.isFrozen(items[0])).eql(true);
         should(_hasBeenCalled).eql(false);
@@ -2276,8 +2276,8 @@ describe('lunaris store', function () {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _rowId : 1, _id : 1, id : 1, label : 'A', site : { id : 1 }, _version : [2] },
-          { _rowId : 3, _id : 3, id : 3, label : 'C', site : { id : 1 }, _version : [2] },
+          { _rowId : 5, _id : 1, id : 1, label : 'A', site : { id : 1 }, _version : [3] },
+          { _rowId : 7, _id : 3, id : 3, label : 'C', site : { id : 1 }, _version : [3] },
         ]);
         should(Object.isFrozen(items[0])).eql(true);
         should(Object.isFrozen(items[1])).eql(true);
@@ -2330,8 +2330,8 @@ describe('lunaris store', function () {
 
       lunaris.hook('get@optional', items => {
         should(items).eql([
-          { _rowId : 1, _id : 1, id : 1, label : 'A', site : { id : 2 }, _version : [2] },
-          { _rowId : 2, _id : 2, id : 2, label : 'B', site : { id : 2 }, _version : [2] },
+          { _rowId : 5, _id : 1, id : 1, label : 'A', site : { id : 2 }, _version : [3] },
+          { _rowId : 6, _id : 2, id : 2, label : 'B', site : { id : 2 }, _version : [3] },
         ]);
         should(Object.isFrozen(items[0])).eql(true);
         should(Object.isFrozen(items[1])).eql(true);
@@ -3482,6 +3482,32 @@ describe('lunaris store', function () {
         ]);
         done();
       }, 100);
+    });
+
+    it('should commit same store sequentially', done => {
+      lunaris._stores['store1']   = initStore('store1');
+
+      var _events = [];
+      lunaris.hook('insert@store1', () => {
+        _events.push('insert@store1');
+      });
+      lunaris.hook('inserted@store1', () => {
+        _events.push('inserted@store1');
+      });
+
+      lunaris.begin();
+      lunaris.insert('@store1', { id : 1, label : 'A' });
+      lunaris.insert('@store1', { id : 2, label : 'B' });
+
+      lunaris.commit(() => {
+        should(_events).eql([
+          'insert@store1',
+          'inserted@store1',
+          'insert@store1',
+          'inserted@store1',
+        ]);
+        done();
+      });
     });
 
     it('should commit multiple stores sequentially', done => {
@@ -5867,6 +5893,107 @@ describe('Lunaris hooks', () => {
       should(lunaris._stores['store1'].hooks.get[0]).be.a.Function();
       should(lunaris._stores['store1'].hooks.get[0]).eql(_handler2);
       delete lunaris._stores['store1'];
+    });
+
+    it('should remove all handlers of one store', () => {
+      var _handler1             = function handler1 () {};
+      var _handler2             = function handler1 () {};
+      lunaris._stores['store1'] = { hooks : {} };
+      lunaris.hook('get@store1', _handler1);
+      lunaris.hook('get@store1', _handler2);
+      should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(2);
+      lunaris._removeAllHooks();
+      should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      delete lunaris._stores['store1'];
+    });
+
+    it('should remove all handlers of multiple stores', () => {
+      var _handler1             = function handler1 () {};
+      var _handler2             = function handler1 () {};
+      lunaris._stores['store1'] = { hooks : {} };
+      lunaris._stores['store2'] = { hooks : {} };
+      lunaris._stores['store3'] = { hooks : {} };
+      lunaris.hook('get@store1', _handler1);
+      lunaris.hook('get@store1', _handler2);
+      lunaris.hook('get@store2', _handler1);
+      lunaris.hook('get@store3', _handler1);
+      lunaris.hook('get@store3', _handler2);
+      should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(2);
+      should(lunaris._stores['store2'].hooks.get).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store3'].hooks.get).be.an.Array().and.have.lengthOf(2);
+      lunaris._removeAllHooks();
+      should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store2'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      delete lunaris._stores['store1'];
+      delete lunaris._stores['store2'];
+      delete lunaris._stores['store3'];
+    });
+
+    it('should remove all handlers of multiple stores : extended', () => {
+      var _handler1             = function handler1 () {};
+      var _handler2             = function handler1 () {};
+      lunaris._stores['store1'] = { hooks : {} };
+      lunaris._stores['store2'] = { hooks : {} };
+      lunaris._stores['store3'] = { hooks : {} };
+      lunaris.hook('get@store1', _handler1);
+      lunaris.hook('get@store1', _handler2);
+      lunaris.hook('update@store1', _handler2);
+      lunaris.hook('get@store2', _handler1);
+      lunaris.hook('get@store3', _handler1);
+      lunaris.hook('get@store3', _handler2);
+      lunaris.hook('del@store3', _handler2);
+      lunaris.hook('error@store3', _handler2);
+      lunaris.hook('error@store3', _handler1);
+      should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(2);
+      should(lunaris._stores['store1'].hooks.update).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store2'].hooks.get).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store3'].hooks.get).be.an.Array().and.have.lengthOf(2);
+      should(lunaris._stores['store3'].hooks.del).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store3'].hooks.error).be.an.Array().and.have.lengthOf(2);
+      lunaris._removeAllHooks();
+      should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store1'].hooks.update).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store2'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].hooks.del).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].hooks.error).be.an.Array().and.have.lengthOf(0);
+      delete lunaris._stores['store1'];
+      delete lunaris._stores['store2'];
+      delete lunaris._stores['store3'];
+    });
+
+    it('should not remove internal hooks', () => {
+      var _handler1             = function handler1 () {};
+      var _handler2             = function handler1 () {};
+      lunaris._stores['store1'] = { hooks : {} };
+      lunaris._stores['store2'] = { hooks : {} };
+      lunaris._stores['store3'] = { hooks : {} };
+      lunaris.hook('get@store1', _handler1, false, true);
+      lunaris.hook('get@store1', _handler2);
+      lunaris.hook('update@store1', _handler2);
+      lunaris.hook('get@store2', _handler1);
+      lunaris.hook('get@store3', _handler1, false, true);
+      lunaris.hook('get@store3', _handler2);
+      lunaris.hook('del@store3', _handler2);
+      lunaris.hook('error@store3', _handler2, false, true);
+      lunaris.hook('error@store3', _handler1, false, true);
+      should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(2);
+      should(lunaris._stores['store1'].hooks.update).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store2'].hooks.get).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store3'].hooks.get).be.an.Array().and.have.lengthOf(2);
+      should(lunaris._stores['store3'].hooks.del).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store3'].hooks.error).be.an.Array().and.have.lengthOf(2);
+      lunaris._removeAllHooks();
+      should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store1'].hooks.update).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store2'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].hooks.get).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store3'].hooks.del).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].hooks.error).be.an.Array().and.have.lengthOf(2);
+      delete lunaris._stores['store1'];
+      delete lunaris._stores['store2'];
+      delete lunaris._stores['store3'];
     });
   });
 });

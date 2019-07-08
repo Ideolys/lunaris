@@ -1,5 +1,6 @@
 var hook               = require('./store/store.hook.js');
 var store              = require('./store/store.js');
+var storeUtils         = require('./store/store.utils.js');
 var lunarisExports     = require('./exports.js');
 var collection         = require('./store/store.collection.js');
 var utils              = require('./utils.js');
@@ -12,6 +13,8 @@ var websocket          = require('./websocket.js');
 var localStorageDriver = require('./localStorageDriver.js');
 var invalidate         = require('./invalidate.js');
 
+utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
+
 module.exports = {
   _stores             : lunarisExports._stores,
   _collection         : collection.collection,
@@ -19,6 +22,7 @@ module.exports = {
   _cache              : cache,
   _resetVersionNumber : collection.resetVersionNumber,
   _indexedDB          : localStorageDriver.indexedDB,
+  _removeAllHooks     : hook.removeAllHooks,
 
   utils  : utils,
   logger : logger,

@@ -31,6 +31,8 @@ exports.keepTheReferenceAndChangeTheAttributes = function (obj1, obj2) {
 exports.clone  = clone;
 exports.freeze = freeze;
 
+exports.offlineStore = 'lunarisOfflineTransactions';
+
 exports.OPERATIONS = {
   DELETE : 'DELETE',
   INSERT : 'POST',
@@ -185,21 +187,42 @@ exports.index = {
   },
 
   /**
+   * Get value
+   * @param {String/Int} value if string value equals '_integer', ex: '_1'
+   * @returns {Int}
+   */
+  getValue : function getValue (value) {
+    if (typeof value === 'string') {
+      var _value = value.replace(/^_/, '');
+      if (/^-?[0-9]+$/.test(_value)) {
+        return parseInt(_value, 10);
+      }
+
+      return _value;
+    }
+
+    return value;
+  },
+
+  /**
    * BinarySearh
    * @param {Array} array
    * @param {*} value
    * @returns {Object} { found : Boolean, index : Int }
    */
   binarySearch : function binarySearch (array, value) {
-    var lo = 0;
-    var hi = array.length;
+    var lo  = 0;
+    var hi  = array.length;
+    var val = this.getValue(value);
     var compared;
     var mid;
-
+    var comparedValue;
 
     while (lo < hi) {
-      mid = ((lo + hi) / 2) | 0;
-      compared = this.sort(value, array[mid]);
+      mid           = ((lo + hi) / 2) | 0;
+      comparedValue = this.getValue(array[mid]);
+      compared      = this.sort(val, comparedValue);
+
       if (compared === 0) {
         return {
           found : true,

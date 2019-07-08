@@ -24,6 +24,17 @@ function getStore (storeName) {
 }
 
 /**
+ * Get translated store's name
+ * @param {String} storeName
+ * @returns {String}
+ */
+function getTranslatedStoreName (storeName) {
+  var store = getStore(storeName);
+
+  return store.nameTranslated;
+}
+
+/**
  * Get store collection
  * @param {Object} store
  * @returns {Object}
@@ -54,7 +65,7 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
   if (store.getPrimaryKeyFn) {
     return store.getPrimaryKeyFn.call(null, value);
   }
-  if (!store.primaryKey) {
+  if (!store.primaryKey && !store.isStoreObject) {
     logger.tip(
       'No primary key has been found in store "' + store.name + '", fallback to lunaris object attribute "_id".',
       'To declare a primary key, use the notation [\'<<int>>\'] in the map or add the \'primaryKey\' attribute in the store description.'
@@ -236,15 +247,15 @@ function getCache (store) {
   return store.cache;
 }
 
-exports.getStore           = getStore;
-exports.getCollection      = getCollection;
-exports.getCache           = getCache;
-exports.getPrimaryKeyValue = getPrimaryKeyValue;
-exports.setPrimaryKeyValue = setPrimaryKeyValue;
-exports.checkArgs          = checkArgs;
-
-exports.getPathValue        = getPathValue;
-exports.setPathValue        = setPathValue;
-exports.setObjectPathValues = setObjectPathValues;
-exports.getJSONPatchPath    = getJSONPatchPath;
-exports.saveState           = saveState;
+exports.getStore               = getStore;
+exports.getCollection          = getCollection;
+exports.getCache               = getCache;
+exports.getPrimaryKeyValue     = getPrimaryKeyValue;
+exports.setPrimaryKeyValue     = setPrimaryKeyValue;
+exports.checkArgs              = checkArgs;
+exports.getTranslatedStoreName = getTranslatedStoreName;
+exports.getPathValue           = getPathValue;
+exports.setPathValue           = setPathValue;
+exports.setObjectPathValues    = setObjectPathValues;
+exports.getJSONPatchPath       = getJSONPatchPath;
+exports.saveState              = saveState;
