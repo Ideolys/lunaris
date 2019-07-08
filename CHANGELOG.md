@@ -5,6 +5,7 @@
   - Add `lunaris._removeAllHooks` to remove all hooks.
 - Fix:
   - Display primary key tip only for array stores.
+  - Fix store compilation when using multi stores registration.
 
 ## 1.10.0
 *2019-07-01*
