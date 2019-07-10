@@ -966,7 +966,7 @@ describe('lunaris store', function () {
         }
         else if (_nbCalled === 2) {
           should(items).eql([
-            { _rowId : 9, id : 1, _id : 1, _version : [3], post : true, label : 'A' },
+            { _rowId : 9 , id : 1, _id : 1, _version : [3], post : true, label : 'A' },
             { _rowId : 10, id : 2, _id : 2, _version : [3], post : true, label : 'A' },
             { _rowId : 11, id : 3, _id : 3, _version : [3], post : true, label : 'A' },
             { _rowId : 12, id : 4, _id : 4, _version : [3], post : true, label : 'A' }

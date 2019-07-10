@@ -1,6 +1,34 @@
+/**
+ * Clone a value
+ * @param {*} value
+ * We do not use JSON.parse(JSON.stringify()) because it is too slow
+ */
 function clone (value) {
-  return JSON.parse(JSON.stringify(value));
+  var out = null;
+
+  if (typeof value !== 'object' || value === null || value === undefined) {
+    return value;
+  }
+
+  if (Array.isArray(value)) {
+    out = [];
+    for (let index = 0; index < value.length; ++index) {
+      let subArray = value[index];
+      out.push((typeof subArray === 'object') ? clone(subArray) : subArray);
+    }
+  }
+  else {
+    out = {};
+    for (var key in value) {
+      var subObject = value[key];
+      out[key] = (typeof subObject === 'object') ? clone(subObject) : subObject;
+    }
+  }
+
+  return out;
 }
+
+
 function freeze (value) {
   return Object.freeze(value);
 }
