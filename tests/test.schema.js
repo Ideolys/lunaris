@@ -2220,6 +2220,20 @@ describe('Schema', () => {
       }
     });
 
+    it ('should throw an error if the store is try to reference itself', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['ref', '@elements']
+      };
+
+      try {
+        schema.analyzeDescriptor(_objectDescriptor, 'elements');
+      }
+      catch (e) {
+        should(e.message).eql('Lunaris.map: for attribute "elements", the "ref" cannot be the current store');
+      }
+    });
+
     it ('should find a reference', () => {
       var _objectDescriptor = {
         id       : ['<<id>>'],
@@ -3042,6 +3056,79 @@ describe('Schema', () => {
             }
           ]
         });
+      });
+    });
+
+
+    it('should replace the object with _id : object', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['object', 'ref', '@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        elements : 'elements'
+      });
+
+      var _baseObject = {
+        id       : 1,
+        elements : {
+          _id : 2,
+          id  : '_2'
+        }
+      };
+
+      var _referencedObject = {
+        _id   : 2,
+        id    : 2,
+        label : 'A'
+      };
+
+      _schema.referencesFn.update.elements(getPrimaryKey, _referencedObject, _baseObject);
+
+      should(_baseObject).eql({
+        id       : 1,
+        elements : {
+          _id   : 2,
+          id    : 2,
+          label : 'A'
+        }
+      });
+    });
+
+    it('should replace the object with _id : array', () => {
+      var _objectDescriptor = {
+        id       : ['<<id>>'],
+        elements : ['array', 'ref', '@elements']
+      };
+      var _schema = schema.analyzeDescriptor(_objectDescriptor);
+      should(_schema.meta.references).be.an.Object().and.eql({
+        elements : 'elements'
+      });
+
+      var _baseObject = {
+        id       : 1,
+        elements : [{
+          _id : 2,
+          id  : '_2'
+        }]
+      };
+
+      var _referencedObject = {
+        _id   : 2,
+        id    : 2,
+        label : 'A'
+      };
+
+      _schema.referencesFn.update.elements(getPrimaryKey, _referencedObject, _baseObject);
+
+      should(_baseObject).eql({
+        id       : 1,
+        elements : [{
+          _id   : 2,
+          id    : 2,
+          label : 'A'
+        }]
       });
     });
 

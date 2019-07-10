@@ -12,7 +12,7 @@ lunaris._vue = {
        */
       function _successHttp (_this) {
         return function successHttp (data, message) {
-          if (!message) {
+          if (!message || lunaris._vue._isVueOffline) {
             return;
           }
 
@@ -31,7 +31,7 @@ lunaris._vue = {
       function _errorHttp (_this) {
         return function errorHttp (err) {
           lunaris._vue._vm.$data.nbSnackbars++;
-          if (lunaris._vue._vm.$data.nbSnackbars > 1) {
+          if (lunaris._vue._vm.$data.nbSnackbars > 1 || lunaris._vue._isVueOffline) {
             return;
           }
 

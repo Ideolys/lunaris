@@ -1,6 +1,16 @@
 # Lunaris
 
+## 1.x.x
+- Features:
+  - Add `lunaris._removeAllHooks` to remove all hooks.
+  - Improve performances for `lunaris.utils.clone` method.
+- Fix:
+  - Display primary key tip only for array stores.
+  - Fix store compilation when using multi stores registration.
+  - A store cannot reference itself.
+
 ## 1.10.0
+*2019-07-01*
 - Features:
   - Add `isOffline` option to disable offline support for a filter.
   - Add `attributeUrl` option to customize filter name in the url.
@@ -18,10 +28,16 @@
   - Add stores options `isErrornotification` and `isSuccessNotification`. If `false`, no toast will be displayed.
   - Add primay key offline generation.
   - Set error notification as a toast.
+  - Add builder option `isOfflineSync` to activate or desactivate offline transactions synchronisation
+  - Add offline synchronisation screen.
+  - Desactivate notification when pushing offline transactions.
 - Fix:
   - Fix cache in-memory values
   - Improve lunaris tip when no primary key has been defined.
   - Array attributes in store objet have an operator forced to ILIKE.
+  - Application crashed when IndexedDB was downgraded.
+  - Following transactions could not end.
+  - Fix binarySearch for non integer values.
 
 ## 1.9.3
 *2019-05-31*

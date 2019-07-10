@@ -96,4 +96,163 @@ describe('utils', () => {
       });
     });
   });
+
+  describe('binarySearch', () => {
+
+    it('should not found the int in the collection', () => {
+      should(utils.index.binarySearch([], 0)).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], 1)).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], 1000)).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], -1)).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], -0)).eql({ index : 0, found : false });
+
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], 10)).eql({
+        index : 5,
+        found : false
+      });
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], -3)).eql({
+        index : 0,
+        found : false
+      });
+    });
+
+    it('should found the int in the collection', () => {
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], 0)).eql({
+        index : 2,
+        found : true
+      });
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], -1)).eql({
+        index : 1,
+        found : true
+      });
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], -1)).eql({
+        index : 1,
+        found : true
+      });
+      should(utils.index.binarySearch([-2, -1, 0, 1, 2], 2)).eql({
+        index : 4,
+        found : true
+      });
+    });
+
+    it('should not found the string in the collection : _int', () => {
+      should(utils.index.binarySearch([], '_0')).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], '_1')).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], '_1000')).eql({ index : 0, found : false });
+
+      should(utils.index.binarySearch(['_1', '_2', '_3'], '_10')).eql({
+        index : 3,
+        found : false
+      });
+      should(utils.index.binarySearch(['_1', '_2', '_4'], '_3')).eql({
+        index : 2,
+        found : false
+      });
+    });
+
+    it('should found the string in the collection : _int', () => {
+      should(utils.index.binarySearch(['_1', '_2', '_3'], '_2')).eql({
+        index : 1,
+        found : true
+      });
+      should(utils.index.binarySearch(['_1', '_2', '_4'], '_4')).eql({
+        index : 2,
+        found : true
+      });
+    });
+
+    it('should not found the string in the collection', () => {
+      should(utils.index.binarySearch([], '0')).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], '1')).eql({ index : 0, found : false });
+      should(utils.index.binarySearch([], '1000')).eql({ index : 0, found : false });
+      should(utils.index.binarySearch(['1', '2', '3'], '10')).eql({
+        index : 3,
+        found : false
+      });
+      should(utils.index.binarySearch(['1', '2', '4'], '3')).eql({
+        index : 2,
+        found : false
+      });
+      should(utils.index.binarySearch(['1-1-1', '1-1-2', '1-1-3'], '1-2-1')).eql({
+        index : 3,
+        found : false
+      });
+    });
+
+    it('should found the string in the collection', () => {
+      should(utils.index.binarySearch(['1', '2', '3'], '2')).eql({
+        index : 1,
+        found : true
+      });
+      should(utils.index.binarySearch(['1', '2', '4'], '4')).eql({
+        index : 2,
+        found : true
+      });
+      should(utils.index.binarySearch(['1-1-1', '1-1-2', '1-1-3'], '1-1-2')).eql({
+        index : 1,
+        found : true
+      });
+    });
+
+
+  });
+
+  describe('clone', () => {
+
+    it('should clone null', () => {
+      should(utils.clone(null)).eql(null);
+    });
+
+    it('should clone undefined', () => {
+      should(utils.clone(undefined)).eql(undefined);
+    });
+
+    it('should clone base type', () => {
+      should(utils.clone('a')).eql('a');
+      should(utils.clone(1)).eql(1);
+      should(utils.clone(1.23)).eql(1.23);
+    });
+
+    it('should clone an object', () => {
+      let obj = { label : 'A' };
+      let res = utils.clone(obj);
+      should(res).eql(obj);
+      res.label = 'B';
+      should(res).not.eql(obj);
+    });
+
+    it('should clone an object with deps', () => {
+      let obj = {
+        label    : 'A',
+        subObj   : { type : 1 },
+        subArray : [
+          { label : 'a' },
+          { label : 'b' }
+        ]
+      };
+      let res = utils.clone(obj);
+      should(res).eql(obj);
+      res.label                 = 'B';
+      res.subObj.otherAttribute = 2;
+      res.subArray[0].label     = 'c';
+      should(res).not.eql(obj);
+      should(res.subObj).not.eql(obj.subObj);
+      should(res.subArray).not.eql(obj.subArray);
+      res.subArray.push({ label : 'd' });
+      should(obj.subArray.length).eql(2);
+    });
+
+    it('should clone an array', () => {
+      let obj = [
+        { label : 'A' },
+        { label : 'B' },
+        { label : 'C' }
+      ];
+      let res = utils.clone(obj);
+      should(res).eql(obj);
+      res[1].label = 'B-1';
+      should(res).not.eql(obj);
+    });
+
+  });
 });
