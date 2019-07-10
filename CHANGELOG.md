@@ -8,6 +8,7 @@
   - Display primary key tip only for array stores.
   - Fix store compilation when using multi stores registration.
   - A store cannot reference itself.
+  - Fix directive plugin on radio button
 
 ## 1.10.0
 *2019-07-01*
