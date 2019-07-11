@@ -254,5 +254,14 @@ describe('utils', () => {
       should(res).not.eql(obj);
     });
 
+    it('should not clone a function', () => {
+      let obj = { label : () => {
+        return 'A';
+      }};
+      let res = utils.clone(obj);
+      should(res).not.eql(obj);
+      should(res.label).eql(undefined);
+    });
+
   });
 });

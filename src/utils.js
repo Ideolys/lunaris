@@ -12,16 +12,35 @@ function clone (value) {
 
   if (Array.isArray(value)) {
     out = [];
-    for (let index = 0; index < value.length; ++index) {
-      let subArray = value[index];
-      out.push((typeof subArray === 'object') ? clone(subArray) : subArray);
+    for (var index = 0; index < value.length; ++index) {
+      var subArray = value[index];
+      var type     = typeof subArray;
+
+      if (type === 'object') {
+        out.push(clone(subArray));
+        continue;
+      }
+
+      out.push(subArray);
     }
   }
   else {
     out = {};
     for (var key in value) {
-      var subObject = value[key];
-      out[key] = (typeof subObject === 'object') ? clone(subObject) : subObject;
+      var subObject    = value[key];
+      var typeObjValue = typeof subObject;
+
+      if (typeObjValue === 'object') {
+        out[key] = clone(subObject);
+        continue;
+      }
+
+      if (typeObjValue === 'function') {
+        out[key] = undefined;
+        continue;
+      }
+
+      out[key] = subObject;
     }
   }
 
