@@ -32,18 +32,23 @@ function getHandlerFn (store, path, id, isLocal, vnode) {
 
       var _radioValues = lunaris._stores[store.replace('@', '')].data.getAll();
 
+      var checkedIndex = -1;
+
+      var _valsToUpdate = [];
+
       for (var i = 0; i < _radioValues.length; i++) {
-        if (_radioValues[i].isChecked === true && _radioValues[i]._id !== id) {
-          var _val       = lunaris.utils.clone(_radioValues[i]);
-          _val.isChecked = false;
-          lunaris.update(store, _val);
-        }
-        else if (_radioValues[i].isChecked === false && _radioValues[i]._id === id) {
-          _val           = lunaris.utils.clone(_radioValues[i]);
+        var _val = lunaris.utils.clone(_radioValues[i]);
+        if (_radioValues[i].isChecked === false && _radioValues[i]._id === id && checkedIndex === -1) {
+          checkedIndex = i;
           _val.isChecked = true;
-          lunaris.update(store, _val);
+        } else {
+          _val.isChecked = false;
         }
+        _valsToUpdate.push(_val);
       }
+
+      lunaris.update(store, _valsToUpdate);
+
       return;
     }
 
