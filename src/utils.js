@@ -23,30 +23,30 @@ function clone (value) {
 
       out.push(subArray);
     }
+    return out;
   }
-  else {
-    out = {};
-    for (var key in value) {
-      var subObject    = value[key];
-      var typeObjValue = typeof subObject;
 
-      if (subObject && subObject.constructor === Object || Array.isArray(subObject)) {
-        out[key] = clone(subObject);
-        continue;
-      }
+  out = {};
+  for (var key in value) {
+    var subObject    = value[key];
+    var typeObjValue = typeof subObject;
 
-      if (typeObjValue === 'object' && !!subObject) {
-        out[key] = subObject.toString();
-        continue;
-      }
-
-      if (typeObjValue === 'function') {
-        out[key] = undefined;
-        continue;
-      }
-
-      out[key] = subObject;
+    if (subObject && subObject.constructor === Object || Array.isArray(subObject)) {
+      out[key] = clone(subObject);
+      continue;
     }
+
+    if (typeObjValue === 'object' && !!subObject) {
+      out[key] = subObject.toString();
+      continue;
+    }
+
+    if (typeObjValue === 'function') {
+      out[key] = undefined;
+      continue;
+    }
+
+    out[key] = subObject;
   }
 
   return out;
