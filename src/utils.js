@@ -30,8 +30,13 @@ function clone (value) {
       var subObject    = value[key];
       var typeObjValue = typeof subObject;
 
-      if (typeObjValue === 'object') {
+      if (subObject && subObject.constructor === Object || Array.isArray(subObject)) {
         out[key] = clone(subObject);
+        continue;
+      }
+
+      if (typeObjValue === 'object' && !!subObject) {
+        out[key] = subObject.toString();
         continue;
       }
 

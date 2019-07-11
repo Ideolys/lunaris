@@ -263,5 +263,31 @@ describe('utils', () => {
       should(res.label).eql(undefined);
     });
 
+    it('should not clone a non primitive object', () => {
+      function Obj () {
+        this.label = 'A';
+      }
+
+      let obj = { obj : new Obj() };
+      let res = utils.clone(obj);
+      should(res).not.eql(obj);
+      should(res.obj).eql('[object Object]');
+    });
+
+    it('should use toString of non primitive object if is exists', () => {
+      var Obj = function Obj () {
+        this.label = 'A';
+
+        this.toString = function () {
+          return this.label;
+        };
+      };
+
+      let obj = { obj : new Obj() };
+      let res = utils.clone(obj);
+      should(res).not.eql(obj);
+      should(res.obj).eql('A');
+    });
+
   });
 });
