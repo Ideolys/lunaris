@@ -4,6 +4,7 @@
 - Features:
   - Add `lunaris._removeAllHooks` to remove all hooks.
   - Improve performances for `lunaris.utils.clone` method.
+  - Rename `[Lunaris warn]` to `[Lunaris error]`.
 - Fix:
   - Display primary key tip only for array stores.
   - Fix store compilation when using multi stores registration.

@@ -34,7 +34,7 @@ describe('Store plugin', () => {
       stores : 'test',
     });
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] Error in component "test":');
+    should(lastError[0]).eql('[Lunaris error] Error in component "test":');
     should(lastError[1]).eql('vm.stores must be an Array!');
     should(lastTip.length).eql(2);
     should(lastTip[0]).eql('[Lunaris tip] Please register a store with: vm.stores = [<store>, ...]');
@@ -48,7 +48,7 @@ describe('Store plugin', () => {
       stores : ['test2'],
     });
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] Error in component "test2":');
+    should(lastError[0]).eql('[Lunaris error] Error in component "test2":');
     should(lastError[1]).eql('Store "test2" has not been defined!');
     should(lastTip.length).eql(2);
     should(lastTip[0]).eql('[Lunaris tip] Please define a store in stores folder');
@@ -63,7 +63,7 @@ describe('Store plugin', () => {
       storeHooks : function () {}
     });
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] Error in component "test3":');
+    should(lastError[0]).eql('[Lunaris error] Error in component "test3":');
     should(lastError[1]).eql('vm.storeHooks must be an Object!');
     vm.$destroy();
   });
@@ -78,7 +78,7 @@ describe('Store plugin', () => {
       }
     });
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] Error in component "test4":');
+    should(lastError[0]).eql('[Lunaris error] Error in component "test4":');
     should(lastError[1]).eql('vm.storeHooks.test must be a Function!');
     vm.$destroy();
   });
@@ -514,7 +514,7 @@ describe('Store plugin', () => {
 
       vm.$clearForm('test');
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] Error in component "test": vm.$clearForm');
+      should(lastError[0]).eql('[Lunaris error] Error in component "test": vm.$clearForm');
       should(lastError[1]).eql(new Error('The store "test" has not been registered!'));
 
       vm.$destroy();
@@ -567,7 +567,7 @@ describe('Store plugin', () => {
 
       vm.$rollback();
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] Error in component "test": vm.$rollback');
+      should(lastError[0]).eql('[Lunaris error] Error in component "test": vm.$rollback');
       should(lastError[1]).eql(new Error('The value must be an object and have the properties "data" and "version" defined!'));
       vm.$destroy();
     });

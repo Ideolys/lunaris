@@ -1,6 +1,6 @@
 var exportsLunaris = require('./exports.js');
 
-var baseMessageError      = '[Lunaris warn] ';
+var baseMessageError      = '[Lunaris error] ';
 var baseMessageTip        = '[Lunaris tip] ';
 var baseMessageDeprecated = '[Lunaris deprecated]';
 var baseMessageLog        = '[Lunaris info]';

@@ -28,7 +28,7 @@ describe('directive v-lunaris', () => {
       stores : ['directive']
     }).$mount();
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] v-lunaris');
+    should(lastError[0]).eql('[Lunaris error] v-lunaris');
     should(lastError[1]).eql(new Error('The directive must have a value!'));
     vm.$destroy();
   });
@@ -43,7 +43,7 @@ describe('directive v-lunaris', () => {
       stores : ['directive']
     }).$mount();
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] v-lunaris');
+    should(lastError[0]).eql('[Lunaris error] v-lunaris');
     should(lastError[1]).eql(new Error('The directive must have "lunaris-id" defined!'));
     vm.$destroy();
   });
@@ -58,7 +58,7 @@ describe('directive v-lunaris', () => {
       stores : ['directive']
     }).$mount();
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] v-lunaris');
+    should(lastError[0]).eql('[Lunaris error] v-lunaris');
     should(lastError[1]).eql(new Error('The directive must have "lunaris-store" defined!'));
     vm.$destroy();
   });
@@ -89,7 +89,7 @@ describe('directive v-lunaris', () => {
     should(_fnHasBeenCalled).eql(true);
 
     should(lastError.length).eql(2);
-    should(lastError[0]).eql('[Lunaris warn] v-lunaris');
+    should(lastError[0]).eql('[Lunaris error] v-lunaris');
     should(lastError[1]).eql([{ value: 'Dog', field: 'id', error: 'must be an integer', index : null }]);
 
     vm.$destroy();

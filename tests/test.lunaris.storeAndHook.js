@@ -84,21 +84,21 @@ describe('lunaris store', function () {
     it('should throw an error if no value is provided', () => {
       lunaris.insert('@store');
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store');
+      should(lastError[0]).eql('[Lunaris error] lunaris.insert@store');
       should(lastError[1]).eql(new Error('lunaris.<insert|update|delete>(<store>, <value>) must have a value, provided value: undefined'));
     });
 
     it('should throw an error if the store is not a string', () => {
       lunaris.insert({}, { id : 1 });
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.insert' + {});
+      should(lastError[0]).eql('[Lunaris error] lunaris.insert' + {});
       should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
       lunaris.insert('@store', { id : 1 });
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store');
+      should(lastError[0]).eql('[Lunaris error] lunaris.insert@store');
       should(lastError[1]).eql(new Error('The store "store" has not been defined'));
     });
 
@@ -192,7 +192,7 @@ describe('lunaris store', function () {
 
       lunaris.hook('errorHttp@store_insert_post', err => {
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post');
+        should(lastError[0]).eql('[Lunaris error] lunaris.insert@store_insert_post');
         should(lastError[1]).eql({ error : 404, message : 'Not Found'});
         should(err).eql('${An error has occured}');
         done();
@@ -236,7 +236,7 @@ describe('lunaris store', function () {
       lunaris.insert('@store_insert_post', { id : 2, label : 1 });
 
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post Error when validating data');
+      should(lastError[0]).eql('[Lunaris error] lunaris.insert@store_insert_post Error when validating data');
       should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 1, index : 0});
     });
 
@@ -310,7 +310,7 @@ describe('lunaris store', function () {
 
       lunaris.hook('errorHttp@store_insert_put', err => {
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put');
+        should(lastError[0]).eql('[Lunaris error] lunaris.update@store_insert_put');
         should(lastError[1]).eql({ error : 404, message : 'Not Found'});
         should(err).eql('${An error has occured}');
         done();
@@ -327,7 +327,7 @@ describe('lunaris store', function () {
       lunaris.hook('inserted@store_insert_put', () => {
         lunaris.update('@store_insert_put', { _id : 1, id : 1, label : 2 });
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put Error when validating data');
+        should(lastError[0]).eql('[Lunaris error] lunaris.update@store_insert_put Error when validating data');
         should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 2, index : 0});
         done();
       });
@@ -721,7 +721,7 @@ describe('lunaris store', function () {
 
       lunaris.hook('errorHttp@store_insert_post', err => {
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post');
+        should(lastError[0]).eql('[Lunaris error] lunaris.insert@store_insert_post');
         should(lastError[1]).eql({ error : 404, message : 'Not Found'});
         should(err).eql('${An error has occured}');
         done();
@@ -765,7 +765,7 @@ describe('lunaris store', function () {
       lunaris.insert('@store_insert_post', [{ id : null, label : '1' }, { id : null, label : 1 }]);
 
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.insert@store_insert_post Error when validating data');
+      should(lastError[0]).eql('[Lunaris error] lunaris.insert@store_insert_post Error when validating data');
       should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 1, index : 1});
     });
 
@@ -867,7 +867,7 @@ describe('lunaris store', function () {
 
       lunaris.hook('errorHttp@store_insert_put', err => {
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put');
+        should(lastError[0]).eql('[Lunaris error] lunaris.update@store_insert_put');
         should(lastError[1]).eql({ error : 404, message : 'Not Found'});
         should(err).eql('${An error has occured}');
         done();
@@ -884,7 +884,7 @@ describe('lunaris store', function () {
       lunaris.hook('inserted@store_insert_put', () => {
         lunaris.update('@store_insert_put', [{ _id : 1, id : 1, label : '1' }, { _id : 2, id : 2, label : 2 }]);
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put Error when validating data');
+        should(lastError[0]).eql('[Lunaris error] lunaris.update@store_insert_put Error when validating data');
         should(lastError[1]).eql({ error : '${must be a string}', field : 'label', value : 2, index : 1});
         done();
       });
@@ -900,7 +900,7 @@ describe('lunaris store', function () {
       lunaris.hook('inserted@store_insert_put', () => {
         lunaris.update('@store_insert_put', [{ _id : 1, id : 1, label : '1' }, { _id : 2, id : null, label : '2' }]);
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store_insert_put Error when validating data');
+        should(lastError[0]).eql('[Lunaris error] lunaris.update@store_insert_put Error when validating data');
         should(lastError[1]).eql({ error : '${must be an integer}', field : 'id', value : null, index : 1});
         done();
       });
@@ -1115,21 +1115,21 @@ describe('lunaris store', function () {
     it('should throw an error if no value is provided', () => {
       lunaris.delete('@store');
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.delete@store');
+      should(lastError[0]).eql('[Lunaris error] lunaris.delete@store');
       should(lastError[1]).eql(new Error('lunaris.<insert|update|delete>(<store>, <value>) must have a value, provided value: undefined'));
     });
 
     it('should throw an error if the store is not a string', () => {
       lunaris.delete({}, { id : 1 });
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.delete' + {});
+      should(lastError[0]).eql('[Lunaris error] lunaris.delete' + {});
       should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
       lunaris.delete('@store', { id : 1 });
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.delete@store');
+      should(lastError[0]).eql('[Lunaris error] lunaris.delete@store');
       should(lastError[1]).eql(new Error('The store "store" has not been defined'));
     });
 
@@ -1151,7 +1151,7 @@ describe('lunaris store', function () {
 
       lunaris.hook('errorHttp@store_del', err => {
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.delete@store_del');
+        should(lastError[0]).eql('[Lunaris error] lunaris.delete@store_del');
         should(lastError[1]).eql({ error : 404, message : 'Not Found'});
         should(err).eql('${An error has occured}');
         done();
@@ -1343,7 +1343,7 @@ describe('lunaris store', function () {
       should(_store.data.get(1)).eql(_expectedValue);
       lunaris.delete('@store1', { _id : 2, id : 2, label : 'B' });
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.delete@store1');
+      should(lastError[0]).eql('[Lunaris error] lunaris.delete@store1');
       should(lastError[1]).eql(new Error('You cannot delete a value not in the store!'));
     });
   });
@@ -1356,14 +1356,14 @@ describe('lunaris store', function () {
     it('should throw an error if the store is not a string', () => {
       lunaris.getOne({});
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.getOne' + {});
+      should(lastError[0]).eql('[Lunaris error] lunaris.getOne' + {});
       should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
       lunaris.getOne('@store0');
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.getOne@store0');
+      should(lastError[0]).eql('[Lunaris error] lunaris.getOne@store0');
       should(lastError[1]).eql(new Error('The store "store0" has not been defined'));
     });
 
@@ -1411,14 +1411,14 @@ describe('lunaris store', function () {
     it('should throw an error if the store is not a string', () => {
       lunaris.get({});
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.get' + {});
+      should(lastError[0]).eql('[Lunaris error] lunaris.get' + {});
       should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
       lunaris.get('@store');
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.get@store');
+      should(lastError[0]).eql('[Lunaris error] lunaris.get@store');
       should(lastError[1]).eql(new Error('The store "store" has not been defined'));
     });
 
@@ -1541,7 +1541,7 @@ describe('lunaris store', function () {
 
       lunaris.hook('errorHttp@store', err => {
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.get@store');
+        should(lastError[0]).eql('[Lunaris error] lunaris.get@store');
         should(lastError[1]).eql({ error : 404, message : 'Not Found'});
         should(err).eql('${An error has occured}');
         done();
@@ -1558,7 +1558,7 @@ describe('lunaris store', function () {
 
       setTimeout(() => {
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.get@pagination');
+        should(lastError[0]).eql('[Lunaris error] lunaris.get@pagination');
         should(lastError[1]).eql(new Error('The store "pagination" is an object store. The GET method cannot return multiple elements!'));
         done();
       }, 200);
@@ -2524,14 +2524,14 @@ describe('lunaris store', function () {
     it('should throw an error if the store is not a string', () => {
       lunaris.clear({});
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.clear' + {});
+      should(lastError[0]).eql('[Lunaris error] lunaris.clear' + {});
       should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
       lunaris.clear('@store');
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.clear@store');
+      should(lastError[0]).eql('[Lunaris error] lunaris.clear@store');
       should(lastError[1]).eql(new Error('The store "store" has not been defined'));
     });
 
@@ -2602,7 +2602,7 @@ describe('lunaris store', function () {
       setTimeout(() => {
         should(Object.keys(_hooks)).eql([]);
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.clear');
+        should(lastError[0]).eql('[Lunaris error] lunaris.clear');
         should(lastError[1]).eql(new Error('The store key must begin by \'@\''));
         done();
       }, 100);
@@ -2691,14 +2691,14 @@ describe('lunaris store', function () {
     it('should throw an error if the store is not a string', () => {
       lunaris.rollback({});
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.rollback' + {});
+      should(lastError[0]).eql('[Lunaris error] lunaris.rollback' + {});
       should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
       lunaris.rollback('@store');
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.rollback@store');
+      should(lastError[0]).eql('[Lunaris error] lunaris.rollback@store');
       should(lastError[1]).eql(new Error('The store "store" has not been defined'));
     });
 
@@ -2928,7 +2928,7 @@ describe('lunaris store', function () {
     it('should throw an error if the store value is not correct', () => {
       lunaris.getDefaultValue({});
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.getDefaultValue' + {});
+      should(lastError[0]).eql('[Lunaris error] lunaris.getDefaultValue' + {});
       should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
     });
 
@@ -2987,7 +2987,7 @@ describe('lunaris store', function () {
 
       lunaris.validate('@store', { id : 1, label : 1 }, true);
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.validate@store');
+      should(lastError[0]).eql('[Lunaris error] lunaris.validate@store');
       should(lastError[1]).eql(new Error('The store does not have a map! You cannot validate a store without a map.'));
       done();
     });
@@ -3000,7 +3000,7 @@ describe('lunaris store', function () {
 
       lunaris.validate('@store', { id : 1, label : 1 }, true, () => {
         should(lastError.length).eql(2);
-        should(lastError[0]).eql('[Lunaris warn] lunaris.update@store Error when validating data');
+        should(lastError[0]).eql('[Lunaris error] lunaris.update@store Error when validating data');
         should(lastError[1]).eql({ value : 1, field : 'label', error : '${must be a string}', index : null });
         done();
       });
@@ -5757,21 +5757,21 @@ describe('Lunaris hooks', () => {
     it('should throw an error if the handler is not a function', () => {
       lunaris.hook('a');
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.hook:a');
+      should(lastError[0]).eql('[Lunaris error] lunaris.hook:a');
       should(lastError[1]).eql(new Error('A handler must be a Function'));
     });
 
     it('should throw an error if the hook is not well configured', () => {
       lunaris.hook('a', function () {});
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.hook:a');
+      should(lastError[0]).eql('[Lunaris error] lunaris.hook:a');
       should(lastError[1]).eql(new Error('A hook must be: <event>@<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
       lunaris.hook('get@store1', function () {});
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.hook:get@store1');
+      should(lastError[0]).eql('[Lunaris error] lunaris.hook:get@store1');
       should(lastError[1]).eql(new Error('Cannot register hook "get@store1", store "store1" has not been defined!'));
     });
 
@@ -5821,7 +5821,7 @@ describe('Lunaris hooks', () => {
       lunaris.removeHook('get@store');
 
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.removeHook:get@store');
+      should(lastError[0]).eql('[Lunaris error] lunaris.removeHook:get@store');
       should(lastError[1]).eql(new Error('A handler must be a Function'));
     });
 
@@ -5830,14 +5830,14 @@ describe('Lunaris hooks', () => {
       lunaris.hook('get@store1', function () {});
       lunaris.removeHook('a', function () {});
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.removeHook:a');
+      should(lastError[0]).eql('[Lunaris error] lunaris.removeHook:a');
       should(lastError[1]).eql(new Error('A hook must be: <event>@<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
       lunaris.removeHook('get@store1', function () {});
       should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris warn] lunaris.removeHook:get@store1');
+      should(lastError[0]).eql('[Lunaris error] lunaris.removeHook:get@store1');
       should(lastError[1]).eql(new Error('Cannot remove hook "get@store1", store "store1" has not been defined!'));
     });
 
