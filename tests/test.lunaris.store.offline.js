@@ -402,7 +402,7 @@ describe('offline filters', () => {
         label : 'purée chaude'
       }, {
         id    : 2,
-        label : 'purée'
+        label : 'puree'
       }
     ];
 
@@ -429,7 +429,7 @@ describe('offline filters', () => {
         _version : [1]
       }, {
         id       : 2,
-        label    : 'purée',
+        label    : 'puree',
         _rowId   : 2,
         _id      : 2,
         _version : [2]
@@ -437,7 +437,7 @@ describe('offline filters', () => {
     ]);
   });
 
-  it('should ILIKE filter search misspelling word', () => {
+  it('should ILIKE filter do not mind about uppercase and lowercase', () => {
     var _map = [{
       id    : ['<<int>>'],
       label : ['string']
@@ -454,10 +454,10 @@ describe('offline filters', () => {
     var _data = [
       {
         id    : 1,
-        label : 'patate chaude'
+        label : 'purée chaude'
       }, {
         id    : 2,
-        label : 'patate'
+        label : 'PUREE'
       }
     ];
 
@@ -468,7 +468,7 @@ describe('offline filters', () => {
     var _filterValues = {
       requiredOptions : {},
       optionalOptions : {
-        0 : [null, 'label', 'pattate', 'ILIKE']
+        0 : [null, 'label', 'purée', 'ILIKE']
       },
       cache : { limit : 2, offset : 0 }
     };
@@ -478,13 +478,13 @@ describe('offline filters', () => {
     should(_filteredValues).eql([
       {
         id       : 1,
-        label    : 'patate chaude',
+        label    : 'purée chaude',
         _rowId   : 1,
         _id      : 1,
         _version : [1]
       }, {
         id       : 2,
-        label    : 'patate',
+        label    : 'PUREE',
         _rowId   : 2,
         _id      : 2,
         _version : [2]

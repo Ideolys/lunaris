@@ -72,6 +72,7 @@ function ilike (filterValue, objValue) {
   }
 
   for (var k = 0; k < filterValue.length; k++) {
+    filterValue[k]                = utils.unaccent(filterValue[k]);
     var _searchWords              = filterValue[k].split(' ');
     var _document                 = objValue.split(' ');
     var _nbSearchWordHasBeenFound = 0;
@@ -87,7 +88,9 @@ function ilike (filterValue, objValue) {
     for (j = 0; j < _searchWords.length; j++) {
       for (i = 0; i < _document.length; i++) {
         if (stopwords.indexOf(_document[i]) === -1) {
-          if (utils.distance(_document[i], _searchWords[j]) > 0.5) {
+          var _unaccentWord = utils.unaccent(_document[i]);
+
+          if (_unaccentWord.indexOf(_searchWords[j].toLowerCase()) !== -1 || _unaccentWord.indexOf(_searchWords[j].toUpperCase()) !== -1) {
             _nbSearchWordHasBeenFound++;
           }
         }
