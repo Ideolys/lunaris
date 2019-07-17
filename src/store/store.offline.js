@@ -138,7 +138,7 @@ function _reduce (filterFn, filter, data) {
 function filter (store, collection, filterValues) {
   var _data = collection.getAll();
 
-  if (!filterValues) {
+  if (!filterValues || !store.filterFns) {
     return _data;
   }
 
