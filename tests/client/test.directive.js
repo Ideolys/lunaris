@@ -317,7 +317,7 @@ describe('directive v-lunaris', () => {
       isChecked : true,
       _rowId    : 4,
       _id       : 2,
-      _version  : [3]
+      _version  : [2]
     });
 
     vm.$destroy();
