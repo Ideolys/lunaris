@@ -11,6 +11,7 @@
   - A store cannot reference itself.
   - Fix directive plugin on radio button.
   - Fix ILIKE filter in offline.
+  - `lunaris.invalidate` must invalidate alias stores.
 
 ## 1.10.0
 *2019-07-01*

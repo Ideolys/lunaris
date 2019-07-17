@@ -13,6 +13,7 @@
 var logger             = require('./logger.js');
 var localStorageDriver = require('./localStorageDriver.js');
 var database           = localStorageDriver.indexedDB;
+var cacheGraph         = require('./exports.js').cacheGraph;
 
 // https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript/14853974
 Array.prototype.equals = function (array) {
@@ -76,6 +77,17 @@ function _getOrUpdatevalues (store, hash, values) {
   return _cacheValue;
 }
 
+/**
+ * Invalidate a store's cache
+ */
+function _internalInvalidate (store) {
+  for (var i = cache.length - 1; i >= 0; i--) {
+    if (cache[i].stores.indexOf(store) !== -1) {
+      database.del('cache', cache[i].hash);
+      cache.splice(i, 1);
+    }
+  }
+}
 
 /**
  * Cache object
@@ -126,11 +138,15 @@ module.exports = {
    * @param {String} store
    */
   invalidate : function invalidate (store) {
-    for (var i = cache.length - 1; i >= 0; i--) {
-      if (cache[i].stores.indexOf(store) !== -1) {
-        database.del('cache', cache[i].hash);
-        cache.splice(i, 1);
-      }
+    _internalInvalidate(store);
+    var _aliasStores = cacheGraph[store];
+
+    if (!_aliasStores) {
+      return;
+    }
+
+    for (var i = 0; i < _aliasStores.length; i++) {
+      _internalInvalidate(_aliasStores[i]);
     }
   },
 

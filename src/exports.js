@@ -87,6 +87,22 @@ catch (e) {
   exports.urlsGraph = {};
 }
 
+
+/**
+ * cache grpah
+ * {
+ *   'store_1' : ['store_2'],
+ *   'store_2' : ['store_1'],
+ *   'store_3' : []
+ * }
+ */
+try {
+  exports.cacheGraph = CACHE_GRAPH;
+}
+catch (e) {
+  exports.cacheGraph = {};
+}
+
 try {
   exports.isOfflineStrategies = IS_OFFLINE_STRATEGIES;
 }
