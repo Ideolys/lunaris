@@ -810,7 +810,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
 
     if (!retryOptions) {
       _request = url.create(_options.store, 'GET', primaryKeyValue);
-      // required filters consition not fullfilled
+      // required filters condition not fullfilled
       if (!_request) {
         return callback(store);
       }

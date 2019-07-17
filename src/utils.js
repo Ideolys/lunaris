@@ -37,7 +37,7 @@ function clone (value) {
     }
 
     if (typeObjValue === 'object' && !!subObject) {
-      out[key] = subObject.toString();
+      out[key] = subObject.toISOString ? subObject.toISOString() : subObject.toString();
       continue;
     }
 

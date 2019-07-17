@@ -289,5 +289,12 @@ describe('utils', () => {
       should(res.obj).eql('A');
     });
 
+    it('should clone a date', () => {
+      let obj = {
+        date : new Date(2013,2,1,1,10)
+      };
+      let res = utils.clone(obj);
+      should(res.date).eql(JSON.parse(JSON.stringify(obj.date)));
+    });
   });
 });
