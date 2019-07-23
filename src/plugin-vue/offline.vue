@@ -154,7 +154,7 @@
         this.nbOfflineTransactionsPushedInError = 0;
         lunaris._pushOfflineHttpTransactions(function () {
           // add time in purpose to slow down reties
-          setTimeout(() => {
+          setTimeout(function () {
             _this.onPushOfflineTransactionEnd();
           }, 300);
         });
