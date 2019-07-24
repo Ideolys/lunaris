@@ -12,6 +12,7 @@
   - Fix directive plugin on radio button.
   - Fix ILIKE filter in offline.
   - `lunaris.invalidate` must invalidate alias stores.
+  - Fix array validation when using optional.
 
 ## 1.10.0
 *2019-07-01*

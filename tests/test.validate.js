@@ -964,6 +964,31 @@ describe('Validate', () => {
           should(_validateFunction({ id : {} }).length).eql(1);
         });
 
+        it('should build a function which checks array of objects and optional', () => {
+          var _objectDescriptor = {
+            id : ['array', 'optional', {
+              test : ['<<int>>']
+            }]
+          };
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction = validate.buildValidateFunction(_analyzedDescriptor.compilation);
+          // ok
+          should(_validateFunction({ id : null }).length).eql(0);
+          should(_validateFunction({ id : undefined }).length).eql(0);
+          should(_validateFunction({ id : [] }).length).eql(0);
+          should(_validateFunction({ id : [{ test : 2}] }).length).eql(0);
+          should(_validateFunction({ id : [{ test : 2}, { test : 5}] }).length).eql(0);
+          // errors
+          should(_validateFunction({ id : [{ test : 2}, { test : 'bad' }] }).length).eql(1);
+          should(_validateFunction({ id : [1, 2] }).length).eql(2);
+          should(_validateFunction({ id : '2' }).length).eql(1);
+          should(_validateFunction({ id : 'grtgtrg' }).length).eql(1);
+          should(_validateFunction({ id : '[]' }).length).eql(1);
+          should(_validateFunction({ id : 0 }).length).eql(1);
+          should(_validateFunction({ id : 6 }).length).eql(1);
+          should(_validateFunction({ id : {} }).length).eql(1);
+        });
+
 
         it('should build a function which checks array of object with min and max', () => {
           var _objectDescriptor = {
