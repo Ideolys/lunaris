@@ -1,6 +1,7 @@
 # Lunaris
 
-## 1.x.x
+## 1.11.0
+*2019-08-26*
 - Features:
   - Add `lunaris._removeAllHooks` to remove all hooks.
   - Improve performances for `lunaris.utils.clone` method.
