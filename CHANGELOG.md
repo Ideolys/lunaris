@@ -14,6 +14,7 @@
   - Fix ILIKE filter in offline.
   - `lunaris.invalidate` must invalidate alias stores.
   - Fix array validation when using optional.
+  - Fix blocking script during a request in production mode.
 
 ## 1.10.0
 *2019-07-01*

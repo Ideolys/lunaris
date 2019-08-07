@@ -32,7 +32,7 @@ function request (method, request, body, callback, options) {
 
     if (lunarisExports.isProduction) {
       _headers['Content-Encoding'] = 'gzip';
-      _body                        = pako.gzip(body);
+      _body                        = pako.gzip(_body);
     }
   }
 
