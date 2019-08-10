@@ -1,5 +1,10 @@
 # Lunaris
 
+## 1.xx.x
+- Features:
+- Fix:
+  - Fix store setPagination method using wrong offset
+
 ## 1.11.0
 *2019-08-26*
 - Features:
