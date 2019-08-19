@@ -1122,7 +1122,7 @@ function setPagination (store, page, limit) {
 
     _options.store.paginationLimit       = limit || _options.store.paginationLimit;
     _options.store.paginationCurrentPage = page  || 1;
-    _options.store.paginationOffset      = _options.store.paginationCurrentPage === 1 ? 0 : _options.store.paginationLimit * _options.store.paginationCurrentPage;
+    _options.store.paginationOffset      = (_options.store.paginationLimit * _options.store.paginationCurrentPage) - _options.store.paginationLimit;
     storeUtils.saveState(_options.store, _options.collection);
   }
   catch (e) {
