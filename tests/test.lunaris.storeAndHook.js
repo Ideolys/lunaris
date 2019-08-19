@@ -3333,7 +3333,7 @@ describe('lunaris store', function () {
         lunaris.setPagination('@pagination2', 4, 20);
         should(lunaris._stores['pagination2'].paginationLimit).eql(20);
         should(lunaris._stores['pagination2'].paginationCurrentPage).eql(4);
-        should(lunaris._stores['pagination2'].paginationOffset).eql(80);
+        should(lunaris._stores['pagination2'].paginationOffset).eql(60);
         done();
       });
 
