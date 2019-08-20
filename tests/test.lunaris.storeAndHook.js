@@ -193,7 +193,7 @@ describe('lunaris store', function () {
       lunaris.hook('errorHttp@store_insert_post', err => {
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris error] lunaris.insert@store_insert_post');
-        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(lastError[1]).eql({ error : 404, message : 'Not Found', errors : [] });
         should(err).eql('${An error has occured}');
         done();
       });
@@ -220,7 +220,7 @@ describe('lunaris store', function () {
           method             : 'POST',
           storeName          : 'store_insert_post',
           messageError       : '${An error has occured}',
-          messageErrorServer : { error : 404, message : 'Not Found'},
+          messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
         });
         done();
       });
@@ -311,7 +311,7 @@ describe('lunaris store', function () {
       lunaris.hook('errorHttp@store_insert_put', err => {
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris error] lunaris.update@store_insert_put');
-        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(lastError[1]).eql({ error : 404, message : 'Not Found', errors : [] });
         should(err).eql('${An error has occured}');
         done();
       });
@@ -378,7 +378,7 @@ describe('lunaris store', function () {
           method             : 'PUT',
           storeName          : 'store_insert_put',
           messageError       : '${An error has occured}',
-          messageErrorServer : { error : 404, message : 'Not Found'},
+          messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
         });
         done();
       });
@@ -722,7 +722,7 @@ describe('lunaris store', function () {
       lunaris.hook('errorHttp@store_insert_post', err => {
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris error] lunaris.insert@store_insert_post');
-        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(lastError[1]).eql({ error : 404, message : 'Not Found', errors : [] });
         should(err).eql('${An error has occured}');
         done();
       });
@@ -749,7 +749,7 @@ describe('lunaris store', function () {
           method             : 'POST',
           storeName          : 'store_insert_post',
           messageError       : '${An error has occured}',
-          messageErrorServer : { error : 404, message : 'Not Found'},
+          messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
         });
         done();
       });
@@ -868,7 +868,7 @@ describe('lunaris store', function () {
       lunaris.hook('errorHttp@store_insert_put', err => {
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris error] lunaris.update@store_insert_put');
-        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(lastError[1]).eql({ error : 404, message : 'Not Found', errors : [] });
         should(err).eql('${An error has occured}');
         done();
       });
@@ -931,7 +931,7 @@ describe('lunaris store', function () {
           method             : 'PUT',
           storeName          : 'store_insert_put',
           messageError       : '${An error has occured}',
-          messageErrorServer : { error : 404, message : 'Not Found'},
+          messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
         });
         done();
       });
@@ -1152,7 +1152,7 @@ describe('lunaris store', function () {
       lunaris.hook('errorHttp@store_del', err => {
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris error] lunaris.delete@store_del');
-        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(lastError[1]).eql({ error : 404, message : 'Not Found', errors : [] });
         should(err).eql('${An error has occured}');
         done();
       });
@@ -1180,7 +1180,7 @@ describe('lunaris store', function () {
           method             : 'DELETE',
           storeName          : 'store_del',
           messageError       : '${An error has occured}',
-          messageErrorServer : { error : 404, message : 'Not Found'},
+          messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
         });
         done();
       });
@@ -1542,7 +1542,7 @@ describe('lunaris store', function () {
       lunaris.hook('errorHttp@store', err => {
         should(lastError.length).eql(2);
         should(lastError[0]).eql('[Lunaris error] lunaris.get@store');
-        should(lastError[1]).eql({ error : 404, message : 'Not Found'});
+        should(lastError[1]).eql({ error : 404, message : 'Not Found', errors : [] });
         should(err).eql('${An error has occured}');
         done();
       });
@@ -1582,7 +1582,7 @@ describe('lunaris store', function () {
           method             : 'GET',
           storeName          : 'store',
           messageError       : '${An error has occured}',
-          messageErrorServer : { error : 404, message : 'Not Found'},
+          messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
         });
         done();
       });
@@ -2746,7 +2746,7 @@ describe('lunaris store', function () {
             method             : 'POST',
             storeName          : 'store_insert_post',
             messageError       : '${An error has occured}',
-            messageErrorServer : { error : 404, message : 'Not Found'},
+            messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
           });
           lunaris.retry('@store_insert_post', _values[0].url, _values[0].method, _values[0].data, _values[0].version);
           return;
@@ -2764,7 +2764,7 @@ describe('lunaris store', function () {
           method             : 'POST',
           storeName          : 'store_insert_post',
           messageError       : '${An error has occured}',
-          messageErrorServer : { error : 404, message : 'Not Found'},
+          messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
         });
         done();
       });
@@ -2798,7 +2798,7 @@ describe('lunaris store', function () {
             method             : 'PUT',
             storeName          : 'store_insert_put',
             messageError       : '${An error has occured}',
-            messageErrorServer : { error : 404, message : 'Not Found'},
+            messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
           });
           lunaris.retry('@store_insert_put', _values[0].url, _values[0].method, _values[0].data, _values[0].version);
           return;
@@ -2815,7 +2815,7 @@ describe('lunaris store', function () {
           method             : 'PUT',
           storeName          : 'store_insert_put',
           messageError       : '${An error has occured}',
-          messageErrorServer : { error : 404, message : 'Not Found'},
+          messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
         });
         done();
       });
@@ -2844,7 +2844,7 @@ describe('lunaris store', function () {
             method             : 'GET',
             storeName          : 'store',
             messageError       : '${An error has occured}',
-            messageErrorServer : { error : 404, message : 'Not Found'},
+            messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
           });
           lunaris.retry('@store', _values[0].url, _values[0].method, _values[0].data, _values[0].version);
           return;
@@ -2862,7 +2862,7 @@ describe('lunaris store', function () {
           method             : 'GET',
           storeName          : 'store',
           messageError       : '${An error has occured}',
-          messageErrorServer : { error : 404, message : 'Not Found'},
+          messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
         });
         done();
       });
@@ -2891,7 +2891,7 @@ describe('lunaris store', function () {
             method             : 'DELETE',
             storeName          : 'store_del',
             messageError       : '${An error has occured}',
-            messageErrorServer : { error : 404, message : 'Not Found'},
+            messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
           });
           lunaris.retry('@store_del', _values[0].url, _values[0].method, _values[0].data, _values[0].version);
           return;
@@ -2909,7 +2909,7 @@ describe('lunaris store', function () {
           method             : 'DELETE',
           storeName          : 'store_del',
           messageError       : '${An error has occured}',
-          messageErrorServer : { error : 404, message : 'Not Found'},
+          messageErrorServer : { error : 404, message : 'Not Found', errors : [] },
         });
         done();
       });

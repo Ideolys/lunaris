@@ -43,7 +43,7 @@ function request (method, request, body, callback, options) {
     body        : _body
   }).then(function (response) {
     if (response.status !== 200) {
-      return Promise.reject({ error : response.status, message : response.statusText });
+      return Promise.reject({ error : response.status, message : response.statusText, errors : [] });
     }
 
     // IE does not have window.origin
@@ -63,7 +63,7 @@ function request (method, request, body, callback, options) {
     return response.json();
   }).then(function (json) {
     if (json.success === false) {
-      return callback({ error : json.error, message : json.message });
+      return callback({ error : json.error, message : json.message, errors : json.errors });
     }
     callback(null, json.data);
   }).catch(function (err) {
