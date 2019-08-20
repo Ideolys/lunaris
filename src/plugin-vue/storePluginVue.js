@@ -16,7 +16,7 @@ lunaris._vue = {
             return;
           }
 
-          _this.$toast.open({
+          _this.$buefy.toast.open({
             message  : message,
             type     : 'is-success',
             position : 'is-top-right'
@@ -49,7 +49,7 @@ lunaris._vue = {
           //   onAction   : onAction
           // });
 
-          _this.$toast.open({
+          _this.$buefy.toast.open({
             message  : err,
             type     : 'is-danger',
             position : 'is-top-right',
