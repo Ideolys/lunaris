@@ -290,13 +290,15 @@ describe('builder', () => {
     lunaris.insert('@reference', _obj);
   });
 
-  it('should define the from', () => {
-    should(lunaris._stores.http.data).eql(lunaris._stores.from.data);
+  it.only('should define the inherits', () => {
+    should(lunaris._stores.http.data).eql(lunaris._stores.inherits.data);
     should(lunaris._stores.http.filterFns).be.an.Object().and.not.empty();
-    should(lunaris._stores.from.filterFns).be.an.Object().and.empty();
+    should(lunaris._stores.inherits.filterFns).be.an.Object().and.empty();
 
-    should(lunaris._stores.http.validateFn.toString()).eql(lunaris._stores.from.validateFn.toString());
-    should(lunaris._stores.http.getPrimaryKeyFn.toString()).eql(lunaris._stores.from.getPrimaryKeyFn.toString());
-    should(lunaris._stores.http.setPrimaryKeyFn.toString()).eql(lunaris._stores.from.setPrimaryKeyFn.toString());
+    should(lunaris._stores.http.meta).eql(lunaris._stores.inherits.meta);
+    should(lunaris._stores.http.data === lunaris._stores.inherits.data).eql(false);
+    should(lunaris._stores.http.validateFn.toString()).eql(lunaris._stores.inherits.validateFn.toString());
+    should(lunaris._stores.http.getPrimaryKeyFn.toString()).eql(lunaris._stores.inherits.getPrimaryKeyFn.toString());
+    should(lunaris._stores.http.setPrimaryKeyFn.toString()).eql(lunaris._stores.inherits.setPrimaryKeyFn.toString());
   });
 });
