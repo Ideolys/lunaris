@@ -1,8 +1,28 @@
 var logger         = require('../logger.js');
-var transaction    = require('./store.transaction.js');
 var lunarisExports = require('../exports.js');
 
-transaction.registerHookFn(pushToHandlers);
+/**
+ * Queue
+ * @param {Array} items
+ * @param {Object/Array} payload payload for the handler
+ * @param {Function} done function called when every items have been processed
+ */
+function queue (items, payload, done) {
+  var iterator = -1;
+
+  function next (bla) {
+    ++iterator;
+    var item = items[iterator];
+
+    if (!item) {
+      return done();
+    }
+
+    items[iterator](payload, next);
+  }
+
+  next(true);
+}
 
 /**
  * Extract the store name and the event from the given string
@@ -72,7 +92,16 @@ function registerHook (hook, handler, isUnique, isInternalHook) {
       }
     }
 
-    _store.hooks[_hook.event].push(handler);
+    // If only 1 parameter is defined, the handler is synchrone
+    var _hookHandler = handler;
+    if (handler.length === 1) {
+      _hookHandler = function (payload, next) {
+        handler(payload);
+        next();
+      };
+    }
+
+    _store.hooks[_hook.event].push(_hookHandler);
     _store.isInternalHooks[_hook.event].push(isInternalHook || false);
   }
   catch (e) {
@@ -118,41 +147,20 @@ function removeHook (hook, handler) {
  * @param {Object} store
  * @param {String} hook
  * @param {*} payload
- * @param {Boolean} isMultipleArgsPayload
  * @param {Int} transactionId
  */
-function pushToHandlers (store, hook, payload, isMultipleArgsPayload, transactionId) {
+function pushToHandlers (store, hook, payload, callback) {
   var _storeHooks = store.hooks[hook];
 
   if (!_storeHooks) {
-    if (transaction.isCommitingTransaction) {
-      transaction.pipe(store, hook, payload, transactionId);
-    }
     return;
   }
 
-  if (!Array.isArray(payload)) {
-    payload = [payload];
+  if (!callback) {
+    callback = function () {};
   }
 
-  if (transaction.isCommitingTransaction && hook === 'filterUpdated') {
-    transaction.addUniqueEvent(store.name, hook);
-    transaction.pipe(store, hook, payload, transactionId);
-    return;
-  }
-
-  for (var i = 0; i < _storeHooks.length; i++) {
-    if (isMultipleArgsPayload) {
-      _storeHooks[i](payload);
-    }
-    else {
-      _storeHooks[i].apply(null, payload);
-    }
-  }
-
-  if (transaction.isCommitingTransaction) {
-    transaction.pipe(store, hook, payload, transactionId);
-  }
+  queue(_storeHooks, payload, callback);
 }
 
 /**

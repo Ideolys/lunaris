@@ -1403,7 +1403,7 @@ describe('lunaris store', function () {
     });
   });
 
-  describe('get()', () => {
+  describe.only('get()', () => {
     it('insert() should be defined', () => {
       should(lunaris.get).be.a.Function();
     });

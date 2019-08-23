@@ -349,14 +349,39 @@ function setOfflineHttpTransaction (storeName, method, request, value) {
  * @param {Array} res
  * @param {Int} transactionId
  */
-function _pushCommitResToHandlers (store, hookKey, res, transactionId) {
+function _pushCommitResToHandlers (store, hookKey, res, callback) {
   if (res && res.length) {
     if (store.isStoreObject) {
       res = res[0];
     }
     res = utils.cloneAndFreeze(res);
-    hook.pushToHandlers(store, hookKey, res, Array.isArray(res), transactionId);
+    return hook.pushToHandlers(store, hookKey, res, callback);
   }
+
+  callback();
+}
+
+/**
+ * Queue
+ * @param {Array} items
+ * @param {Function} handler function to handle item in items -> handler(item, next {Function})
+ * @param {Function} done    function called when every items have been processed
+ */
+function queue (items, handler, done) {
+  var iterator = -1;
+
+  function next () {
+    iterator++;
+    var item = items[iterator];
+
+    if (!item) {
+      return done();
+    }
+
+    handler(items[iterator], done);
+  }
+
+  next();
 }
 
 /**
@@ -366,22 +391,21 @@ function _pushCommitResToHandlers (store, hookKey, res, transactionId) {
  * @param {String} operation
  * @param {Int} transactionId
  */
-function _propagate (store, data, operation, transactionId) {
+function _propagate (store, data, operation, callback) {
   if (!store.storesToPropagate.length) {
-    return;
+    return callback();
   }
 
   if ((!data && operation !== utils.OPERATIONS.DELETE) || (data && Array.isArray(data) && !data.length)) {
-    return;
+    return callback();
   }
 
-  for (var i = 0; i < store.storesToPropagate.length; i++) {
-    var _storeToPropagate = store.storesToPropagate[i];
-    var _store            = storeUtils.getStore('@' + _storeToPropagate);
+  queue(store.storesToPropagate, function (storeToPropagate, next) {
+    var _store            = storeUtils.getStore('@' + storeToPropagate);
     var _collection       = storeUtils.getCollection(_store);
     var _res              = _collection.propagate(store.name, data, operation);
-    _pushCommitResToHandlers(_store, 'update', _res, transactionId);
-  }
+    _pushCommitResToHandlers(_store, 'update', _res, next);
+  }, callback);
 }
 
 /**
@@ -390,18 +414,17 @@ function _propagate (store, data, operation, transactionId) {
  * @param {Object/Array} data
  * @param {Int} transactionId
  */
-function _propagateReferences (store, data, transactionId) {
+function _propagateReferences (store, data, callback) {
   if (!store.storesToPropagateReferences || !store.storesToPropagateReferences.length) {
-    return;
+    return callback();
   }
 
-  for (var i = 0; i < store.storesToPropagateReferences.length; i++) {
-    var _storeToPropagate = store.storesToPropagateReferences[i];
-    var _store            = storeUtils.getStore('@' + _storeToPropagate);
+  queue(store.storesToPropagateReferences, function (storeToPropagate, next) {
+    var _store            = storeUtils.getStore('@' + storeToPropagate);
     var _collection       = storeUtils.getCollection(_store);
     var _res              = _collection.propagateReferences(store.name, data);
-    _pushCommitResToHandlers(_store, 'update', _res, transactionId);
-  }
+    _pushCommitResToHandlers(_store, 'update', _res, next);
+  }, callback);
 }
 
 /**
@@ -441,16 +464,17 @@ function beforeAction (store, value, isNoValue) {
  * @param {String} message
  * @param {Int} transactionId
  */
-function afterAction (store, event, value, message, transactionId) {
+function afterAction (store, event, value, message, callback) {
   var _value = null;
   if (value) {
     _value = utils.cloneAndFreeze(value);
   }
+
   if (message) {
-    return hook.pushToHandlers(store, event, [_value, message], false, transactionId);
+    return hook.pushToHandlers(store, event, _value, callback);
   }
 
-  hook.pushToHandlers(store, event, _value, Array.isArray(_value), transactionId);
+  hook.pushToHandlers(store, event, _value, callback);
 }
 
 /**
@@ -794,6 +818,134 @@ function _transformGetCache (collection, values) {
 }
 
 /**
+ * Get cache values for GET
+ * @param {Object} store
+ * @param {Object} collection
+ * @param {Object} request
+ * @param {Function} callback
+ * @param {Function} nextGet handler to call next get in queue
+ */
+function _getCache (store, collection, request, callback, nextGet) {
+  var _cacheValues = cache.get(store.name, md5(request.request));
+  var _values      = [];
+
+  if (_cacheValues) {
+    if (typeof _cacheValues === 'object') {
+      storeUtils.saveState(store, collection);
+      _values = _transformGetCache(collection, utils.clone(_cacheValues));
+    }
+
+    afterAction(store, 'get', _values, null, function () {
+      if (store.isFilter) {
+        return hook.pushToHandlers(store, 'filterUpdated', null, function () {
+          nextGet('@' + store.name);
+        });
+      }
+
+      nextGet('@' + store.name);
+    });
+  }
+
+  callback();
+}
+
+/**
+ * Get local values and send evens for GET
+ * @param {Object} store
+ * @param {Object} collection
+ * @param {Object} request
+ * @param {Function} callback
+ * @param {Function} nextGet handler to call next get in queue
+ */
+function _getLocal (store, collection, request, callback, nextGet) {
+  if (!offline.isOnline || store.isLocal) {
+    var _res = storeOffline.filter(
+      store,
+      collection,
+      request
+    );
+
+    return afterAction(store, 'get', _res, null, function () {
+      if (store.isFilter && ((store.isStoreObject && _res) || (!store.isStoreObject && _res.length))) {
+        return hook.pushToHandlers(store, 'filterUpdated', null, function () {
+          storeUtils.saveState(store, collection);
+          nextGet('@' + store.name);
+        });
+      }
+
+      storeUtils.saveState(store, collection);
+      nextGet('@' + store.name);
+    });
+  }
+
+  callback();
+}
+
+/**
+ * Make a GET HTTP request
+ * @param {Object} store
+ * @param {Object} collection
+ * @param {String} request
+ * @param {*} primaryKeyValue -> GET /store/:primaryKeyValue
+ * @param {Function} callback
+ * @param {Function} nextGet handler to call next get in queue
+ */
+function _getHTTP (store, collection, request, primaryKeyValue, callback, nextGet) {
+  http.request('GET', request, null, function (err, data) {
+    if (err) {
+      var _error = template.getError(err, store, 'GET', true);
+      setLunarisError(store.name, 'GET', request, null, null, err, _error);
+      logger.warn(['lunaris.get@' + store.name], err);
+      return hook.pushToHandlers(store, 'errorHttp', _error, function () {
+        nextGet('@' + store.name);
+      });
+    }
+
+    var _version = collection.begin();
+    if (Array.isArray(data)) {
+      if (store.isStoreObject) {
+        logger.warn(
+          ['lunaris.get@' + store],
+          new Error('The store "' + store.name + '" is an object store. The GET method cannot return multiple elements!')
+        );
+        return nextGet('@' + store.name);
+      }
+
+      cache.add(store.name, md5(request), utils.clone(data));
+
+      for (var i = 0; i < data.length; i++) {
+        collection.upsert(data[i], _version);
+      }
+
+      if (primaryKeyValue && data.length) {
+        data = data[0];
+      }
+    }
+    else {
+      cache.add(store.name, md5(request), utils.clone(data));
+      collection.upsert(data, _version);
+    }
+
+    data = collection.commit(_version);
+
+    afterAction(store, 'get', data, null, function () {
+      _propagateReferences(store, data, function () {
+        _propagate(store, data, utils.OPERATIONS.INSERT, function () {
+          if (store.isFilter) {
+            return hook.pushToHandlers(store, 'filterUpdated', false, function () {
+              storeUtils.saveState(store, collection);
+              callback();
+            });
+          }
+
+          callback();
+        });
+      });
+    });
+  });
+}
+
+/**
  * Make get
  * @param {String} store
  * @param {*} primaryKeyValue
@@ -804,9 +956,8 @@ function _transformGetCache (collection, values) {
  */
 function _get (store, primaryKeyValue, retryOptions, callback) {
   try {
-    var _options       = beforeAction(store, null, true);
-    var _request       = '/';
-    var _transactionId = transaction.getCurrentTransactionId();
+    var _options = beforeAction(store, null, true);
+    var _request = '/';
 
     if (!retryOptions) {
       _request = url.create(_options.store, 'GET', primaryKeyValue);
@@ -815,94 +966,29 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         return callback(store);
       }
 
-      var _cacheValues = cache.get(_options.store.name, md5(_request.request));
-
-      if (_cacheValues) {
-        if (typeof _cacheValues === 'object') {
-          afterAction(_options.store, 'get', _transformGetCache(_options.collection, utils.clone(_cacheValues)), null, _transactionId);
-          storeUtils.saveState(_options.store, _options.collection);
-        }
-        else {
-          afterAction(_options.store, 'get', [], null, _transactionId);
-        }
-
-        if (_options.store.isFilter) {
-          hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
-        }
-
-        return callback(store);
-      }
-
-      if (!offline.isOnline || _options.store.isLocal) {
-        var _res = storeOffline.filter(
-          _options.store,
-          _options.collection,
-          _request
-        );
-        afterAction(_options.store, 'get', _res, null, _transactionId);
-        if (_options.store.isFilter && ((_options.store.isStoreObject && _res) || (!_options.store.isStoreObject && _res.length))) {
-          hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
-        }
-        storeUtils.saveState(_options.store, _options.collection);
-        return callback(store);
-      }
-
-      _request = _request.request;
-    }
-    else {
-      _request = retryOptions.url || '/';
+      return _getCache(_options.store, _options.collection, _request, function () {
+        _getLocal(_options.store, _options.collection, _request, function () {
+          _request = _request.request;
+          _getHTTP(_options.store, _options.collection, _request, primaryKeyValue, function () {
+            // do something at the end of the get
+            console.log('end');
+            callback(store);
+          }, callback);
+        }, callback);
+      }, callback);
     }
 
-    http.request('GET', _request, null, function (err, data) {
-      if (err) {
-        var _error = template.getError(err, _options.store, 'GET', true);
-        setLunarisError(_options.store.name, 'GET', _request, null, null, err, _error);
-        logger.warn(['lunaris.get' + store], err);
-        hook.pushToHandlers(_options.store, 'errorHttp', _error, false, _transactionId);
-        return callback(store);
-      }
+    _request = retryOptions.url || '/';
 
-
-      var _version = _options.collection.begin();
-      if (Array.isArray(data)) {
-        if (_options.store.isStoreObject) {
-          logger.warn(
-            ['lunaris.get' + store],
-            new Error('The store "' + _options.store.name + '" is an object store. The GET method cannot return multiple elements!')
-          );
-          return callback(store);
-        }
-
-        cache.add(_options.store.name, md5(_request), utils.clone(data));
-
-        for (var i = 0; i < data.length; i++) {
-          _options.collection.upsert(data[i], _version);
-        }
-
-        if (primaryKeyValue && data.length) {
-          data = data[0];
-        }
-      }
-      else {
-        cache.add(_options.store.name, md5(_request), utils.clone(data));
-        _options.collection.upsert(data, _version);
-      }
-
-      data = _options.collection.commit(_version);
-
-      afterAction(_options.store, 'get', data, null, _transactionId);
-      _propagateReferences(_options.store, data, _transactionId);
-      _propagate(_options.store, data, utils.OPERATIONS.INSERT, _transactionId);
-      if (_options.store.isFilter) {
-        hook.pushToHandlers(_options.store, 'filterUpdated', false, null, _transactionId);
-      }
-      storeUtils.saveState(_options.store, _options.collection);
-    });
+    _getHTTP(_options.store, _options.collection, _request, primaryKeyValue, function () {
+      // do something at the end of the get
+      console.log('end');
+      callback(store);
+    }, callback);
   }
   catch (e) {
     logger.warn(['lunaris.get' + store], e);
   }
-  callback(store);
 }
 
 /** =================================================  *

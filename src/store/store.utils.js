@@ -3,6 +3,7 @@ var logger             = require('../logger.js');
 var utils              = require('../utils.js');
 var localStorageDriver = require('../localStorageDriver.js');
 var database           = localStorageDriver.indexedDB;
+var offline            = require('../offline.js');
 
 /**
  * Get store
@@ -36,10 +37,16 @@ function getTranslatedStoreName (storeName) {
 
 /**
  * Get store collection
+ * If a from is defined, it will return the collection of the store in the field
  * @param {Object} store
  * @returns {Object}
  */
 function getCollection (store) {
+  if (store.from && (!store.isLocal || !offline.isOnline)) {
+    var _fromStore = getStore(store.from);
+    return _fromStore.data;
+  }
+
   var _collection = store.data;
 
   if (!_collection) {
