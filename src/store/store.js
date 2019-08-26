@@ -378,7 +378,7 @@ function queue (items, handler, done) {
       return done();
     }
 
-    handler(items[iterator], done);
+    handler(items[iterator], next);
   }
 
   next();
@@ -1117,6 +1117,34 @@ function upsert (store, value, isLocal, retryOptions) {
   }
 }
 
+function _deleteValueInReferencedStores (store, value, callback) {
+  // If references, we must find if the id is stille referenced
+  var _storesToPropagateLength = store.storesToPropagateReferences.length;
+
+  if (!_storesToPropagateLength) {
+    return callback();
+  }
+
+  queue(store.storesToPropagateReferences, function handlerItem (storeToPropagate, next) {
+    var _store      = storeUtils.getStore('@' + storeToPropagate);
+    var _collection = storeUtils.getCollection(_store);
+    var _references = _collection.getIndexReferences();
+
+    if (!_references[store.name]) {
+      return next();
+    }
+
+    if (!utils.index.binarySearch(_references[store.name][0], value._id).found) {
+      return next();
+    }
+
+    var error = '${Cannot delete the value, it is still referenced in the store} ' + _store.nameTranslated;
+    hook.pushToHandlers(store, 'error', { error : error, data : null }, function () {
+      callback(true);
+    });
+  }, callback);
+}
+
 /**
  * Delete value in collection
  * @param {Object} store
@@ -1125,50 +1153,81 @@ function upsert (store, value, isLocal, retryOptions) {
  * @param {Boolean} isLocal
  * @param {Int} transactionId
  */
-function _delete (store, collection, value, isLocal, transactionId) {
+function _deleteLocal (store, collection, value, isLocal, callback) {
   var _version = collection.begin();
 
-  // If references, we must find if the id is stille referenced
-  var _storesToPropagateLength = store.storesToPropagateReferences.length;
-
-  if (_storesToPropagateLength) {
-    for (var i = 0; i < _storesToPropagateLength; i++) {
-      var _storeToPropagate = store.storesToPropagateReferences[i];
-      var _store            = storeUtils.getStore('@' + _storeToPropagate);
-      var _collection       = storeUtils.getCollection(_store);
-      var _references       = _collection.getIndexReferences();
-
-      if (!_references[store.name]) {
-        continue;
-      }
-
-      if (!utils.index.binarySearch(_references[store.name][0], value._id).found) {
-        continue;
-      }
-
-      var error   = '${Cannot delete the value, it is still referenced in the store} ' + _store.nameTranslated;
-      hook.pushToHandlers(store, 'error', [null, error], false, transactionId);
-      throw new Error('You cannot delete a value still referenced');
+  _deleteValueInReferencedStores(store, value, function (isError) {
+    if (isError) {
+      return callback(isError);
     }
+
+    collection.remove(value, _version, !isLocal);
+    value = collection.commit(_version);
+    var _isArray = Array.isArray(value);
+
+    if (isLocal && ((!_isArray && !value) || (_isArray && !value.length))) {
+      return callback(new Error('You cannot delete a value not in the store!'));
+    }
+
+    afterAction(store, 'delete', value, null, function () {
+      _propagateReferences(store, value, function () {
+        _propagate(store, value, utils.OPERATIONS.DELETE, function () {
+          if (!store.isStoreObject) {
+            value = value[0];
+          }
+
+          cache.invalidate(store.name);
+          storeUtils.saveState(store, collection);
+          callback(null, [_version, value]);
+        });
+      });
+    });
+  });
+}
+
+function _deleteHttp (store, collection, isLocal, retryOptions, value, version, callback) {
+  if (store.isLocal || isLocal) {
+    return callback();
   }
 
-  collection.remove(value, _version, !isLocal);
-  value = collection.commit(_version);
-  var _isArray = Array.isArray(value);
-  if (isLocal && ((!_isArray && !value) || (_isArray && !value.length))) {
-    throw new Error('You cannot delete a value not in the store!');
+  var _request = '/';
+  if (!retryOptions) {
+    _request = url.create(store, 'DELETE', storeUtils.getPrimaryKeyValue(store, value));
+    // required filters consition not fullfilled
+    if (!_request) {
+      return callback();
+    }
+    _request = _request.request;
   }
-  afterAction(store, 'delete', value, null, transactionId);
-  _propagateReferences(store, value, transactionId);
-  _propagate(store, value, utils.OPERATIONS.DELETE, transactionId);
-
-  if (!store.isStoreObject) {
-    value = value[0];
+  else {
+    _request = retryOptions.url;
   }
 
-  cache.invalidate(store.name);
-  storeUtils.saveState(store, collection);
-  return [_version, value];
+  if (!offline.isOnline) {
+    setOfflineHttpTransaction(store.name, OPERATIONS.DELETE, _request, value);
+    return callback();
+  }
+
+  http.request('DELETE', _request, null, function (err, data) {
+    if (err) {
+      var _error = template.getError(err, store, 'DELETE', false);
+      setLunarisError(store.name, 'DELETE', _request, value, version, err, _error);
+      logger.warn(['lunaris.delete@' + store.name], err);
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, callback);
+    }
+
+    _deleteLocal(store, collection, data, false, function (err, data) {
+      if (err) {
+        return callback(err);
+      }
+
+      if (data[1]) {
+        value = data[1];
+      }
+
+      afterAction(store, 'deleted', value, template.getSuccess(null, store, 'DELETE', false), callback);
+    });
+  });
 }
 
 /**
@@ -1202,48 +1261,27 @@ function deleteStore (store, value, retryOptions, isLocal) {
 
     var _version;
     if (!retryOptions) {
-      var _res = _delete(_options.store, _options.collection, value, true, _transactionId);
-      _version = _res[0];
-      value    = _res[1];
+      return _deleteLocal(_options.store, _options.collection, value, true, function (err, data) {
+        if (err) {
+          throw err;
+        }
+
+        _version = data[0];
+        value    = data[1];
+
+        _deleteHttp(_options.store, _options.collection, isLocal, retryOptions, value, _version, function () {
+          // do something at then end
+        });
+      });
+
     }
     else {
       _version = retryOptions.version;
     }
 
-    if (_options.store.isLocal || isLocal) {
-      return;
-    }
 
-    var _request = '/';
-    if (!retryOptions) {
-      _request = url.create(_options.store, 'DELETE', storeUtils.getPrimaryKeyValue(_options.store, value));
-      // required filters consition not fullfilled
-      if (!_request) {
-        return;
-      }
-      _request = _request.request;
-    }
-    else {
-      _request = retryOptions.url;
-    }
-
-    if (!offline.isOnline) {
-      return setOfflineHttpTransaction(_options.store.name, OPERATIONS.DELETE, _request, value);
-    }
-
-    http.request('DELETE', _request, null, function (err, data) {
-      if (err) {
-        var _error = template.getError(err, _options.store, 'DELETE', false);
-        setLunarisError(_options.store.name, 'DELETE', _request, value, _version, err, _error);
-        logger.warn(['lunaris.delete' + store], err);
-        return hook.pushToHandlers(_options.store, 'errorHttp', [_error, value], false, _transactionId);
-      }
-
-      _res = _delete(_options.store, _options.collection, data, false, _transactionId)[1];
-      if (_res) {
-        value = _res;
-      }
-      afterAction(_options.store, 'deleted', value, template.getSuccess(null, _options.store, 'DELETE', false), _transactionId);
+    _deleteHttp(_options.store, _options.collection, isLocal, retryOptions, value, _version, function () {
+      // do something at then end
     });
   }
   catch (e) {
