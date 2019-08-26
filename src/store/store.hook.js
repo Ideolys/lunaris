@@ -1,5 +1,8 @@
 var logger         = require('../logger.js');
+var transaction    = require('./store.transaction.js');
 var lunarisExports = require('../exports.js');
+
+transaction.registerHookFn(pushToHandlers);
 
 /**
  * Queue
@@ -71,14 +74,18 @@ function registerHook (hook, handler, isUnique, isInternalHook) {
     if (!_store.isInternalHooks) {
       _store.isInternalHooks = {};
     }
+    if (!_store.realHooks) {
+      _store.realHooks = {};
+    }
 
     if (!_store.hooks[_hook.event]) {
       _store.hooks[_hook.event]           = [];
+      _store.realHooks[_hook.event]       = [];
       _store.isInternalHooks[_hook.event] = [];
     }
 
     if (isUnique) {
-      var _handlers     = _store.hooks[_hook.event];
+      var _handlers     = _store.realHooks[_hook.event];
       var _hasBeenFound = false;
       for (var i = 0; i < _handlers.length; i++) {
         if (_handlers[i].toString() === handler.toString()) {
@@ -103,6 +110,7 @@ function registerHook (hook, handler, isUnique, isInternalHook) {
 
     _store.hooks[_hook.event].push(_hookHandler);
     _store.isInternalHooks[_hook.event].push(isInternalHook || false);
+    _store.realHooks[_hook.event].push(handler);
   }
   catch (e) {
     logger.warn(['lunaris.hook:' + hook], e);
@@ -124,7 +132,7 @@ function removeHook (hook, handler) {
       throw new Error('Cannot remove hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
     }
 
-    var _handlers = _store.hooks[_hook.event];
+    var _handlers = _store.realHooks[_hook.event];
     if (!_handlers) {
       throw new Error('Cannot remove hook "' + hook + '", it has not been defined!');
     }
@@ -134,6 +142,7 @@ function removeHook (hook, handler) {
       if (_handlers[i] === handler) {
         _handlers.splice(i, 1);
         _store.isInternalHooks[_hook.event].splice(i, 1);
+        _store.hooks[_hook.event].splice(i, 1);
       }
     }
   }
@@ -149,7 +158,7 @@ function removeHook (hook, handler) {
  * @param {*} payload
  * @param {Int} transactionId
  */
-function pushToHandlers (store, hook, payload, callback) {
+function pushToHandlers (store, hook, payload, transactionId, callback) {
   var _storeHooks = store.hooks[hook];
 
   if (!callback) {
@@ -157,6 +166,11 @@ function pushToHandlers (store, hook, payload, callback) {
   }
 
   if (!_storeHooks) {
+    return callback();
+  }
+
+  if (transactionId && hook === 'filterUpdated') {
+    transaction.addUniqueEvent(transactionId, store.name, hook);
     return callback();
   }
 

@@ -18,7 +18,6 @@ utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
 module.exports = {
   _stores             : lunarisExports._stores,
   _collection         : collection.collection,
-  _resetTransaction   : transaction._reset,
   _cache              : cache,
   _resetVersionNumber : collection.resetVersionNumber,
   _indexedDB          : localStorageDriver.indexedDB,

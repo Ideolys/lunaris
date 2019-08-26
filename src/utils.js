@@ -414,3 +414,26 @@ exports.unaccent = function removeDiacritics (str) {
     return diacriticsMap[a] || a;
   });
 };
+
+/**
+ * Queue
+ * @param {Array} items
+ * @param {Function} handler function to handle item in items -> handler(item, next {Function})
+ * @param {Function} done    function called when every items have been processed
+ */
+exports.queue = function queue (items, handler, done) {
+  var iterator = -1;
+
+  function next () {
+    iterator++;
+    var item = items[iterator];
+
+    if (!item) {
+      return done();
+    }
+
+    handler(items[iterator], next);
+  }
+
+  next();
+};

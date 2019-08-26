@@ -21,6 +21,7 @@ var OFFLINE_STORE               = utils.offlineStore;
 var isPushingOfflineTransaction = false;
 var offlineTransactions         = [];
 var offlineTransactionsInError  = [];
+var queue                       = require('../utils.js').queue;
 
 lunarisExports._stores.lunarisErrors = {
   name                  : 'lunarisErrors',
@@ -355,33 +356,10 @@ function _pushCommitResToHandlers (store, hookKey, res, callback) {
       res = res[0];
     }
     res = utils.cloneAndFreeze(res);
-    return hook.pushToHandlers(store, hookKey, res, callback);
+    return hook.pushToHandlers(store, hookKey, res, null, callback);
   }
 
   callback();
-}
-
-/**
- * Queue
- * @param {Array} items
- * @param {Function} handler function to handle item in items -> handler(item, next {Function})
- * @param {Function} done    function called when every items have been processed
- */
-function queue (items, handler, done) {
-  var iterator = -1;
-
-  function next () {
-    iterator++;
-    var item = items[iterator];
-
-    if (!item) {
-      return done();
-    }
-
-    handler(items[iterator], next);
-  }
-
-  next();
 }
 
 /**
@@ -474,7 +452,7 @@ function afterAction (store, event, value, message, callback) {
   //   return hook.pushToHandlers(store, event, _value, callback);
   // }
 
-  hook.pushToHandlers(store, event, _value, callback);
+  hook.pushToHandlers(store, event, _value, null, callback);
 }
 
 /**
@@ -629,13 +607,14 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
  * @param {Object/Array} value
  * @param {Boolean} isUpdate
  * @param {String} method
+ * @param {Interger} transactionId
  * @param {Function} callback
  */
-function _upsertHTTPEvents (store, value, isUpdate, method, callback) {
+function _upsertHTTPEvents (store, value, isUpdate, method, transactionId, callback) {
   afterAction(store, 'update', value, null, function () {
     afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false), function () {
       if (store.isFilter) {
-        return hook.pushToHandlers(store, 'filterUpdated', null, function () {
+        return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
           _propagateReferences(store, value, function () {
             _propagate(store, value, utils.OPERATIONS.UPDATE, function () {
               storeUtils.saveState(store, collection);
@@ -667,15 +646,16 @@ function _upsertHTTPEvents (store, value, isUpdate, method, callback) {
  * @param {*} value
  * @param {Boolean} isMultipleItems
  * @param {Int} version
+ * @param {Integer} transactionId
  * @param {Function} callback
  */
-function _upsertHTTP (method, request, isUpdate, store, collection, cache, value, isMultipleItems, version, callback) {
+function _upsertHTTP (method, request, isUpdate, store, collection, cache, value, isMultipleItems, version, transactionId, callback) {
   http.request(method, request, value, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, method, false);
       setLunarisError(store.name, method, request, value, version, err, _error);
       logger.warn(['lunaris.' + (isUpdate ? 'update' : 'insert') + '@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : utils.cloneAndFreeze(value)}, callback);
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : utils.cloneAndFreeze(value)}, null, callback);
     }
 
     if (method === OPERATIONS.PATCH) {
@@ -744,7 +724,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
           return callback();
         }
 
-        _upsertHTTPEvents(store, value, isUpdate, method, callback);
+        _upsertHTTPEvents(store, value, isUpdate, method, transactionId, callback);
       });
     }
 
@@ -752,7 +732,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
       return callback();
     }
 
-    _upsertHTTPEvents(store, value, isUpdate, method, callback);
+    _upsertHTTPEvents(store, value, isUpdate, method, transactionId, callback);
   });
 }
 
@@ -762,12 +742,13 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
  * @param {Array/Object} value
  * @param {Boolean} isUpdate
  * @param {Boolean} isLocal
+ * @param {Integer} transactionId
  * @param {Function} callback
  */
-function _upsertLocal (store, value, isUpdate, isLocal, callback) {
+function _upsertLocal (store, value, isUpdate, isLocal, transactionId, callback) {
   if (store.isLocal || isLocal) {
     if (store.isFilter) {
-      return hook.pushToHandlers(store, 'filterUpdated', null, function () {
+      return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
         _propagateReferences(store, value, function () {
           _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, callback);
         });
@@ -791,8 +772,10 @@ function _upsertLocal (store, value, isUpdate, isLocal, callback) {
  * @param {Boolean} isLocal
  * @param {Boolean} isUpdate
  * @param {Object} retryOptions
+ * @param {Integer} transactionId
+ * @param {Function} callback
  */
-function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryOptions, callback) {
+function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryOptions, transactionId, callback) {
   var _isMultipleItems = Array.isArray(value);
   var _version;
 
@@ -819,11 +802,12 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
         return callback();
       }
 
-      _upsertLocal(store, value, isUpdate, isLocal, function () {
-
+      _upsertLocal(store, value, isUpdate, isLocal, transactionId, function () {
         if (!store.isLocal && !isLocal) {
-          _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version, callback);
+          return _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version, transactionId, callback);
         }
+
+        callback();
       });
     });
   }
@@ -834,7 +818,7 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
     return callback();
   }
 
-  _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version, callback);
+  _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version, transactionId, callback);
 }
 
 /**
@@ -848,7 +832,10 @@ function _processNextGetRequest (store) {
     return;
   }
 
-  _getRequest.push(_processNextGetRequest);
+  if (_getRequest.length === 3) {
+    _getRequest = _getRequest.concat([null, _processNextGetRequest]);
+  }
+
   _get.apply(null, _getRequest);
 }
 
@@ -876,10 +863,11 @@ function _transformGetCache (collection, values) {
  * @param {Object} store
  * @param {Object} collection
  * @param {Object} request
+ * @param {Int} transactionId
  * @param {Function} callback
  * @param {Function} nextGet handler to call next get in queue
  */
-function _getCache (store, collection, request, callback, nextGet) {
+function _getCache (store, collection, request, transactionId, callback, nextGet) {
   var _cacheValues = cache.get(store.name, md5(request.request));
   var _values      = [];
 
@@ -889,9 +877,9 @@ function _getCache (store, collection, request, callback, nextGet) {
       _values = _transformGetCache(collection, utils.clone(_cacheValues));
     }
 
-    afterAction(store, 'get', _values, null, function () {
+    return afterAction(store, 'get', _values, null, function () {
       if (store.isFilter) {
-        return hook.pushToHandlers(store, 'filterUpdated', null, function () {
+        return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
           nextGet('@' + store.name);
         });
       }
@@ -908,10 +896,11 @@ function _getCache (store, collection, request, callback, nextGet) {
  * @param {Object} store
  * @param {Object} collection
  * @param {Object} request
+ * @param {Integer} transactionId
  * @param {Function} callback
  * @param {Function} nextGet handler to call next get in queue
  */
-function _getLocal (store, collection, request, callback, nextGet) {
+function _getLocal (store, collection, request, transactionId, callback, nextGet) {
   if (!offline.isOnline || store.isLocal) {
     var _res = storeOffline.filter(
       store,
@@ -921,7 +910,7 @@ function _getLocal (store, collection, request, callback, nextGet) {
 
     return afterAction(store, 'get', _res, null, function () {
       if (store.isFilter && ((store.isStoreObject && _res) || (!store.isStoreObject && _res.length))) {
-        return hook.pushToHandlers(store, 'filterUpdated', null, function () {
+        return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
           storeUtils.saveState(store, collection);
           nextGet('@' + store.name);
         });
@@ -941,16 +930,17 @@ function _getLocal (store, collection, request, callback, nextGet) {
  * @param {Object} collection
  * @param {String} request
  * @param {*} primaryKeyValue -> GET /store/:primaryKeyValue
+ * @param {Integer} transactionId
  * @param {Function} callback callback for the get
  * @param {Function} nextGet handler to call next get in queue
  */
-function _getHTTP (store, collection, request, primaryKeyValue, callback, nextGet) {
+function _getHTTP (store, collection, request, primaryKeyValue, transactionId, callback, nextGet) {
   http.request('GET', request, null, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, 'GET', true);
       setLunarisError(store.name, 'GET', request, null, null, err, _error);
       logger.warn(['lunaris.get@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error }, function () {
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error }, null, function () {
         nextGet('@' + store.name);
       });
     }
@@ -982,16 +972,16 @@ function _getHTTP (store, collection, request, primaryKeyValue, callback, nextGe
 
     data = collection.commit(_version);
 
+
     afterAction(store, 'get', data, null, function () {
       _propagateReferences(store, data, function () {
         _propagate(store, data, utils.OPERATIONS.INSERT, function () {
           if (store.isFilter) {
-            return hook.pushToHandlers(store, 'filterUpdated', false, function () {
+            return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
               storeUtils.saveState(store, collection);
               callback();
             });
           }
-
           callback();
         });
       });
@@ -1006,9 +996,10 @@ function _getHTTP (store, collection, request, primaryKeyValue, callback, nextGe
  * @param {Object} retryOptions {
  *   url,
  * }
+ * @param {Interger} transactionId
  * @param {function} callback _processNextGetRequest(store)
  */
-function _get (store, primaryKeyValue, retryOptions, callback) {
+function _get (store, primaryKeyValue, retryOptions, transactionId, callback) {
   try {
     var _options = beforeAction(store, null, true);
     var _request = '/';
@@ -1020,10 +1011,10 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
         return callback(store);
       }
 
-      return _getCache(_options.store, _options.collection, _request, function () {
-        _getLocal(_options.store, _options.collection, _request, function () {
+      return _getCache(_options.store, _options.collection, _request, transactionId, function () {
+        _getLocal(_options.store, _options.collection, _request, transactionId, function () {
           _request = _request.request;
-          _getHTTP(_options.store, _options.collection, _request, primaryKeyValue, function () {
+          _getHTTP(_options.store, _options.collection, _request, primaryKeyValue, transactionId, function () {
             // do something at the end of the get
             callback(store);
           }, callback);
@@ -1033,7 +1024,7 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
 
     _request = retryOptions.url || '/';
 
-    _getHTTP(_options.store, _options.collection, _request, primaryKeyValue, function () {
+    _getHTTP(_options.store, _options.collection, _request, primaryKeyValue, transactionId, function () {
       // do something at the end of the get
       callback(store);
     }, callback);
@@ -1058,8 +1049,10 @@ function _get (store, primaryKeyValue, retryOptions, callback) {
  *  method,
  *   version
  * }
+ * @param {Integer}  transactionId
+ * @param {Function} callback
  */
-function upsert (store, value, isLocal, retryOptions) {
+function upsert (store, value, isLocal, retryOptions, transactionId, callback) {
   var _isUpdate   = false;
 
   var _storeParts = (store && typeof store === 'string') ? store.split(':') : [];
@@ -1085,17 +1078,16 @@ function upsert (store, value, isLocal, retryOptions) {
       _isUpdate = false;
     }
 
-    if (transaction.isTransaction && !transaction.isCommitingTransaction) {
+    if (transaction.isTransaction && !transactionId) {
       return transaction.addAction({
         id        : transaction.getCurrentTransactionId(),
         store     : _options.store.name,
         operation : _isUpdate ? OPERATIONS.UPDATE : OPERATIONS.INSERT,
         handler   : upsert,
-        arguments : arguments,
+        arguments : [store, value, isLocal, retryOptions, transaction.getCurrentTransactionId()],
         rollback  : _isUpdate ? upsert : deleteStore
       });
     }
-    var _transactionId = transaction.getCurrentTransactionId();
 
     if (_options.store.validateFn && !_storeParts.length && !retryOptions) {
       return validate(store, _options.value, _isUpdate, function (res) {
@@ -1103,14 +1095,20 @@ function upsert (store, value, isLocal, retryOptions) {
           return;
         }
 
-        _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions, function () {
+        _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions, transactionId, function () {
           // do something when action end
+          if (callback) {
+            callback();
+          }
         });
       }, _eventName);
     }
 
-    _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions, function () {
+    _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions, transactionId, function () {
       // do something when action end
+      if (callback) {
+        callback();
+      }
     });
   }
   catch (e) {
@@ -1146,7 +1144,7 @@ function _deleteValueInReferencedStores (store, value, callback) {
     }
 
     var error = '${Cannot delete the value, it is still referenced in the store} ' + _store.nameTranslated;
-    hook.pushToHandlers(store, 'error', { error : error, data : null }, function () {
+    hook.pushToHandlers(store, 'error', { error : error, data : null }, null, function () {
       callback(true);
     });
   }, callback);
@@ -1200,9 +1198,10 @@ function _deleteLocal (store, collection, value, isLocal, callback) {
  * @param {Object} retryOptions
  * @param {Object} value
  * @param {Int} version
+ * @param {Int} transactionId
  * @param {Function} callback (err)
  */
-function _deleteHttp (store, collection, isLocal, retryOptions, value, version, callback) {
+function _deleteHttp (store, collection, isLocal, retryOptions, value, version, transactionId, callback) {
   if (store.isLocal || isLocal) {
     return callback();
   }
@@ -1230,7 +1229,7 @@ function _deleteHttp (store, collection, isLocal, retryOptions, value, version, 
       var _error = template.getError(err, store, 'DELETE', false);
       setLunarisError(store.name, 'DELETE', _request, value, version, err, _error);
       logger.warn(['lunaris.delete@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, callback);
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, null, callback);
     }
 
     _deleteLocal(store, collection, data, false, function (err, data) {
@@ -1257,24 +1256,25 @@ function _deleteHttp (store, collection, isLocal, retryOptions, value, version, 
  *   version
  * }
  * @param {Boolean} isLocal
+ * @param {Integer} transactionId
+ * @param {Function} callback
  */
-function deleteStore (store, value, retryOptions, isLocal) {
+function deleteStore (store, value, retryOptions, isLocal, transactionId, callback) {
   try {
     if (retryOptions) {
       value = retryOptions.data;
     }
     var _options = beforeAction(store, value);
-    if (transaction.isTransaction && !transaction.isCommitingTransaction) {
+    if (transaction.isTransaction && !transactionId) {
       return transaction.addAction({
         id        : transaction.getCurrentTransactionId(),
         store     : _options.store.name,
         operation : OPERATIONS.DELETE,
         handler   : deleteStore,
-        arguments : arguments,
+        arguments : [store, value, retryOptions, isLocal, transaction.getCurrentTransactionId()],
         rollback  : upsert
       });
     }
-    var _transactionId = transaction.getCurrentTransactionId();
 
     var _version;
     if (!retryOptions) {
@@ -1286,8 +1286,10 @@ function deleteStore (store, value, retryOptions, isLocal) {
         _version = data[0];
         value    = data[1];
 
-        _deleteHttp(_options.store, _options.collection, isLocal, retryOptions, value, _version, function () {
-          // do something at then end
+        _deleteHttp(_options.store, _options.collection, isLocal, retryOptions, value, _version, transactionId, function () {
+          if (callback) {
+            callback();
+          }
         });
       });
 
@@ -1297,8 +1299,10 @@ function deleteStore (store, value, retryOptions, isLocal) {
     }
 
 
-    _deleteHttp(_options.store, _options.collection, isLocal, retryOptions, value, _version, function () {
-      // do something at then end
+    _deleteHttp(_options.store, _options.collection, isLocal, retryOptions, value, _version, transactionId, function () {
+      if (callback) {
+        callback();
+      }
     });
   }
   catch (e) {
@@ -1398,13 +1402,13 @@ function get (store, primaryKeyValue, retryOptions) {
     getRequestQueue[store] = [];
   }
 
-  if (transaction.isTransaction && !transaction.isCommitingTransaction) {
+  if (transaction.isTransaction) {
     return transaction.addAction({
       id        : transaction.getCurrentTransactionId(),
       store     : store.replace('@', ''),
       operation : OPERATIONS.LIST,
       handler   : _get,
-      arguments : [store, primaryKeyValue, retryOptions, function () {}],
+      arguments : [store, primaryKeyValue, retryOptions, transaction.getCurrentTransactionId()],
       rollback  : null
     });
   }
