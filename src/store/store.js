@@ -525,7 +525,7 @@ function _updateCollectionIndexId (store, collection, value) {
  * @param {Int} transactionId
  * @param {String} request
  * @param {Boolean} isLocal
- * @returns {Int} version
+ * @param {Function} callback ({ version : Integer, value : Object/Array, request : String })
  */
 function _upsertCollection (store, collection, value, version, isMultipleItems, isUpdate, pathParts, request, method, isLocal, callback) {
   var _inputValue = value;
@@ -667,6 +667,7 @@ function _upsertHTTPEvents (store, value, isUpdate, method, callback) {
  * @param {*} value
  * @param {Boolean} isMultipleItems
  * @param {Int} version
+ * @param {Function} callback
  */
 function _upsertHTTP (method, request, isUpdate, store, collection, cache, value, isMultipleItems, version, callback) {
   http.request(method, request, value, function (err, data) {
@@ -940,7 +941,7 @@ function _getLocal (store, collection, request, callback, nextGet) {
  * @param {Object} collection
  * @param {String} request
  * @param {*} primaryKeyValue -> GET /store/:primaryKeyValue
- * @param {Function} callback
+ * @param {Function} callback callback for the get
  * @param {Function} nextGet handler to call next get in queue
  */
 function _getHTTP (store, collection, request, primaryKeyValue, callback, nextGet) {
@@ -1117,6 +1118,12 @@ function upsert (store, value, isLocal, retryOptions) {
   }
 }
 
+/**
+ * Delete value in referenced stores
+ * @param {Object} store
+ * @param {Object} value
+ * @param {Function} callback (err)
+ */
 function _deleteValueInReferencedStores (store, value, callback) {
   // If references, we must find if the id is stille referenced
   var _storesToPropagateLength = store.storesToPropagateReferences.length;
@@ -1151,7 +1158,7 @@ function _deleteValueInReferencedStores (store, value, callback) {
  * @param {Object} collection
  * @param {*} value
  * @param {Boolean} isLocal
- * @param {Int} transactionId
+ * @param {Function} callback
  */
 function _deleteLocal (store, collection, value, isLocal, callback) {
   var _version = collection.begin();
@@ -1185,6 +1192,16 @@ function _deleteLocal (store, collection, value, isLocal, callback) {
   });
 }
 
+/**
+ * Make a DELETE HTTP request
+ * @param {Object} store
+ * @param {Object} collection
+ * @param {Boolean} isLocal
+ * @param {Object} retryOptions
+ * @param {Object} value
+ * @param {Int} version
+ * @param {Function} callback (err)
+ */
 function _deleteHttp (store, collection, isLocal, retryOptions, value, version, callback) {
   if (store.isLocal || isLocal) {
     return callback();
