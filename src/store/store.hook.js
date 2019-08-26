@@ -10,7 +10,7 @@ var lunarisExports = require('../exports.js');
 function queue (items, payload, done) {
   var iterator = -1;
 
-  function next (bla) {
+  function next () {
     ++iterator;
     var item = items[iterator];
 
@@ -94,7 +94,7 @@ function registerHook (hook, handler, isUnique, isInternalHook) {
 
     // If only 1 parameter is defined, the handler is synchrone
     var _hookHandler = handler;
-    if (handler.length === 1) {
+    if (handler.length <= 1) {
       _hookHandler = function (payload, next) {
         handler(payload);
         next();
@@ -152,12 +152,12 @@ function removeHook (hook, handler) {
 function pushToHandlers (store, hook, payload, callback) {
   var _storeHooks = store.hooks[hook];
 
-  if (!_storeHooks) {
-    return;
-  }
-
   if (!callback) {
     callback = function () {};
+  }
+
+  if (!_storeHooks) {
+    return callback();
   }
 
   queue(_storeHooks, payload, callback);
