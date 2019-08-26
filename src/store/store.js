@@ -16,7 +16,6 @@ var indexedDB                   = require('../localStorageDriver.js').indexedDB;
 var OPERATIONS                  = utils.OPERATIONS;
 var emptyObject                 = {};
 var getRequestQueue             = {};
-var stores                      = [];
 var OFFLINE_STORE               = utils.offlineStore;
 var isPushingOfflineTransaction = false;
 var offlineTransactions         = [];
@@ -1334,10 +1333,22 @@ function setPagination (store, page, limit) {
  * Clear the store collection
  * @param {String} store
  * @param {Boolean} isSilent
+ * @param {Function} transactionId
+ * @param {Function} callback
  */
-function _clear (store, isSilent) {
+function _clear (store, isSilent, transactionId, callback) {
   try {
     var _options = beforeAction(store, null, true);
+
+    if (transaction.isTransaction && !transactionId) {
+      return transaction.addAction({
+        id        : transaction.getCurrentTransactionId(),
+        store     : _options.store.name,
+        operation : OPERATIONS.DELETE,
+        handler   : _clear,
+        arguments : [store, isSilent, transaction.getCurrentTransactionId()]
+      });
+    }
 
     if (offline.isOnline || _options.store.isLocal) {
       indexedDB.clear(_options.store.name);
@@ -1350,10 +1361,22 @@ function _clear (store, isSilent) {
     _options.store.massOperations        = {};
     cache.invalidate(_options.store.name);
     if (!isSilent) {
-      hook.pushToHandlers(_options.store, 'reset', null, false);
+      return hook.pushToHandlers(_options.store, 'reset', null, null, function () {
+        _propagate(_options.store, null, utils.OPERATIONS.DELETE, function () {
+          storeUtils.saveState(_options.store, _options.collection);
+          if (callback) {
+            callback();
+          }
+        });
+      });
     }
-    _propagate(_options.store, null, utils.OPERATIONS.DELETE);
-    storeUtils.saveState(_options.store, _options.collection);
+
+    _propagate(_options.store, null, utils.OPERATIONS.DELETE, function () {
+      storeUtils.saveState(_options.store, _options.collection);
+      if (callback) {
+        callback();
+      }
+    });
   }
   catch (e) {
     logger.warn(['lunaris.clear' + store], e);
@@ -1371,15 +1394,12 @@ function clear (store, isSilent) {
     if (!/^@/.test(store)) {
       return logger.warn(['lunaris.clear'], new Error('The store key must begin by \'@\''));
     }
-    if (!stores.length) {
-      stores = Object.keys(lunarisExports._stores);
-    }
 
     var _keyLength = store.length - 2;
     var _key       = store.slice(1, _keyLength + 1);
-    for (var i = 0; i < stores.length; i++) {
-      if (stores[i].slice(0, _keyLength) === _key) {
-        _clear('@' + stores[i], isSilent);
+    for (var storeKey in lunarisExports._stores) {
+      if (storeKey.slice(0, _keyLength) === _key) {
+        _clear('@' + storeKey, isSilent);
       }
     }
 

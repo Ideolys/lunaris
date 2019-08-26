@@ -57,7 +57,6 @@ function addUniqueEvent (transactionId, store, event) {
 
 function _end (transactionId, callback) {
   // Reset
-  isTransaction = false;
   _sendUniqueEvents(transactionId, function () {
     callback();
   });
@@ -77,6 +76,7 @@ function commit (callback) {
     return;
   }
 
+  isTransaction = false;
   transactions[currentTransactionId].isCommitingTransaction = true;
   _processNextAction(-1, currentTransactionId, callback);
 }

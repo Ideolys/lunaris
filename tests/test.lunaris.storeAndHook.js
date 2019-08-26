@@ -60,7 +60,7 @@ describe('lunaris store', function () {
     _stopServer(done);
   });
 
-  afterEach(() => {
+  beforeEach(() => {
     for (var store in lunaris._stores) {
       if (store !== 'lunarisErrors') {
         delete lunaris._stores[store];
@@ -3693,6 +3693,56 @@ describe('lunaris store', function () {
         ]);
         done();
       }, 100);
+    });
+
+    it('should commit multiple stores sequentially : clear', done => {
+      lunaris._stores['store1'] = initStore('store1');
+
+      var _events = [];
+      lunaris.hook('reset@store1', (data, doneHook) => {
+        _events.push('reset@store1');
+        lunaris.begin();
+        lunaris.get('@store1');
+        lunaris.commit(doneHook);
+      });
+      lunaris.hook('get@store1', () => {
+        _events.push('get@store1');
+      });
+
+      lunaris.begin();
+      lunaris.clear('@store1');
+      lunaris.commit(() => {
+        should(_events).eql([
+          'reset@store1',
+          'get@store1'
+        ]);
+        done();
+      });
+    });
+
+    it('should commit multiple stores sequentially : clear multiple', done => {
+      lunaris._stores['store1'] = initStore('store1');
+      lunaris._stores['store2'] = initStore('store2');
+      lunaris._stores['store2'].isLocal = true;
+
+      var _events = [];
+      lunaris.hook('reset@store1', (data, doneHook) => {
+        _events.push('reset@store1');
+        doneHook();
+      });
+      lunaris.hook('reset@store2', () => {
+        _events.push('reset@store2');
+      });
+
+      lunaris.begin();
+      lunaris.clear('@store*');
+      lunaris.commit(() => {
+        should(_events).eql([
+          'reset@store1',
+          'reset@store2'
+        ]);
+        done();
+      });
     });
 
     it.skip('should rollback a store : INSERT', done => {
