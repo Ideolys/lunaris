@@ -1,15 +1,18 @@
 describe('Offline to online synchronisation', () => {
 
   beforeEach(done => {
+    lunaris.begin();
     lunaris.clear('@offlineArraySync');
     lunaris.clear('@offlineObjectSync');
     lunaris.clear('@offlineReferenceSync');
     lunaris.clear('@offlineReference');
     lunaris.clear('@offlineErrorSync');
     lunaris.clear('@lunarisOfflineTransactions');
-    lunaris._indexedDB.clear('lunarisOfflineTransactions', () => {
-      lunaris.offline.isOnline = true;
-      done();
+    lunaris.commit(() => {
+      lunaris._indexedDB.clear('lunarisOfflineTransactions', () => {
+        lunaris.offline.isOnline = true;
+        done();
+      });
     });
   });
 

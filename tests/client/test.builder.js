@@ -107,7 +107,7 @@ describe('builder', () => {
           },
           _rowId   : 1,
           _id      : 1,
-          _version : [2]
+          _version : [3]
         },
         {
           id     : 3,
@@ -116,7 +116,7 @@ describe('builder', () => {
           },
           _rowId   : 2,
           _id      : 2,
-          _version : [4]
+          _version : [5]
         }
       ]);
 
@@ -290,7 +290,7 @@ describe('builder', () => {
     lunaris.insert('@reference', _obj);
   });
 
-  it.only('should define the inherits', () => {
+  it('should define the inherits', () => {
     should(lunaris._stores.http.data).eql(lunaris._stores.inherits.data);
     should(lunaris._stores.http.filterFns).be.an.Object().and.not.empty();
     should(lunaris._stores.inherits.filterFns).be.an.Object().and.empty();

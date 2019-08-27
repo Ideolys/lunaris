@@ -173,6 +173,9 @@ function pushToHandlers (store, hook, payload, transactionId, callback) {
     transaction.addUniqueEvent(transactionId, store.name, hook);
     return callback();
   }
+  if (transactionId && (hook === 'error' || hook === 'errorHttp')) {
+    transaction.addErrorEvent(transactionId);
+  }
 
   queue(_storeHooks, payload, callback);
 }

@@ -580,7 +580,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
     !isUpdate || (isUpdate && isMultipleItems))
   );
 
-  // required filters consition not fullfilled
+  // required filters condition not fullfilled
   if (!request) {
     return callback({});
   }
@@ -603,13 +603,14 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
 /**
  * Sned events and propagate values to dependent stores   fter HTTP upsert request
  * @param {Object} store
+ * @param {Object} collection
  * @param {Object/Array} value
  * @param {Boolean} isUpdate
  * @param {String} method
  * @param {Interger} transactionId
  * @param {Function} callback
  */
-function _upsertHTTPEvents (store, value, isUpdate, method, transactionId, callback) {
+function _upsertHTTPEvents (store, collection, value, isUpdate, method, transactionId, callback) {
   afterAction(store, 'update', value, null, function () {
     afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false), function () {
       if (store.isFilter) {
@@ -654,7 +655,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
       var _error = template.getError(err, store, method, false);
       setLunarisError(store.name, method, request, value, version, err, _error);
       logger.warn(['lunaris.' + (isUpdate ? 'update' : 'insert') + '@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : utils.cloneAndFreeze(value)}, null, callback);
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : utils.cloneAndFreeze(value)}, transactionId, callback);
     }
 
     if (method === OPERATIONS.PATCH) {
@@ -723,7 +724,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
           return callback();
         }
 
-        _upsertHTTPEvents(store, value, isUpdate, method, transactionId, callback);
+        _upsertHTTPEvents(store, collection, value, isUpdate, method, transactionId, callback);
       });
     }
 
@@ -731,7 +732,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
       return callback();
     }
 
-    _upsertHTTPEvents(store, value, isUpdate, method, transactionId, callback);
+    _upsertHTTPEvents(store, collection, value, isUpdate, method, transactionId, callback);
   });
 }
 
@@ -797,16 +798,16 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
       value    = _res.value;
       _request = _res.request;
 
-      if (!_request || !offline.isOnline) {
+      if (!_request) {
         return callback();
       }
 
       _upsertLocal(store, value, isUpdate, isLocal, transactionId, function () {
-        if (!store.isLocal && !isLocal) {
-          return _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version, transactionId, callback);
+        if (store.isLocal || isLocal || !offline.isOnline) {
+          return callback();
         }
 
-        callback();
+        _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version, transactionId, callback);
       });
     });
   }
@@ -939,7 +940,7 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
       var _error = template.getError(err, store, 'GET', true);
       setLunarisError(store.name, 'GET', request, null, null, err, _error);
       logger.warn(['lunaris.get@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error }, null, function () {
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error }, transactionId, function () {
         nextGet('@' + store.name);
       });
     }
@@ -981,6 +982,8 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
               callback();
             });
           }
+
+          storeUtils.saveState(store, collection);
           callback();
         });
       });
@@ -1228,7 +1231,7 @@ function _deleteHttp (store, collection, isLocal, retryOptions, value, version, 
       var _error = template.getError(err, store, 'DELETE', false);
       setLunarisError(store.name, 'DELETE', _request, value, version, err, _error);
       logger.warn(['lunaris.delete@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, null, callback);
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, transactionId, callback);
     }
 
     _deleteLocal(store, collection, data, false, function (err, data) {

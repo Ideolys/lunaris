@@ -11,16 +11,15 @@ lunaris._vue = {
        * @param {String} store
        */
       function _successHttp (_this) {
-        return function successHttp (data, message) {
-          if (!message || lunaris._vue._isVueOffline) {
-            return;
-          }
-
-          _this.$buefy.toast.open({
-            message  : message,
-            type     : 'is-success',
-            position : 'is-top-right'
-          });
+        return function successHttp (data) {
+          // if (!message || lunaris._vue._isVueOffline) {
+          //   return;
+          // }
+          // _this.$buefy.toast.open({
+          //   message  : message,
+          //   type     : 'is-success',
+          //   position : 'is-top-right'
+          // });
         };
       }
 

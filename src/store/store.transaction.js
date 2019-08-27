@@ -31,7 +31,7 @@ function begin () {
   isTransaction = true;
   transactionIdGenerator++;
   currentTransactionId               = transactionIdGenerator;
-  transactions[currentTransactionId] = { actions : [], uniqueEvents : {}, isCommitingTransaction : false };
+  transactions[currentTransactionId] = { actions : [], uniqueEvents : {}, isCommitingTransaction : false, isError : false };
 }
 
 /**
@@ -55,6 +55,23 @@ function addUniqueEvent (transactionId, store, event) {
   transactions[transactionId].uniqueEvents[store] = event;
 }
 
+/**
+ * Determine if transaction is in error
+ * @param {Int} transactionId
+ */
+function addErrorEvent (transactionId) {
+  if (!transactions[transactionId]) {
+    return;
+  }
+
+  transactions[transactionId].isError = true;
+}
+
+/**
+ * Enn transaction by sending unique vents and call commit callback
+ * @param {Int} transactionId
+ * @param {Function} callback
+ */
 function _end (transactionId, callback) {
   // Reset
   _sendUniqueEvents(transactionId, function () {
@@ -92,9 +109,10 @@ function _processNextAction (iterator, transactionId, callback) {
 
   if (!_action) {
     return _end(transactionId, function () {
+      var isError = transactions[transactionId].isError;
       delete transactions[transactionId];
       if (callback) {
-        callback();
+        callback(isError);
       }
     });
   }
@@ -214,6 +232,7 @@ module.exports = {
   commit         : commit,
   addAction      : addAction,
   addUniqueEvent : addUniqueEvent,
+  addErrorEvent  : addErrorEvent,
   registerHookFn : registerHookFn,
 
   /**
