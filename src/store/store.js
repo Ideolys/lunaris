@@ -447,9 +447,9 @@ function afterAction (store, event, value, message, callback) {
     _value = utils.cloneAndFreeze(value);
   }
 
-  // if (message) {
-  //   return hook.pushToHandlers(store, event, _value, callback);
-  // }
+  if (message) {
+    hook.pushToHandlers(store, 'success', message, null, callback);
+  }
 
   hook.pushToHandlers(store, event, _value, null, callback);
 }

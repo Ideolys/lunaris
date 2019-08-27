@@ -132,6 +132,10 @@ describe('lunaris store', function () {
         _isUpdateHook = true;
       });
 
+      lunaris.hook('success@store1', message => {
+        should(message).eql('${the} store1 has been successfully ${created}');
+      });
+
       lunaris.hook('inserted@store1', (data) => {
         _isUpdatedHook = true;
         var _res       = Object.assign(_expectedValue[0], {
@@ -142,8 +146,6 @@ describe('lunaris store', function () {
           _rowId   : 2
         });
         should(data).eql([_res]);
-        // @todo message
-        // should(message).eql('${the} store1 has been successfully ${created}');
 
         if (_isUpdateHook && _isUpdatedHook) {
           done();
@@ -276,7 +278,11 @@ describe('lunaris store', function () {
         }
       });
 
-      lunaris.hook('updated@store1', (data, message) => {
+      lunaris.hook('success@store1', message => {
+        should(message).eql('${the} store1 has been successfully ${edited}');
+      });
+
+      lunaris.hook('updated@store1', (data) => {
         _isUpdatedHook = true;
         should(data).eql([Object.assign(_expectedValue, {
           body     : { _rowId : 2, _id : 1, id : 1, label : 'B'},
@@ -285,9 +291,6 @@ describe('lunaris store', function () {
           _version : [3],
           _rowId   : 3
         })]);
-
-        // @todo messages
-        // should(message).eql('${the} store1 has been successfully ${edited}');
 
         if (_isUpdateHook && _isUpdatedHook) {
           done();
@@ -690,7 +693,11 @@ describe('lunaris store', function () {
         _isUpdateHook = true;
       });
 
-      lunaris.hook('inserted@multiple', (data, message) => {
+      lunaris.hook('success@multiple', message => {
+        should(message).eql('${the} multiple has been successfully ${created}');
+      });
+
+      lunaris.hook('inserted@multiple', (data) => {
         _isUpdatedHook = true;
         should(data).be.an.Array();
         should(data).eql([
@@ -701,9 +708,6 @@ describe('lunaris store', function () {
         for (var i = 0; i < data.length; i++) {
           should(Object.isFrozen(data[i])).eql(true);
         }
-
-        // @todo message
-        // should(message).eql('${the} multiple has been successfully ${created}');
 
         if (_isUpdateHook && _isUpdatedHook) {
           done();
@@ -838,15 +842,21 @@ describe('lunaris store', function () {
         return _nbCalls++;
       });
 
-      lunaris.hook('updated@multiple', (data, message) => {
+      var nbcallsSuccess = 0;
+      lunaris.hook('success@multiple', message => {
+        nbcallsSuccess++;
+        if (nbcallsSuccess === 1) {
+          return should(message).eql('${the} multiple has been successfully ${created}');
+        }
+        should(message).eql('${the} multiple has been successfully ${edited}');
+      });
+
+      lunaris.hook('updated@multiple', (data) => {
         _isUpdatedHook = true;
         should(data).eql([
           { _rowId : 7, _id : 1, id : 1, label : 'A-1', put : true, _version : [4] },
           { _rowId : 8, _id : 2, id : 2, label : 'B-1', put : true, _version : [4] }
         ]);
-
-        // @todo message
-        // should(message).eql('${the} multiple has been successfully ${edited}');
 
         if (_isUpdateHook && _isUpdatedHook) {
           done();
@@ -1218,12 +1228,18 @@ describe('lunaris store', function () {
         should(data).eql([{ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] }]);
       });
 
+      var _nbCallsSuccess = 0;
+      lunaris.hook('success@store1', message => {
+        _nbCallsSuccess++;
+        if (_nbCallsSuccess === 1) {
+          return should(message).eql('${the} store1 has been successfully ${created}');
+        }
+        return should(message).eql('${the} store1 has been successfully ${deleted}');
+      });
+
       lunaris.hook('deleted@store1', (data) => {
         _isDeletedHook = true;
         should(data).eql({ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] });
-
-        // @todo message
-        // should(message).eql('${the} store1 has been successfully ${deleted}');
 
         if (_isDeletedHook && _isDeleteHook) {
           done();
@@ -1288,12 +1304,18 @@ describe('lunaris store', function () {
         _isDeleteHook = true;
       });
 
+      var _nbCallsSuccess = 0;
+      lunaris.hook('success@store1', message => {
+        _nbCallsSuccess++;
+        if (_nbCallsSuccess === 1) {
+          return should(message).eql('${the} store1 has been successfully ${created}');
+        }
+        return should(message).eql('${the} store1 has been successfully ${deleted}');
+      });
+
       lunaris.hook('deleted@store1', (data) => {
         _isDeletedHook = true;
         should(data).eql({ _rowId : 1, id : 2, label : 'A', _id : 1, _version : [1, 2] });
-
-        // @todo
-        // should(message).eql('${the} store1 has been successfully ${deleted}');
 
         if (_isDeletedHook && _isDeleteHook) {
           should(lastTip.length).eql(2);
