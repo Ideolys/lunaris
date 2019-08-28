@@ -1333,6 +1333,21 @@ function setPagination (store, page, limit) {
 }
 
 /**
+ * Propagate for clear and save state
+ * @param {Object} store
+ * @param {Object} collection
+ * @param {Function} callback
+ */
+function _clearPropagate (store, collection, callback) {
+  _propagate(store, null, utils.OPERATIONS.DELETE, function () {
+    storeUtils.saveState(store, collection);
+    if (callback) {
+      callback();
+    }
+  });
+}
+
+/**
  * Clear the store collection
  * @param {String} store
  * @param {Boolean} isSilent
@@ -1364,22 +1379,14 @@ function _clear (store, isSilent, transactionId, callback) {
     _options.store.massOperations        = {};
     cache.invalidate(_options.store.name);
     if (!isSilent) {
-      return hook.pushToHandlers(_options.store, 'reset', null, null, function () {
-        _propagate(_options.store, null, utils.OPERATIONS.DELETE, function () {
-          storeUtils.saveState(_options.store, _options.collection);
-          if (callback) {
-            callback();
-          }
+      return hook.pushToHandlers(_options.store, 'clear', null, transactionId, function () {
+        hook.pushToHandlers(_options.store, 'reset', null, transactionId, function () {
+          _clearPropagate(_options.store, _options.collection, callback);
         });
       });
     }
 
-    _propagate(_options.store, null, utils.OPERATIONS.DELETE, function () {
-      storeUtils.saveState(_options.store, _options.collection);
-      if (callback) {
-        callback();
-      }
-    });
+    _clearPropagate(_options.store, _options.collection, callback);
   }
   catch (e) {
     logger.warn(['lunaris.clear' + store], e);

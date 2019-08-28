@@ -165,14 +165,15 @@ function pushToHandlers (store, hook, payload, transactionId, callback) {
     callback = function () {};
   }
 
+  if (transactionId && (hook === 'filterUpdated' || hook === 'reset')) {
+    transaction.addUniqueEvent(transactionId, store.name, hook);
+    return callback();
+  }
+
   if (!_storeHooks) {
     return callback();
   }
 
-  if (transactionId && hook === 'filterUpdated') {
-    transaction.addUniqueEvent(transactionId, store.name, hook);
-    return callback();
-  }
   if (transactionId && (hook === 'error' || hook === 'errorHttp')) {
     transaction.addErrorEvent(transactionId);
   }

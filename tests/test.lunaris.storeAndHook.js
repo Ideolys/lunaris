@@ -2585,7 +2585,7 @@ describe('lunaris store', function () {
       should(lunaris._stores['store1'].paginationOffset).eql(0);
     });
 
-    it('should clear the store and enver trigger the hook', done => {
+    it('should clear the store and enver trigger the hook reset', done => {
       var _hasFiredHook = false;
       var _store        = initStore('store1');
       lunaris._stores['store1'] = _store;
@@ -2593,6 +2593,24 @@ describe('lunaris store', function () {
       should(_store.data.get(1)).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
 
       lunaris.hook('reset@store1', () => {
+        _hasFiredHook = true;
+      });
+
+      lunaris.clear('@store1', true);
+      setTimeout(() => {
+        should(_hasFiredHook).eql(false);
+        done();
+      }, 200);
+    });
+
+    it('should clear the store and enver trigger the hook clear', done => {
+      var _hasFiredHook = false;
+      var _store        = initStore('store1');
+      lunaris._stores['store1'] = _store;
+      lunaris.insert('@store1', { id : 1, label : 'A' });
+      should(_store.data.get(1)).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
+
+      lunaris.hook('clear@store1', () => {
         _hasFiredHook = true;
       });
 
@@ -3381,14 +3399,14 @@ describe('lunaris store', function () {
 
   describe('transaction', () => {
 
-    it('should fire the event "filterUpdated"', done => {
+    it('should fire the event "reset"', done => {
       lunaris._stores['transaction_A']               = initStore('transaction_A');
       lunaris._stores['transaction_A'].isLocal       = true;
       lunaris._stores['transaction_A'].isFilter      = true;
       lunaris._stores['transaction_A'].isStoreObject = true;
 
       var _hasBeenCalledA = 0;
-      lunaris.hook('filterUpdated@transaction_A', () => {
+      lunaris.hook('reset@transaction_A', () => {
         _hasBeenCalledA++;
       });
 
@@ -3400,7 +3418,7 @@ describe('lunaris store', function () {
       });
     });
 
-    it('should fire the event "filterUpdated" once', done => {
+    it('should fire the event "reset" once', done => {
       lunaris._stores['transaction'] = initStore('transaction');
       lunaris._stores['transaction'].filters[
         {
@@ -3435,11 +3453,11 @@ describe('lunaris store', function () {
       var _hasBeenCalledA = 0;
       var _hasBeenCalledB = 0;
 
-      lunaris.hook('filterUpdated@transaction_A', () => {
+      lunaris.hook('reset@transaction_A', () => {
         _hasBeenCalledA++;
       });
 
-      lunaris.hook('filterUpdated@transaction_B', () => {
+      lunaris.hook('reset@transaction_B', () => {
         _hasBeenCalledB++;
       });
 
@@ -3447,8 +3465,8 @@ describe('lunaris store', function () {
       lunaris.insert('@transaction_A', { id : 1 });
       lunaris.insert('@transaction_B', { id : 1 });
       lunaris.commit(() => {
-        should(_hasBeenCalledA).eql(0);
-        should(_hasBeenCalledB).eql(1);
+        should(_hasBeenCalledA).eql(1);
+        should(_hasBeenCalledB).eql(0);
         done();
       });
     });
@@ -3578,15 +3596,15 @@ describe('lunaris store', function () {
             should(_events).eql([
               'get@pagination',
               'get@pagination',
-              'filterUpdated@pagination'
+              'reset@pagination'
             ]);
             done();
           });
         }
       });
 
-      lunaris.hook('filterUpdated@pagination', () => {
-        _events.push('filterUpdated@pagination');
+      lunaris.hook('reset@pagination', () => {
+        _events.push('reset@pagination');
       });
 
       lunaris.get('@pagination');
@@ -3674,11 +3692,11 @@ describe('lunaris store', function () {
       var _hasBeenCalledA = 0;
       var _hasBeenCalledB = 0;
 
-      lunaris.hook('filterUpdated@transaction_A', () => {
+      lunaris.hook('reset@transaction_A', () => {
         _hasBeenCalledA++;
       });
 
-      lunaris.hook('filterUpdated@transaction_B', () => {
+      lunaris.hook('reset@transaction_B', () => {
         _hasBeenCalledB++;
       });
 
@@ -3703,8 +3721,8 @@ describe('lunaris store', function () {
       lunaris.commit();
 
       setTimeout(() => {
-        should(_hasBeenCalledA).eql(0);
-        should(_hasBeenCalledB).eql(1);
+        should(_hasBeenCalledA).eql(1);
+        should(_hasBeenCalledB).eql(0);
         should(_events).eql([
           'insert@transaction_A',
           'inserted@transaction_A',
@@ -3722,6 +3740,7 @@ describe('lunaris store', function () {
 
       var _events = [];
       lunaris.hook('reset@store1', (data, doneHook) => {
+        console.log(1);
         _events.push('reset@store1');
         lunaris.begin();
         lunaris.get('@store1');

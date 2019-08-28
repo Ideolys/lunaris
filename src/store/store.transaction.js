@@ -12,6 +12,15 @@ var isTransaction          = false;
 var transactions           = {};
 
 /**
+ * https://stackoverflow.com/questions/1187518/how-to-get-the-difference-between-two-arrays-in-javascript
+ */
+Array.prototype.diff = function (a) {
+  return this.filter(function (i) {
+    return a.indexOf(i) < 0;
+  });
+};
+
+/**
  * Set pushToHandlers method
  * @param {Function} fn
  */
@@ -105,7 +114,11 @@ function commit (callback) {
  */
 function _processNextAction (iterator, transactionId, callback) {
   iterator++;
-  var _action = transactions[transactionId].actions[iterator];
+
+  var _action = null;
+  if (transactions[transactionId]) {
+    _action = transactions[transactionId].actions[iterator];
+  }
 
   if (!_action) {
     return _end(transactionId, function () {
@@ -186,12 +199,60 @@ function _processNextAction (iterator, transactionId, callback) {
 } */
 
 /**
+ * Reduce stores that have sent filterUpdated or reset event to avoid
+ * @param {Int} nbStores number of stores to reset
+ * @param {Array} stores stores that have sent a reset or filterUpdated event
+ * @param {Array} parentStores parent store that will receive a reset event
+ * @param {Object} eventByStores { parentStore : [store1, storeN], ... }
+ * @param {Array} storesToReset stores to reset (set by the function which is recursive)
+ */
+function reduce (nbStores, stores, parentStores, eventByStores, storesToReset) {
+  storesToReset = storesToReset || [];
+
+  if (!nbStores) {
+    return storesToReset;
+  }
+
+  for (var i = 0; i < stores.length; i++) {
+    var nbFound     = 0;
+    var storesFound = [];
+    for (var j = 0; j < parentStores.length; j++) {
+
+      if (!eventByStores[parentStores[j]]) {
+        continue;
+      }
+
+      for (var k = 0; k < eventByStores[parentStores[j]].length; k++) {
+        if (eventByStores[parentStores[j]][k] === stores[i]) {
+          nbFound++;
+          storesFound.push(parentStores[j]);
+
+          if (nbFound === nbStores) {
+            storesToReset.push(stores[i]);
+
+            if (nbStores > 1) {
+              parentStores = parentStores.diff(storesFound);
+            }
+
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return reduce(nbStores - 1, stores, parentStores, eventByStores, storesToReset);
+}
+
+/**
  * Send captured store events
  * @param {Function} callback
  */
 function _sendUniqueEvents (transactionId, callback) {
-  var _stores            = Object.keys(transactions[transactionId].uniqueEvents);
-  var _eventByStores     = {};
+  var _stores                = Object.keys(transactions[transactionId].uniqueEvents);
+  var _eventByStores         = {};
+  var _storesSendEvents      = [];
+  var _storesToResetIfNoDeps = [];
 
   for (var i = 0; i < _stores.length; i++) {
     var _deps         = storeDependecies[_stores[i]] || [];
@@ -202,25 +263,25 @@ function _sendUniqueEvents (transactionId, callback) {
         _eventByStores[_deps[j]] = [];
       }
 
+      _eventByStores[_deps[j]].push(_stores[i]);
       if (!_hasBeenAdded) {
-        _eventByStores[_deps[j]].push(_stores[i]);
+        _storesSendEvents.push(_stores[i]);
         _hasBeenAdded = true;
       }
+    }
+
+    if (!_hasBeenAdded) {
+      _storesToResetIfNoDeps.push(_stores[i]);
     }
     _hasBeenAdded = false;
   }
 
   var _storesToUpdate = Object.keys(_eventByStores);
+  var _storesToReset  = reduce(_storesToUpdate.length, _storesSendEvents, _storesToUpdate, _eventByStores).concat(_storesToResetIfNoDeps);
 
-  queue(_storesToUpdate, function (storeToUpdate, next) {
-    var _storesUpdated = _eventByStores[storeToUpdate];
-
-    if (!_storesUpdated.length) {
-      return next();
-    }
-
-    var _store = storeUtils.getStore(_storesUpdated[_storesUpdated.length - 1]);
-    hookFn(_store, 'filterUpdated', null, null, next);
+  queue(_storesToReset, function (storeToUpdate, next) {
+    var _store = storeUtils.getStore(storeToUpdate);
+    hookFn(_store, 'reset', null, null, next);
   }, callback);
 }
 
@@ -234,6 +295,7 @@ module.exports = {
   addUniqueEvent : addUniqueEvent,
   addErrorEvent  : addErrorEvent,
   registerHookFn : registerHookFn,
+  reduce         : reduce,
 
   /**
    * Get current transaction id
