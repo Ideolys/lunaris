@@ -5,6 +5,7 @@
   - Add `errors` attribute in `lunaris.http` response when an error is detected. The store `lunarisErrors` has the server errors in `messageErrorServer` attribute which is an object as `{ error : Int | String, message : Sring, errors : Array }`.
 - Fix:
   - Fix store setPagination method using wrong offset
+  - `globals` were added twice in the build.
 
 ## 1.11.0
 *2019-08-26*
