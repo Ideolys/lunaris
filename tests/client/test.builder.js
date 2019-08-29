@@ -295,10 +295,28 @@ describe('builder', () => {
     should(lunaris._stores.http.filterFns).be.an.Object().and.not.empty();
     should(lunaris._stores.inherits.filterFns).be.an.Object().and.empty();
 
+
+
     should(lunaris._stores.http.meta).eql(lunaris._stores.inherits.meta);
     should(lunaris._stores.http.data === lunaris._stores.inherits.data).eql(false);
     should(lunaris._stores.http.validateFn.toString()).eql(lunaris._stores.inherits.validateFn.toString());
     should(lunaris._stores.http.getPrimaryKeyFn.toString()).eql(lunaris._stores.inherits.getPrimaryKeyFn.toString());
     should(lunaris._stores.http.setPrimaryKeyFn.toString()).eql(lunaris._stores.inherits.setPrimaryKeyFn.toString());
+  });
+
+  it('should define the inherits.inherits store', () => {
+    should(lunaris._stores.http.data).eql(lunaris._stores.inherits.data);
+    should(lunaris._stores.http.filterFns).be.an.Object().and.not.empty();
+    should(lunaris._stores.inherits.filterFns).be.an.Object().and.empty();
+
+    should(lunaris._stores['inherits.inherits'].meta).be.ok();
+    should(lunaris._stores['inherits.inherits'].meta.compilation.main0.obj.labelPublic).be.ok();
+    should(lunaris._stores['inherits.inherits'].meta.compilation.main0.obj.labelPublic).eql(['string']);
+
+    // should(lunaris._stores.http.meta).eql(lunaris._stores.inherits.meta);
+    should(lunaris._stores.inherits.data === lunaris._stores['inherits.inherits'].data).eql(false);
+    should(lunaris._stores.inherits.validateFn.toString()).not.eql(lunaris._stores['inherits.inherits'].validateFn.toString());
+    should(lunaris._stores.inherits.getPrimaryKeyFn.toString()).eql(lunaris._stores['inherits.inherits'].getPrimaryKeyFn.toString());
+    should(lunaris._stores.inherits.setPrimaryKeyFn.toString()).eql(lunaris._stores['inherits.inherits'].setPrimaryKeyFn.toString());
   });
 });
