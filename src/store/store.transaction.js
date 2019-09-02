@@ -213,6 +213,14 @@ function reduce (nbStores, stores, parentStores, eventByStores, storesToReset) {
     return storesToReset;
   }
 
+  if (nbStores === 1) {
+    for (var i = 0; i < parentStores.length; i++) {
+      storesToReset.push(eventByStores[parentStores[i]][0]);
+    }
+
+    return storesToReset;
+  }
+
   for (var i = 0; i < stores.length; i++) {
     var nbFound     = 0;
     var storesFound = [];

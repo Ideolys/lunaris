@@ -47,6 +47,24 @@ describe('transaction', () => {
       ]);
     });
 
+    it('should reduce with level at 1 with 2 events for a store', () => {
+      should(transaction.reduce(
+        1,
+        [
+          '@storeA.filter.a',
+          '@storeB.filter.b'
+        ],
+        [
+          '@storeA'
+        ],
+        {
+          '@storeA' : ['@storeA.filter.a', '@storeB.filter.b'],
+        }
+      )).eql([
+        '@storeA.filter.a'
+      ]);
+    });
+
     it('should reduce with level at 2', () => {
       should(transaction.reduce(
         2,
