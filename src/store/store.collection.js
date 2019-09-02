@@ -231,7 +231,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       }
       value._rowId = _currentRowId++;
       _setReferencedValues(value);
-      localDatabase.add(_storeName, value);
+      localDatabase.upsert(_storeName, value);
       return _data.push(value);
     }
 
@@ -246,14 +246,14 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
 
     if (isFromIndex || !_getPrimaryKey) {
       value._rowId = _currentRowId++;
-      localDatabase.add(_storeName, value);
+      localDatabase.upsert(_storeName, value);
       return _data.push(value);
     }
 
     _id = _getPrimaryKey(value);
     if (!(_id !== null && value._id !== undefined)) {
       value._rowId = _currentRowId++;
-      localDatabase.add(_storeName, value);
+      localDatabase.upsert(_storeName, value);
       return _data.push(value);
     }
 
@@ -270,7 +270,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     index.insertAt(_indexes.id[1], _search.index, value._id);
     value._rowId = _currentRowId++;
     _data.push(value);
-    localDatabase.add(_storeName, value);
+    localDatabase.upsert(_storeName, value);
   }
 
   /**
@@ -357,7 +357,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
             _data.splice(i, 1);
             return;
           }
-          localDatabase.add(_storeName, _data[i]);
+          localDatabase.upsert(_storeName, _data[i]);
           return _data[i];
         }
         else {
