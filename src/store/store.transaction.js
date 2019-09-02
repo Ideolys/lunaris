@@ -258,10 +258,8 @@ function _sendUniqueEvents (transactionId, callback) {
     var _deps         = storeDependecies[_stores[i]] || [];
     var _hasBeenAdded = false;
 
-    if (transactions[transactionId].uniqueEvents[_stores[i]] === 'reset') {
-      exportsLunaris._stores[_stores[i]].paginationOffset      = 0;
-      exportsLunaris._stores[_stores[i]].paginationCurrentPage = 1;
-    }
+    exportsLunaris._stores[_stores[i]].paginationOffset      = 0;
+    exportsLunaris._stores[_stores[i]].paginationCurrentPage = 1;
 
     for (var j = 0; j < _deps.length; j++) {
       if (!_eventByStores[_deps[j]]) {
