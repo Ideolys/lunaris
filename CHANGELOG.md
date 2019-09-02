@@ -1,6 +1,6 @@
 # Lunaris
 
-## 1.xx.x
+## 1.12.0
 - Features:
   - Add `errors` attribute in `lunaris.http` response when an error is detected. The store `lunarisErrors` has the server errors in `messageErrorServer` attribute which is an object as `{ error : Int | String, message : Sring, errors : Array }`.
 - Fix:
