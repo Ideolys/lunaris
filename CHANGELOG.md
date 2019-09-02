@@ -1,6 +1,9 @@
 # Lunaris
 
+## 1.13.x
+
 ## 1.12.0
+*2019-09-02*
 - Features:
   - Add `errors` attribute in `lunaris.http` response when an error is detected. The store `lunarisErrors` has the server errors in `messageErrorServer` attribute which is an object as `{ error : Int | String, message : Sring, errors : Array }`.
   - Add `inherits` attribute in store object to inherit from a store its map.
