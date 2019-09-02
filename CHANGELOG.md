@@ -1,16 +1,18 @@
 # Lunaris
 
 ## 1.13.x
-
-## 1.12.0
-*2019-09-02*
 - Features:
-  - Add `errors` attribute in `lunaris.http` response when an error is detected. The store `lunarisErrors` has the server errors in `messageErrorServer` attribute which is an object as `{ error : Int | String, message : Sring, errors : Array }`.
   - Add `inherits` attribute in store object to inherit from a store its map.
   - Add event `success` to capture success notification which is a String.
   - Add event `clear` for `lunaris.clear` method.
   - Transactions include `lunaris.clear`.
   - Hooks are synchrone by default and asynchrone with a callback in second parameter : `lunaris.hook('event', function (data, done) {})`;
+- Fix:
+
+## 1.12.0
+*2019-09-02*
+- Features:
+  - Add `errors` attribute in `lunaris.http` response when an error is detected. The store `lunarisErrors` has the server errors in `messageErrorServer` attribute which is an object as `{ error : Int | String, message : Sring, errors : Array }`.
 - Fix:
   - Fix store setPagination method using wrong offset
   - `globals` were added twice in the build.
