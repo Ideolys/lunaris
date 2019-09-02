@@ -10,6 +10,7 @@
   - Hooks are synchrone by default and asynchrone with a callback in second parameter : `lunaris.hook('event', function (data, done) {})`;
 - Fix:
   - Fix store setPagination method using wrong offset
+  - `globals` were added twice in the build.
 
 ## 1.11.0
 *2019-08-26*
