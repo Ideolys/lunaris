@@ -263,7 +263,10 @@ function _sendUniqueEvents (transactionId, callback) {
         _eventByStores[_deps[j]] = [];
       }
 
-      _eventByStores[_deps[j]].push(_stores[i]);
+      if (_eventByStores[_deps[j]].indexOf(_stores[i]) === -1) {
+        _eventByStores[_deps[j]].push(_stores[i]);
+      }
+
       if (!_hasBeenAdded) {
         _storesSendEvents.push(_stores[i]);
         _hasBeenAdded = true;
