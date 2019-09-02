@@ -130,7 +130,7 @@ function _addInQueue (args) {
  * Process indexedDB queue
  */
 function _processQueue () {
-  let _currentItem = _queue.shift();
+  var _currentItem = _queue.shift();
 
   if (!_currentItem) {
     _isQueueing = false;

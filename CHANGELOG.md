@@ -11,6 +11,7 @@
 - Fix:
   - Fix store setPagination method using wrong offset
   - `globals` were added twice in the build.
+  - Remove `let`.
 
 ## 1.11.0
 *2019-08-26*
