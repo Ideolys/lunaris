@@ -1168,9 +1168,9 @@ function _deleteLocal (store, collection, value, isLocal, callback) {
       return callback(new Error('You cannot delete a value not in the store!'));
     }
 
-    afterAction(store, 'delete', value, null, function () {
-      _propagateReferences(store, value, function () {
-        _propagate(store, value, utils.OPERATIONS.DELETE, function () {
+    _propagateReferences(store, value, function () {
+      _propagate(store, value, utils.OPERATIONS.DELETE, function () {
+        afterAction(store, 'delete', value, null, function () {
           if (!store.isStoreObject) {
             value = value[0];
           }
