@@ -593,8 +593,9 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
   _propagateReferences(store, value, function () {
     _propagate(store, value, method, function () {
       afterAction(store, isUpdate ? 'update' : 'insert', value, null, function () {
-        storeUtils.saveState(store, collection);
-        callback({ version : version, value : _requestValue, request : request });
+        storeUtils.saveState(store, collection, function () {
+          callback({ version : version, value : _requestValue, request : request });
+        });
       });
     });
   });
@@ -615,11 +616,13 @@ function _upsertHTTPEvents (store, collection, value, isUpdate, method, transact
     _propagate(store, value, utils.OPERATIONS.UPDATE, function () {
       afterAction(store, 'update', value, null, function () {
         afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false), function () {
-          if (store.isFilter) {
-            return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
-          }
-          storeUtils.saveState(store, collection);
-          callback();
+          storeUtils.saveState(store, collection, function () {
+            if (store.isFilter) {
+              return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
+            }
+
+            callback();
+          });
         });
       });
     });
@@ -903,13 +906,15 @@ function _getLocal (store, collection, request, transactionId, callback, nextGet
     return afterAction(store, 'get', _res, null, function () {
       if (store.isFilter && ((store.isStoreObject && _res) || (!store.isStoreObject && _res.length))) {
         return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
-          storeUtils.saveState(store, collection);
-          nextGet('@' + store.name);
+          storeUtils.saveState(store, collection, function () {
+            nextGet('@' + store.name);
+          });
         });
       }
 
-      storeUtils.saveState(store, collection);
-      nextGet('@' + store.name);
+      storeUtils.saveState(store, collection, function () {
+        nextGet('@' + store.name);
+      });
     });
   }
 
@@ -970,13 +975,11 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
         afterAction(store, 'get', data, null, function () {
           if (store.isFilter) {
             return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
-              storeUtils.saveState(store, collection);
-              callback();
+              storeUtils.saveState(store, collection, callback);
             });
           }
 
-          storeUtils.saveState(store, collection);
-          callback();
+          storeUtils.saveState(store, collection, callback);
         });
       });
     });
@@ -1176,8 +1179,9 @@ function _deleteLocal (store, collection, value, isLocal, callback) {
           }
 
           cache.invalidate(store.name);
-          storeUtils.saveState(store, collection);
-          callback(null, [_version, value]);
+          storeUtils.saveState(store, collection, function () {
+            callback(null, [_version, value]);
+          });
         });
       });
     });
@@ -1288,9 +1292,8 @@ function deleteStore (store, value, retryOptions, isLocal, transactionId, callba
       });
 
     }
-    else {
-      _version = retryOptions.version;
-    }
+
+    _version = retryOptions.version;
 
 
     _deleteHttp(_options.store, _options.collection, isLocal, retryOptions, value, _version, transactionId, function () {
@@ -1332,11 +1335,20 @@ function setPagination (store, page, limit) {
  */
 function _clearPropagate (store, collection, callback) {
   _propagate(store, null, utils.OPERATIONS.DELETE, function () {
-    storeUtils.saveState(store, collection);
-    if (callback) {
-      callback();
-    }
+    storeUtils.saveState(store, collection, callback);
   });
+}
+
+function _clearSendEvents (store, collection, isSilent, transactionId, callback) {
+  if (!isSilent) {
+    return _clearPropagate(store, collection, function () {
+      hook.pushToHandlers(store, 'clear', null, transactionId, function () {
+        hook.pushToHandlers(store, 'reset', null, transactionId, callback);
+      });
+    });
+  }
+
+  _clearPropagate(store, collection, callback);
 }
 
 /**
@@ -1360,25 +1372,20 @@ function _clear (store, isSilent, transactionId, callback) {
       });
     }
 
-    if (offline.isOnline || _options.store.isLocal) {
-      indexedDB.clear(_options.store.name);
-      _options.collection.clear();
-    }
-
     _options.store.paginationCurrentPage = 1;
     _options.store.paginationOffset      = 0;
     _options.store.paginationLimit       = 50;
     _options.store.massOperations        = {};
     cache.invalidate(_options.store.name);
-    if (!isSilent) {
-      return _clearPropagate(_options.store, _options.collection, function () {
-        hook.pushToHandlers(_options.store, 'clear', null, transactionId, function () {
-          hook.pushToHandlers(_options.store, 'reset', null, transactionId, callback);
-        });
+
+    if (offline.isOnline || _options.store.isLocal) {
+      _options.collection.clear();
+      return indexedDB.clear(_options.store.name, function () {
+        _clearSendEvents(_options.store, _options.collection, isSilent, transactionId, callback);
       });
     }
 
-    _clearPropagate(_options.store, _options.collection, callback);
+    _clearSendEvents(_options.store, _options.collection, isSilent, transactionId, callback);
   }
   catch (e) {
     logger.warn(['lunaris.clear' + store], e);

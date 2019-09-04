@@ -19,10 +19,7 @@ describe('local storage', () => {
       lunaris.clear('@http.filter');
       lunaris.clear('@lunarisOfflineTransactions');
       lunaris.commit(() => {
-        lunaris._indexedDB.clear('http');
         lunaris._indexedDB.clear('_invalidations');
-        lunaris._stores.http.data.clear();
-
         lunaris._cache.clear();
         setTimeout(done, 200);
       });
@@ -459,7 +456,7 @@ describe('local storage', () => {
             should(data[0].data).eql({
               _id      : 1,
               _rowId   : 1,
-              _version : [1, 2],
+              _version : [1, 3],
               id       : 1,
               label    : 'A'
             });
@@ -743,7 +740,7 @@ describe('local storage', () => {
             should(data[0].data).eql({
               _id      : 1,
               _rowId   : 2,
-              _version : [3],
+              _version : [4],
               id       : 1,
               label    : 'A.1'
             });

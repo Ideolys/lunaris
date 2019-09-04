@@ -1,6 +1,7 @@
 describe('builder', () => {
 
-  beforeEach(() => {
+  beforeEach(done => {
+    lunaris.begin();
     lunaris.clear('@child');
     lunaris.clear('@childAggregate');
     lunaris.clear('@computed');
@@ -11,7 +12,10 @@ describe('builder', () => {
     lunaris.clear('@parent');
     lunaris.clear('@http');
     lunaris.clear('@reference');
-    lunaris._resetVersionNumber();
+    lunaris.commit(() => {
+      lunaris._resetVersionNumber();
+      done();
+    });
   });
 
   it('should have defined constants', () => {
@@ -149,15 +153,15 @@ describe('builder', () => {
 
   it('should send one event filterUpdated', done => {
     var _nbHooks = 0;
-
-    lunaris.hook('reset@double', () => {
+    var _hook    = () => {
       _nbHooks++;
-    });
-
+    };
+    lunaris.hook('reset@double', _hook);
     lunaris.insert('@filter.double', { from : '1', to : '2' });
 
     setTimeout(() => {
       should(_nbHooks).eql(1);
+      lunaris.removeHook('reset@double');
       done();
     }, 60);
   });
@@ -181,7 +185,7 @@ describe('builder', () => {
     });
 
     it('should propagate update', done => {
-      lunaris.hook('update@child', item => {
+      var _hook = item => {
         should(item).eql([{
           _rowId   : 2,
           _id      : 1,
@@ -194,15 +198,17 @@ describe('builder', () => {
             _version : [2]
           }]
         }]);
+        lunaris.removeHook('update@child', _hook);
         done();
-      });
+      };
 
+      lunaris.hook('update@child', _hook);
       lunaris.insert('@child' , { id : 1 });
       lunaris.insert('@parent', { id : 1 });
     });
 
     it('should propagate update and calculate aggregate', done => {
-      lunaris.hook('update@childAggregate', item => {
+      var _hook = item => {
         should(item).eql([{
           _rowId       : 2,
           _id          : 1,
@@ -229,8 +235,11 @@ describe('builder', () => {
             }
           ]
         }]);
+        lunaris.removeHook('update@childAggregate', _hook);
         done();
-      });
+      };
+
+      lunaris.hook('update@childAggregate', _hook);
 
       lunaris.insert('@childAggregate' , { id : 1 });
       lunaris.insert('@parent', [{ id : 1, price : 1 }, { id : 2, price : 3 }]);

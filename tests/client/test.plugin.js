@@ -100,17 +100,11 @@ describe('Store plugin', () => {
     });
     var _hooks = Object.keys(lunaris._stores.test.hooks);
     should(_hooks).eql([
-      'inserted', 'updated', 'deleted', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
+      'success', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
     ]);
 
-    should(lunaris._stores.test.hooks.inserted).have.lengthOf(1);
-    should(lunaris._stores.test.realHooks.inserted[0].name).eql('successHttp');
-
-    should(lunaris._stores.test.hooks.updated).have.lengthOf(1);
-    should(lunaris._stores.test.realHooks.updated[0].name).eql('successHttp');
-
-    should(lunaris._stores.test.hooks.deleted).have.lengthOf(1);
-    should(lunaris._stores.test.realHooks.deleted[0].name).eql('successHttp');
+    should(lunaris._stores.test.hooks.success).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.success[0].name).eql('successHttp');
 
     should(lunaris._stores.test.hooks.errorHttp).have.lengthOf(1);
     should(lunaris._stores.test.realHooks.errorHttp[0].name).eql('errorHttp');
@@ -144,17 +138,11 @@ describe('Store plugin', () => {
     var _hooks = Object.keys(lunaris._stores.test.hooks);
 
     should(_hooks).eql([
-      'inserted', 'updated', 'deleted', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
+      'success', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
     ]);
 
-    should(lunaris._stores.test.hooks.inserted).have.lengthOf(1);
-    should(lunaris._stores.test.realHooks.inserted[0].name).eql('successHttp');
-
-    should(lunaris._stores.test.hooks.updated).have.lengthOf(1);
-    should(lunaris._stores.test.realHooks.updated[0].name).eql('successHttp');
-
-    should(lunaris._stores.test.hooks.deleted).have.lengthOf(1);
-    should(lunaris._stores.test.realHooks.deleted[0].name).eql('successHttp');
+    should(lunaris._stores.test.hooks.success).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.success[0].name).eql('successHttp');
 
     should(lunaris._stores.test.hooks.errorHttp).have.lengthOf(1);
     should(lunaris._stores.test.realHooks.errorHttp[0].name).eql('errorHttp');
@@ -173,7 +161,7 @@ describe('Store plugin', () => {
     var _hooks = Object.keys(lunaris._stores.test.hooks);
 
     should(_hooks).eql([
-      'inserted', 'updated', 'deleted', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
+      'success', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
     ]);
 
     should(lunaris._stores.test.hooks.get).have.lengthOf(1);

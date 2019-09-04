@@ -3,7 +3,6 @@ var logger             = require('../logger.js');
 var utils              = require('../utils.js');
 var localStorageDriver = require('../localStorageDriver.js');
 var database           = localStorageDriver.indexedDB;
-var offline            = require('../offline.js');
 
 /**
  * Get store
@@ -219,9 +218,14 @@ function getJSONPatchPath (path) {
  * Save
  * @param {Object} store
  * @param {Object} collection
+ * @param {Function} callback
  */
-function saveState (store, collection) {
+function saveState (store, collection, callback) {
   if (!lunarisExports.isBrowser) {
+    if (callback) {
+      return callback();
+    }
+
     return;
   }
 
@@ -236,7 +240,7 @@ function saveState (store, collection) {
     }
   };
 
-  database.upsert('_states', _state);
+  database.upsert('_states', _state, callback);
 }
 
 /**
