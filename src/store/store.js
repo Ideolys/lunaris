@@ -1371,9 +1371,9 @@ function _clear (store, isSilent, transactionId, callback) {
     _options.store.massOperations        = {};
     cache.invalidate(_options.store.name);
     if (!isSilent) {
-      return hook.pushToHandlers(_options.store, 'clear', null, transactionId, function () {
-        hook.pushToHandlers(_options.store, 'reset', null, transactionId, function () {
-          _clearPropagate(_options.store, _options.collection, callback);
+      return _clearPropagate(_options.store, _options.collection, function () {
+        hook.pushToHandlers(_options.store, 'clear', null, transactionId, function () {
+          hook.pushToHandlers(_options.store, 'reset', null, transactionId, callback);
         });
       });
     }
