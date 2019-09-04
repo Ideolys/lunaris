@@ -9,13 +9,17 @@ console.warn = function () {
 
 describe('directive v-lunaris', () => {
 
-  afterEach(() => {
+  afterEach(done => {
     lastError = [];
     lastTip   = [];
+    lunaris.begin();
     lunaris.clear('@directive');
     lunaris.clear('@directiveCheckbox');
     lunaris.clear('@directiveRadio');
-    lunaris._resetVersionNumber();
+    lunaris.commit(() => {
+      lunaris._resetVersionNumber();
+      done();
+    });
   });
 
   it('should throw an error if the there is no value', () => {
