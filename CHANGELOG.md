@@ -1,6 +1,8 @@
 # Lunaris
 
 ## 1.13.x
+- Features:
+  - Add `isOffline` attribute for module's routes. By default, `isOffline` value equals `false`.
 
 ## 1.12.0
 *2019-09-02*
