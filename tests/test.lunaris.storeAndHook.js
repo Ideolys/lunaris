@@ -5139,7 +5139,7 @@ describe('lunaris store', function () {
           _id         : 1,
           id          : 1,
           store1Value : { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [1] },
-          _version    : [2]
+          _version    : [3]
         });
         done();
       });

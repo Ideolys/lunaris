@@ -590,9 +590,9 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
     setOfflineHttpTransaction(store.name, method, request, !isMultipleItems && !store.isStoreObject ? value[0] : value);
   }
 
-  afterAction(store, isUpdate ? 'update' : 'insert', value, null, function () {
-    _propagateReferences(store, value, function () {
-      _propagate(store, value, method, function () {
+  _propagateReferences(store, value, function () {
+    _propagate(store, value, method, function () {
+      afterAction(store, isUpdate ? 'update' : 'insert', value, null, function () {
         storeUtils.saveState(store, collection);
         callback({ version : version, value : _requestValue, request : request });
       });
@@ -611,21 +611,13 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
  * @param {Function} callback
  */
 function _upsertHTTPEvents (store, collection, value, isUpdate, method, transactionId, callback) {
-  afterAction(store, 'update', value, null, function () {
-    afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false), function () {
-      if (store.isFilter) {
-        return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
-          _propagateReferences(store, value, function () {
-            _propagate(store, value, utils.OPERATIONS.UPDATE, function () {
-              storeUtils.saveState(store, collection);
-              callback();
-            });
-          });
-        });
-      }
-
-      _propagateReferences(store, value, function () {
-        _propagate(store, value, utils.OPERATIONS.UPDATE, function () {
+  _propagateReferences(store, value, function () {
+    _propagate(store, value, utils.OPERATIONS.UPDATE, function () {
+      afterAction(store, 'update', value, null, function () {
+        afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false), function () {
+          if (store.isFilter) {
+            return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
+          }
           storeUtils.saveState(store, collection);
           callback();
         });
@@ -748,14 +740,14 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
 function _upsertLocal (store, value, isUpdate, isLocal, transactionId, callback) {
   if (store.isLocal || isLocal) {
     if (store.isFilter) {
-      return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
-        _propagateReferences(store, value, function () {
-          _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, callback);
+      return _propagateReferences(store, value, function () {
+        _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, function () {
+          hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
         });
       });
     }
 
-    _propagateReferences(store, value, function () {
+    return _propagateReferences(store, value, function () {
       _propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, callback);
     });
   }
