@@ -965,9 +965,9 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
     data = collection.commit(_version);
 
 
-    afterAction(store, 'get', data, null, function () {
-      _propagateReferences(store, data, function () {
-        _propagate(store, data, utils.OPERATIONS.INSERT, function () {
+    _propagateReferences(store, data, function () {
+      _propagate(store, data, utils.OPERATIONS.INSERT, function () {
+        afterAction(store, 'get', data, null, function () {
           if (store.isFilter) {
             return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
               storeUtils.saveState(store, collection);
