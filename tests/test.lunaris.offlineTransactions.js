@@ -1,5 +1,5 @@
 const should                     = require('should');
-const computeOfflineTransactions = require('../src/store/store')._computeStoreTransactions;
+const computeOfflineTransactions = require('../src/store/store.synchronisation').computeStoreTransactions;
 const resetVersion               = require('../src/store/store.collection').resetVersionNumber;
 const collection                 = require('../src/store/store.collection').collection;
 const OPERATIONS                 = require('../src/utils').OPERATIONS;

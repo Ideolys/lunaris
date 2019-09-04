@@ -160,4 +160,11 @@ describe('lunaris index', () => {
     should(index.localStorage).be.an.Object();
     should(index.localStorage).eql(localStorageDriver.localStorage);
   });
+
+  it('sync should be defined', () => {
+    should(index.sync).be.ok();
+    should(index.sync).be.an.Object();
+    should(index.sync.pushOfflineHttpTransactions).be.a.Function();
+    should(index.sync.getLastSyncDate).be.a.Function();
+  });
 });

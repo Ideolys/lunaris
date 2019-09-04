@@ -9,6 +9,7 @@ var md5                         = require('../md5.js');
 var url                         = require('./store.url.js');
 var template                    = require('./store.template.js');
 var collection                  = require('./store.collection.js');
+var sync                        = require('./store.synchronisation.js');
 var offline                     = require('../offline.js');
 var storeOffline                = require('./store.offline.js');
 var transaction                 = require('./store.transaction.js');
@@ -16,11 +17,11 @@ var indexedDB                   = require('../localStorageDriver.js').indexedDB;
 var OPERATIONS                  = utils.OPERATIONS;
 var emptyObject                 = {};
 var getRequestQueue             = {};
-var OFFLINE_STORE               = utils.offlineStore;
-var isPushingOfflineTransaction = false;
-var offlineTransactions         = [];
-var offlineTransactionsInError  = [];
 var queue                       = require('../utils.js').queue;
+
+sync.setImportFunction(upsert);
+sync.setImportFunction(deleteStore);
+sync.setImportFunction(_clear);
 
 lunarisExports._stores.lunarisErrors = {
   name                  : 'lunarisErrors',
@@ -36,311 +37,6 @@ lunarisExports._stores.lunarisErrors = {
   isStoreObject         : false,
   massOperations        : {}
 };
-
-lunarisExports._stores.lunarisOfflineTransactions = {
-  name                  : OFFLINE_STORE,
-  data                  : collection.collection(null, null, null, null, null, OFFLINE_STORE),
-  filters               : [],
-  paginationLimit       : 50,
-  paginationOffset      : 0,
-  paginationCurrentPage : 1,
-  hooks                 : {},
-  isLocal               : true,
-  storesToPropagate     : [],
-  isStoreObject         : false,
-  massOperations        : {}
-};
-
-/**
- * get an object from a store's collection
- * @param {String} storeName
- * @param {Int} _id
- * @returns {Object}
- */
-function _getObjectFromCollection (storeName, _id) {
-  var _collection = storeUtils.getCollection(storeUtils.getStore(storeName));
-
-  if (!_collection) {
-    return;
-  }
-
-  return _collection.get(_id);
-}
-
-/**
- * Update offline transaction data
- * When an object has been POST, we must update the data in next transactions operations
- * We only update stores that have references. Because, only references have an impact.
- * @param {Array} storesToUpdate ['store1', 'storeN']
- */
-function _updateOfflineTransactionData (storesToUpdate) {
-  var _lengthStoresToUpdate = storesToUpdate.length;
-
-  if (!_lengthStoresToUpdate) {
-    return;
-  }
-
-
-  for (var i = 0, len = offlineTransactions.length; i < len; i++) {
-    var _transaction = offlineTransactions[i];
-    for (var j = 0; j < _lengthStoresToUpdate; j++)  {
-      if (_transaction.store !== storesToUpdate[j]) {
-        continue;
-      }
-
-      if (storesToUpdate.indexOf(_transaction.store) === -1) {
-        continue;
-      }
-
-      if (Array.isArray(_transaction.data)) {
-        for (var k = 0; k < _transaction.data.length; k++) {
-          _transaction.data[k] = _getObjectFromCollection(storesToUpdate[j], _transaction.data[k]._id);
-        }
-
-        continue;
-      }
-
-      _transaction.data = _getObjectFromCollection(storesToUpdate[j], _transaction.data._id);
-    }
-  }
-}
-
-/**
- * Push dependent transaction in error to error array
- * @param {Array} storesToUpdate
- */
-function _pushDependentTransactionsInError (storesToUpdate) {
-  var _lengthStoresToUpdate = storesToUpdate.length;
-
-  if (!_lengthStoresToUpdate) {
-    return;
-  }
-
-
-  for (var i = offlineTransactions.length - 1; i >= 0; i--) {
-    var _transaction = offlineTransactions[i];
-    for (var j = 0; j < _lengthStoresToUpdate; j++)  {
-      if (_transaction.store !== storesToUpdate[j]) {
-        continue;
-      }
-
-      if (storesToUpdate.indexOf(_transaction.store) === -1) {
-        continue;
-      }
-
-      indexedDB.del(OFFLINE_STORE, _transaction._id);
-      offlineTransactionsInError.splice(1, 0, offlineTransactions.splice(i, 1)[0]);
-    }
-  }
-}
-
-/**
- * Save transaction in error in collection
- */
-function _saveTransactionsInError () {
-  var _collection = lunarisExports._stores.lunarisOfflineTransactions.data;
-
-  var _version = _collection.begin();
-
-  for (var j = 0; j < offlineTransactionsInError.length; j++) {
-    _collection.remove(utils.clone(offlineTransactionsInError[j]), _version);
-    delete offlineTransactionsInError[j]._id;
-    offlineTransactionsInError[j].isInError = true;
-    _collection.add(offlineTransactionsInError[j], _version);
-  }
-  _collection.commit(_version);
-  offlineTransactionsInError = [];
-  storeUtils.saveState(lunarisExports._stores.lunarisOfflineTransactions, _collection);
-}
-
-/**
- * Push offline HTTP transactions when online in queue
- * @param {Function} callback
- */
-function pushOfflineHttpTransactions (callback) {
-  offlineTransactions = lunarisExports._stores.lunarisOfflineTransactions.data.getAll();
-
-  function _processNextOfflineTransaction () {
-    var _currentTransaction = offlineTransactions.shift();
-
-    if (!_currentTransaction) {
-      isPushingOfflineTransaction = false;
-      _saveTransactionsInError();
-      return callback();
-    }
-
-    transaction.begin();
-    if (_currentTransaction.method === OPERATIONS.INSERT || _currentTransaction.method === OPERATIONS.UPDATE) {
-      upsert(_currentTransaction.store, _currentTransaction.data, false, _currentTransaction);
-    }
-
-    if (_currentTransaction.method === OPERATIONS.DELETE) {
-      deleteStore(_currentTransaction.store, _currentTransaction.data, _currentTransaction);
-    }
-
-    transaction.commit(function (isError) {
-      // We must hold the transaction in error and its dependent transactions
-      if (isError) {
-        offlineTransactionsInError.push(_currentTransaction);
-        if (_currentTransaction.method === OPERATIONS.INSERT) {
-          _pushDependentTransactionsInError(storeUtils.getStore(_currentTransaction.store).storesToPropagateReferences);
-        }
-        hook.pushToHandlers(lunarisExports._stores.lunarisOfflineTransactions, 'syncError');
-      }
-      else {
-        hook.pushToHandlers(lunarisExports._stores.lunarisOfflineTransactions, 'syncSuccess');
-      }
-
-      lunarisExports._stores.lunarisOfflineTransactions.data.remove(_currentTransaction);
-      _processNextOfflineTransaction();
-      // indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
-    });
-  }
-
-  isPushingOfflineTransaction = true;
-  _processNextOfflineTransaction();
-}
-
-/**
- * Compute offline HTTP transactions
- * POST / DELETE -> do nothing
- * PUT  / DELETE -> DELETE
- * PUT  / PUT    -> PUT
- * POST / PUT    -> POST
- * @param {Array} transactions
- * @param {String} storeName
- * @param {String} method ex: GET, POST, etc.
- * @param {String} request
- * @param {Array/Object} value
- */
-function _computeStoreTransactions (transactions, storeName, method, request, value) {
-  var _mustBeAdded  = true;
-  var _isArrayValue = Array.isArray(value);
-
-  if (!_isArrayValue) {
-    value = [value];
-  }
-
-  var _lengthValue = value.length;
-  var _nbInInserts = 0;
-
-  for (var j = _lengthValue - 1; j >= 0; j--) {
-    for (var i = transactions.length - 1; i >= 0; i--) {
-      var _transaction               = transactions[i];
-      var _isTransactionValueAnArray = Array.isArray(_transaction.data);
-
-      if (!_isTransactionValueAnArray) {
-        _transaction.data = [_transaction.data];
-      }
-
-      var _lengthTransactionValue = _transaction.data.length;
-
-      if (_transaction.store !== storeName) {
-        continue;
-      }
-
-      for (var k = _lengthTransactionValue - 1; k >= 0; k--) {
-        if (_transaction.method === OPERATIONS.INSERT && method === OPERATIONS.UPDATE) {
-          if (value[j]._id !== _transaction.data[k]._id) {
-            continue;
-          }
-
-          _transaction.data[k] = value[j];
-          value.splice(j, 1);
-          _nbInInserts++;
-
-          if (!j && _nbInInserts === _lengthValue) {
-            _mustBeAdded = false;
-          }
-
-          break;
-        }
-
-        if (_transaction.method === OPERATIONS.UPDATE && method === OPERATIONS.UPDATE) {
-          if (value[j]._id !== _transaction.data[k]._id) {
-            continue;
-          }
-
-          _transaction.data[k] = value[j];
-          _mustBeAdded          = false;
-          break;
-        }
-
-        if (
-          (_transaction.method === OPERATIONS.INSERT && method === OPERATIONS.DELETE) ||
-          (_transaction.method === OPERATIONS.UPDATE && method === OPERATIONS.DELETE)
-        ) {
-          if (value[j]._id !== _transaction.data[k]._id) {
-            continue;
-          }
-
-          _transaction.data.splice(k, 1);
-
-          if (!_transaction.data.length) {
-            transactions.splice(i, 1);
-          }
-
-          if (_transaction.method === OPERATIONS.INSERT) {
-            value.splice(j, 1);
-
-            if (!value.length) {
-              _mustBeAdded = false;
-            }
-
-            break;
-          }
-        }
-
-        // Do not try to merge DELETE, it will be way to complicated to manage PUT->DELETE->DELETE with discontinuations
-        // if (_transaction.method === OPERATIONS.DELETE && method === OPERATIONS.DELETE && _isArrayValue) {
-        //   _transaction.value.push(value[j]);
-        //   _mustBeAdded = false;
-        //   break;
-        // }
-      }
-
-      if (!_isTransactionValueAnArray) {
-        _transaction.data = _transaction.data[0];
-      }
-    }
-  }
-
-  if (_mustBeAdded) {
-    transactions.push({
-      store  : storeName,
-      method : method,
-      url    : request,
-      data   : _isArrayValue ? value : value[0],
-      date   : Date.now()
-    });
-  }
-
-  return transactions;
-}
-
-/**
- * Save Http transactions into a store
- * Make sure to compute actions before inserting in store
- * @param {String} storeName
- * @param {String} method
- * @param {String} request
- * @param {Object/Array} value
- */
-function setOfflineHttpTransaction (storeName, method, request, value) {
-  var _collection   = lunarisExports._stores.lunarisOfflineTransactions.data;
-  var _transactions = _collection.getAll();
-
-  _clear(OFFLINE_STORE, true);
-  _computeStoreTransactions(_transactions, storeName, method, request, value);
-
-  var _version = _collection.begin();
-  for (var i = 0; i < _transactions.length; i++) {
-    delete _transactions[i]._id;
-    _collection.add(_transactions[i], _version);
-  }
-  _collection.commit(_version);
-  storeUtils.saveState(lunarisExports._stores.lunarisOfflineTransactions, _collection);
-}
 
 /**
  * Push commit res objects to handlers
@@ -587,7 +283,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
   request = request.request;
 
   if (!offline.isOnline && (store.isLocal !== true || !isLocal)) {
-    setOfflineHttpTransaction(store.name, method, request, !isMultipleItems && !store.isStoreObject ? value[0] : value);
+    sync.setOfflineHttpTransaction(store.name, method, request, !isMultipleItems && !store.isStoreObject ? value[0] : value);
   }
 
   _propagateReferences(store, value, function () {
@@ -670,7 +366,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
       var _version = collection.begin();
       collection.upsert(value, _version);
 
-      if (isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
+      if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
         _updateCollectionIndexId(store, collection, value);
       }
 
@@ -692,7 +388,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
 
               collection.upsert(value[i], _version);
 
-              if (isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
+              if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
                 _updateCollectionIndexId(store, collection, value[i]);
               }
             }
@@ -702,7 +398,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
           value[i] = utils.merge(value[i], data);
           collection.upsert(value[i], _version);
 
-          if (isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
+          if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
             _updateCollectionIndexId(store, collection, value[i]);
           }
         }
@@ -711,9 +407,9 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
       value = collection.commit(_version);
     }
 
-    if (isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
+    if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
       return _propagateReferences(store, value, function () {
-        _updateOfflineTransactionData(store.storesToPropagateReferences);
+        sync.updateOfflineTransactionData(store.storesToPropagateReferences);
 
         if (!_isEvent) {
           return callback();
@@ -1218,7 +914,7 @@ function _deleteHttp (store, collection, isLocal, retryOptions, value, version, 
   }
 
   if (!offline.isOnline) {
-    setOfflineHttpTransaction(store.name, OPERATIONS.DELETE, _request, value);
+    sync.setOfflineHttpTransaction(store.name, OPERATIONS.DELETE, _request, value);
     return callback();
   }
 
@@ -1585,18 +1281,15 @@ function validate (store, value, isUpdate, callback, eventName) {
   }
 }
 
-exports.get                         = get;
-exports.getOne                      = getOne;
-exports.insert                      = upsert;
-exports.update                      = upsert;
-exports.upsert                      = upsert;
-exports.delete                      = deleteStore;
-exports.clear                       = clear;
-exports.retry                       = retry;
-exports.rollback                    = rollback;
-exports.getDefaultValue             = getDefaultValue;
-exports.validate                    = validate;
-exports.setPagination               = setPagination;
-exports.pushOfflineHttpTransactions = pushOfflineHttpTransactions;
-
-exports._computeStoreTransactions = _computeStoreTransactions; // for tests
+exports.get             = get;
+exports.getOne          = getOne;
+exports.insert          = upsert;
+exports.update          = upsert;
+exports.upsert          = upsert;
+exports.delete          = deleteStore;
+exports.clear           = clear;
+exports.retry           = retry;
+exports.rollback        = rollback;
+exports.getDefaultValue = getDefaultValue;
+exports.validate        = validate;
+exports.setPagination   = setPagination;
