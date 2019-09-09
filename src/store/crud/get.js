@@ -69,7 +69,7 @@ function _getCache (store, collection, request, transactionId, callback, nextGet
   if (_cacheValues) {
     if (typeof _cacheValues === 'object') {
       storeUtils.saveState(store, collection);
-      _values = _transformGetCache(collection, utils.clone(_cacheValues));
+      _values = _transformGetCache(collection, store.clone(_cacheValues));
     }
 
     return crudUtils.afterAction(store, 'get', _values, null, function () {
@@ -152,7 +152,7 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
         return nextGet('@' + store.name);
       }
 
-      cache.add(store.name, md5(request), utils.clone(data));
+      cache.add(store.name, md5(request), store.clone(data));
 
       for (var i = 0; i < data.length; i++) {
         collection.upsert(data[i], _version);
@@ -163,7 +163,7 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
       }
     }
     else {
-      cache.add(store.name, md5(request), utils.clone(data));
+      cache.add(store.name, md5(request), store.clone(data));
       collection.upsert(data, _version);
     }
 

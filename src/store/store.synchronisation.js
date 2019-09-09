@@ -16,7 +16,7 @@ var imports = {};
 
 lunarisExports._stores.lunarisOfflineTransactions = {
   name                  : OFFLINE_STORE,
-  data                  : collection.collection(null, null, null, null, null, OFFLINE_STORE),
+  data                  : collection.collection(null, null, null, null, null, OFFLINE_STORE, null, utils.clone),
   filters               : [],
   paginationLimit       : 50,
   paginationOffset      : 0,
@@ -25,7 +25,8 @@ lunarisExports._stores.lunarisOfflineTransactions = {
   isLocal               : true,
   storesToPropagate     : [],
   isStoreObject         : false,
-  massOperations        : {}
+  massOperations        : {},
+  clone                 : utils.clone
 };
 
 /**

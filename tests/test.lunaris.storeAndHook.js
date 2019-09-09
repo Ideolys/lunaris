@@ -37,7 +37,7 @@ eval(buildLunaris({
   IS_BROWSER : false
 }));
 let server  = express();
-lunaris._stores.lunarisErrors.data = collection.collection();
+lunaris._stores.lunarisErrors.data = collection.collection(null, false, null, null, null, 'lunarisErrors', null, lunaris.utils.clone);
 
 var nbCallsPagination2 = 0;
 
@@ -1681,7 +1681,7 @@ describe('lunaris store', function () {
       var _store                    = initStore('pagination_duplicate');
       _store.data = collection.collection((item) => {
         return item.id;
-      });
+      }, null, null, null, null, null, null, lunaris.utils.clone);
       lunaris._stores['pagination_duplicate'] = _store;
 
       lunaris.hook('get@pagination_duplicate', items => {

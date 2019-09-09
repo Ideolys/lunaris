@@ -1562,6 +1562,7 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1611,6 +1612,7 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1660,6 +1662,7 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1713,6 +1716,7 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1782,6 +1786,7 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1832,6 +1837,7 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1886,6 +1892,7 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1934,6 +1941,7 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -1982,6 +1990,7 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -2031,24 +2040,28 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<   idMenu>']});
           delete _computed.getPrimaryKey;
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<  idMenu   >']});
           delete _computed.getPrimaryKey;
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '   < idMenu   >  ']});
           delete _computed.getPrimaryKey;
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -2098,24 +2111,28 @@ describe('Validate', () => {
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
           delete _computed.setPrimaryKey;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<   idMenu>>']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
           delete _computed.setPrimaryKey;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '<<  idMenu   >>']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
           delete _computed.setPrimaryKey;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
           _computed = schema.analyzeDescriptor({obj : ['array','min',1,'max',5, '   << idMenu   >>  ']});
           delete _computed.getPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
           delete _computed.setPrimaryKey;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
         });
 
@@ -2290,6 +2307,7 @@ describe('Validate', () => {
           delete _computed.setPrimaryKey;
           delete _computed.aggregateFn;
           delete _computed.computedsFn;
+          delete _computed.clone;
           should(_computed).eql(_expectedTreeDescriptor);
           done();
         });

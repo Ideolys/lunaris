@@ -2,7 +2,8 @@ const should                     = require('should');
 const computeOfflineTransactions = require('../src/store/store.synchronisation').computeStoreTransactions;
 const resetVersion               = require('../src/store/store.collection').resetVersionNumber;
 const collection                 = require('../src/store/store.collection').collection;
-const OPERATIONS                 = require('../src/utils').OPERATIONS;
+const utils                      = require('../src/utils');
+const OPERATIONS                 = utils.OPERATIONS;
 
 const getPrimaryKey = (val) => {
   return val.id;
@@ -15,7 +16,7 @@ describe('Compute offline transactions', () => {
   });
 
   it('should add the transaction', () => {
-    let _collection   = collection(null, false);
+    let _collection   = collection(null, false, null, null, null, null, null, utils.clone);
     let _value        = { id : 1, label : 'A' };
     let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.INSERT, '/test', _value);
 
@@ -31,7 +32,7 @@ describe('Compute offline transactions', () => {
   });
 
   it('should add the transaction at the end of previous transactions', () => {
-    let _collection = collection(getPrimaryKey);
+    let _collection = collection(null, false, null, null, null, null, null, utils.clone);
     let _valueInit  = {
       store   : 'test',
       method  : OPERATIONS.INSERT,
@@ -61,7 +62,7 @@ describe('Compute offline transactions', () => {
 
   describe('value = object', () => {
     it('should compute POST->PUT to POST', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -82,7 +83,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->PUT to PUT', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -103,7 +104,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->PUT->PUT to POST', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -135,7 +136,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->DELETE to nothing', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -148,7 +149,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->DELETE to DELETE', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -170,7 +171,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->PUT->DELETE to nothing', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -187,7 +188,7 @@ describe('Compute offline transactions', () => {
 
   describe('value = array', () => {
     it('should compute POST->PUT to POST', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -208,7 +209,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->PUT to POST : POST has an object value', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -229,7 +230,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->PUT to POST : PUT has an object value', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -250,7 +251,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->PUT to POST : multiple items', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -279,7 +280,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->PUT to POST : multiple items and discontinuation', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -316,7 +317,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->PUT to POST : multiple transactions && multiple items', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -363,7 +364,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->PUT to PUT', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -384,7 +385,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->PUT to PUT : first PUT has an object value', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -405,7 +406,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->PUT to PUT : second PUT has an object value', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -426,7 +427,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->PUT to PUT : multiple items', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -455,7 +456,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->PUT to PUT : multiple items and discontinuation', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -492,7 +493,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->PUT to PUT : multiple transactions && multiple items', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -539,7 +540,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->PUT to PUT : multiple transactions && multiple items', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -586,7 +587,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->PUT to POST->PUT : discontinuations', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -636,7 +637,7 @@ describe('Compute offline transactions', () => {
 
 
     it('should compute POST->DELETE to nothing', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -649,7 +650,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->DELETE to POST : POST has an object value', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -662,7 +663,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->DELETE to nothing : DELETE has an object value', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -675,7 +676,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->DELETE to nothing : multiple items', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -696,7 +697,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->DELETE to POST : multiple items and discontinuation', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -731,7 +732,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->DELETE to nothing : multiple transactions && multiple items', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,
@@ -767,7 +768,7 @@ describe('Compute offline transactions', () => {
 
 
     it('should compute PUT->DELETE to DELETE', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -789,7 +790,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->DELETE to DELETE : UPDATE has an object value', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -811,7 +812,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->DELETE to DELETE : PUT has an object value', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -833,7 +834,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->DELETE to DELETE : multiple items', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -863,7 +864,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->DELETE to DELETE : multiple items and discontinuation', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -913,7 +914,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute PUT->DELETE to DELETE : multiple transactions && multiple items', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.UPDATE,
@@ -970,7 +971,7 @@ describe('Compute offline transactions', () => {
     });
 
     it('should compute POST->PUT->DELETE to nothing : multiple transactions && multiple items', () => {
-      let _collection = collection(getPrimaryKey);
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
         method : OPERATIONS.INSERT,

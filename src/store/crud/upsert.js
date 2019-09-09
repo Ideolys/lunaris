@@ -83,7 +83,13 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
     }
   }
 
-  value = collection.commit(version);
+  try {
+    value = collection.commit(version);
+  }
+  catch (e) {
+    console.log(store.name);
+    console.log(e);
+  }
 
   // If offline set PK
   if (isMultipleItems && !offline.isOnline && !isUpdate) {
@@ -227,7 +233,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
         if (_isMultiple) {
           for (var j = 0; j < data.length; j++) {
             if (value[i]._id === data[j]._id) {
-              value[i] = utils.merge(utils.clone(value[i]), data[j]);
+              value[i] = utils.merge(store.clone(value[i]), data[j]);
 
               collection.upsert(value[i], _version);
 

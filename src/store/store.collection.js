@@ -49,8 +49,9 @@ function incrementVersionNumber () {
  *  getPrimaryKeyFns : { storeN : fn },
  *  collections      : {Object} key / value (store / value to store)
  * }
+ * @param {Function} cloneFn clone fn specifi to the store or default one
  */
-function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, computedsFn, storeName, referencesDescriptor) {
+function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, computedsFn, storeName, referencesDescriptor, cloneFn) {
   var _data                     = [];
   var _currentId                = 1;
   var _currentRowId             = 1;
@@ -341,7 +342,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       var _upperVersion = _data[i]._version[1] || _version;
 
       if (_data[i]._id === value._id && _lowerVersion <= _version && _version <= _upperVersion) {
-        var _objToUpdate     = utils.clone(value);
+        var _objToUpdate     = cloneFn(value);
         _data[i]._version[1] = _version;
         _updateReferencesIndex(_data[i]);
 
@@ -466,7 +467,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
         ||
         (versionNumber === _lowerVersion && !_upperVersion)
       ) {
-        _objToRollback.push(utils.clone(_data[i]));
+        _objToRollback.push(cloneFn(_data[i]));
       }
     }
 
@@ -541,7 +542,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     _isTransactionCommit         = false;
     _transactionVersionNumber    = null;
     incrementVersionNumber();
-    return utils.clone(_res);
+    return cloneFn(_res);
   }
 
   /**
@@ -584,7 +585,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       var _upperVersion = _item._version[1];
       if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
         // Remember, we cannot directly edit a value from the collection (clone)
-        var _obj = utils.clone(_item);
+        var _obj = cloneFn(_item);
         if (data && data.length) {
           for (var j = 0; j < data.length; j++) {
             _obj = _updateObject(_obj, data[j], operation);
@@ -626,7 +627,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       var _upperVersion = _item._version[1];
       if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
         // Remember, we cannot directly edit a value from the collection (clone)
-        var _obj = utils.clone(_item);
+        var _obj = cloneFn(_item);
         for (var j = 0; j < data.length; j++) {
           _obj = _referencesDescriptor.referencesFn.update[store](_referencesDescriptor.getPrimaryKeyFns[store], data[j], _obj);
         }
@@ -743,7 +744,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
         return _items.length ? _items[0] : null;
       }
 
-      return utils.clone(_items);
+      return cloneFn(_items);
     },
 
     /**

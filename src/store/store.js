@@ -13,7 +13,7 @@ var emptyObject                 = {};
 
 lunarisExports._stores.lunarisErrors = {
   name                  : 'lunarisErrors',
-  data                  : collection.collection(null, null, null, null, null, 'lunarisErrors'),
+  data                  : collection.collection(null, false, null, null, null, 'lunarisErrors', null, utils.clone),
   filters               : [],
   paginationLimit       : 50,
   paginationOffset      : 0,
@@ -23,7 +23,8 @@ lunarisExports._stores.lunarisErrors = {
   isLocal               : true,
   storesToPropagate     : [],
   isStoreObject         : false,
-  massOperations        : {}
+  massOperations        : {},
+  clone                 : utils.clone
 };
 
 upsertCRUD.setImportFunction(validate);

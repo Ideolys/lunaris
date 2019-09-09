@@ -57,8 +57,8 @@ function freeze (value) {
   return Object.freeze(value);
 }
 
-exports.cloneAndFreeze = function cloneAndFreeze (value) {
-  var _value = clone(value);
+exports.cloneAndFreeze = function cloneAndFreeze (value, cloneFn) {
+  var _value = (cloneFn || clone)(value);
   if (!Array.isArray(_value)) {
     return freeze(_value);
   }

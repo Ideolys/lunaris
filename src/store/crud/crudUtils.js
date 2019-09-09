@@ -18,12 +18,12 @@ var queue      = utils.queue;
 function beforeAction (store, value, isNoValue) {
   storeUtils.checkArgs(store, value, isNoValue);
 
-  if (!isNoValue) {
-    value = utils.clone(value);
-  }
-
   var _store      = storeUtils.getStore(store);
   var _collection = storeUtils.getCollection(_store);
+
+  if (!isNoValue) {
+    value = _store.clone(value);
+  }
 
   return {
     value      : value,
@@ -43,7 +43,7 @@ function beforeAction (store, value, isNoValue) {
 function afterAction (store, event, value, message, callback) {
   var _value = null;
   if (value) {
-    _value = utils.cloneAndFreeze(value);
+    _value = utils.cloneAndFreeze(value, store.clone);
   }
 
   if (message) {
@@ -65,7 +65,7 @@ function pushCommitResToHandlers (store, hookKey, res, callback) {
     if (store.isStoreObject) {
       res = res[0];
     }
-    res = utils.cloneAndFreeze(res);
+    res = utils.cloneAndFreeze(res, store.clone);
     return hook.pushToHandlers(store, hookKey, res, null, callback);
   }
 

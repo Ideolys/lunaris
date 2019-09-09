@@ -1,4 +1,4 @@
-describe('builder', () => {
+describe.only('builder', () => {
 
   beforeEach(done => {
     lunaris.begin();
@@ -327,5 +327,15 @@ describe('builder', () => {
     should(lunaris._stores.inherits.validateFn.toString()).not.eql(lunaris._stores['inherits.inherits'].validateFn.toString());
     should(lunaris._stores.inherits.getPrimaryKeyFn.toString()).eql(lunaris._stores['inherits.inherits'].getPrimaryKeyFn.toString());
     should(lunaris._stores.inherits.setPrimaryKeyFn.toString()).eql(lunaris._stores['inherits.inherits'].setPrimaryKeyFn.toString());
+  });
+
+  it('should have set the clone function', () => {
+    should(lunaris._stores.http.clone).be.a.Function();
+    should(lunaris._stores.http.clone).eql(lunaris.utils.clone);
+  });
+
+  it('should have set the custom clone function', () => {
+    should(lunaris._stores.clone.clone).be.a.Function();
+    should(lunaris._stores.clone.clone).not.eql(lunaris.utils.clone);
   });
 });
