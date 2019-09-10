@@ -1,13 +1,15 @@
 describe('Offline to online synchronisation', () => {
 
   beforeEach(done => {
+    lunaris.begin();
     lunaris.clear('@offlineArraySync');
     lunaris.clear('@offlineObjectSync');
     lunaris.clear('@offlineReferenceSync');
     lunaris.clear('@offlineReference');
     lunaris.clear('@offlineErrorSync');
     lunaris.clear('@lunarisOfflineTransactions');
-    lunaris._indexedDB.clear('lunarisOfflineTransactions', () => {
+    lunaris.localStorage.clear('lunarisOfflineTransactions');
+    lunaris.commit(() => {
       lunaris.offline.isOnline = true;
       done();
     });
@@ -29,7 +31,7 @@ describe('Offline to online synchronisation', () => {
 
     lunaris.offline.isOnline = true;
 
-    lunaris._pushOfflineHttpTransactions(() => {
+    lunaris.sync.pushOfflineHttpTransactions(() => {
       let transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
       should(transactions).be.an.Array().and.have.lengthOf(0);
 
@@ -41,6 +43,30 @@ describe('Offline to online synchronisation', () => {
       should(lunaris._stores.offlineArraySync.data.getIndexId()).eql([
         [1], [1]
       ]);
+      done();
+    });
+  });
+
+  it('should set a date when sync is finished', done => {
+    lunaris.offline.isOnline = false;
+
+    lunaris.insert('@offlineArraySync', {
+      label : 'A'
+    });
+
+    should(lunaris.localStorage.get('lunarisOfflineTransactions')).eql(null);
+
+    let collectionItems = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
+    should(collectionItems).be.an.Array().and.have.lengthOf(1);
+
+    lunaris.offline.isOnline = true;
+
+    lunaris.sync.pushOfflineHttpTransactions(() => {
+      let transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
+      should(transactions).be.an.Array().and.have.lengthOf(0);
+
+      should(lunaris.localStorage.get('lunarisOfflineTransactions')).be.a.String();
+      should(new Date(lunaris.localStorage.get('lunarisOfflineTransactions'))).be.a.Date();
       done();
     });
   });
@@ -86,7 +112,7 @@ describe('Offline to online synchronisation', () => {
 
     lunaris.offline.isOnline = true;
 
-    lunaris._pushOfflineHttpTransactions(() => {
+    lunaris.sync.pushOfflineHttpTransactions(() => {
       transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
       should(transactions).be.an.Array().and.have.lengthOf(0);
 
@@ -124,7 +150,7 @@ describe('Offline to online synchronisation', () => {
 
     lunaris.offline.isOnline = true;
 
-    lunaris._pushOfflineHttpTransactions(() => {
+    lunaris.sync.pushOfflineHttpTransactions(() => {
       transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
       should(transactions).be.an.Array().and.have.lengthOf(0);
 
@@ -161,7 +187,7 @@ describe('Offline to online synchronisation', () => {
 
     lunaris.offline.isOnline = true;
 
-    lunaris._pushOfflineHttpTransactions(() => {
+    lunaris.sync.pushOfflineHttpTransactions(() => {
       transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
       should(transactions).be.an.Array().and.have.lengthOf(0);
 
@@ -191,7 +217,7 @@ describe('Offline to online synchronisation', () => {
 
     lunaris.offline.isOnline = true;
 
-    lunaris._pushOfflineHttpTransactions(() => {
+    lunaris.sync.pushOfflineHttpTransactions(() => {
       transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
       should(transactions).be.an.Array().and.have.lengthOf(0);
 
@@ -230,7 +256,7 @@ describe('Offline to online synchronisation', () => {
 
     lunaris.offline.isOnline = true;
 
-    lunaris._pushOfflineHttpTransactions(() => {
+    lunaris.sync.pushOfflineHttpTransactions(() => {
       transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
       should(transactions).be.an.Array().and.have.lengthOf(0);
 
@@ -262,7 +288,7 @@ describe('Offline to online synchronisation', () => {
 
     lunaris.offline.isOnline = true;
 
-    lunaris._pushOfflineHttpTransactions(() => {
+    lunaris.sync.pushOfflineHttpTransactions(() => {
       transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
       should(transactions).be.an.Array().and.have.lengthOf(0);
 
@@ -292,24 +318,26 @@ describe('Offline to online synchronisation', () => {
       [], []
     ]);
 
-    let transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
-    should(transactions).be.an.Array().and.have.lengthOf(1);
-    should(transactions[0].store).eql('offlineArraySync');
-    should(transactions[0].method).eql('DELETE');
-    should(transactions[0].url).eql('/offlineArraySync/1');
-    should(transactions[0].data).be.an.Object();
+    setTimeout(() => {
+      let transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
+      should(transactions).be.an.Array().and.have.lengthOf(1);
+      should(transactions[0].store).eql('offlineArraySync');
+      should(transactions[0].method).eql('DELETE');
+      should(transactions[0].url).eql('/offlineArraySync/1');
+      should(transactions[0].data).be.an.Object();
 
-    lunaris.offline.isOnline = true;
+      lunaris.offline.isOnline = true;
 
-    lunaris._pushOfflineHttpTransactions(() => {
-      transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
-      should(transactions).be.an.Array().and.have.lengthOf(0);
+      lunaris.sync.pushOfflineHttpTransactions(() => {
+        transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
+        should(transactions).be.an.Array().and.have.lengthOf(0);
 
-      let collectionItems = lunaris._stores.offlineArraySync.data.getAll();
-      should(collectionItems).be.an.Array().and.have.lengthOf(0);
+        let collectionItems = lunaris._stores.offlineArraySync.data.getAll();
+        should(collectionItems).be.an.Array().and.have.lengthOf(0);
 
-      done();
-    });
+        done();
+      });
+    }, 20);
   });
 
   it('should push offline transaction of a store object: DELETE', done => {
@@ -327,24 +355,26 @@ describe('Offline to online synchronisation', () => {
       [], []
     ]);
 
-    let transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
-    should(transactions).be.an.Array().and.have.lengthOf(1);
-    should(transactions[0].store).eql('offlineObjectSync');
-    should(transactions[0].method).eql('DELETE');
-    should(transactions[0].url).eql('/offlineObjectSync/1');
-    should(transactions[0].data).be.an.Object();
+    setTimeout(() => {
+      let transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
+      should(transactions).be.an.Array().and.have.lengthOf(1);
+      should(transactions[0].store).eql('offlineObjectSync');
+      should(transactions[0].method).eql('DELETE');
+      should(transactions[0].url).eql('/offlineObjectSync/1');
+      should(transactions[0].data).be.an.Object();
 
-    lunaris.offline.isOnline = true;
+      lunaris.offline.isOnline = true;
 
-    lunaris._pushOfflineHttpTransactions(() => {
-      transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
-      should(transactions).be.an.Array().and.have.lengthOf(0);
+      lunaris.sync.pushOfflineHttpTransactions(() => {
+        transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
+        should(transactions).be.an.Array().and.have.lengthOf(0);
 
-      let collectionItems = lunaris._stores.offlineObjectSync.data.getAll();
-      should(collectionItems).eql(null);
+        let collectionItems = lunaris._stores.offlineObjectSync.data.getAll();
+        should(collectionItems).eql(null);
 
-      done();
-    });
+        done();
+      });
+    }, 20);
   });
 
   describe('References', () => {
@@ -414,7 +444,7 @@ describe('Offline to online synchronisation', () => {
 
       lunaris.offline.isOnline = true;
 
-      lunaris._pushOfflineHttpTransactions(() => {
+      lunaris.sync.pushOfflineHttpTransactions(() => {
         transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
         should(transactions).be.an.Array().and.have.lengthOf(0);
 
@@ -541,7 +571,7 @@ describe('Offline to online synchronisation', () => {
 
       lunaris.offline.isOnline = true;
 
-      lunaris._pushOfflineHttpTransactions(() => {
+      lunaris.sync.pushOfflineHttpTransactions(() => {
         transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
         should(transactions).be.an.Array().and.have.lengthOf(0);
 
@@ -606,7 +636,7 @@ describe('Offline to online synchronisation', () => {
 
       lunaris.offline.isOnline = true;
 
-      lunaris._pushOfflineHttpTransactions(() => {
+      lunaris.sync.pushOfflineHttpTransactions(() => {
         transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
         should(transactions).be.an.Array().and.have.lengthOf(1);
         should(transactions[0].isInError).be.ok().and.eql(true);
@@ -683,7 +713,7 @@ describe('Offline to online synchronisation', () => {
 
       lunaris.offline.isOnline = true;
 
-      lunaris._pushOfflineHttpTransactions(() => {
+      lunaris.sync.pushOfflineHttpTransactions(() => {
         transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
         should(transactions).be.an.Array().and.have.lengthOf(2);
 

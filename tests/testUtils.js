@@ -1,6 +1,11 @@
 const storeMap    = require('../lib/_builder/store/schema');
 const validateMap = require('../lib/_builder/store/validate');
 const collection  = require('../src/store/store.collection');
+
+function clone (data) {
+  return JSON.parse(JSON.stringify(data));
+}
+
 /**
  * Utils
  */
@@ -19,11 +24,12 @@ exports.initStore = function initStore (name, map, joinDescriptor, storesToPropa
   _store.getPrimaryKeyFn             = map ? _store.meta.getPrimaryKey                                                                    : null;
   _store.setPrimaryKeyFn             = map ? _store.meta.setPrimaryKey                                                                    : null;
   _store.isStoreObject               = !map ? false                                                                                       : !Array.isArray(map) ? true : false;
-  _store.data                        = collection.collection(_store.getPrimaryKeyFn, _store.isStoreObject, joinDescriptor, null, _store.meta.reflexiveFn, null, referencesDescriptor);
+  _store.data                        = collection.collection(_store.getPrimaryKeyFn, _store.isStoreObject, joinDescriptor, null, _store.meta.reflexiveFn, name, referencesDescriptor, clone);
   _store.storesToPropagate           = storesToPropagate || [];
   _store.storesToPropagateReferences = storesToPropagateReferences || [];
   _store.filterFns                   = _store.meta ? storeMap.getFilterFns([], compilatedStores, _store.meta.compilation, _store.filters) : {};
   _store.massOperations              = {};
   _store.references                  = referencesDescriptor;
+  _store.clone                       = clone;
   return _store;
 };

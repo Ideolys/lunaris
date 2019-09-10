@@ -389,6 +389,9 @@ var drivers = {
      */
     add  : function add (key, value, callback) {
       if (!database) {
+        if (callback) {
+          return callback();
+        }
         return;
       }
 
@@ -403,6 +406,9 @@ var drivers = {
      */
     upsert : function upsert (key, value, callback) {
       if (!database) {
+        if (callback) {
+          return callback();
+        }
         return;
       }
 
@@ -417,6 +423,9 @@ var drivers = {
      */
     del : function del (key, value, callback) {
       if (!database) {
+        if (callback) {
+          return callback();
+        }
         return;
       }
 
@@ -431,6 +440,9 @@ var drivers = {
      */
     get : function get (key, value, callback) {
       if (!database) {
+        if (callback) {
+          return callback();
+        }
         return;
       }
 
@@ -444,6 +456,9 @@ var drivers = {
      */
     getAll : function getAll (key, callback) {
       if (!database) {
+        if (callback) {
+          return callback();
+        }
         return;
       }
 
@@ -456,6 +471,9 @@ var drivers = {
      */
     clear : function clear (key, callback) {
       if (!database) {
+        if (callback) {
+          return callback();
+        }
         return;
       }
 

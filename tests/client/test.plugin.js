@@ -100,38 +100,32 @@ describe('Store plugin', () => {
     });
     var _hooks = Object.keys(lunaris._stores.test.hooks);
     should(_hooks).eql([
-      'inserted', 'updated', 'deleted', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
+      'success', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
     ]);
 
-    should(lunaris._stores.test.hooks.inserted).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.inserted[0].name).eql('successHttp');
-
-    should(lunaris._stores.test.hooks.updated).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.updated[0].name).eql('successHttp');
-
-    should(lunaris._stores.test.hooks.deleted).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.deleted[0].name).eql('successHttp');
+    should(lunaris._stores.test.hooks.success).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.success[0].name).eql('successHttp');
 
     should(lunaris._stores.test.hooks.errorHttp).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.errorHttp[0].name).eql('errorHttp');
+    should(lunaris._stores.test.realHooks.errorHttp[0].name).eql('errorHttp');
 
     should(lunaris._stores.test.hooks.error).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.error[0].name).eql('errorHttp');
+    should(lunaris._stores.test.realHooks.error[0].name).eql('errorHttp');
 
     should(lunaris._stores.test.hooks.get).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.get[0].name).eql('update');
+    should(lunaris._stores.test.realHooks.get[0].name).eql('update');
 
     should(lunaris._stores.test.hooks.reset).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.reset[0].name).eql('reset');
+    should(lunaris._stores.test.realHooks.reset[0].name).eql('reset');
 
     should(lunaris._stores.test.hooks.insert).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.insert[0].name).eql('update');
+    should(lunaris._stores.test.realHooks.insert[0].name).eql('update');
 
     should(lunaris._stores.test.hooks.update).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.update[0].name).eql('update');
+    should(lunaris._stores.test.realHooks.update[0].name).eql('update');
 
     should(lunaris._stores.test.hooks.delete).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.delete[0].name).eql('deleteItem');
+    should(lunaris._stores.test.realHooks.delete[0].name).eql('deleteItem');
     vm.$destroy();
   });
 
@@ -144,23 +138,17 @@ describe('Store plugin', () => {
     var _hooks = Object.keys(lunaris._stores.test.hooks);
 
     should(_hooks).eql([
-      'inserted', 'updated', 'deleted', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
+      'success', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
     ]);
 
-    should(lunaris._stores.test.hooks.inserted).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.inserted[0].name).eql('successHttp');
-
-    should(lunaris._stores.test.hooks.updated).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.updated[0].name).eql('successHttp');
-
-    should(lunaris._stores.test.hooks.deleted).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.deleted[0].name).eql('successHttp');
+    should(lunaris._stores.test.hooks.success).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.success[0].name).eql('successHttp');
 
     should(lunaris._stores.test.hooks.errorHttp).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.errorHttp[0].name).eql('errorHttp');
+    should(lunaris._stores.test.realHooks.errorHttp[0].name).eql('errorHttp');
 
     should(lunaris._stores.test.hooks.error).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.error[0].name).eql('errorHttp');
+    should(lunaris._stores.test.realHooks.error[0].name).eql('errorHttp');
     vm.$destroy();
   });
 
@@ -173,7 +161,7 @@ describe('Store plugin', () => {
     var _hooks = Object.keys(lunaris._stores.test.hooks);
 
     should(_hooks).eql([
-      'inserted', 'updated', 'deleted', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
+      'success', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
     ]);
 
     should(lunaris._stores.test.hooks.get).have.lengthOf(1);

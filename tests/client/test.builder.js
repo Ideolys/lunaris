@@ -1,6 +1,7 @@
-describe('builder', () => {
+describe.only('builder', () => {
 
-  beforeEach(() => {
+  beforeEach(done => {
+    lunaris.begin();
     lunaris.clear('@child');
     lunaris.clear('@childAggregate');
     lunaris.clear('@computed');
@@ -11,7 +12,10 @@ describe('builder', () => {
     lunaris.clear('@parent');
     lunaris.clear('@http');
     lunaris.clear('@reference');
-    lunaris._resetVersionNumber();
+    lunaris.commit(() => {
+      lunaris._resetVersionNumber();
+      done();
+    });
   });
 
   it('should have defined constants', () => {
@@ -107,7 +111,7 @@ describe('builder', () => {
           },
           _rowId   : 1,
           _id      : 1,
-          _version : [2]
+          _version : [3]
         },
         {
           id     : 3,
@@ -116,7 +120,7 @@ describe('builder', () => {
           },
           _rowId   : 2,
           _id      : 2,
-          _version : [4]
+          _version : [5]
         }
       ]);
 
@@ -149,15 +153,15 @@ describe('builder', () => {
 
   it('should send one event filterUpdated', done => {
     var _nbHooks = 0;
-
-    lunaris.hook('reset@double', () => {
+    var _hook    = () => {
       _nbHooks++;
-    });
-
+    };
+    lunaris.hook('reset@double', _hook);
     lunaris.insert('@filter.double', { from : '1', to : '2' });
 
     setTimeout(() => {
       should(_nbHooks).eql(1);
+      lunaris.removeHook('reset@double');
       done();
     }, 60);
   });
@@ -181,7 +185,7 @@ describe('builder', () => {
     });
 
     it('should propagate update', done => {
-      lunaris.hook('update@child', item => {
+      var _hook = item => {
         should(item).eql([{
           _rowId   : 2,
           _id      : 1,
@@ -194,15 +198,17 @@ describe('builder', () => {
             _version : [2]
           }]
         }]);
+        lunaris.removeHook('update@child', _hook);
         done();
-      });
+      };
 
+      lunaris.hook('update@child', _hook);
       lunaris.insert('@child' , { id : 1 });
       lunaris.insert('@parent', { id : 1 });
     });
 
     it('should propagate update and calculate aggregate', done => {
-      lunaris.hook('update@childAggregate', item => {
+      var _hook = item => {
         should(item).eql([{
           _rowId       : 2,
           _id          : 1,
@@ -229,8 +235,11 @@ describe('builder', () => {
             }
           ]
         }]);
+        lunaris.removeHook('update@childAggregate', _hook);
         done();
-      });
+      };
+
+      lunaris.hook('update@childAggregate', _hook);
 
       lunaris.insert('@childAggregate' , { id : 1 });
       lunaris.insert('@parent', [{ id : 1, price : 1 }, { id : 2, price : 3 }]);
@@ -290,4 +299,43 @@ describe('builder', () => {
     lunaris.insert('@reference', _obj);
   });
 
+  it('should define the inherits', () => {
+    should(lunaris._stores.http.data).eql(lunaris._stores.inherits.data);
+    should(lunaris._stores.http.filterFns).be.an.Object().and.not.empty();
+    should(lunaris._stores.inherits.filterFns).be.an.Object().and.empty();
+
+
+
+    should(lunaris._stores.http.meta).eql(lunaris._stores.inherits.meta);
+    should(lunaris._stores.http.data === lunaris._stores.inherits.data).eql(false);
+    should(lunaris._stores.http.validateFn.toString()).eql(lunaris._stores.inherits.validateFn.toString());
+    should(lunaris._stores.http.getPrimaryKeyFn.toString()).eql(lunaris._stores.inherits.getPrimaryKeyFn.toString());
+    should(lunaris._stores.http.setPrimaryKeyFn.toString()).eql(lunaris._stores.inherits.setPrimaryKeyFn.toString());
+  });
+
+  it('should define the inherits.inherits store', () => {
+    should(lunaris._stores.http.data).eql(lunaris._stores.inherits.data);
+    should(lunaris._stores.http.filterFns).be.an.Object().and.not.empty();
+    should(lunaris._stores.inherits.filterFns).be.an.Object().and.empty();
+
+    should(lunaris._stores['inherits.inherits'].meta).be.ok();
+    should(lunaris._stores['inherits.inherits'].meta.compilation.main0.obj.labelPublic).be.ok();
+    should(lunaris._stores['inherits.inherits'].meta.compilation.main0.obj.labelPublic).eql(['string']);
+
+    // should(lunaris._stores.http.meta).eql(lunaris._stores.inherits.meta);
+    should(lunaris._stores.inherits.data === lunaris._stores['inherits.inherits'].data).eql(false);
+    should(lunaris._stores.inherits.validateFn.toString()).not.eql(lunaris._stores['inherits.inherits'].validateFn.toString());
+    should(lunaris._stores.inherits.getPrimaryKeyFn.toString()).eql(lunaris._stores['inherits.inherits'].getPrimaryKeyFn.toString());
+    should(lunaris._stores.inherits.setPrimaryKeyFn.toString()).eql(lunaris._stores['inherits.inherits'].setPrimaryKeyFn.toString());
+  });
+
+  it('should have set the clone function', () => {
+    should(lunaris._stores.http.clone).be.a.Function();
+    should(lunaris._stores.http.clone).eql(lunaris.utils.clone);
+  });
+
+  it('should have set the custom clone function', () => {
+    should(lunaris._stores.clone.clone).be.a.Function();
+    should(lunaris._stores.clone.clone).not.eql(lunaris.utils.clone);
+  });
 });

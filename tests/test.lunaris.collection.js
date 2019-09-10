@@ -15,7 +15,7 @@ describe('lunaris internal collection', () => {
   });
 
   it('should return an object', () => {
-    var _collection = collection();
+    var _collection = collection(null, false, null, null, null, null, null, utils.clone);
     should(_collection).be.an.Object();
     should(_collection.add).be.a.Function();
     should(_collection.remove).be.a.Function();
@@ -25,20 +25,20 @@ describe('lunaris internal collection', () => {
   });
 
   it('should return the full collection', () => {
-    var _collection = collection();
+    var _collection = collection(null, false, null, null, null, null, null, utils.clone);
     should(_collection._getAll()).be.an.Array().and.have.length(0);
   });
 
   describe('add() / clear()', () => {
     it('should throw an error if no value is provided', () => {
       (function () {
-        var _collection = collection();
+        var _collection = collection(null, false, null, null, null, null, null, utils.clone);
         _collection.add();
       }).should.throw('add must have a value. It must be an Object.');
     });
 
     it('should add one item to the collection', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1 });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
@@ -53,7 +53,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should add multiple items to the collection', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
       var _values = _collection._getAll();
@@ -70,7 +70,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should add multiple items to the collection : inverse', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 20 });
       _collection.add({ id : 10 });
       var _values = _collection._getAll();
@@ -87,7 +87,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should start the id generation from 6', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.setCurrentId(6);
       _collection.add({ id : 1 });
       var _values = _collection._getAll();
@@ -101,7 +101,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should clear the collection', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1 });
       should(_collection._getAll()).be.an.Array().and.have.length(1);
 
@@ -122,7 +122,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should clear the collection and the id', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.setCurrentId(6);
       _collection.add({ id : 1 });
       should(_collection._getAll()).be.an.Array().and.have.length(1);
@@ -140,7 +140,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should add the value to the collection if no getPrimaryKey Function', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1 });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
@@ -153,7 +153,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should add the value to the collection if no id has been returned by the function getPrimaryKey', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ label : 'A' });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
@@ -166,7 +166,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should not duplicate values if the same id has been already used', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 2, label : 'A' });
       _collection.add({ id : 2, label : 'B' });
       var _values = _collection._getAll();
@@ -183,7 +183,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should not duplicate values : insert / upsert', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : null, label : 'A' });
       var _values = _collection._getAll();
       should(_values).be.an.Array().and.have.length(1);
@@ -242,7 +242,7 @@ describe('lunaris internal collection', () => {
 
       var _schema = schema.analyzeDescriptor(_obj);
 
-      var _collection = collection(getPrimaryKey, false, null, null, _schema.computedsFn);
+      var _collection = collection(getPrimaryKey, false, null, null, _schema.computedsFn, null, null, utils.clone);
       _collection.add({ id : 2, label : 'a' });
       _collection.add({ id : 3, label : 'b' });
       var _values = _collection._getAll();
@@ -267,14 +267,14 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true }}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
         var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
             elements : _elements
           }
-        });
+        }, null, null, null, null, utils.clone);
 
         _elements.add({ id : 1, cost : 1 });
         _elements.add({ id : 2, cost : 2 });
@@ -338,14 +338,14 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.compilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
         var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
             elements : _elements
           }
-        });
+        }, null, null, null, null, utils.clone);
 
         _elements.add({ id : 1, cost : 1 });
         _elements.add({ id : 2, cost : 2 });
@@ -389,14 +389,14 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
         var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
             elements : _elements
           }
-        });
+        }, null, null, null, null, utils.clone);
 
         _elements.add({ id : 1, cost : 1 });
         _elements.add({ id : 2, cost : 2 });
@@ -444,14 +444,14 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
         var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
             elements : _elements
           }
-        });
+        }, null, null, null, null, utils.clone);
 
         _elements.add({ id : 1, cost : 1 });
         _elements.add({ id : 2, cost : 2 });
@@ -494,14 +494,14 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
         var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
             elements : _elements
           }
-        });
+        }, null, null, null, null, utils.clone);
 
         _elements.add({ id : 1, cost : 1 });
         _elements.add({ id : 2, cost : 2 });
@@ -547,14 +547,14 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
         var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
             elements : _elements
           }
-        });
+        }, null, null, null, null, utils.clone);
 
         _elements.add({ id : 1, cost : 1 });
         _elements.add({ id : 2, cost : 2 });
@@ -596,14 +596,14 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
         var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
             elements : _elements
           }
-        });
+        }, null, null, null, null, utils.clone);
 
         _elements.add({ id : 1, cost : 1 });
         _elements.add({ id : 2, cost : 2 });
@@ -645,7 +645,7 @@ describe('lunaris internal collection', () => {
           }]
         };
         var _schema   = schema.analyzeDescriptor(_objectDescriptor);
-        var _elements = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, _schema.aggregateFn);
+        var _elements = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, _schema.aggregateFn, null, null, null, utils.clone);
 
         _elements.add({
           id       : 1,
@@ -687,7 +687,7 @@ describe('lunaris internal collection', () => {
         };
         var _schema   = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns  = schema.getJoinFns({}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
-        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, false , { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
         var _elementsOverview = collection(
           getPrimaryKey,
           false,
@@ -698,7 +698,11 @@ describe('lunaris internal collection', () => {
               elements : _elements
             }
           },
-          _schema.aggregateFn
+          _schema.aggregateFn,
+          null,
+          null,
+          null,
+          utils.clone
         );
 
         _elements.add({ id : 1, cost : 1 });
@@ -762,14 +766,14 @@ describe('lunaris internal collection', () => {
       var _schemaObj = schema.analyzeDescriptor(_objectDescriptor);
       var _schemaRef = schema.analyzeDescriptor(_referencedDescriptor);
 
-      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
       var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn     : _schemaObj.referencesFn,
         getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey },
         collections      : {
           reference : _referenceCollection
         }
-      });
+      }, utils.clone);
 
       _referenceCollection.add({ id : 1, label : 'A' });
       _referenceCollection.add({ id : 2, label : 'B' });
@@ -804,14 +808,14 @@ describe('lunaris internal collection', () => {
       var _schemaObj = schema.analyzeDescriptor(_objectDescriptor);
       var _schemaRef = schema.analyzeDescriptor(_referencedDescriptor);
 
-      var _referenceCollection = collection(getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}});
+      var _referenceCollection = collection(getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
       var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn     : _schemaObj.referencesFn,
         getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey },
         collections      : {
           reference : _referenceCollection
         }
-      });
+      }, utils.clone);
 
       _referenceCollection.add({ id : 1, label : 'A' });
       _objectCollection.add({ id : 1, element : { id : 1 } });
@@ -843,14 +847,14 @@ describe('lunaris internal collection', () => {
       var _schemaObj = schema.analyzeDescriptor(_objectDescriptor);
       var _schemaRef = schema.analyzeDescriptor(_referencedDescriptor);
 
-      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
       var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn     : _schemaObj.referencesFn,
         getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey },
         collections      : {
           reference : _referenceCollection
         }
-      });
+      }, utils.clone);
 
       _referenceCollection.add({ id : 1, label : 'A' });
       _referenceCollection.add({ id : 2, label : 'B' });
@@ -894,8 +898,8 @@ describe('lunaris internal collection', () => {
       var _schemaRef  = schema.analyzeDescriptor(_referencedDescriptor);
       var _schemaType = schema.analyzeDescriptor(_typeDescriptor);
 
-      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
-      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
+      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
       var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn     : _schemaObj.referencesFn,
         getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey, type : _schemaType.getPrimaryKey },
@@ -903,7 +907,7 @@ describe('lunaris internal collection', () => {
           reference : _referenceCollection,
           type      : _typeCollection
         }
-      });
+      }, utils.clone);
 
       _referenceCollection.add({ id : 1, label : 'A' });
       _referenceCollection.add({ id : 2, label : 'B' });
@@ -952,8 +956,8 @@ describe('lunaris internal collection', () => {
       var _schemaRef  = schema.analyzeDescriptor(_referencedDescriptor);
       var _schemaType = schema.analyzeDescriptor(_typeDescriptor);
 
-      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
-      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
+      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
       var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn     : _schemaObj.referencesFn,
         getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey, type : _schemaType.getPrimaryKey },
@@ -961,7 +965,7 @@ describe('lunaris internal collection', () => {
           reference : _referenceCollection,
           type      : _typeCollection
         }
-      });
+      }, utils.clone);
 
       _referenceCollection.add({ id : 1, label : 'A' });
       _referenceCollection.add({ id : 2, label : 'B' });
@@ -1028,8 +1032,8 @@ describe('lunaris internal collection', () => {
       var _schemaRef  = schema.analyzeDescriptor(_referencedDescriptor);
       var _schemaType = schema.analyzeDescriptor(_typeDescriptor);
 
-      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
-      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
+      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
       var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn     : _schemaObj.referencesFn,
         getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey, type : _schemaType.getPrimaryKey },
@@ -1037,7 +1041,7 @@ describe('lunaris internal collection', () => {
           reference : _referenceCollection,
           type      : _typeCollection
         }
-      });
+      }, utils.clone);
 
       _referenceCollection.add({ id : 1, label : 'A' });
       _referenceCollection.add({ id : 2, label : 'B' });
@@ -1093,8 +1097,8 @@ describe('lunaris internal collection', () => {
       var _schemaRef  = schema.analyzeDescriptor(_referencedDescriptor);
       var _schemaType = schema.analyzeDescriptor(_typeDescriptor);
 
-      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
-      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
+      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
       var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn     : _schemaObj.referencesFn,
         getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey, type : _schemaType.getPrimaryKey },
@@ -1102,7 +1106,7 @@ describe('lunaris internal collection', () => {
           reference : _referenceCollection,
           type      : _typeCollection
         }
-      });
+      }, utils.clone);
 
       _referenceCollection.add({ id : 1, label : 'A' });
       _referenceCollection.add({ id : 2, label : 'B' });
@@ -1168,8 +1172,8 @@ describe('lunaris internal collection', () => {
       var _schemaRef  = schema.analyzeDescriptor(_referencedDescriptor);
       var _schemaType = schema.analyzeDescriptor(_typeDescriptor);
 
-      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
-      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}});
+      var _referenceCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
+      var _typeCollection      = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
       var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn     : _schemaObj.referencesFn,
         getPrimaryKeyFns : { reference : _schemaRef.getPrimaryKey, type : _schemaType.getPrimaryKey },
@@ -1177,7 +1181,7 @@ describe('lunaris internal collection', () => {
           reference : _referenceCollection,
           type      : _typeCollection
         }
-      });
+      }, utils.clone);
 
       _referenceCollection.add({ id : 1, label : 'A' });
       _referenceCollection.add({ id : 2, label : 'B' });
@@ -1216,7 +1220,7 @@ describe('lunaris internal collection', () => {
 
   describe('remove()', () => {
     it('should remove the item', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 10 });
 
       var _index = _collection.getIndexId();
@@ -1241,7 +1245,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should remove the item by PK', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 10 });
 
       var _index = _collection.getIndexId();
@@ -1266,7 +1270,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should remove the item from multiple items', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 10 });
       _collection.add({ id : 20 });
       _collection.remove({ _id : 2 });
@@ -1285,7 +1289,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should remove items within the same transaction', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       var _version = _collection.begin();
       _collection.add({ id : 10 }, _version);
       _collection.add({ id : 20 }, _version);
@@ -1321,13 +1325,13 @@ describe('lunaris internal collection', () => {
 
   describe('get()', () => {
     it('should get the item', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1 });
       should(_collection.get(1)).eql({ _rowId : 1, _id : 1, id : 1, _version : [1]});
     });
 
     it('should get the item from multiple items', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
       should(_collection.get(1)).eql({ _rowId : 1, _id : 1, id : 1, _version : [1]});
@@ -1335,20 +1339,20 @@ describe('lunaris internal collection', () => {
     });
 
     it('should return null if not value has been found', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.get(1)).eql(null);
     });
   });
 
   describe('getAll()', () => {
     it('should be defined', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getAll).be.ok();
       should(_collection.getAll).be.a.Function();
     });
 
     it('should return the valid items in the collection', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
       _collection.remove({ _id : 1 });
@@ -1362,7 +1366,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should return the valid items in the collection filtered by ids', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1 });
       _collection.add({ id : 2 });
       _collection.remove({ _id : 1 });
@@ -1374,7 +1378,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should return the valid items in the collection filtered by ids with PK', () => {
-      var _collection = collection(item => { return item.id; });
+      var _collection = collection(item => { return item.id; }, null, null, null, null, null, null, utils.clone);
       _collection.add({ id : 10 });
       _collection.add({ id : 20 });
       _collection.add({ id : 30 });
@@ -1388,7 +1392,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should return the valid items in the collection filtered by ids with PK : fallback to _id if no getPrimaryKey function', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 10 });
       _collection.add({ id : 20 });
       _collection.add({ id : 30 });
@@ -1400,7 +1404,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should return the valid items in the collection filtered by ids', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 10 });
       _collection.add({ id : 20 });
       _collection.add({ id : 30 });
@@ -1412,7 +1416,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should return the valid items in the collection filtered by ids with PK', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 10 });
       _collection.add({ id : 20 });
       _collection.add({ id : 30 });
@@ -1426,7 +1430,7 @@ describe('lunaris internal collection', () => {
 
   describe('upsert()', () => {
     it('should update the item', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1, test : 1 });
       _collection.upsert({ _id : 1, id : 1, test : 2 });
       should(_collection.get(1)).eql({ _rowId : 2, _id : 1, id : 1, test : 2, _version : [2]});
@@ -1437,7 +1441,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should update the item, multiple items', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1, test : 1 });
       _collection.add({ id : 2, test : 2 });
       _collection.upsert({ _id : 2, id : 2, test : 3 });
@@ -1451,7 +1455,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should not update an older version of the item', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1, test : 1 });
       _collection.upsert({ _id : 1, id : 1, test : 2 });
       _collection.upsert({ _id : 1, id : 1, test : 3 });
@@ -1465,13 +1469,13 @@ describe('lunaris internal collection', () => {
     });
 
     it('should insert the item if the id is not present in the collection', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.upsert({ id : 1, test : 2 });
       should(_collection.get(1)).eql({ _rowId : 1, _id : 1, id : 1, test : 2, _version : [1]});
     });
 
     it('should update the item with primaryKey index', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1, test : 1 });
       _collection.upsert({ _id : 1, id : 1, test : 2 });
 
@@ -1482,7 +1486,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should update the item with primaryKey index and commit/begin', () => {
-      var _collection = collection(null, getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1, test : 1 });
       var _version = _collection.begin();
       _collection.upsert({ _id : 1, id : 1, test : 2 }, _version);
@@ -1497,15 +1501,15 @@ describe('lunaris internal collection', () => {
 
   describe('getCurrentId()', () => {
     it('should be defined', () => {
-      should(collection().getCurrentId).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).getCurrentId).be.ok();
     });
 
     it('should return the default id', () => {
-      should(collection().getCurrentId()).eql(1);
+      should(collection(null, false, null, null, null, null, null, utils.clone).getCurrentId()).eql(1);
     });
 
     it('should return the next id after insert', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getCurrentId()).eql(1);
       _collection.add({ id : 1, test : 1 });
       should(_collection.getCurrentId()).eql(2);
@@ -1514,15 +1518,15 @@ describe('lunaris internal collection', () => {
 
   describe('getCurrentRowId()', () => {
     it('should be defined', () => {
-      should(collection().getCurrentRowId).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).getCurrentRowId).be.ok();
     });
 
     it('should return the default id', () => {
-      should(collection().getCurrentRowId()).eql(1);
+      should(collection(null, false, null, null, null, null, null, utils.clone).getCurrentRowId()).eql(1);
     });
 
     it('should return the next id after insert', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getCurrentRowId()).eql(1);
       _collection.add({ id : 1, test : 1 });
       should(_collection.getCurrentRowId()).eql(2);
@@ -1531,11 +1535,11 @@ describe('lunaris internal collection', () => {
 
   describe('setData()', () => {
     it('should be defined', () => {
-      should(collection().setData).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).setData).be.ok();
     });
 
     it('should set data', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection._getAll()).eql([]);
       _collection.setData([{ _id : 1, id : 1, _version : [1] }]);
       should(_collection._getAll()).eql([
@@ -1546,11 +1550,11 @@ describe('lunaris internal collection', () => {
 
   describe('setIndexId()', () => {
     it('should be defined', () => {
-      should(collection().setIndexId).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).setIndexId).be.ok();
     });
 
     it('should set index id', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getIndexId()).eql([
         [], []
       ]);
@@ -1563,11 +1567,11 @@ describe('lunaris internal collection', () => {
 
   describe('setIndexIdValue()', () => {
     it('should be defined', () => {
-      should(collection().setIndexIdValue).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).setIndexIdValue).be.ok();
     });
 
     it('should not set index id value', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getIndexId()).eql([
         [], []
       ]);
@@ -1725,11 +1729,11 @@ describe('lunaris internal collection', () => {
 
   describe('setIndexReferences()', () => {
     it('should be defined', () => {
-      should(collection().setIndexReferences).be.a.Function();
+      should(collection(null, false, null, null, null, null, null, utils.clone).setIndexReferences).be.a.Function();
     });
 
     it('should set index id', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getIndexReferences()).eql({});
       _collection.setIndexReferences({ store : [[1], [[1]]] });
       should(_collection.getIndexReferences()).eql({ store : [[1], [[1]]] });
@@ -1738,11 +1742,11 @@ describe('lunaris internal collection', () => {
 
   describe('setCurrentId()', () => {
     it('should be defined', () => {
-      should(collection().setCurrentId).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).setCurrentId).be.ok();
     });
 
     it('should return the default id', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getCurrentId()).eql(1);
       _collection.setCurrentId(5);
       should(_collection.getCurrentId()).eql(5);
@@ -1753,11 +1757,11 @@ describe('lunaris internal collection', () => {
 
   describe('setCurrentRowId()', () => {
     it('should be defined', () => {
-      should(collection().setCurrentRowId).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).setCurrentRowId).be.ok();
     });
 
     it('should return the default id', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getCurrentRowId()).eql(1);
       _collection.setCurrentRowId(5);
       should(_collection.getCurrentRowId()).eql(5);
@@ -1766,19 +1770,19 @@ describe('lunaris internal collection', () => {
 
   describe('getCurrentVersionNumber()', () => {
     it('should be defined', () => {
-      should(collection().getCurrentVersionNumber).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).getCurrentVersionNumber).be.ok();
     });
 
     it('should return the default id', () => {
-      should(collection().getCurrentVersionNumber()).be.a.Number();
+      should(collection(null, false, null, null, null, null, null, utils.clone).getCurrentVersionNumber()).be.a.Number();
     });
 
     it('should return the default id', () => {
-      should(collection().getCurrentVersionNumber()).eql(1);
+      should(collection(null, false, null, null, null, null, null, utils.clone).getCurrentVersionNumber()).eql(1);
     });
 
     it('should return the next id after insert', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getCurrentVersionNumber()).eql(1);
       _collection.add({ id : 1, test : 1 });
       should(_collection.getCurrentVersionNumber()).eql(2);
@@ -1787,18 +1791,18 @@ describe('lunaris internal collection', () => {
 
   describe('getFirst()', () => {
     it('should be defined', () => {
-      should(collection().getFirst).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).getFirst).be.ok();
     });
 
     it('should return the first item', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getFirst()).eql(undefined);
       _collection.add({ id : 1, test : 1 });
       should(_collection.getFirst()).eql({ _rowId : 1, _id : 1, id : 1, test : 1, _version : [1]});
     });
 
     it('should return the good first item', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getFirst()).eql(undefined);
       _collection.add({ id : 1, test : 1 });
       _collection.upsert({_id : 1, id : 1, test : 2});
@@ -1808,17 +1812,17 @@ describe('lunaris internal collection', () => {
 
   describe('begin()', () => {
     it('should be defined', () => {
-      should(collection().begin).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).begin).be.ok();
     });
 
     it('should be equal to currentVersionNumber()', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       var _version    = _collection.begin();
       should(_version).eql(1);
     });
 
     it('should begin', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
 
       var _version = _collection.begin();
       _collection.add({ id : 1, test : 1 }, _version);
@@ -1832,7 +1836,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should begin and end the transactions and return an array', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1, test : 1 }, _version);
 
       var _version = _collection.begin();
@@ -1850,7 +1854,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should begin and end the transactions and return and object', () => {
-      var _collection = collection(null, true);
+      var _collection = collection(null, true, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1, test : 1 }, _version);
 
       var _version = _collection.begin();
@@ -1866,7 +1870,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should not duplicate values if the same id has been already used within a transaction', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       var _version    = _collection.begin();
       _collection.add({ id : 2, label : 'A' }, _version);
       _collection.add({ id : 2, label : 'B' }, _version);
@@ -1885,7 +1889,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should not duplicate values if the same id has been already used in two different transactions', () => {
-      var _collection = collection(getPrimaryKey);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       var _version    = _collection.begin();
       _collection.add({ id : 2, label : 'A' }, _version);
       _collection.commit(_version);
@@ -1908,11 +1912,11 @@ describe('lunaris internal collection', () => {
 
   describe('rollback()', () => {
     it('should be defined', () => {
-      should(collection().rollback).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).rollback).be.ok();
     });
 
     it('should rollback the item : insert', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1, test : 1 });
       var _version = _collection.begin();
       _collection.upsert({ _id : 1, id : 1, test : 2 }, _version);
@@ -1929,7 +1933,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should rollback the items : updates', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
 
       var _version = _collection.begin();
       _collection.add({ id : 1, test : 1 }, _version);
@@ -1963,7 +1967,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should rollback deleted items : delete', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       var _version = _collection.begin();
       _collection.add({ id : 1 }, _version);
       _collection.add({ id : 2 }, _version);
@@ -2012,7 +2016,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should rollback the item : insert & update', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       var _version = _collection.begin();
       _collection.add({ id : 1, test : 1 }            , _version);
       _collection.upsert({ _id : 1, id : 1, test : 2 }, _version);
@@ -2026,7 +2030,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should rollback the item : insert & update & delete', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       var _version    = _collection.begin();
       _collection.add({ id : 1, test : 1 }            , _version);
       _collection.upsert({ _id : 1, id : 1, test : 2 }, _version);
@@ -2039,7 +2043,7 @@ describe('lunaris internal collection', () => {
     });
 
     it('should rollback the item : delete & insert', () => {
-      var _collection = collection();
+      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 1, test : 1 });
 
       var _version = _collection.begin();

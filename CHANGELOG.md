@@ -3,6 +3,13 @@
 ## 1.13.x
 - Features:
   - Add `isOffline` attribute for module's routes. By default, `isOffline` value equals `false`.
+  - Add `inherits` attribute in store object to inherit from a store its map.
+  - Add event `success` to capture success notification which is a String.
+  - Add event `clear` for `lunaris.clear` method.
+  - Transactions include `lunaris.clear`.
+  - Hooks are synchrone by default and asynchrone with a callback in second parameter : `lunaris.hook('event', function (data, done) {})`;
+  - Add `isMapClone` attribute in store object to customize clone function by store. If true, a dedicated clone function is created for the store from the map. It is way more performant than `lunaris.utils.clone` or even `JSON.parse(JSON.stringify(data))`.
+- Fix:
 
 ## 1.12.0
 *2019-09-02*

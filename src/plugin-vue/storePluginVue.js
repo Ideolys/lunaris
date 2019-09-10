@@ -11,11 +11,10 @@ lunaris._vue = {
        * @param {String} store
        */
       function _successHttp (_this) {
-        return function successHttp (data, message) {
+        return function successHttp (message) {
           if (!message || lunaris._vue._isVueOffline) {
             return;
           }
-
           _this.$buefy.toast.open({
             message  : message,
             type     : 'is-success',
@@ -50,7 +49,7 @@ lunaris._vue = {
           // });
 
           _this.$buefy.toast.open({
-            message  : err,
+            message  : err.error,
             type     : 'is-danger',
             position : 'is-top-right',
             duration : 3000
@@ -73,9 +72,7 @@ lunaris._vue = {
 
         if (_stores[i].name !== 'lunarisErrors') {
           if (lunaris._stores[_stores[i]].isSucessNotification !== false) {
-            lunaris.hook.apply(null, ['inserted@'  + _stores[i], _successFn]);
-            lunaris.hook.apply(null, ['updated@'   + _stores[i], _successFn]);
-            lunaris.hook.apply(null, ['deleted@'   + _stores[i], _successFn]);
+            lunaris.hook.apply(null, ['success@' + _stores[i], _successFn]);
           }
 
           if (lunaris._stores[_stores[i]].isErrorNotification !== false) {

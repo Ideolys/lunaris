@@ -13,15 +13,16 @@ describe('local storage', () => {
   beforeEach(done => {
     lunaris._resetVersionNumber();
     lunaris._indexedDB.clear('_states', () => {
+      lunaris.begin();
       lunaris.clear('@test');
       lunaris.clear('@http');
-      lunaris._indexedDB.clear('http');
-      lunaris._indexedDB.clear('_invalidations');
-      lunaris._stores.http.data.clear();
       lunaris.clear('@http.filter');
       lunaris.clear('@lunarisOfflineTransactions');
-      lunaris._cache.clear();
-      setTimeout(done, 200);
+      lunaris.commit(() => {
+        lunaris._indexedDB.clear('_invalidations');
+        lunaris._cache.clear();
+        setTimeout(done, 200);
+      });
     });
   });
 
@@ -131,7 +132,6 @@ describe('local storage', () => {
       };
       var _getHook = () => {
         _nbCalled += 1;
-
 
         if (_nbCalled === 1) {
           return setTimeout(() => {
@@ -456,7 +456,7 @@ describe('local storage', () => {
             should(data[0].data).eql({
               _id      : 1,
               _rowId   : 1,
-              _version : [1, 2],
+              _version : [1, 3],
               id       : 1,
               label    : 'A'
             });
@@ -740,7 +740,7 @@ describe('local storage', () => {
             should(data[0].data).eql({
               _id      : 1,
               _rowId   : 2,
-              _version : [3],
+              _version : [4],
               id       : 1,
               label    : 'A.1'
             });

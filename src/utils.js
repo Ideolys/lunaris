@@ -57,8 +57,8 @@ function freeze (value) {
   return Object.freeze(value);
 }
 
-exports.cloneAndFreeze = function cloneAndFreeze (value) {
-  var _value = clone(value);
+exports.cloneAndFreeze = function cloneAndFreeze (value, cloneFn) {
+  var _value = (cloneFn || clone)(value);
   if (!Array.isArray(_value)) {
     return freeze(_value);
   }
@@ -413,4 +413,27 @@ exports.unaccent = function removeDiacritics (str) {
   return str.replace(/[^u0000-u007E]/g, function (a) {
     return diacriticsMap[a] || a;
   });
+};
+
+/**
+ * Queue
+ * @param {Array} items
+ * @param {Function} handler function to handle item in items -> handler(item, next {Function})
+ * @param {Function} done    function called when every items have been processed
+ */
+exports.queue = function queue (items, handler, done) {
+  var iterator = -1;
+
+  function next () {
+    iterator++;
+    var item = items[iterator];
+
+    if (!item) {
+      return done();
+    }
+
+    handler(items[iterator], next);
+  }
+
+  next();
 };

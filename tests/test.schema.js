@@ -5639,4 +5639,663 @@ describe('Schema', () => {
       });
     });
   });
+
+  describe('clone', () => {
+
+    it('should generate clone function for a simple map : object map', () => {
+      let map = {
+        id    : ['<<int>>'],
+        label : ['string']
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id    : 1,
+        label : 'a'
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id    : 1,
+        label : 'a'
+      });
+
+      baseObj.label = 'b';
+      should(clonedObj.label).not.eql(baseObj.label);
+    });
+
+    it('should generate clone function for a simple map : array map', () => {
+      let map = [{
+        id    : ['<<int>>'],
+        label : ['string']
+      }];
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = [{
+        id    : 1,
+        label : 'a'
+      }];
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql([{
+        id    : 1,
+        label : 'a'
+      }]);
+
+      baseObj[0].label = 'b';
+      should(clonedObj[0].label).not.eql(baseObj[0].label);
+    });
+
+    it('should generate clone function for a simple map with mutiple items : array map', () => {
+      let map = [{
+        id    : ['<<int>>'],
+        label : ['string']
+      }];
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = [
+        { id : 1, label : 'a' },
+        { id : 2, label : 'b' },
+        { id : 3, label : 'c' },
+      ];
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql([
+        { id : 1, label : 'a' },
+        { id : 2, label : 'b' },
+        { id : 3, label : 'c' },
+      ]);
+    });
+
+    it('should generate clone function for a simple map & clone for one element : array map', () => {
+      let map = [{
+        id    : ['<<int>>'],
+        label : ['string']
+      }];
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id    : 1,
+        label : 'a'
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id    : 1,
+        label : 'a'
+      });
+
+      baseObj.label = 'b';
+      should(clonedObj.label).not.eql(baseObj.label);
+    });
+
+    it('should generate clone function for a map with sub object : array map', () => {
+      let map = [{
+        id       : ['<<int>>'],
+        label    : ['string'],
+        category : ['object', {
+          id    : ['int'],
+          label : ['string']
+        }]
+      }];
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = [{
+        id       : 1,
+        label    : 'a',
+        category : {
+          id    : 2,
+          label : 'categ-2'
+        }
+      }];
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql([{
+        id       : 1,
+        label    : 'a',
+        category : {
+          id    : 2,
+          label : 'categ-2'
+        }
+      }]);
+
+      baseObj[0].category.id = 1;
+      should(clonedObj[0].category.id).not.eql(baseObj[0].category.id);
+    });
+
+    it('should generate clone function for a map with sub array : array map', () => {
+      let map = [{
+        id       : ['<<int>>'],
+        label    : ['string'],
+        category : ['array', {
+          id    : ['<<int>>'],
+          label : ['string']
+        }]
+      }];
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      should(mapDescriptor.clone).be.a.Function();
+
+      let baseObj = [{
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2' }, { id : 1, label : 'categ-1' }
+        ]
+      }];
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(baseObj).eql([{
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2' }, { id : 1, label : 'categ-1' }
+        ]
+      }]);
+
+      baseObj[0].category[0].id = 3;
+
+      should(clonedObj[0].category[0].id).not.eql(baseObj[0].category[0].id);
+    });
+
+    it('should generate clone function for a map with sub object in sub object : array map', () => {
+      let map = [{
+        id       : ['<<int>>'],
+        label    : ['string'],
+        category : ['object', {
+          id    : ['int'],
+          label : ['string'],
+          sub   : ['object', {
+            id : ['int']
+          }]
+        }]
+      }];
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = [{
+        id       : 1,
+        label    : 'a',
+        category : {
+          id    : 2,
+          label : 'categ-2',
+          sub   : {
+            id : 1
+          }
+        }
+      }];
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql([{
+        id       : 1,
+        label    : 'a',
+        category : {
+          id    : 2,
+          label : 'categ-2',
+          sub   : { id : 1 }
+        }
+      }]);
+
+      baseObj[0].category.sub.id = 2;
+      should(clonedObj[0].category.sub.id).not.eql(baseObj[0].category.sub.id);
+    });
+
+    it('should generate clone function for a map with sub object in sub array : array map', () => {
+      let map = [{
+        id       : ['<<int>>'],
+        label    : ['string'],
+        category : ['array', {
+          id    : ['<<int>>'],
+          label : ['string'],
+          sub   : ['object', {
+            id : ['int']
+          }]
+        }]
+      }];
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      should(mapDescriptor.clone).be.a.Function();
+
+      let baseObj = [{
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2', sub : { id : 1 } }, { id : 1, label : 'categ-1', sub : { id : 2 } }
+        ]
+      }];
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(baseObj).eql([{
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2', sub : { id : 1 } }, { id : 1, label : 'categ-1', sub : { id : 2 } }
+        ]
+      }]);
+
+      baseObj[0].category[0].sub.id = 3;
+
+      should(clonedObj[0].category[0].sub.id).not.eql(baseObj[0].category[0].sub.id);
+    });
+
+    it('should generate clone function for a map with sub array in sub array : array map', () => {
+      let map = [{
+        id       : ['<<int>>'],
+        label    : ['string'],
+        category : ['array', {
+          id    : ['<<int>>'],
+          label : ['string'],
+          sub   : ['array', {
+            id : ['<<int>>']
+          }]
+        }]
+      }];
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      should(mapDescriptor.clone).be.a.Function();
+
+      let baseObj = [{
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2', sub : [{ id : 1 }] }, { id : 1, label : 'categ-1', sub : [{ id : 2 }] }
+        ]
+      }];
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(baseObj).eql([{
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2', sub : [{ id : 1 }] }, { id : 1, label : 'categ-1', sub : [{ id : 2 }] }
+        ]
+      }]);
+
+      baseObj[0].category[0].sub[0].id = 3;
+
+      should(clonedObj[0].category[0].sub[0].id).not.eql(baseObj[0].category[0].sub[0].id);
+    });
+
+    it('should generate clone function for a map with sub object : object map', () => {
+      let map = {
+        id       : ['<<int>>'],
+        label    : ['string'],
+        category : ['object', {
+          id    : ['int'],
+          label : ['string']
+        }]
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id       : 1,
+        label    : 'a',
+        category : {
+          id    : 2,
+          label : 'categ-2'
+        }
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id       : 1,
+        label    : 'a',
+        category : {
+          id    : 2,
+          label : 'categ-2'
+        }
+      });
+
+      baseObj.category.id = 1;
+      should(clonedObj.category.id).not.eql(baseObj.category.id);
+    });
+
+    it('should generate clone function for a map with sub array : object map', () => {
+      let map = {
+        id       : ['<<int>>'],
+        label    : ['string'],
+        category : ['array', {
+          id    : ['<<int>>'],
+          label : ['string']
+        }]
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      should(mapDescriptor.clone).be.a.Function();
+
+      let baseObj = {
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2' }, { id : 1, label : 'categ-1' }
+        ]
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(baseObj).eql({
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2' }, { id : 1, label : 'categ-1' }
+        ]
+      });
+
+      baseObj.category[0].id = 3;
+
+      should(clonedObj.category[0].id).not.eql(baseObj.category[0].id);
+    });
+
+    it('should generate clone function for a map with sub object in sub object : object map', () => {
+      let map = {
+        id       : ['<<int>>'],
+        label    : ['string'],
+        category : ['object', {
+          id    : ['int'],
+          label : ['string'],
+          sub   : ['object', {
+            id : ['int']
+          }]
+        }]
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id       : 1,
+        label    : 'a',
+        category : {
+          id    : 2,
+          label : 'categ-2',
+          sub   : {
+            id : 1
+          }
+        }
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id       : 1,
+        label    : 'a',
+        category : {
+          id    : 2,
+          label : 'categ-2',
+          sub   : { id : 1 }
+        }
+      });
+
+      baseObj.category.sub.id = 2;
+      should(clonedObj.category.sub.id).not.eql(baseObj.category.sub.id);
+    });
+
+    it('should generate clone function for a map with sub object in sub array : object map', () => {
+      let map = {
+        id       : ['<<int>>'],
+        label    : ['string'],
+        category : ['array', {
+          id    : ['<<int>>'],
+          label : ['string'],
+          sub   : ['object', {
+            id : ['int']
+          }]
+        }]
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      should(mapDescriptor.clone).be.a.Function();
+
+      let baseObj = {
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2', sub : { id : 1 } }, { id : 1, label : 'categ-1', sub : { id : 2 } }
+        ]
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(clonedObj).eql({
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2', sub : { id : 1 } }, { id : 1, label : 'categ-1', sub : { id : 2 } }
+        ]
+      });
+
+      baseObj.category[0].sub.id = 3;
+
+      should(clonedObj.category[0].sub.id).not.eql(baseObj.category[0].sub.id);
+    });
+
+    it('should generate clone function for a map with sub array in sub array : object map', () => {
+      let map = {
+        id       : ['<<int>>'],
+        label    : ['string'],
+        category : ['array', {
+          id    : ['<<int>>'],
+          label : ['string'],
+          sub   : ['array', {
+            id : ['<<int>>']
+          }]
+        }]
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      should(mapDescriptor.clone).be.a.Function();
+
+      let baseObj = {
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2', sub : [{ id : 1 }] }, { id : 1, label : 'categ-1', sub : [{ id : 2 }] }
+        ]
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(clonedObj).eql({
+        id       : 1,
+        label    : 'a',
+        category : [
+          { id : 2, label : 'categ-2', sub : [{ id : 1 }] }, { id : 1, label : 'categ-1', sub : [{ id : 2 }] }
+        ]
+      });
+
+      baseObj.category[0].sub[0].id = 3;
+
+      should(clonedObj.category[0].sub[0].id).not.eql(baseObj.category[0].sub[0].id);
+    });
+
+    it('should not clone a function', () => {
+      let map = {
+        id    : ['<<int>>'],
+        label : ['string']
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id    : 1,
+        label : function () {}
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id    : 1,
+        label : undefined
+      });
+    });
+
+    it('should not clone a non primitive object', () => {
+      function Obj () {
+        this.label = 'A';
+      }
+
+      let map = {
+        id  : ['<<int>>'],
+        obj : ['string']
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id  : 1,
+        obj : new Obj()
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id  : 1,
+        obj : '[object Object]'
+      });
+    });
+
+    it('should use toString of non primitive object if it exists', () => {
+      let Obj = function Obj () {
+        this.label = 'A';
+
+        this.toString = function () {
+          return this.label;
+        };
+      };
+
+      let map = {
+        id  : ['<<int>>'],
+        obj : ['string']
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id  : 1,
+        obj : new Obj()
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id  : 1,
+        obj : 'A'
+      });
+    });
+
+    it('should clone a date', () => {
+      let map = {
+        id   : ['<<int>>'],
+        date : ['string']
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id   : 1,
+        date : Date(2013,2,1,1,10)
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id   : 1,
+        date : JSON.parse(JSON.stringify(baseObj.date))
+      });
+    });
+
+    it('should clone _id', () => {
+      let map = {
+        id : ['<<int>>']
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id  : 1,
+        _id : 1
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id  : 1,
+        _id : 1
+      });
+    });
+
+    it('should clone _version', () => {
+      let map = {
+        id : ['<<int>>']
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id       : 1,
+        _version : [1, 2]
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id       : 1,
+        _version : [1, 2]
+      });
+    });
+
+    it('should clone _rowId', () => {
+      let map = {
+        id : ['<<int>>']
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id     : 1,
+        _rowId : 2
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id     : 1,
+        _rowId : 2
+      });
+    });
+
+    it('should not clone a field not in the map (differnet than _id, _version or _rowId)', () => {
+      let map = {
+        id : ['<<int>>']
+      };
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      let baseObj = {
+        id    : 1,
+        label : 2
+      };
+      let clonedObj = mapDescriptor.clone(baseObj);
+
+      should(mapDescriptor.clone).be.a.Function();
+      should(clonedObj).eql({
+        id : 1
+      });
+    });
+  });
 });

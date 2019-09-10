@@ -1,26 +1,24 @@
-var utils            = require('../utils.js');
-var OPERATIONS       = utils.OPERATIONS;
 var exportsLunaris   = require('../exports.js');
 var storeUtils       = require('./store.utils.js');
-var logger           = require('../logger.js');
-var offline          = require('../offline.js');
+var queue            = require('../utils.js').queue;
 var storeDependecies = exportsLunaris.storeDependencies;
-
-var eventsLocal = ['insert', 'update', 'delete', 'get', 'filterUpdated'];
 
 var transactionIdGenerator = 0;
 
 var currentTransactionId   = -1;
-var actions                = []; // array of { operation, handler, arguments, id }
-var currentAction          = null;
-var currentActionIndex     = -1;
-var uniqueEvents           = {};
-var lastEvent              = null;
-var isTransaction          = false;
 var isCommitingTransaction = false;
-var isRollback             = false;
 var hookFn                 = null;
-var endFn                  = null;
+var isTransaction          = false;
+var transactions           = {};
+
+/**
+ * https://stackoverflow.com/questions/1187518/how-to-get-the-difference-between-two-arrays-in-javascript
+ */
+Array.prototype.diff = function (a) {
+  return this.filter(function (i) {
+    return a.indexOf(i) < 0;
+  });
+};
 
 /**
  * Set pushToHandlers method
@@ -28,22 +26,6 @@ var endFn                  = null;
  */
 function registerHookFn (fn) {
   hookFn = fn;
-}
-
-/**
- * Cannel
- */
-function _cancel () {
-  actions                = [];
-  isTransaction          = false;
-  isCommitingTransaction = false;
-  currentActionIndex     = -1;
-  currentTransactionId   = -1;
-  currentAction          = null;
-  isRollback             = false;
-  lastEvent              = null;
-  uniqueEvents           = {};
-  endFn                  = null;
 }
 
 /**
@@ -55,159 +37,117 @@ function begin () {
     return;
   }
 
-  isTransaction        = true;
+  isTransaction = true;
   transactionIdGenerator++;
-  currentTransactionId = transactionIdGenerator;
-  return _cancel;
+  currentTransactionId               = transactionIdGenerator;
+  transactions[currentTransactionId] = { actions : [], uniqueEvents : {}, isCommitingTransaction : false, isError : false };
 }
 
 /**
  * Add action to the transaction
  */
 function addAction (action) {
-  actions.push(action);
+  transactions[action.id].actions.push(action);
 }
 
 /**
  * Add events to the transaction
+ * @param {Int} transactionId
  * @param {String} store name
  * @param {String} event event
  */
-function addUniqueEvent (store, event) {
-  uniqueEvents[store] = event;
+function addUniqueEvent (transactionId, store, event) {
+  if (!transactions[transactionId]) {
+    return;
+  }
+
+  transactions[transactionId].uniqueEvents[store] = event;
 }
 
-function _end () {
-  // Reset
-  actions                = [];
-  isTransaction          = false;
-  isCommitingTransaction = false;
-  currentActionIndex     = -1;
-  currentTransactionId   = -1;
-  currentAction          = null;
-  lastEvent              = null;
-
-  _sendUniqueEvents();
-  uniqueEvents = {};
-
-  if (endFn) {
-    var _fn      = endFn;
-    var _isError = isRollback;
-
-    isRollback = false;
-    endFn      = null;
-    _fn(_isError);
+/**
+ * Determine if transaction is in error
+ * @param {Int} transactionId
+ */
+function addErrorEvent (transactionId) {
+  if (!transactions[transactionId]) {
+    return;
   }
+
+  transactions[transactionId].isError = true;
+}
+
+/**
+ * Enn transaction by sending unique vents and call commit callback
+ * @param {Int} transactionId
+ * @param {Function} callback
+ */
+function _end (transactionId, callback) {
+  // Reset
+  _sendUniqueEvents(transactionId, function () {
+    callback();
+  });
 }
 
 
 /**
  * Commit a transaction
+ * @param {Function} callback
  */
-function commit (end) {
-  if (isCommitingTransaction) {
+function commit (callback) {
+  if (!transactions[currentTransactionId]) {
     return;
   }
 
-  endFn = end;
+  if (transactions[currentTransactionId].isCommitingTransaction) {
+    return;
+  }
 
-  isCommitingTransaction = true;
-  _processNextAction();
+  isTransaction = false;
+  transactions[currentTransactionId].isCommitingTransaction = true;
+  _processNextAction(-1, currentTransactionId, callback);
 }
 
 /**
  * Process next action
+ * @param {Integer} transactionId
+ * @param {Function} callback
  */
-function _processNextAction () {
-  currentActionIndex++;
-  var _action = actions[currentActionIndex];
+function _processNextAction (iterator, transactionId, callback) {
+  iterator++;
+
+  var _action = null;
+  if (transactions[transactionId]) {
+    _action = transactions[transactionId].actions[iterator];
+  }
 
   if (!_action) {
-    return _end();
+    return _end(transactionId, function () {
+      var isError = transactions[transactionId].isError;
+      delete transactions[transactionId];
+      if (callback) {
+        callback(isError);
+      }
+    });
   }
-
-  currentAction = _action;
 
   var _arguments = [];
-  var _indexes   = Object.keys(currentAction.arguments);
+  var _indexes   = Object.keys(_action.arguments);
   for (var i = 0; i < _indexes.length; i++) {
-    _arguments.push(currentAction.arguments[_indexes[i]]);
-  }
-  currentAction.handler.apply(null, _arguments);
-}
-
-/**
- * Pipe hooks from hooks module
- * Pay attention to filterUpdated event. We only want at most one 'filterUpdated' event by store
- * @param {String} storeName
- * @param {Boolean} isLocalStore
- * @param {Boolean} isFilter
- * @param {String} event
- * @param {*} payload
- * @param {Int} transactionId
- */
-function pipe (store, event, payload, transactionId) {
-  // We do not care;
-  if (!currentAction || currentAction.id !== transactionId || currentAction.store !== store.name) {
-    return;
+    _arguments.push(_action.arguments[_indexes[i]]);
   }
 
-  if (!currentAction.payload) {
-    currentAction.payload = payload;
-    if (!store.isStoreObject && payload && payload.length === 1) {
-      currentAction.payload = currentAction.payload[0];
-    }
+  function _next () {
+    _processNextAction(iterator, transactionId, callback);
   }
 
-  if (store.isLocal || !offline.isOnline) {
-    if (store.isFilter && event !== 'filterUpdated') {
-      return;
-    }
-
-    if (eventsLocal.indexOf(event) !== -1) {
-      return _processNextAction();
-    }
-
-    return;
-  }
-
-  if (event === 'errorHttp' || event === 'error') {
-    if (isRollback) {
-      // If there is an error in the rollback, we do not rollback the rollback, we stop the trnasaction
-      return _end();
-    }
-
-    isRollback = true;
-    return rollback(store.name, payload);
-  }
-
-  if (
-    (currentAction.operation === OPERATIONS.INSERT && event === 'inserted') ||
-    (currentAction.operation === OPERATIONS.LIST   && event === 'get'     ) ||
-    (currentAction.operation === OPERATIONS.UPDATE && event === 'updated' ) ||
-    (currentAction.operation === OPERATIONS.DELETE && event === 'deleted' )
-  ) {
-    lastEvent = event;
-    if (!store.isFilter) {
-      _processNextAction();
-    }
-  }
-  else if (
-    ((currentAction.operation === OPERATIONS.INSERT && lastEvent === 'inserted')  ||
-    (currentAction.operation === OPERATIONS.LIST    && lastEvent === 'get'     )  ||
-    (currentAction.operation === OPERATIONS.UPDATE  && lastEvent === 'updated' )  ||
-    (currentAction.operation === OPERATIONS.DELETE  && lastEvent === 'deleted' )) &&
-    event === 'filterUpdated'
-  ) {
-    lastEvent = event;
-    _processNextAction();
-  }
+  _arguments.push(_next);
+  _action.handler.apply(null, _arguments);
 }
 
 /**
  * Rollback an action
  */
-function rollback () {
+/* function rollback () {
   var _actionsToRollback = [];
   for (var i = currentActionIndex - 1; i >= 0; i--) {
     var _operation = OPERATIONS.UPDATE;
@@ -256,55 +196,120 @@ function rollback () {
   actions            = _actionsToRollback;
   currentActionIndex = -1;
   _processNextAction();
+} */
+
+/**
+ * Reduce stores that have sent filterUpdated or reset event to avoid
+ * @param {Int} nbStores number of stores to reset
+ * @param {Array} stores stores that have sent a reset or filterUpdated event
+ * @param {Array} parentStores parent store that will receive a reset event
+ * @param {Object} eventByStores { parentStore : [store1, storeN], ... }
+ * @param {Array} storesToReset stores to reset (set by the function which is recursive)
+ */
+function reduce (nbStores, stores, parentStores, eventByStores, storesToReset) {
+  storesToReset = storesToReset || [];
+
+  if (!nbStores) {
+    return storesToReset;
+  }
+
+  if (nbStores === 1) {
+    for (var i = 0; i < parentStores.length; i++) {
+      storesToReset.push(eventByStores[parentStores[i]][0]);
+    }
+
+    return storesToReset;
+  }
+
+  for (var i = 0; i < stores.length; i++) {
+    var nbFound     = 0;
+    var storesFound = [];
+    for (var j = 0; j < parentStores.length; j++) {
+
+      if (!eventByStores[parentStores[j]]) {
+        continue;
+      }
+
+      for (var k = 0; k < eventByStores[parentStores[j]].length; k++) {
+        if (eventByStores[parentStores[j]][k] === stores[i]) {
+          nbFound++;
+          storesFound.push(parentStores[j]);
+
+          if (nbFound === nbStores) {
+            storesToReset.push(stores[i]);
+
+            if (nbStores > 1) {
+              parentStores = parentStores.diff(storesFound);
+            }
+
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return reduce(nbStores - 1, stores, parentStores, eventByStores, storesToReset);
 }
 
 /**
  * Send captured store events
+ * @param {Function} callback
  */
-function _sendUniqueEvents () {
-  var _stores            = Object.keys(uniqueEvents);
-  var _eventByStores     = {};
+function _sendUniqueEvents (transactionId, callback) {
+  var _stores                = Object.keys(transactions[transactionId].uniqueEvents);
+  var _eventByStores         = {};
+  var _storesSendEvents      = [];
+  var _storesToResetIfNoDeps = [];
 
   for (var i = 0; i < _stores.length; i++) {
     var _deps         = storeDependecies[_stores[i]] || [];
     var _hasBeenAdded = false;
+
+    exportsLunaris._stores[_stores[i]].paginationOffset      = 0;
+    exportsLunaris._stores[_stores[i]].paginationCurrentPage = 1;
 
     for (var j = 0; j < _deps.length; j++) {
       if (!_eventByStores[_deps[j]]) {
         _eventByStores[_deps[j]] = [];
       }
 
-      if (!_hasBeenAdded) {
+      if (_eventByStores[_deps[j]].indexOf(_stores[i]) === -1) {
         _eventByStores[_deps[j]].push(_stores[i]);
+      }
+
+      if (!_hasBeenAdded) {
+        _storesSendEvents.push(_stores[i]);
         _hasBeenAdded = true;
       }
+    }
+
+    if (!_hasBeenAdded) {
+      _storesToResetIfNoDeps.push(_stores[i]);
     }
     _hasBeenAdded = false;
   }
 
   var _storesToUpdate = Object.keys(_eventByStores);
-  for (i = 0; i < _storesToUpdate.length; i++) {
-    var _storesUpdated = _eventByStores[_storesToUpdate[i]];
+  var _storesToReset  = reduce(_storesToUpdate.length, _storesSendEvents, _storesToUpdate, _eventByStores).concat(_storesToResetIfNoDeps);
 
-    if (_storesUpdated.length) {
-      var _store = storeUtils.getStore(_storesUpdated[_storesUpdated.length - 1]);
-      hookFn(_store, 'filterUpdated');
-    }
-  }
+  queue(_storesToReset, function (storeToUpdate, next) {
+    var _store = storeUtils.getStore(storeToUpdate);
+    hookFn(_store, 'reset', null, null, next);
+  }, callback);
 }
 
 module.exports = {
-  _reset : _end, // only for tests
-
   get isTransaction          () { return isTransaction;          },
   get isCommitingTransaction () { return isCommitingTransaction; },
 
   begin          : begin,
   commit         : commit,
-  pipe           : pipe,
   addAction      : addAction,
   addUniqueEvent : addUniqueEvent,
+  addErrorEvent  : addErrorEvent,
   registerHookFn : registerHookFn,
+  reduce         : reduce,
 
   /**
    * Get current transaction id
