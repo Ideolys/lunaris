@@ -89,7 +89,9 @@
         intervalWaitBeforeSync      : null,
 
         nbOfflineTransactionsPushed        : 0,
-        nbOfflineTransactionsPushedInError : 0
+        nbOfflineTransactionsPushedInError : 0,
+
+        isOfflineModeActivated : lunaris.offline.isOfflineMode
       }
     },
     stores  : ['lunarisOfflineTransactions'],
@@ -152,7 +154,8 @@
         this.currentComponent = 'sync';
         this.nbOfflineTransactionsPushed        = 0;
         this.nbOfflineTransactionsPushedInError = 0;
-        lunaris._pushOfflineHttpTransactions(function () {
+        lunaris.offline.isOfflineMode           = false;
+        lunaris.sync.pushOfflineHttpTransactions(function () {
           // add time in purpose to slow down reties
           setTimeout(function () {
             _this.onPushOfflineTransactionEnd();
@@ -166,7 +169,8 @@
       },
 
       onEnd : function () {
-        lunaris._vue._isVueOffline = false;
+        lunaris.offline.isOfflineMode = this.isOfflineModeActivated;
+        lunaris._vue._isVueOffline    = false;
         lunaris._vue._unmountApp(lunaris._vue._vmOffline);
         lunaris._vue.run();
       },

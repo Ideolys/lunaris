@@ -59,6 +59,7 @@ module.exports = {
 
   initInvalidations     : invalidate.init,
   _computeInvalidations : invalidate.computeInvalidations,
+  _onInvalidate         : invalidate.on,
   invalidations         : invalidate.invalidations,
 
   OPERATIONS : utils.OPERATIONS,

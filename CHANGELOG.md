@@ -9,6 +9,10 @@
   - Transactions include `lunaris.clear`.
   - Hooks are synchrone by default and asynchrone with a callback in second parameter : `lunaris.hook('event', function (data, done) {})`;
   - Add `isMapClone` attribute in store object to customize clone function by store. If true, a dedicated clone function is created for the store from the map. It is way more performant than `lunaris.utils.clone` or even `JSON.parse(JSON.stringify(data))`.
+  - Add `lunaris.offline.isOfflineMode` attribute to set offline mode. In online the offline mode capture the invalidations and simulate offline connection.
+  - Add `lunaris.offline.isSynchronizing` attribute. Internal use.
+  - Add `lunaris._onInvalidate(event, handler)` to capture events in invalidation module. Only `invalidate` event is sent. It allows an handler to capture invalidations when offline mode is activated.
+  - The offline app is not anymore mount when the the browser is online. The `lunaris._vue.mountOfflineApp` function must be used.
 - Fix:
 
 ## 1.12.0

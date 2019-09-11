@@ -46,11 +46,13 @@ function afterAction (store, event, value, message, callback) {
     _value = utils.cloneAndFreeze(value, store.clone);
   }
 
-  if (message) {
-    hook.pushToHandlers(store, 'success', message, null, callback);
-  }
+  hook.pushToHandlers(store, event, _value, null, function () {
+    if (message) {
+      return hook.pushToHandlers(store, 'success', message, null, callback);
+    }
 
-  hook.pushToHandlers(store, event, _value, null, callback);
+    callback();
+  });
 }
 
 /**

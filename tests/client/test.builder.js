@@ -1,4 +1,4 @@
-describe.only('builder', () => {
+describe('builder', () => {
 
   beforeEach(done => {
     lunaris.begin();
@@ -111,7 +111,7 @@ describe.only('builder', () => {
           },
           _rowId   : 1,
           _id      : 1,
-          _version : [3]
+          _version : [2]
         },
         {
           id     : 3,
@@ -120,7 +120,7 @@ describe.only('builder', () => {
           },
           _rowId   : 2,
           _id      : 2,
-          _version : [5]
+          _version : [4]
         }
       ]);
 

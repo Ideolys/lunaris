@@ -131,7 +131,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
   }
   request = request.request;
 
-  if (!offline.isOnline && (store.isLocal !== true || !isLocal)) {
+  if (!offline.isOnline && !(store.isLocal || isLocal)) {
     sync.setOfflineHttpTransaction(store.name, method, request, !isMultipleItems && !store.isStoreObject ? value[0] : value);
   }
 

@@ -19,9 +19,13 @@ describe('local storage', () => {
       lunaris.clear('@http.filter');
       lunaris.clear('@lunarisOfflineTransactions');
       lunaris.commit(() => {
-        lunaris._indexedDB.clear('_invalidations');
-        lunaris._cache.clear();
-        setTimeout(done, 200);
+        lunaris._indexedDB.clear('_invalidations', () => {
+          lunaris._cache.clear();
+          lunaris.offline.isOnline      = true;
+          lunaris.offline.isOfflineMode = false;
+          // setTimeout(done, 200);
+          done();
+        });
       });
     });
   });
@@ -233,6 +237,114 @@ describe('local storage', () => {
       lunaris.get('@http');
     });
 
+    it('should update the state : get offline mode', done => {
+      var _nbCalled  = 0;
+      var _resetHook = () => {
+        lunaris.get('@http');
+      };
+      var _getHook = () => {
+        _nbCalled += 1;
+
+        if (_nbCalled === 1) {
+          return setTimeout(() => {
+            lunaris._indexedDB.get('_states', 'http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).be.an.Object();
+              should(data).eql({
+                store      : 'http',
+                collection : {
+                  currentId       : 4,
+                  currentRowId    : 4,
+                  index           : [[1, 2, 3], [1, 2, 3]],
+                  indexReferences : {}
+                },
+                massOperations : {}
+              });
+
+              lunaris._indexedDB.getAll('cache', (err, data) => {
+                if (err) {
+                  done(err);
+                }
+
+                should(data).eql([
+                  {
+                    hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
+                    values : [
+                      { id : 1, label : 'A' },
+                      { id : 2, label : 'B' },
+                      { id : 3, label : 'C' }
+                    ],
+                    stores : ['http']
+                  }
+                ]);
+
+                lunaris.offline.isOfflineMode = true;
+                lunaris.insert('@http.filter', { label : 'B' });
+              });
+            });
+          }, 20);
+        }
+
+        setTimeout(() => {
+          lunaris._indexedDB.get('_states', 'http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).be.an.Object();
+            should(data).eql({
+              store      : 'http',
+              collection : {
+                currentId       : 4,
+                currentRowId    : 4,
+                index           : [[1, 2, 3], [1, 2, 3]],
+                indexReferences : {}
+              },
+              massOperations : {}
+            });
+
+            lunaris._indexedDB.getAll('cache', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).eql([
+                {
+                  hash   : '74c398f07f23c189f48657307604c1ea',
+                  values : [
+                    { id : 2, label : 'B' }
+                  ],
+                  stores : ['http']
+                },
+                {
+                  hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
+                  values : [
+                    { id : 1, label : 'A' },
+                    { id : 2, label : 'B' },
+                    { id : 3, label : 'C' }
+                  ],
+                  stores : ['http']
+                }
+              ]);
+
+              lunaris.offline.isOfflineMode = false;
+              lunaris.removeHook('get@http', _getHook);
+              lunaris.removeHook('reset@http', _resetHook);
+              done();
+            });
+          });
+        }, 100);
+      };
+
+      lunaris.hook('reset@http', _resetHook);
+      lunaris.hook('get@http', _getHook);
+
+      lunaris.get('@http');
+    });
+
     it('should update the state : clear', done => {
       var _hook = () => {
         lunaris.clear('@http');
@@ -327,6 +439,54 @@ describe('local storage', () => {
       lunaris.get('@http');
     });
 
+    it('should not clear the store when offline mode is activated', done => {
+      var _hook = () => {
+        lunaris.offline.isOfflineMode = true;
+        lunaris.clear('@http');
+        setTimeout(() => {
+          lunaris._indexedDB.get('_states', 'http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).eql({
+              store      : 'http',
+              collection : {
+                currentId       : 4,
+                currentRowId    : 4,
+                index           : [[1, 2, 3], [1, 2, 3]],
+                indexReferences : {}
+              },
+              massOperations : {}
+            });
+
+            lunaris._indexedDB.getAll('http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).have.lengthOf(3);
+              should(lunaris._stores.http.data.getAll()).have.lengthOf(3);
+
+              lunaris._indexedDB.getAll('cache', (err, data) => {
+                if (err) {
+                  done(err);
+                }
+
+                should(data).eql([]);
+
+                lunaris.offline.isOfflineMode = false;
+                lunaris.removeHook('get@http', _hook);
+                done();
+              });
+            });
+          });
+        }, 80);
+      };
+      lunaris.hook('get@http', _hook);
+      lunaris.get('@http');
+    });
+
     it('should clear the store when offline and store isLocal', done => {
       var _hook = () => {
         lunaris.offline.isOnline = false;
@@ -364,12 +524,61 @@ describe('local storage', () => {
                 should(data).eql([]);
 
                 lunaris.offline.isOnline = true;
-                lunaris.removeHook('insert@http', _hook);
+                lunaris.removeHook('insert@test', _hook);
                 done();
               });
             });
           });
         }, 80);
+      };
+      lunaris.hook('insert@test', _hook);
+      lunaris.insert('@test', [{ id : 1 }, { id : 2 }]);
+    });
+
+    it('should clear the store when offline mode and store isLocal', done => {
+      var _hook = () => {
+        lunaris.offline.isOfflineMode = true;
+        lunaris.begin();
+        lunaris.clear('@test');
+        lunaris.commit(() => {
+          lunaris._indexedDB.get('_states', 'test', (err, data) => {
+            if (err) {
+              return done(err);
+            }
+
+            should(data).eql({
+              store      : 'test',
+              collection : {
+                currentId       : 1,
+                currentRowId    : 1,
+                index           : [[], []],
+                indexReferences : {}
+              },
+              massOperations : {}
+            });
+
+            lunaris._indexedDB.getAll('test', (err, data) => {
+              if (err) {
+                return done(err);
+              }
+
+              should(data).have.lengthOf(0);
+              should(lunaris._stores.test.data.getAll()).have.lengthOf(0);
+
+              lunaris._indexedDB.getAll('cache', (err, data) => {
+                if (err) {
+                  return done(err);
+                }
+
+                should(data).eql([]);
+
+                lunaris.offline.isOfflineMode = false;
+                lunaris.removeHook('insert@test', _hook);
+                done();
+              });
+            });
+          });
+        });
       };
       lunaris.hook('insert@test', _hook);
       lunaris.insert('@test', [{ id : 1 }, { id : 2 }]);
@@ -462,6 +671,34 @@ describe('local storage', () => {
             });
 
             lunaris.offline.isOnline = true;
+            lunaris.removeHook('get@http', _hook);
+            done();
+          });
+        }, 200);
+      };
+      lunaris.hook('get@http', _hook);
+      lunaris.get('@http');
+    });
+
+    it('should save the HTTP transaction : delete offline mode', done => {
+      var _hook = () => {
+        lunaris.offline.isOfflineMode = true;
+        lunaris.delete('@http', { _id : 1 });
+        setTimeout(() => {
+          lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
+            should(data).be.an.Array().and.have.lengthOf(1);
+            should(data[0].method).eql('DELETE');
+            should(data[0].store).eql('http');
+            should(data[0].url).eql('/http/1');
+            should(data[0].data).eql({
+              _id      : 1,
+              _rowId   : 1,
+              _version : [1, 3],
+              id       : 1,
+              label    : 'A'
+            });
+
+            lunaris.offline.isOfflineMode = false;
             lunaris.removeHook('get@http', _hook);
             done();
           });
@@ -588,6 +825,70 @@ describe('local storage', () => {
       lunaris.offline.isOnline = false;
       lunaris.hook('insert@http', _insertHook);
       lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
+    it('should save the HTTP transaction : insert offline mode', done => {
+      var _insertHook = () => {
+        setTimeout(() => {
+          lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
+            should(data).be.an.Array().and.have.lengthOf(1);
+            should(data[0].method).eql('POST');
+            should(data[0].store).eql('http');
+            should(data[0].url).eql('/http');
+            should(data[0].data).eql({
+              _id      : 1,
+              _rowId   : 1,
+              _version : [1],
+              id       : 1,
+              label    : 'A'
+            });
+
+            lunaris.offline.isOfflineMode = false;
+            lunaris.removeHook('insert@http', _insertHook);
+            done();
+          });
+        }, 20);
+      };
+
+      lunaris.offline.isOfflineMode = true;
+      lunaris.hook('insert@http', _insertHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
+    it('should not save the HTTP transaction : insert offline (local store)', done => {
+      var _insertHook = () => {
+        setTimeout(() => {
+          lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
+            should(data).be.an.Array().and.have.lengthOf(0);
+
+            lunaris.offline.isOnline = true;
+            lunaris.removeHook('insert@test', _insertHook);
+            done();
+          });
+        }, 0);
+      };
+
+      lunaris.offline.isOnline = false;
+      lunaris.hook('insert@test', _insertHook);
+      lunaris.insert('@test', { id : 1, label : 'A' });
+    });
+
+    it('should not save the HTTP transaction : insert offline mode (local store)', done => {
+      var _insertHook = () => {
+        setTimeout(() => {
+          lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
+            should(data).be.an.Array().and.have.lengthOf(0);
+
+            lunaris.offline.isOfflineMode = false;
+            lunaris.removeHook('insert@test', _insertHook);
+            done();
+          });
+        }, 0);
+      };
+
+      lunaris.offline.isOfflineMode = true;
+      lunaris.hook('insert@test', _insertHook);
+      lunaris.insert('@test', { id : 1, label : 'A' });
     });
 
     it('should update the state : update', done => {
@@ -758,6 +1059,100 @@ describe('local storage', () => {
       lunaris.hook('insert@http', _insertHook);
       lunaris.hook('update@http', _updateHook);
       lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
+    it('should save the HTTP transaction : update offline mode', done => {
+      var _insertHook = (item) => {
+        item       = lunaris.utils.clone(item[0]);
+        item.label = 'A.1';
+
+        lunaris.update('@http', item);
+      };
+
+      var _updateHook = () => {
+        setTimeout(() => {
+          lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
+            should(data).be.an.Array().and.have.lengthOf(1);
+            should(data[0].method).eql('POST');
+            should(data[0].store).eql('http');
+            should(data[0].url).eql('/http');
+            should(data[0].data).eql({
+              _id      : 1,
+              _rowId   : 2,
+              _version : [4],
+              id       : 1,
+              label    : 'A.1'
+            });
+
+            lunaris.offline.isOfflineMode = false;
+            lunaris.removeHook('insert@http', _insertHook);
+            lunaris.removeHook('update@http', _updateHook);
+            done();
+          });
+        }, 60);
+      };
+
+      lunaris.offline.isOfflineMode = true;
+
+      lunaris.hook('insert@http', _insertHook);
+      lunaris.hook('update@http', _updateHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
+    it('should not save the HTTP transaction : update offline (local store)', done => {
+      var _insertHook = (item) => {
+        item       = lunaris.utils.clone(item[0]);
+        item.label = 'A.1';
+
+        lunaris.update('@test', item);
+      };
+
+      var _updateHook = function hook () {
+        setTimeout(() => {
+          lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
+            should(data).be.an.Array().and.have.lengthOf(0);
+
+            lunaris.offline.isOnline = true;
+            lunaris.removeHook('insert@test', _insertHook);
+            lunaris.removeHook('update@test', _updateHook);
+            done();
+          });
+        }, 60);
+      };
+
+      lunaris.offline.isOnline = false;
+
+      lunaris.hook('insert@test', _insertHook);
+      lunaris.hook('update@test', _updateHook);
+      lunaris.insert('@test', { id : 1, label : 'A' });
+    });
+
+    it('should not save the HTTP transaction : update offline mode (local store)', done => {
+      var _insertHook = (item) => {
+        item       = lunaris.utils.clone(item[0]);
+        item.label = 'A.1';
+
+        lunaris.update('@test', item);
+      };
+
+      var _updateHook = () => {
+        setTimeout(() => {
+          lunaris._indexedDB.getAll('lunarisOfflineTransactions', (err, data) => {
+            should(data).be.an.Array().and.have.lengthOf(0);
+
+            lunaris.offline.isOfflineMode = false;
+            lunaris.removeHook('insert@test', _insertHook);
+            lunaris.removeHook('update@test', _updateHook);
+            done();
+          });
+        }, 60);
+      };
+
+      lunaris.offline.isOfflineMode = true;
+
+      lunaris.hook('insert@test', _insertHook);
+      lunaris.hook('update@test', _updateHook);
+      lunaris.insert('@test', { id : 1, label : 'A' });
     });
 
     it('should update the state : mass update', done => {
@@ -985,7 +1380,7 @@ describe('local storage', () => {
                 should(_lunaris._cache._cache()).eql([]);
 
                 lunaris._indexedDB.get('_invalidations', 'GET /http', (err, invalidation) => {
-                  should(invalidation.date).be.above(dateInvalidation); // should be nearly Date.now()
+                  should(invalidation.date).be.aboveOrEqual(dateInvalidation); // should be nearly Date.now()
                   lunaris.removeHook('get@http', _hook);
                   done();
                 });
@@ -1037,6 +1432,115 @@ describe('local storage', () => {
         lunaris.hook('get@http', _hook);
         lunaris.get('@http');
       });
+
+      it('should not invalidate a store from the server when the app is in offline mode', done => {
+        var _insertedHook = () => {
+          lunaris._indexedDB.getAll('http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).be.an.Array().and.have.lengthOf(2);
+            should(data[0]).eql({
+              id       : 1,
+              label    : 'A',
+              _rowId   : 1,
+              _id      : 1,
+              _version : [1, 3]
+            });
+            should(data[1]).eql({
+              id       : 1,
+              label    : 'A',
+              post     : true,
+              _rowId   : 2,
+              _id      : 1,
+              _version : [3]
+            });
+
+            lunaris.offline.isOfflineMode = true;
+            lunaris.websocket.send('INVALIDATE', 'GET /http', true);
+
+            setTimeout(() => {
+              lunaris._indexedDB.getAll('http', (err, data) => {
+                if (err) {
+                  done(err);
+                }
+
+                should(data).be.an.Array().and.have.lengthOf(2);
+
+                lunaris._indexedDB.get('_states', 'http', (err, data) => {
+                  if (err) {
+                    return done(err);
+                  }
+
+                  should(data).be.an.Object();
+                  should(data).eql({
+                    store          : 'http',
+                    massOperations : {},
+                    collection     : {
+                      currentId       : 2,
+                      currentRowId    : 3,
+                      index           : [[1], [1]],
+                      indexReferences : {}
+                    }
+                  });
+
+                  lunaris.removeHook('inserted@http', _insertedHook);
+                  lunaris.offline.isOfflineMode = false;
+                  done();
+                });
+              });
+            }, 100);
+          });
+        };
+
+        lunaris.hook('inserted@http', _insertedHook);
+        lunaris.insert('@http', { id : 1, label : 'A' });
+      });
+
+      it('should send a custom event when invalidating', done => {
+        var _insertedHook = () => {
+          lunaris._indexedDB.getAll('http', (err, data) => {
+            if (err) {
+              done(err);
+            }
+
+            should(data).be.an.Array().and.have.lengthOf(2);
+            should(data[0]).eql({
+              id       : 1,
+              label    : 'A',
+              _rowId   : 1,
+              _id      : 1,
+              _version : [1, 3]
+            });
+            should(data[1]).eql({
+              id       : 1,
+              label    : 'A',
+              post     : true,
+              _rowId   : 2,
+              _id      : 1,
+              _version : [3]
+            });
+
+            lunaris.offline.isOfflineMode = true;
+
+            let hook = (url) => {
+              should(url).eql('GET /http');
+              lunaris._onInvalidate('invalidate', null);
+              lunaris.removeHook('inserted@http', _insertedHook);
+              lunaris.offline.isOfflineMode = false;
+              done();
+            };
+
+            lunaris._onInvalidate('invalidate', hook);
+
+            lunaris.websocket.send('INVALIDATE', 'GET /http', true);
+          });
+        };
+
+        lunaris.hook('inserted@http', _insertedHook);
+        lunaris.insert('@http', { id : 1, label : 'A' });
+      });
     });
 
   });
@@ -1048,7 +1552,7 @@ describe('local storage', () => {
     }
 
     it('should add the object to the collection data store', done => {
-      var _collection = lunaris._collection(null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(null, null, null, null, null, 'test', null, lunaris.utils.clone);
       _collection.add({ id : 1 });
       lunaris._indexedDB.getAll('test', (err, data) => {
         if (err) {
@@ -1062,7 +1566,7 @@ describe('local storage', () => {
     });
 
     it('should add the updaded object to the collection data store', done => {
-      var _collection = lunaris._collection(null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(null, null, null, null, null, 'test', null, lunaris.utils.clone);
       _collection.add({ id : 1 });
       _collection.upsert({ _id : 1, id : 2 });
       lunaris._indexedDB.getAll('test', (err, data) => {
@@ -1078,7 +1582,7 @@ describe('local storage', () => {
     });
 
     it('should update the collection data store when deleting', done => {
-      var _collection = lunaris._collection(null, null, null, null, null, 'test');
+      var _collection = lunaris._collection(null, null, null, null, null, 'test', null, lunaris.utils.clone);
       _collection.add({ id : 1 });
       _collection.remove({ _id : 1, id : 1 });
       setTimeout(() => {
@@ -1095,7 +1599,7 @@ describe('local storage', () => {
     });
 
     it('should not duplicate values items within the same transaction', done => {
-      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, 'test');
+      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, 'test', null, lunaris.utils.clone);
       var _version = _collection.begin();
       _collection.add({ id : 10 }, _version);
       _collection.add({ id : 10 }, _version);
@@ -1113,7 +1617,7 @@ describe('local storage', () => {
     });
 
     it('should not duplicate values items not in the same transaction', done => {
-      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, 'test');
+      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, 'test', null, lunaris.utils.clone);
       _collection.add({ id : 10, label : 'A' });
       _collection.add({ id : 10, label : 'B' });
       lunaris._indexedDB.getAll('test', (err, data) => {
@@ -1129,7 +1633,7 @@ describe('local storage', () => {
     });
 
     it('should not add values if insert / delete in the same transaction', done => {
-      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, 'test');
+      var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, 'test', null, lunaris.utils.clone);
       var _version = _collection.begin();
       _collection.add({ id : 10 }, _version);
       _collection.remove({ id : 10 }, _version, true);

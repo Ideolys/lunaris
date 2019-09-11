@@ -3,8 +3,13 @@ var urlsGraph = require('./exports.js').urlsGraph;
 var cache     = require('./cache.js');
 var store     = require('./store/store.js');
 var logger    = require('./logger.js');
+var offline   = require('./offline.js');
 
 var clientLightUrlInvalidations = {};
+var events                      = {};
+var INVALIDATE_EVENTS           = {
+  INVALIDATE : 'invalidate'
+};
 
 /**
  * Add invalidation in cache
@@ -44,12 +49,21 @@ module.exports = {
 
   /**
    * Invalidate a store or a group of store by light URL
+   * If online mode and not synchronizing, we will not store the invalidation
    * @param {String} storeOrUrl
    */
   invalidate : function invalidate (storeOrUrl) {
     // Invalidate url
     if (/^GET\s/.test(storeOrUrl)) {
       if (!urlsGraph[storeOrUrl]) {
+        return;
+      }
+
+      // If we are offline (ie in offline-online mode)
+      if (offline.isOfflineMode && !offline.isSynchronizing) {
+        if (events[INVALIDATE_EVENTS.INVALIDATE]) {
+          events[INVALIDATE_EVENTS.INVALIDATE](storeOrUrl);
+        }
         return;
       }
 
@@ -127,5 +141,14 @@ module.exports = {
     if (_invalidations.length) {
       indexedDB.upsert('_invalidations', _invalidations);
     }
+  },
+
+  /**
+   * Set event handler
+   * @param {String} event
+   * @param {Function} handler
+   */
+  on : function (event, handler) {
+    events[event] = handler;
   }
 };
