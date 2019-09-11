@@ -262,4 +262,86 @@ function get (store, primaryKeyValue, retryOptions) {
   }
 }
 
-exports.get = get;
+/**
+ * LOAD : load all data from an API
+ */
+
+/**
+ * Load all data from a store
+ * @param {String} store ex: '@store'
+ * @param {Object} options
+ */
+function load (store, options) {
+  if (transaction.isTransaction) {
+    return transaction.addAction({
+      id        : transaction.getCurrentTransactionId(),
+      store     : store.replace('@', ''),
+      operation : OPERATIONS.LIST,
+      handler   : _load,
+      arguments : [store, options, transaction.getCurrentTransactionId()]
+    });
+  }
+
+  _load(store, options);
+}
+
+/**
+ * Load all data from a store
+ * @param {String} store ex: '@store'
+ * @param {Object} options
+ * @param {Int} transactionId internal use for transaction
+ * @param {Function} callback internal use for transaction
+ */
+function _load (store, options, transactionId, callback) {
+  try {
+    if (!offline.isRealOnline) {
+      throw new Error('You are offline!');
+    }
+
+    if (!offline.isOfflineMode) {
+      throw new Error('Offline mode is not enabled!');
+    }
+
+    var _options = crudUtils.beforeAction(store, null, true);
+    var _request = url.create(_options.store, 'GET', null, false).request;
+
+    http.request('GET', _request, null, function (err, data) {
+      if (err) {
+        var _error = template.getError(err, _options.store, 'GET', true);
+        upsertCRUD.setLunarisError(_options.store.name, 'GET', _request, null, null, err, _error);
+        logger.warn(['lunaris.load@' + _options.store.name], err);
+        return hook.pushToHandlers(_options.store, 'errorHttp', { error : _error }, transactionId, function () {
+          if (callback) {
+            callback();
+          }
+        });
+      }
+
+      if (!Array.isArray(data)) {
+        data = [data];
+      }
+
+      var _version = _options.collection.begin();
+      for (var i = 0, len = data.length; i < len; i++) {
+        _options.collection.add(data[i], _version);
+      }
+      _options.collection.commit(_version);
+
+      storeUtils.saveState(_options.store, _options.collection, function () {
+        hook.pushToHandlers(_options.store, 'loaded', null, transactionId, function () {
+          if (callback) {
+            callback();
+          }
+        });
+      });
+    }, {
+      isOffline : true
+    });
+  }
+  catch (e) {
+    logger.warn(['lunaris.load' + store], e);
+  }
+}
+
+exports.get  = get;
+exports.load = load;

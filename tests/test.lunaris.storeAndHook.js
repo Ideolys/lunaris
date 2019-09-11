@@ -2212,6 +2212,162 @@ describe('lunaris store', function () {
     });
   });
 
+  describe('load()', () => {
+    beforeEach(() => {
+      lunaris.offline.isOfflineMode = true;
+    });
+
+    after(() => {
+      lunaris.offline.isOfflineMode = false;
+    });
+
+    it('should throw an error if we are not online', () => {
+      lunaris.offline.isOnline = false;
+      lunaris.load('@store');
+
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris error] lunaris.load@store');
+      should(lastError[1]).eql(new Error('You are offline!'));
+      lunaris.offline.isOnline = true;
+    });
+
+    it('should throw an error if offline mode is desactivated', () => {
+      lunaris.offline.isOfflineMode = false;
+
+      lunaris.load('@store');
+
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris error] lunaris.load@store');
+      should(lastError[1]).eql(new Error('Offline mode is not enabled!'));
+    });
+
+    it('should load store & emit loaded event', done => {
+      lunaris._stores['load'] = initStore('load');
+
+      const hook = () => {
+        let data = lunaris._stores.load.data.getAll();
+        should(data).have.lengthOf(6);
+        should(data).eql([
+          { id : 1, label : 'a', header : 'ok', _id : 1, _rowId : 1, _version : [1] },
+          { id : 2, label : 'b', header : 'ok', _id : 2, _rowId : 2, _version : [1] },
+          { id : 3, label : 'c', header : 'ok', _id : 3, _rowId : 3, _version : [1] },
+          { id : 4, label : 'd', header : 'ok', _id : 4, _rowId : 4, _version : [1] },
+          { id : 5, label : 'e', header : 'ok', _id : 5, _rowId : 5, _version : [1] },
+          { id : 6, label : 'f', header : 'ok', _id : 6, _rowId : 6, _version : [1] }
+        ]);
+        lunaris.removeHook('loaded@load', hook);
+        done();
+      };
+
+      lunaris.hook('loaded@load', hook);
+      lunaris.load('@load');
+    });
+
+    it('should use filters : required', done => {
+      lunaris._stores['load.filter.a']               = initStore('load.filter.a');
+      lunaris._stores['load.filter.a'].isLocal       = true;
+      lunaris._stores['load.filter.a'].isFilter      = true;
+      lunaris._stores['load.filter.a'].isStoreObject = true;
+
+      lunaris._stores['load']          = initStore('load', [{ id : ['<<int>>'], label : ['string'] }], null, null, [{
+        source          : '@load.filter.a',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        operator        : '=',
+        isRequired      : true
+      }]);
+
+      const hook = () => {
+        let data = lunaris._stores.load.data.getAll();
+        should(data).have.lengthOf(1);
+        should(data).eql([
+          { id : 1, label : 'a', url : '/load/label/a', _id : 1, _rowId : 1, _version : [2] }
+        ]);
+        lunaris.removeHook('loaded@load', hook);
+        done();
+      };
+
+      lunaris.hook('loaded@load', hook);
+      lunaris.insert('@load.filter.a', { label : 'a' });
+      lunaris.load('@load');
+    });
+
+    it('should use filters : optional', done => {
+      lunaris._stores['load.filter.a']               = initStore('load.filter.a');
+      lunaris._stores['load.filter.a'].isLocal       = true;
+      lunaris._stores['load.filter.a'].isFilter      = true;
+      lunaris._stores['load.filter.a'].isStoreObject = true;
+
+      lunaris._stores['load']          = initStore('load', [{ id : ['<<int>>'], label : ['string'] }], null, null, [{
+        source          : '@load.filter.a',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        operator        : '='
+      }]);
+
+      const hook = () => {
+        let data = lunaris._stores.load.data.getAll();
+        should(data).have.lengthOf(6);
+        should(data).eql([
+          { id : 1, label : 'a', header : 'ok', _id : 1, _rowId : 1, _version : [2] },
+          { id : 2, label : 'b', header : 'ok', _id : 2, _rowId : 2, _version : [2] },
+          { id : 3, label : 'c', header : 'ok', _id : 3, _rowId : 3, _version : [2] },
+          { id : 4, label : 'd', header : 'ok', _id : 4, _rowId : 4, _version : [2] },
+          { id : 5, label : 'e', header : 'ok', _id : 5, _rowId : 5, _version : [2] },
+          { id : 6, label : 'f', header : 'ok', _id : 6, _rowId : 6, _version : [2] }
+        ]);
+        lunaris.removeHook('loaded@load', hook);
+        done();
+      };
+
+      lunaris.hook('loaded@load', hook);
+      lunaris.insert('@load.filter.a', { label : 'a' });
+      lunaris.load('@load');
+    });
+
+    it('should use filters : required & optional', done => {
+      lunaris._stores['load.filter.a']               = initStore('load.filter.a');
+      lunaris._stores['load.filter.a'].isLocal       = true;
+      lunaris._stores['load.filter.a'].isFilter      = true;
+      lunaris._stores['load.filter.a'].isStoreObject = true;
+      lunaris._stores['load.filter.b']               = initStore('load.filter.b');
+      lunaris._stores['load.filter.b'].isLocal       = true;
+      lunaris._stores['load.filter.b'].isFilter      = true;
+      lunaris._stores['load.filter.b'].isStoreObject = true;
+
+      lunaris._stores['load']          = initStore('load', [{ id : ['<<int>>'], label : ['string'] }], null, null, [
+        {
+          source          : '@load.filter.a',
+          sourceAttribute : 'label',
+          localAttribute  : 'label',
+          operator        : '=',
+          isRequired      : true
+        },
+        {
+          source          : '@load.filter.b',
+          sourceAttribute : 'label',
+          localAttribute  : 'label',
+          operator        : '=',
+        }
+      ]);
+
+      const hook = () => {
+        let data = lunaris._stores.load.data.getAll();
+        should(data).have.lengthOf(1);
+        should(data).eql([
+          { id : 1, label : 'a', url : '/load/label/a?search=label:=b', _id : 1, _rowId : 1, _version : [3] }
+        ]);
+        lunaris.removeHook('loaded@load', hook);
+        done();
+      };
+
+      lunaris.hook('loaded@load', hook);
+      lunaris.insert('@load.filter.a', { label : 'a' });
+      lunaris.insert('@load.filter.b', { label : 'b' });
+      lunaris.load('@load');
+    });
+  });
+
   describe('offline', () => {
     before(() => {
       lunaris.offline.isOnline = false;
@@ -5790,6 +5946,32 @@ function _startServer (callback) {
       req.body[i].put = true;
     }
     res.json({ success : true, error : null, message : null, data : req.body });
+  });
+
+  server.get('/load', (req, res) => {
+    res.json({
+      success : true,
+      error   : null,
+      message : null,
+      data    : [
+        { id : 1, label : 'a', header : req.headers['is-offline'] ? 'ok' : 'nok' },
+        { id : 2, label : 'b', header : req.headers['is-offline'] ? 'ok' : 'nok' },
+        { id : 3, label : 'c', header : req.headers['is-offline'] ? 'ok' : 'nok' },
+        { id : 4, label : 'd', header : req.headers['is-offline'] ? 'ok' : 'nok' },
+        { id : 5, label : 'e', header : req.headers['is-offline'] ? 'ok' : 'nok' },
+        { id : 6, label : 'f', header : req.headers['is-offline'] ? 'ok' : 'nok' }
+      ]
+    });
+  });
+  server.get('/load/label/:id', (req, res) => {
+    res.json({
+      success : true,
+      error   : null,
+      message : null,
+      data    : [
+        { id : 1, label : 'a', url : req.url }
+      ]
+    });
   });
 
   server = server.listen(port, callback);

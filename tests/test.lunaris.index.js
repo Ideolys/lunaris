@@ -167,4 +167,9 @@ describe('lunaris index', () => {
     should(index.sync.pushOfflineHttpTransactions).be.a.Function();
     should(index.sync.getLastSyncDate).be.a.Function();
   });
+
+  it('load should be defined', () => {
+    should(index.load).be.ok();
+    should(index.load).be.a.Function();
+  });
 });

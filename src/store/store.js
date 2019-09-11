@@ -190,6 +190,7 @@ function validate (store, value, isUpdate, callback, eventName) {
 }
 
 exports.get             = getCRUD.get;
+exports.load            = getCRUD.load;
 exports.getOne          = getOne;
 exports.insert          = upsertCRUD.upsert;
 exports.update          = upsertCRUD.upsert;

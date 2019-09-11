@@ -42,6 +42,7 @@ module.exports = {
   update          : store.update,
   upsert          : store.upsert,
   delete          : store.delete,
+  load            : store.load,
   clear           : store.clear,
   rollback        : store.rollback,
   retry           : store.retry,

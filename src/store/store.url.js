@@ -213,6 +213,7 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
 * @param {Object} store
 * @param {Boolean} isGET is GET HTTP method ?
 * @param {*} primaryKeyValue
+* @param {Boolean} isPagination
 * @returns {Object} {
 *  isRequiredOptionsFilled    : {Boolean}
 *  constructedRequiredOptions : {String}
@@ -221,9 +222,9 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
 *  cache                      : {Object}
 * }
 */
-function createUrl (store, method, primaryKeyValue) {
+function createUrl (store, method, primaryKeyValue, isPagination) {
   var _request = { request : '/', cache : {} };
-  var _isGet   = method === 'GET';
+  var _isGet   = method === 'GET' && isPagination !== false;
   var _url     = store.url || store.name;
 
   _request.request += _url;

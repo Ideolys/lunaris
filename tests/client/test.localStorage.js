@@ -1253,6 +1253,36 @@ describe('local storage', () => {
       lunaris.get('@http');
     });
 
+    it('should load a store', done => {
+      var _hook = () => {
+        lunaris._indexedDB.get('_states', 'http', (err, data) => {
+          if (err) {
+            return done(err);
+          }
+
+          should(data).be.an.Object();
+          should(JSON.stringify(data)).eql(JSON.stringify({
+            store          : 'http',
+            massOperations : {},
+            collection     : {
+              currentId       : 4,
+              currentRowId    : 4,
+              index           : [[1, 2, 3], [1, 2, 3]],
+              indexReferences : {}
+            }
+          }));
+
+          lunaris.offline.isOfflineMode = false;
+          lunaris.removeHook('loaded@http', _hook);
+          done();
+        });
+      };
+
+      lunaris.hook('loaded@http', _hook);
+      lunaris.offline.isOfflineMode = true;
+      lunaris.load('@http');
+    });
+
     describe('invalidate', () => {
       it('should init invalidations', done => {
         lunaris._indexedDB.upsert('_invalidations', { url : 'GET /all', date : Date.now() });

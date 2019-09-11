@@ -27,6 +27,11 @@ function request (method, request, body, callback, options) {
   options = options || {};
   _headers['Content-Type'] = options['Content-Type'] || _defaultContentType;
 
+  // for server to detect dump request
+  if (options['isOffline']) {
+    _headers['Is-Offline'] = options['isOffline'];
+  }
+
   if (_headers['Content-Type'] === _defaultContentType && body) {
     _body = JSON.stringify(body);
 
