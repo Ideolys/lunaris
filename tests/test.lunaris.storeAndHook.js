@@ -3953,6 +3953,59 @@ describe('lunaris store', function () {
       });
     });
 
+    it('should commit a load', done => {
+      lunaris.offline.isOfflineMode = true;
+      lunaris._stores['load'] = initStore('load');
+
+      var _hasCalledEvent = false;
+      const hook = () => {
+        _hasCalledEvent = true;
+        lunaris.removeHook('loaded@load', hook);
+      };
+
+      lunaris.hook('loaded@load', hook);
+
+      lunaris.begin();
+      lunaris.load('@load');
+      lunaris.commit(() => {
+        should(_hasCalledEvent).eql(true);
+        lunaris.offline.isOfflineMode = false;
+        done();
+      });
+    });
+
+    it('should commit multiple loads', done => {
+      lunaris.offline.isOfflineMode = true;
+      lunaris._stores['load']       = initStore('load');
+      lunaris._stores['load_2']     = initStore('load_2');
+      lunaris._stores['load_2'].url = 'load';
+
+      var _events = [];
+      const hook = () => {
+        _events.push('loaded@load');
+        lunaris.removeHook('loaded@load', hook);
+      };
+      const hook_2 = () => {
+        _events.push('loaded@load_2');
+        lunaris.removeHook('loaded@load_2', hook);
+      };
+
+      lunaris.hook('loaded@load', hook);
+      lunaris.hook('loaded@load_2', hook_2);
+
+      lunaris.begin();
+      lunaris.load('@load');
+      lunaris.load('@load_2');
+      lunaris.commit(() => {
+        should(_events).eql([
+          'loaded@load',
+          'loaded@load_2'
+        ]);
+        lunaris.offline.isOfflineMode = false;
+        done();
+      });
+    });
+
     it.skip('should rollback a store : INSERT', done => {
       lunaris._stores['multiple1'] = initStore('multiple1'); // multiple1 must crash
       lunaris._stores['store1']    = initStore('store1');
