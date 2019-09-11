@@ -2241,6 +2241,17 @@ describe('lunaris store', function () {
       should(lastError[1]).eql(new Error('Offline mode is not enabled!'));
     });
 
+    it('should throw an error if store is local', () => {
+      lunaris._stores['load']         = initStore('load');
+      lunaris._stores['load'].isLocal = true;
+
+      lunaris.load('@load');
+
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris error] lunaris.load@load');
+      should(lastError[1]).eql(new Error('The store is local!'));
+    });
+
     it('should load store & emit loaded event', done => {
       lunaris._stores['load'] = initStore('load');
 

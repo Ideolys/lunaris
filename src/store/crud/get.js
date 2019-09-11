@@ -303,6 +303,11 @@ function _load (store, options, transactionId, callback) {
     }
 
     var _options = crudUtils.beforeAction(store, null, true);
+
+    if (_options.store.isLocal) {
+      throw new Error('The store is local!');
+    }
+
     var _request = url.create(_options.store, 'GET', null, false).request;
 
     http.request('GET', _request, null, function (err, data) {
