@@ -161,15 +161,27 @@ describe('lunaris index', () => {
     should(index.localStorage).eql(localStorageDriver.localStorage);
   });
 
-  it('sync should be defined', () => {
-    should(index.sync).be.ok();
-    should(index.sync).be.an.Object();
-    should(index.sync.pushOfflineHttpTransactions).be.a.Function();
-    should(index.sync.getLastSyncDate).be.a.Function();
+  it('pushOfflineHttpTransactions should be defined', () => {
+    should(index.offline.pushOfflineHttpTransactions).be.a.Function();
+  });
+
+  it('getLastSyncDate should be defined', () => {
+    should(index.offline.getLastSyncDate).be.a.Function();
   });
 
   it('load should be defined', () => {
-    should(index.load).be.ok();
-    should(index.load).be.a.Function();
+    should(index.offline.load).be.ok();
+    should(index.offline.load).be.a.Function();
+  });
+
+  it('invalidations should be defined', () => {
+    should(index.invalidations.init).be.ok();
+    should(index.invalidations.init).be.a.Function();
+    should(index.invalidations.compute).be.ok();
+    should(index.invalidations.compute).be.a.Function();
+    should(index.invalidations.on).be.ok();
+    should(index.invalidations.on).be.a.Function();
+    should(index.invalidations._invalidations).be.ok();
+    should(index.invalidations._invalidations).be.an.Object();
   });
 });

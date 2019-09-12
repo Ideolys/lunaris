@@ -16,6 +16,10 @@ var invalidate         = require('./invalidate.js');
 
 utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
 
+offline.pushOfflineHttpTransactions = storeSynchro.pushOfflineHttpTransactions,
+offline.getLastSyncDate             = storeSynchro.getLastSyncDate,
+offline.load                        = store.load;
+
 module.exports = {
   _stores             : lunarisExports._stores,
   _collection         : collection.collection,
@@ -53,16 +57,12 @@ module.exports = {
   commit          : transaction.commit,
   invalidate      : invalidate.invalidate,
 
-  sync : {
-    pushOfflineHttpTransactions : storeSynchro.pushOfflineHttpTransactions,
-    getLastSyncDate             : storeSynchro.getLastSyncDate,
-    load                        : store.load
+  invalidations : {
+    init           : invalidate.init,
+    compute        : invalidate.computeInvalidations,
+    on             : invalidate.on,
+    _invalidations : invalidate.invalidations,
   },
-
-  initInvalidations     : invalidate.init,
-  _computeInvalidations : invalidate.computeInvalidations,
-  _onInvalidate         : invalidate.on,
-  invalidations         : invalidate.invalidations,
 
   OPERATIONS : utils.OPERATIONS,
   constants  : lunarisExports.constants,

@@ -1286,9 +1286,9 @@ describe('local storage', () => {
     describe('invalidate', () => {
       it('should init invalidations', done => {
         lunaris._indexedDB.upsert('_invalidations', { url : 'GET /all', date : Date.now() });
-        lunaris.initInvalidations(() => {
-          should(lunaris.invalidations).be.an.Object();
-          should(lunaris.invalidations['GET /all']).be.ok();
+        lunaris.invalidations.init(() => {
+          should(lunaris.invalidations._invalidations).be.an.Object();
+          should(lunaris.invalidations._invalidations['GET /all']).be.ok();
           lunaris._indexedDB.clear('_invalidations', done);
         });
       });
@@ -1556,13 +1556,13 @@ describe('local storage', () => {
 
             let hook = (url) => {
               should(url).eql('GET /http');
-              lunaris._onInvalidate('invalidate', null);
+              lunaris.invalidations.on('invalidate', null);
               lunaris.removeHook('inserted@http', _insertedHook);
               lunaris.offline.isOfflineMode = false;
               done();
             };
 
-            lunaris._onInvalidate('invalidate', hook);
+            lunaris.invalidations.on('invalidate', hook);
 
             lunaris.websocket.send('INVALIDATE', 'GET /http', true);
           });
