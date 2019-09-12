@@ -55,7 +55,8 @@ module.exports = {
 
   sync : {
     pushOfflineHttpTransactions : storeSynchro.pushOfflineHttpTransactions,
-    getLastSyncDate             : storeSynchro.getLastSyncDate
+    getLastSyncDate             : storeSynchro.getLastSyncDate,
+    load                        : store.load
   },
 
   initInvalidations     : invalidate.init,

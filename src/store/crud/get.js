@@ -12,6 +12,7 @@ var transaction     = require('../store.transaction.js');
 var hook            = require('../store.hook.js');
 var template        = require('../store.template.js');
 var upsertCRUD      = require('./upsert.js');
+var indexedDB       = require('../../localStorageDriver.js').indexedDB;
 var getRequestQueue = {};
 var OPERATIONS      = utils.OPERATIONS;
 
@@ -308,39 +309,49 @@ function _load (store, options, transactionId, callback) {
       throw new Error('The store is local!');
     }
 
-    var _request = url.create(_options.store, 'GET', null, false).request;
+    _options.store.paginationCurrentPage = 1;
+    _options.store.paginationOffset      = 0;
+    _options.store.paginationLimit       = 50;
+    _options.store.massOperations        = {};
+    cache.invalidate(_options.store.name);
+    _options.collection.clear();
+    indexedDB.clear(_options.store.name);
 
-    http.request('GET', _request, null, function (err, data) {
-      if (err) {
-        var _error = template.getError(err, _options.store, 'GET', true);
-        upsertCRUD.setLunarisError(_options.store.name, 'GET', _request, null, null, err, _error);
-        logger.warn(['lunaris.load@' + _options.store.name], err);
-        return hook.pushToHandlers(_options.store, 'errorHttp', { error : _error }, transactionId, function () {
-          if (callback) {
-            callback();
-          }
+    storeUtils.saveState(_options.store, _options.collection, function () {
+      var _request = url.create(_options.store, 'GET', null, false).request;
+
+      http.request('GET', _request, null, function (err, data) {
+        if (err) {
+          var _error = template.getError(err, _options.store, 'GET', true);
+          upsertCRUD.setLunarisError(_options.store.name, 'GET', _request, null, null, err, _error);
+          logger.warn(['lunaris.load@' + _options.store.name], err);
+          return hook.pushToHandlers(_options.store, 'errorHttp', { error : _error }, transactionId, function () {
+            if (callback) {
+              callback();
+            }
+          });
+        }
+
+        if (!Array.isArray(data)) {
+          data = [data];
+        }
+
+        var _version = _options.collection.begin();
+        for (var i = 0, len = data.length; i < len; i++) {
+          _options.collection.add(data[i], _version);
+        }
+        _options.collection.commit(_version);
+
+        storeUtils.saveState(_options.store, _options.collection, function () {
+          hook.pushToHandlers(_options.store, 'loaded', null, transactionId, function () {
+            if (callback) {
+              callback();
+            }
+          });
         });
-      }
-
-      if (!Array.isArray(data)) {
-        data = [data];
-      }
-
-      var _version = _options.collection.begin();
-      for (var i = 0, len = data.length; i < len; i++) {
-        _options.collection.add(data[i], _version);
-      }
-      _options.collection.commit(_version);
-
-      storeUtils.saveState(_options.store, _options.collection, function () {
-        hook.pushToHandlers(_options.store, 'loaded', null, transactionId, function () {
-          if (callback) {
-            callback();
-          }
-        });
+      }, {
+        isOffline : true
       });
-    }, {
-      isOffline : true
     });
   }
   catch (e) {
