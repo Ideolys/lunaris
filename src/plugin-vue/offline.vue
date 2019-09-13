@@ -83,6 +83,14 @@
    */
   function loadFilters (storesToLoad) {
     for (var i = 0; i < storesToLoad.length; i++) {
+      if (!storesToLoad[i].filters) {
+        continue;
+      }
+
+      if (!Array.isArray(storesToLoad[i].filters)) {
+        continue;
+      }
+
       for (var j = 0; j < storesToLoad[i].filters.length; j++) {
         lunaris.upsert(storesToLoad[i].filters[j][0], storesToLoad[i].filters[j][1]);
       }
