@@ -181,6 +181,8 @@ describe('lunaris index', () => {
     should(index.invalidations.compute).be.a.Function();
     should(index.invalidations.on).be.ok();
     should(index.invalidations.on).be.a.Function();
+    should(index.invalidations.getAndCompute).be.ok();
+    should(index.invalidations.getAndCompute).be.a.Function();
     should(index.invalidations._invalidations).be.ok();
     should(index.invalidations._invalidations).be.an.Object();
   });

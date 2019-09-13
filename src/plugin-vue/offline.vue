@@ -68,10 +68,41 @@
         </div>
       </div>
     </div>
+
+    <div v-if="currentComponent === 'syncLoad'">
+      <h3 class="title is-3 has-text-light" style="margin-top: 3rem">${Synchronizing data}</h3>
+      <progress style="margin-bottom: .4rem" class="progress is-small" :value="nbStoresLoaded" :max="nbStoresToLoad"></progress>
+    </div>
   </div>
 </template>
 
 <script>
+  /**
+   * Load filters before loading stores
+   * @param {Array} storesToLoad
+   */
+  function loadFilters (storesToLoad) {
+    for (var i = 0; i < storesToLoad.length; i++) {
+      for (var j = 0; j < storesToLoad[i].filters.length; j++) {
+        lunaris.upsert(storesToLoad[i].filters[j][0], storesToLoad[i].filters[j][1]);
+      }
+    }
+  }
+
+  /**
+   * Get hook handler to count loaded events
+   * @param {Object} that = this = vm
+   * @param {String} store ex: '@store'
+   */
+  function getHook(that, store) {
+    var hook = function () {
+      that.nbStoresLoaded++;
+      lunaris.removeHook('loaded' + store, hook);
+    };
+
+    return hook;
+  }
+
   module.exports = {
     el   : '#app',
     name : 'offline-sync',
@@ -91,7 +122,10 @@
         nbOfflineTransactionsPushed        : 0,
         nbOfflineTransactionsPushedInError : 0,
 
-        isOfflineModeActivated : lunaris.offline.isOfflineMode
+        isOfflineModeActivated : lunaris.offline.isOfflineMode,
+
+        nbStoresLoaded : 0,
+        nbStoresToLoad : lunaris._vue._storesToLoad.length
       }
     },
     stores  : ['lunarisOfflineTransactions'],
@@ -156,7 +190,7 @@
         this.nbOfflineTransactionsPushedInError = 0;
         lunaris.offline.isOfflineMode           = false;
         lunaris.offline.pushOfflineHttpTransactions(function () {
-          // add time in purpose to slow down reties
+          // add time to slow down retries
           setTimeout(function () {
             _this.onPushOfflineTransactionEnd();
           }, 300);
@@ -169,23 +203,59 @@
       },
 
       onEnd : function () {
-        lunaris.offline.isOfflineMode = this.isOfflineModeActivated;
-        lunaris._vue._isVueOffline    = false;
-        lunaris._vue._unmountApp(lunaris._vue._vmOffline);
-        lunaris._vue.run();
+        // Wait before unmount offline app
+        setTimeout(function () {
+          lunaris._vue._isVueOffline = false;
+          lunaris._vue._unmountApp(lunaris._vue._vmOffline);
+          lunaris._vue.run();
+        }, 400);
       },
 
+      /**
+       * Sync filters to load
+       */
       onPushOfflineTransactionEnd : function () {
+        lunaris.offline.isOfflineMode = this.isOfflineModeActivated;
+
         if (this.nbOfflineTransactionsPushedInError === 0) {
-          this.currentComponent = 'success';
-          var _this = this;
-          setTimeout(function () {
-            _this.onEnd();
-          }, 400);
+          this.loadStores();
           return;
         }
 
         this.currentComponent = 'error';
+      },
+
+      /**
+       * Load stores for offline mode
+       */
+      loadStores : function () {
+        var storesToLoad = lunaris._vue._storesToLoad;
+
+        if (!storesToLoad.length || !this.isOfflineModeActivated) {
+          return this.onEnd();
+        }
+
+        lunaris.offline.isSynchronizing = true;
+
+        // Compute invalidations before loading stores
+        lunaris.invalidations.getAndCompute();
+
+        // First, init filters
+        loadFilters(storesToLoad);
+        // Then load
+        var _that = this;
+
+        lunaris.begin();
+        for (var i = 0; i < storesToLoad.length; i++) {
+          lunaris.load(storesToLoad[i].store);
+          lunaris.hook('loaded' + storesToLoad[i].store, getHook(this, storesToLoad[i].store));
+        }
+
+        lunaris.commit(function () {
+          lunaris.offline.isSynchronizing = false;
+          _that.currentComponent = 'success';
+          _that.onEnd();
+        });
       }
     }
   };
