@@ -4,6 +4,7 @@ var utils                       = require('../utils.js');
 var storeUtils                  = require('./store.utils.js');
 var collection                  = require('./store.collection.js');
 var transaction                 = require('./store.transaction.js');
+var hook                        = require('./store.hook.js');
 var indexedDB                   = require('../localStorageDriver.js').indexedDB;
 var localStorage                = require('../localStorageDriver.js').localStorage;
 var OPERATIONS                  = utils.OPERATIONS;
@@ -319,6 +320,7 @@ function setOfflineHttpTransaction (storeName, method, request, value) {
   }
   _collection.commit(_version);
   storeUtils.saveState(lunarisExports._stores.lunarisOfflineTransactions, _collection);
+  hook.pushToHandlers(lunarisExports._stores.lunarisOfflineTransactions, 'insert');
 }
 
 /**

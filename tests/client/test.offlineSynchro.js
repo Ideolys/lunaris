@@ -47,6 +47,22 @@ describe('Offline to online synchronisation', () => {
     });
   });
 
+  it('should have sent insert event', done => {
+    lunaris.offline.isOnline = false;
+
+    const hook = (payload) => {
+      should(payload).not.ok();
+      lunaris.removeHook('insert@' + lunaris.utils.offlineStore, hook);
+      done();
+    };
+
+    lunaris.hook('insert@' + lunaris.utils.offlineStore, hook);
+
+    lunaris.insert('@offlineArraySync', {
+      label : 'A'
+    });
+  });
+
   it('should set a date when sync is finished', done => {
     lunaris.offline.isOnline = false;
 
