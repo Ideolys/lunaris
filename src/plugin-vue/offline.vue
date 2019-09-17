@@ -8,7 +8,7 @@
       </div>
       <div class="columns" style="margin-top: 2rem">
         <div class="column is-half">
-          <progress style="margin-bottom: .4rem" class="progress is-small" :value="waitBeforeSync" max="15"></progress>
+          <progress style="margin-bottom: .4rem" class="progress is-small" :value="waitBeforeSync" max="4"></progress>
           <span>{{ waitBeforeSync }}s ${before synchronization}</span>
         </div>
       </div>
@@ -124,7 +124,7 @@
           DELETE : '${delete}'
         },
 
-        waitBeforeSync              : 6,
+        waitBeforeSync              : 4,
         intervalWaitBeforeSync      : null,
 
         nbOfflineTransactionsPushed        : 0,
@@ -133,7 +133,9 @@
         isOfflineModeActivated : lunaris.offline.isOfflineMode,
 
         nbStoresLoaded : 0,
-        nbStoresToLoad : lunaris._vue._storesToLoad.length
+        nbStoresToLoad : lunaris._vue._storesToLoad.length,
+
+        defaultWaitTime : 800
       }
     },
     stores  : ['lunarisOfflineTransactions'],
@@ -142,19 +144,23 @@
       lunaris.get('@lunarisOfflineTransactions');
     },
 
-    mounted : function () {
-      var _this = this;
-      this.intervalWaitBeforeSync = setInterval(function () {
-        _this.waitBeforeSync -= 1;
-
-        if (!_this.waitBeforeSync) {
-          clearInterval(_this.intervalWaitBeforeSync);
-          _this.sync();
-        }
-      }, 1000);
-    },
-
     storeHooks : {
+      'get@lunarisOfflineTransactions' : function (items) {
+        if (!items.length) {
+          this.currentComponent = 'syncLoad';
+          return this.onPushOfflineTransactionEnd();
+        }
+
+        var _this = this;
+        this.intervalWaitBeforeSync = setInterval(function () {
+          _this.waitBeforeSync -= 1;
+
+          if (!_this.waitBeforeSync) {
+            clearInterval(_this.intervalWaitBeforeSync);
+            _this.sync();
+          }
+        }, 1000);
+      },
       'syncSuccess@lunarisOfflineTransactions' : function () {
         this.nbOfflineTransactionsPushed++;
       },
@@ -192,8 +198,8 @@
       },
 
       sync : function () {
-        var _this = this;
-        this.currentComponent = 'sync';
+        var _this                               = this;
+        this.currentComponent                   = 'sync';
         this.nbOfflineTransactionsPushed        = 0;
         this.nbOfflineTransactionsPushedInError = 0;
         lunaris.offline.isOfflineMode           = false;
@@ -201,7 +207,7 @@
           // add time to slow down retries
           setTimeout(function () {
             _this.onPushOfflineTransactionEnd();
-          }, 300);
+          }, this.defaultWaitTime);
         });
       },
 
@@ -211,12 +217,13 @@
       },
 
       onEnd : function () {
+        this.currentComponent = 'success';
         // Wait before unmount offline app
         setTimeout(function () {
           lunaris._vue._isVueOffline = false;
           lunaris._vue._unmountApp(lunaris._vue._vmOffline);
           lunaris._vue.run();
-        }, 400);
+        }, this.defaultWaitTime);
       },
 
       /**
