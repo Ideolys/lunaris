@@ -138,12 +138,7 @@
         defaultWaitTime : 800
       }
     },
-    stores  : ['lunarisOfflineTransactions'],
-    created : function () {
-      lunaris.setPagination('lunarisOfflineTransactions', 0, 500);
-      lunaris.get('@lunarisOfflineTransactions');
-    },
-
+    stores     : ['lunarisOfflineTransactions'],
     storeHooks : {
       'get@lunarisOfflineTransactions' : function (items) {
         if (!items.length) {
@@ -168,6 +163,12 @@
         this.nbOfflineTransactionsPushed++;
         this.nbOfflineTransactionsPushedInError++;
       }
+    },
+
+    mounted : function () {
+      lunaris.invalidate('lunarisOfflineTransactions');
+      lunaris.setPagination('@lunarisOfflineTransactions', 0, 500);
+      lunaris.get('@lunarisOfflineTransactions');
     },
 
     methods : {
