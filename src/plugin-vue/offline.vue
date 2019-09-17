@@ -81,7 +81,8 @@
    * Load filters before loading stores
    * @param {Array} storesToLoad
    */
-  function loadFilters (storesToLoad) {
+  function loadFilters (storesToLoad, callback) {
+    lunaris.begin();
     for (var i = 0; i < storesToLoad.length; i++) {
       if (!storesToLoad[i].filters) {
         continue;
@@ -92,9 +93,15 @@
       }
 
       for (var j = 0; j < storesToLoad[i].filters.length; j++) {
+        if (storesToLoad[i].filters[j][1] === false) {
+          lunaris.clear(storesToLoad[i].filters[j][0]);
+          continue;
+        }
+
         lunaris.upsert(storesToLoad[i].filters[j][0], storesToLoad[i].filters[j][1]);
       }
     }
+    lunaris.commit(callback);
   }
 
   /**
@@ -256,21 +263,21 @@
         // Compute invalidations before loading stores
         lunaris.invalidations.getAndCompute();
 
+          var _that = this;
         // First, init filters
-        loadFilters(storesToLoad);
-        // Then load
-        var _that = this;
+        loadFilters(storesToLoad, function () {
+          // Then load
+          lunaris.begin();
+          for (var i = 0; i < storesToLoad.length; i++) {
+            lunaris.load(storesToLoad[i].store);
+            lunaris.hook('loaded' + storesToLoad[i].store, getHook(this, storesToLoad[i].store));
+          }
 
-        lunaris.begin();
-        for (var i = 0; i < storesToLoad.length; i++) {
-          lunaris.load(storesToLoad[i].store);
-          lunaris.hook('loaded' + storesToLoad[i].store, getHook(this, storesToLoad[i].store));
-        }
-
-        lunaris.commit(function () {
-          lunaris.offline.isSynchronizing = false;
-          _that.currentComponent = 'success';
-          _that.onEnd();
+          lunaris.commit(function () {
+            lunaris.offline.isSynchronizing = false;
+            _that.currentComponent = 'success';
+            _that.onEnd();
+          });
         });
       }
     }
