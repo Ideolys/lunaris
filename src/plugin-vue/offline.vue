@@ -140,7 +140,7 @@
         isOfflineModeActivated : lunaris.offline.isOfflineMode,
 
         nbStoresLoaded : 0,
-        nbStoresToLoad : lunaris._vue._storesToLoad.length,
+        nbStoresToLoad : 0,
 
         defaultWaitTime : 800
       }
@@ -258,19 +258,21 @@
           return this.onEnd();
         }
 
+        this.nbStoresToLoad = storesToLoad.length;
+
         lunaris.offline.isSynchronizing = true;
 
         // Compute invalidations before loading stores
         lunaris.invalidations.getAndCompute();
 
-          var _that = this;
+        var _that = this;
         // First, init filters
         loadFilters(storesToLoad, function () {
           // Then load
           lunaris.begin();
-          for (var i = 0; i < storesToLoad.length; i++) {
+          for (var i = 0; i < _that.nbStoresToLoad; i++) {
             lunaris.load(storesToLoad[i].store);
-            lunaris.hook('loaded' + storesToLoad[i].store, getHook(this, storesToLoad[i].store));
+            lunaris.hook('loaded' + storesToLoad[i].store, getHook(_that, storesToLoad[i].store));
           }
 
           lunaris.commit(function () {
