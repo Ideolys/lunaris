@@ -16,6 +16,8 @@
   - Add `lunaris.load(store)` function. It loads data of a store. The flag `lunaris.offline.isOfflineMode` must equal `true`.
   - Add event `insert` for store `lunarisOfflineTransaction` (i.e. where HTTP transactions are stored in offline/offline mode).
 - Fix:
+  - Improve offline app.
+  - In offline or offline mode, generated urls were not encoded.
 
 ## 1.12.0
 *2019-09-02*
