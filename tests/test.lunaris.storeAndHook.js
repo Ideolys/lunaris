@@ -2366,7 +2366,7 @@ describe('lunaris store', function () {
         let data = lunaris._stores.load.data.getAll();
         should(data).have.lengthOf(1);
         should(data).eql([
-          { id : 1, label : 'a', url : '/load/label/a?search=label:=b', _id : 1, _rowId : 1, _version : [3] }
+          { id : 1, label : 'a', url : '/load/label/a?search=label' + encodeURIComponent(':=') + 'b', _id : 1, _rowId : 1, _version : [3] }
         ]);
         lunaris.removeHook('loaded@load', hook);
         done();

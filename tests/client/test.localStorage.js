@@ -205,7 +205,7 @@ describe('local storage', () => {
 
               should(data).eql([
                 {
-                  hash   : '74c398f07f23c189f48657307604c1ea',
+                  hash   : 'd5956080258f76fc614365474b3fbeae',
                   values : [
                     { id : 2, label : 'B' }
                   ],
@@ -313,7 +313,7 @@ describe('local storage', () => {
 
               should(data).eql([
                 {
-                  hash   : '74c398f07f23c189f48657307604c1ea',
+                  hash   : 'd5956080258f76fc614365474b3fbeae',
                   values : [
                     { id : 2, label : 'B' }
                   ],

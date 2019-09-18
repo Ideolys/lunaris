@@ -6,10 +6,6 @@ var offline        = require('../offline.js');
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
 function fixedEncodeURIComponent (str) {
-  if (!offline.isOnline) {
-    return str;
-  }
-
   return encodeURIComponent(str).replace(/[!'()*]/g, function (c) {
     return '%' + c.charCodeAt(0).toString(16);
   });
