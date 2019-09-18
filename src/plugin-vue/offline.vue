@@ -1,5 +1,5 @@
 <template>
-  <div id="app-lunaris" class="container has-text-light">
+  <div id="app-lunaris" class="container has-text-light" style="padding: 1.5rem;">
 
     <div v-if="currentComponent === 'home'">
       <div>
