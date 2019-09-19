@@ -289,7 +289,7 @@ function load (store, options) {
 /**
  * Load all data from a store
  * @param {String} store ex: '@store'
- * @param {Object} options
+ * @param {Object} options { limit : Int }
  * @param {Int} transactionId internal use for transaction
  * @param {Function} callback internal use for transaction
  */
@@ -309,6 +309,10 @@ function _load (store, options, transactionId, callback) {
       throw new Error('The store is local!');
     }
 
+    if (options == null) {
+      options = {};
+    }
+
     _options.store.paginationCurrentPage = 1;
     _options.store.paginationOffset      = 0;
     _options.store.paginationLimit       = 50;
@@ -318,7 +322,11 @@ function _load (store, options, transactionId, callback) {
     indexedDB.clear(_options.store.name);
 
     storeUtils.saveState(_options.store, _options.collection, function () {
-      var _request = url.create(_options.store, 'GET', null, false).request;
+      if (options.limit) {
+        _options.store.paginationLimit = options.limit;
+      }
+
+      var _request = url.create(_options.store, 'GET', null, !!options.limit).request;
 
       http.request('GET', _request, null, function (err, data) {
         if (err) {

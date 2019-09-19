@@ -2274,6 +2274,25 @@ describe('lunaris store', function () {
       lunaris.load('@load');
     });
 
+    it('should load store & emit loaded event with option limit = 3', done => {
+      lunaris._stores['load'] = initStore('load');
+
+      const hook = () => {
+        let data = lunaris._stores.load.data.getAll();
+        should(data).have.lengthOf(3);
+        should(data).eql([
+          { id : 1, label : 'a', header : 'ok', _id : 1, _rowId : 1, _version : [1] },
+          { id : 2, label : 'b', header : 'ok', _id : 2, _rowId : 2, _version : [1] },
+          { id : 3, label : 'c', header : 'ok', _id : 3, _rowId : 3, _version : [1] }
+        ]);
+        lunaris.removeHook('loaded@load', hook);
+        done();
+      };
+
+      lunaris.hook('loaded@load', hook);
+      lunaris.load('@load', { limit : 3 });
+    });
+
     it('should use filters : required', done => {
       lunaris._stores['load.filter.a']               = initStore('load.filter.a');
       lunaris._stores['load.filter.a'].isLocal       = true;
@@ -6013,6 +6032,19 @@ function _startServer (callback) {
   });
 
   server.get('/load', (req, res) => {
+    if (req.query.limit === '3' && req.query.offset === '0') {
+      res.json({
+        success : true,
+        error   : null,
+        message : null,
+        data    : [
+          { id : 1, label : 'a', header : req.headers['is-offline'] ? 'ok' : 'nok' },
+          { id : 2, label : 'b', header : req.headers['is-offline'] ? 'ok' : 'nok' },
+          { id : 3, label : 'c', header : req.headers['is-offline'] ? 'ok' : 'nok' }
+        ]
+      });
+    }
+
     res.json({
       success : true,
       error   : null,
