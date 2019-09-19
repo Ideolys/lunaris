@@ -5664,6 +5664,22 @@ describe('Schema', () => {
 
       baseObj.label = 'b';
       should(clonedObj.label).not.eql(baseObj.label);
+
+      should(mapDescriptor.clone({
+        id    : false,
+        label : null
+      })).eql({
+        id    : false,
+        label : null
+      });
+
+      should(mapDescriptor.clone({
+        id    : 1,
+        label : undefined
+      })).eql({
+        id    : 1,
+        label : undefined
+      });
     });
 
     it('should generate clone function for a simple map : array map', () => {
@@ -5688,6 +5704,22 @@ describe('Schema', () => {
 
       baseObj[0].label = 'b';
       should(clonedObj[0].label).not.eql(baseObj[0].label);
+
+      should(mapDescriptor.clone([{
+        id    : false,
+        label : null
+      }])).eql([{
+        id    : false,
+        label : null
+      }]);
+
+      should(mapDescriptor.clone([{
+        id    : 1,
+        label : undefined
+      }])).eql([{
+        id    : 1,
+        label : undefined
+      }]);
     });
 
     it('should generate clone function for a simple map with mutiple items : array map', () => {
@@ -5710,6 +5742,16 @@ describe('Schema', () => {
         { id : 1, label : 'a' },
         { id : 2, label : 'b' },
         { id : 3, label : 'c' },
+      ]);
+
+      should(mapDescriptor.clone([
+        { id : 1, label : undefined },
+        { id : 2, label : false     },
+        { id : 3, label : 0         },
+      ])).eql([
+        { id : 1, label : undefined },
+        { id : 2, label : false     },
+        { id : 3, label : 0         },
       ]);
     });
 
@@ -5771,6 +5813,65 @@ describe('Schema', () => {
 
       baseObj[0].category.id = 1;
       should(clonedObj[0].category.id).not.eql(baseObj[0].category.id);
+
+
+      should(mapDescriptor.clone([
+        { id : 1, label : 'a', category : { id : 1, label : 'b' } },
+        { id : 2, label : 'b', category : null                    },
+        { id : 3, label : 'c', category : {}                      },
+        { id : 3, label : 'd', category : undefined               },
+      ])).eql([
+        { id : 1, label : 'a', category : { id : 1, label : 'b' } },
+        { id : 2, label : 'b', category : null                    },
+        { id : 3, label : 'c', category : {}                      },
+        { id : 3, label : 'd', category : undefined               },
+      ]);
+    });
+
+    it('should generate clone function for a map with 2 sub objects : array map', () => {
+      let map = [{
+        id       : ['<<int>>'],
+        category : ['object', {
+          id : ['int'],
+        }],
+        category2 : ['object', {
+          id : ['int'],
+        }]
+      }];
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      should(mapDescriptor.clone([
+        { id : 1, category : { id : 1}, category2 : { id : 2 } },
+        { id : 1, category : { id : 1}, category2 : null       },
+        { id : 1, category : null     , category2 : { id : 2 } },
+        { id : 1, category : { id : 1}, category2 : undefined  },
+        { id : 1, category : undefined, category2 : { id : 2 } },
+      ])).eql([
+        { id : 1, category : { id : 1}, category2 : { id : 2 } },
+        { id : 1, category : { id : 1}, category2 : null       },
+        { id : 1, category : null     , category2 : { id : 2 } },
+        { id : 1, category : { id : 1}, category2 : undefined  },
+        { id : 1, category : undefined, category2 : { id : 2 } },
+      ]);
+    });
+
+    it('should generate clone function for a map with 2 sub array : array map', () => {
+      let map = [{
+        id       : ['<<int>>'],
+        category : ['array', {
+          id : ['<<int>>'],
+        }],
+        category2 : ['array', {
+          id : ['<<int>>'],
+        }]
+      }];
+
+      let mapDescriptor = schema.analyzeDescriptor(map, 'test');
+
+      should(mapDescriptor.clone([
+        { id : 1, category : { id : 1}, category2 : { id : 2 } }
+      ]));
     });
 
     it('should generate clone function for a map with sub array : array map', () => {
@@ -5807,6 +5908,20 @@ describe('Schema', () => {
       baseObj[0].category[0].id = 3;
 
       should(clonedObj[0].category[0].id).not.eql(baseObj[0].category[0].id);
+
+      should(mapDescriptor.clone([
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' }]                          },
+        { id : 2, label : 'b', category : null                                               },
+        { id : 3, label : 'c', category : []                                                 },
+        { id : 3, label : 'd', category : undefined                                          },
+        { id : 3, label : 'd', category : [{ id : 1, label : 'b' }, { id : 2, label : 'c' }] },
+      ])).eql([
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' }]                          },
+        { id : 2, label : 'b', category : null                                               },
+        { id : 3, label : 'c', category : []                                                 },
+        { id : 3, label : 'd', category : undefined                                          },
+        { id : 3, label : 'd', category : [{ id : 1, label : 'b' }, { id : 2, label : 'c' }] },
+      ]);
     });
 
     it('should generate clone function for a map with sub object in sub object : array map', () => {
@@ -5850,6 +5965,24 @@ describe('Schema', () => {
 
       baseObj[0].category.sub.id = 2;
       should(clonedObj[0].category.sub.id).not.eql(baseObj[0].category.sub.id);
+
+      should(mapDescriptor.clone([
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : { id : 1 }} },
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : null}       },
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : {}}         },
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : undefined}  },
+        { id : 2, label : 'b', category : null                                      },
+        { id : 3, label : 'c', category : {}                                        },
+        { id : 3, label : 'd', category : undefined                                 },
+      ])).eql([
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : { id : 1 }} },
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : null}       },
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : {}}         },
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : undefined}  },
+        { id : 2, label : 'b', category : null                                      },
+        { id : 3, label : 'c', category : {}                                        },
+        { id : 3, label : 'd', category : undefined                                 },
+      ]);
     });
 
     it('should generate clone function for a map with sub object in sub array : array map', () => {
@@ -5889,6 +6022,34 @@ describe('Schema', () => {
       baseObj[0].category[0].sub.id = 3;
 
       should(clonedObj[0].category[0].sub.id).not.eql(baseObj[0].category[0].sub.id);
+
+      should(mapDescriptor.clone([
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : null      }]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : undefined }]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : { id : 2 }}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : null}      ]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : {}}        ]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : undefined} ]},
+        { id : 2, label : 'b', category : null                                      },
+        { id : 3, label : 'c', category : []                                        },
+        { id : 3, label : 'd', category : undefined                                 },
+      ])).eql([
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : null      }]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : undefined }]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : { id : 2 }}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : null}      ]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : {}}        ]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : undefined} ]},
+        { id : 2, label : 'b', category : null                                      },
+        { id : 3, label : 'c', category : []                                        },
+        { id : 3, label : 'd', category : undefined                                 },
+      ]);
     });
 
     it('should generate clone function for a map with sub array in sub array : array map', () => {
@@ -5928,6 +6089,36 @@ describe('Schema', () => {
       baseObj[0].category[0].sub[0].id = 3;
 
       should(clonedObj[0].category[0].sub[0].id).not.eql(baseObj[0].category[0].sub[0].id);
+
+      should(mapDescriptor.clone([
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : null      }]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : undefined }]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : [{ id : 2 }]}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : [{ id : 2 }, { id : 3 }, { id : 4 }]}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : null}      ]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : []}        ]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : undefined} ]},
+        { id : 2, label : 'b', category : null                                      },
+        { id : 3, label : 'c', category : []                                        },
+        { id : 3, label : 'd', category : undefined                                 }
+      ])).eql([
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : null      }]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : undefined }]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : [{ id : 2 }]}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : [{ id : 2 }, { id : 3 }, { id : 4 }]}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : null}      ]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : []}        ]},
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : undefined} ]},
+        { id : 2, label : 'b', category : null                                      },
+        { id : 3, label : 'c', category : []                                        },
+        { id : 3, label : 'd', category : undefined                                 }
+      ]);
     });
 
     it('should generate clone function for a map with sub object : object map', () => {
@@ -5964,6 +6155,32 @@ describe('Schema', () => {
 
       baseObj.category.id = 1;
       should(clonedObj.category.id).not.eql(baseObj.category.id);
+
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : { id : 1, label : 'b' } }
+      )).eql(
+        { id : 1, label : 'a', category : { id : 1, label : 'b' } }
+      );
+      should(mapDescriptor.clone(
+        { id : 2, label : 'b', category : null }
+      )).eql(
+        { id : 2, label : 'b', category : null }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'c', category : {} }
+      )).eql(
+        { id : 3, label : 'c', category : {} }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'd', category : undefined }
+      )).eql(
+        { id : 3, label : 'd', category : undefined }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'd', category : { id : 1, label : 'b' } }
+      )).eql(
+        { id : 3, label : 'd', category : { id : 1, label : 'b' } }
+      );
     });
 
     it('should generate clone function for a map with sub array : object map', () => {
@@ -6000,6 +6217,27 @@ describe('Schema', () => {
       baseObj.category[0].id = 3;
 
       should(clonedObj.category[0].id).not.eql(baseObj.category[0].id);
+
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' }] }
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' }] }
+      );
+      should(mapDescriptor.clone(
+        { id : 2, label : 'b', category : null }
+      )).eql(
+        { id : 2, label : 'b', category : null }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'c', category : [] }
+      )).eql(
+        { id : 3, label : 'c', category : [] }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'd', category : undefined }
+      )).eql(
+        { id : 3, label : 'd', category : undefined }
+      );
     });
 
     it('should generate clone function for a map with sub object in sub object : object map', () => {
@@ -6043,6 +6281,42 @@ describe('Schema', () => {
 
       baseObj.category.sub.id = 2;
       should(clonedObj.category.sub.id).not.eql(baseObj.category.sub.id);
+
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : { id : 1 }} }
+      )).eql(
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : { id : 1 }} }
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : null}       }
+      )).eql(
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : null}       }
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : {}}         }
+      )).eql(
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : {}}         }
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : undefined}  }
+      )).eql(
+        { id : 1, label : 'a', category : { id : 1, label : 'b' , sub : undefined}  }
+      );
+      should(mapDescriptor.clone(
+        { id : 2, label : 'b', category : null                                      }
+      )).eql(
+        { id : 2, label : 'b', category : null                                      }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'c', category : {}                                        }
+      )).eql(
+        { id : 3, label : 'c', category : {}                                        }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'd', category : undefined                                 }
+      )).eql(
+        { id : 3, label : 'd', category : undefined                                 }
+      );
     });
 
     it('should generate clone function for a map with sub object in sub array : object map', () => {
@@ -6082,6 +6356,62 @@ describe('Schema', () => {
       baseObj.category[0].sub.id = 3;
 
       should(clonedObj.category[0].sub.id).not.eql(baseObj.category[0].sub.id);
+
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : null      }]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : null      }]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : undefined }]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : undefined }]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : { id : 2 }}]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}, { id : 1, label : 'b' , sub : { id : 2 }}]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : { id : 1 }}]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : null}      ]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : null}      ]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : {}}        ]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : {}}        ]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : undefined} ]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : undefined} ]}
+      );
+      should(mapDescriptor.clone(
+        { id : 2, label : 'b', category : null                                      }
+      )).eql(
+        { id : 2, label : 'b', category : null                                      }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'c', category : []                                        }
+      )).eql(
+        { id : 3, label : 'c', category : []                                        }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'd', category : undefined                                 }
+      )).eql(
+        { id : 3, label : 'd', category : undefined                                 }
+      );
     });
 
     it('should generate clone function for a map with sub array in sub array : object map', () => {
@@ -6121,6 +6451,67 @@ describe('Schema', () => {
       baseObj.category[0].sub[0].id = 3;
 
       should(clonedObj.category[0].sub[0].id).not.eql(baseObj.category[0].sub[0].id);
+
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : null      }]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : null      }]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : undefined }]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : undefined }]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : [{ id : 2 }]}]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : [{ id : 2 }]}]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : [{ id : 2 }, { id : 3 }, { id : 4 }]}]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}, { id : 1, label : 'b' , sub : [{ id : 2 }, { id : 3 }, { id : 4 }]}]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : [{ id : 1 }]}]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : null}      ]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : null}      ]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : []}        ]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : []}        ]}
+      );
+      should(mapDescriptor.clone(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : undefined} ]}
+      )).eql(
+        { id : 1, label : 'a', category : [{ id : 1, label : 'b' , sub : undefined} ]}
+      );
+      should(mapDescriptor.clone(
+        { id : 2, label : 'b', category : null                                      }
+      )).eql(
+        { id : 2, label : 'b', category : null                                      }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'c', category : []                                        }
+      )).eql(
+        { id : 3, label : 'c', category : []                                        }
+      );
+      should(mapDescriptor.clone(
+        { id : 3, label : 'd', category : undefined                                 }
+      )).eql(
+        { id : 3, label : 'd', category : undefined                                 }
+      );
     });
 
     it('should not clone a function', () => {
