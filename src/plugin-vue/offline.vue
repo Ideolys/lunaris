@@ -271,7 +271,7 @@
           // Then load
           lunaris.begin();
           for (var i = 0; i < _that.nbStoresToLoad; i++) {
-            lunaris.load(storesToLoad[i].store);
+            lunaris.load(storesToLoad[i].store, storesToLoad[i].options);
             lunaris.hook('loaded' + storesToLoad[i].store, getHook(_that, storesToLoad[i].store));
           }
 
