@@ -6246,6 +6246,7 @@ describe('Lunaris hooks', () => {
       should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(2);
       lunaris._removeAllHooks();
       should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store1'].realHooks.get).be.an.Array().and.have.lengthOf(0);
       delete lunaris._stores['store1'];
     });
 
@@ -6265,8 +6266,11 @@ describe('Lunaris hooks', () => {
       should(lunaris._stores['store3'].hooks.get).be.an.Array().and.have.lengthOf(2);
       lunaris._removeAllHooks();
       should(lunaris._stores['store1'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store1'].realHooks.get).be.an.Array().and.have.lengthOf(0);
       should(lunaris._stores['store2'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store2'].realHooks.get).be.an.Array().and.have.lengthOf(0);
       should(lunaris._stores['store3'].hooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].realHooks.get).be.an.Array().and.have.lengthOf(0);
       delete lunaris._stores['store1'];
       delete lunaris._stores['store2'];
       delete lunaris._stores['store3'];
@@ -6300,6 +6304,12 @@ describe('Lunaris hooks', () => {
       should(lunaris._stores['store3'].hooks.get).be.an.Array().and.have.lengthOf(0);
       should(lunaris._stores['store3'].hooks.del).be.an.Array().and.have.lengthOf(0);
       should(lunaris._stores['store3'].hooks.error).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store1'].realHooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store1'].realHooks.update).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store2'].realHooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].realHooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].realHooks.del).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].realHooks.error).be.an.Array().and.have.lengthOf(0);
       delete lunaris._stores['store1'];
       delete lunaris._stores['store2'];
       delete lunaris._stores['store3'];
@@ -6333,6 +6343,12 @@ describe('Lunaris hooks', () => {
       should(lunaris._stores['store3'].hooks.get).be.an.Array().and.have.lengthOf(1);
       should(lunaris._stores['store3'].hooks.del).be.an.Array().and.have.lengthOf(0);
       should(lunaris._stores['store3'].hooks.error).be.an.Array().and.have.lengthOf(2);
+      should(lunaris._stores['store1'].realHooks.get).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store1'].realHooks.update).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store2'].realHooks.get).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].realHooks.get).be.an.Array().and.have.lengthOf(1);
+      should(lunaris._stores['store3'].realHooks.del).be.an.Array().and.have.lengthOf(0);
+      should(lunaris._stores['store3'].realHooks.error).be.an.Array().and.have.lengthOf(2);
       delete lunaris._stores['store1'];
       delete lunaris._stores['store2'];
       delete lunaris._stores['store3'];
