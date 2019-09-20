@@ -21,12 +21,12 @@ function log (strings, msg, baseMessage, fn) {
     strings = [strings];
   }
 
-  var _message = baseMessage + ' ' + strings.join(' ');
+  var _message = baseMessage + strings.join(' ');
   if (!msg) {
     return fn(_message);
   }
 
-  fn(baseMessage + ' ' + strings.join(' '), msg);
+  fn(baseMessage + strings.join(' '), msg);
 }
 
 var isDebug = false;
