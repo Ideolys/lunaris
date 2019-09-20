@@ -68,7 +68,7 @@ function _getCache (store, collection, request, transactionId, callback, nextGet
   var _values      = [];
 
   if (_cacheValues) {
-    logger.debug('CACHE', decodeURIComponent(request.request));
+    logger.debug('[' + store.name + '][Cache] get', decodeURIComponent(request.request));
 
     if (typeof _cacheValues === 'object') {
       storeUtils.saveState(store, collection);

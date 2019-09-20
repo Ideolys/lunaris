@@ -72,14 +72,14 @@ lunaris._vue = {
 
         if (_stores[i].name !== 'lunarisErrors') {
           if (lunaris._stores[_stores[i]].isSucessNotification !== false) {
-            lunaris.hook.apply(null, ['success@' + _stores[i], _successFn]);
+            lunaris.hook.apply(null, ['success@' + _stores[i], _successFn, false, true]);
           }
 
           if (lunaris._stores[_stores[i]].isErrorNotification !== false) {
-            lunaris.hook.apply(null, ['errorHttp@' + _stores[i], _errorFn]);
+            lunaris.hook.apply(null, ['errorHttp@' + _stores[i], _errorFn, false, true]);
           }
 
-          lunaris.hook.apply(null, ['error@'     + _stores[i], _errorFn]);
+          lunaris.hook.apply(null, ['error@'     + _stores[i], _errorFn, false, true]);
         }
       }
     }

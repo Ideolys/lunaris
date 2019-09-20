@@ -68,6 +68,12 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   var _computedsFn              = computedsFn;
   var _storeName                = storeName;
 
+  // only for transactions
+  var _locaDatabaseActions = {
+    upsert : [],
+    del    : []
+  };
+
   /**
    * id : [[id], [_id]]
    * references : { storeN : [[_ids refrence store], [_ids local collection]] }
@@ -76,6 +82,19 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     id         : [[], []],
     references : {}
   };
+
+  /**
+   * Add peristence action to queue if in transaction or send to indexeddb if not
+   * @param {Function} actionFn
+   * @param {Object} data
+   */
+  function _addActionToLocalDatabase (actionFn, data) {
+    if (_transactionVersionNumber == null) {
+      return actionFn(_storeName, data);
+    }
+
+    _locaDatabaseActions[actionFn.name].push(data);
+  }
 
   /**
    * Add transaction to the transactions
@@ -232,7 +251,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       }
       value._rowId = _currentRowId++;
       _setReferencedValues(value);
-      localDatabase.upsert(_storeName, value);
+      _addActionToLocalDatabase(localDatabase.upsert, value);
       return _data.push(value);
     }
 
@@ -247,14 +266,14 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
 
     if (isFromIndex || !_getPrimaryKey) {
       value._rowId = _currentRowId++;
-      localDatabase.upsert(_storeName, value);
+      _addActionToLocalDatabase(localDatabase.upsert, value);
       return _data.push(value);
     }
 
     _id = _getPrimaryKey(value);
     if (!(_id !== null && value._id !== undefined)) {
       value._rowId = _currentRowId++;
-      localDatabase.upsert(_storeName, value);
+      _addActionToLocalDatabase(localDatabase.upsert, value);
       return _data.push(value);
     }
 
@@ -271,7 +290,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     index.insertAt(_indexes.id[1], _search.index, value._id);
     value._rowId = _currentRowId++;
     _data.push(value);
-    localDatabase.upsert(_storeName, value);
+    _addActionToLocalDatabase(localDatabase.upsert, value);
   }
 
   /**
@@ -350,19 +369,19 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
         //   - If insert / update : the updated row will be merged with the inserted one
         //   - If Insert / delete : the inserted row will be removed
         if (_lowerVersion === _version && _upperVersion === _version && _data[i]._version[1] >= 0) {
-          localDatabase.del(_storeName, _data[i]._rowId);
+          _addActionToLocalDatabase(localDatabase.del, _data[i]._rowId);
           utils.merge(_data[i], _objToUpdate);
           _data[i]._version.pop();
           if (isRemove) {
-            localDatabase.del(_storeName, _data[i]._rowId);
+            _addActionToLocalDatabase(localDatabase.del, _data[i]._rowId);
             _data.splice(i, 1);
             return;
           }
-          localDatabase.upsert(_storeName, _data[i]);
+          _addActionToLocalDatabase(localDatabase.upsert, _data[i]);
           return _data[i];
         }
         else {
-          localDatabase.upsert(_storeName, _data[i]);
+          _addActionToLocalDatabase(localDatabase.upsert, _data[i]);
         }
 
         if (!isRemove) {
@@ -488,6 +507,10 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    */
   function begin () {
     _transactions[currentVersionNumber] = [];
+    _locaDatabaseActions = {
+      upsert : [],
+      del    : []
+    };
     return currentVersionNumber;
   }
 
@@ -536,6 +559,23 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
           _res.push(_remove);
         }
       }
+    }
+
+    if (_locaDatabaseActions.upsert.length) {
+      var _processTimeUpsert = utils.getProcessTime();
+      var _nbObjects         = _locaDatabaseActions.upsert.length;
+      localDatabase.upsert(_storeName, _locaDatabaseActions.upsert, function () {
+        logger.debug('[' + _storeName + '][Collection] Update IndexedDB (upsert) in ' + utils.getProcessTime(_processTimeUpsert) + 'ms, ' + _nbObjects + ' lines');
+      });
+      _locaDatabaseActions.upsert = [];
+    }
+    if (_locaDatabaseActions.del.length) {
+      var _processTimeDel = utils.getProcessTime();
+      var _nbObjects      = _locaDatabaseActions.del.length;
+      localDatabase.del(_storeName, _locaDatabaseActions.del, function () {
+        logger.debug('[' + _storeName + '][Collection] Update IndexedDB (delete) in ' + utils.getProcessTime(_processTimeDel) + 'ms, ' + _nbObjects + ' lines');
+      });
+      _locaDatabaseActions.del = [];
     }
 
     _transactions[versionNumber] = _transactionVersionNumber;

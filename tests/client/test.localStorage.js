@@ -1635,31 +1635,36 @@ describe('local storage', () => {
       _collection.add({ id : 10 }, _version);
       _collection.commit(_version);
 
-      lunaris._indexedDB.getAll('test', (err, data) => {
-        if (err) {
-          done(err);
-        }
+      setTimeout(() => {
+        lunaris._indexedDB.getAll('test', (err, data) => {
+          if (err) {
+            done(err);
+          }
 
-        should(data).be.an.Array().and.have.lengthOf(1);
-        should(data[0]).eql({ id : 10, _id : 1, _rowId : 2, _version : [1] });
-        done();
-      });
+          should(data).be.an.Array().and.have.lengthOf(1);
+          should(data[0]).eql({ id : 10, _id : 1, _rowId : 2, _version : [1] });
+          done();
+        });
+      }, 20);
     });
 
     it('should not duplicate values items not in the same transaction', done => {
       var _collection = lunaris._collection(getPrimaryKey, null, null, null, null, 'test', null, lunaris.utils.clone);
       _collection.add({ id : 10, label : 'A' });
       _collection.add({ id : 10, label : 'B' });
-      lunaris._indexedDB.getAll('test', (err, data) => {
-        if (err) {
-          done(err);
-        }
 
-        should(data).be.an.Array().and.have.lengthOf(2);
-        should(data[0]).eql({ id : 10, label : 'A', _id : 1, _rowId : 1, _version : [1, 3] });
-        should(data[1]).eql({ id : 10, label : 'B', _id : 1, _rowId : 2, _version : [3] });
-        done();
-      });
+      setTimeout(() => {
+        lunaris._indexedDB.getAll('test', (err, data) => {
+          if (err) {
+            done(err);
+          }
+
+          should(data).be.an.Array().and.have.lengthOf(2);
+          should(data[0]).eql({ id : 10, label : 'A', _id : 1, _rowId : 1, _version : [1, 3] });
+          should(data[1]).eql({ id : 10, label : 'B', _id : 1, _rowId : 2, _version : [3] });
+          done();
+        });
+      }, 20);
     });
 
     it('should not add values if insert / delete in the same transaction', done => {
@@ -1668,14 +1673,17 @@ describe('local storage', () => {
       _collection.add({ id : 10 }, _version);
       _collection.remove({ id : 10 }, _version, true);
       _collection.commit(_version);
-      lunaris._indexedDB.getAll('test', (err, data) => {
-        if (err) {
-          done(err);
-        }
 
-        should(data).be.an.Array().and.have.lengthOf(0);
-        done();
-      });
+      setTimeout(() => {
+        lunaris._indexedDB.getAll('test', (err, data) => {
+          if (err) {
+            done(err);
+          }
+
+          should(data).be.an.Array().and.have.lengthOf(0);
+          done();
+        });
+      }, 20);
     });
   });
 });

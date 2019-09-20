@@ -30,7 +30,7 @@ function log (strings, msg, baseMessage, fn) {
 }
 
 var isDebug = false;
-var logger = {
+var logger  = {
   get isDebug () {
     return isDebug;
   },

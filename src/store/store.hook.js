@@ -174,7 +174,7 @@ function pushToHandlers (store, hook, payload, transactionId, callback) {
     return callback();
   }
 
-  logger.debug('store "@' + store.name + '" emits -> ' + hook);
+  logger.debug('[' + store.name + '] emits -> ' + hook);
 
   if (transactionId && (hook === 'error' || hook === 'errorHttp')) {
     transaction.addErrorEvent(transactionId);

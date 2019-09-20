@@ -162,40 +162,31 @@ function _add (key, value, callback) {
     return callback ();
   }
 
-  var _transaction;
   try {
-    _transaction = database.transaction([key], 'readwrite');
+    var _transaction = database.transaction([key], 'readwrite');
+
+    _transaction.onerror = function (e) {
+      callback(e);
+    };
+    _transaction.onsuccess = function () {
+      callback();
+    };
+
+    var _objectStore = _transaction.objectStore(key);
+
+    if (!Array.isArray(value)) {
+      value = [value];
+    }
+
+    for (var i = 0, len = value.length; i < len; i++) {
+      _objectStore.add(value[i]);
+    }
+
+    _transaction.commit();
   }
   catch (e) {
     return callback(e);
   }
-  var _objectStore = _transaction.objectStore(key);
-
-  if (!Array.isArray(value)) {
-    value = [value];
-  }
-
-  var _cursor = 0;
-  function _next () {
-    var _request = _objectStore.add(value[_cursor]);
-    _cursor++;
-    _request.onsuccess = function onsuccess () {
-      if (_cursor === value.length) {
-        return callback();
-      }
-
-      _next();
-    };
-    _request.onerror = function onerror (e) {
-      if (_cursor === value.length) {
-        return callback(e);
-      }
-
-      _next();
-    };
-  }
-
-  _next();
 }
 
 /**
@@ -209,40 +200,31 @@ function _upsert (key, value, callback) {
     return callback();
   }
 
-  var _transaction;
   try {
-    _transaction = database.transaction([key], 'readwrite');
+    var _transaction = database.transaction([key], 'readwrite');
+
+    _transaction.onerror = function (e) {
+      callback(e);
+    };
+    _transaction.onsuccess = function () {
+      callback();
+    };
+
+    var _objectStore = _transaction.objectStore(key);
+
+    if (!Array.isArray(value)) {
+      value = [value];
+    }
+
+    for (var i = 0, len = value.length; i < len; i++) {
+      _objectStore.put(value[i]);
+    }
+
+    _transaction.commit();
   }
   catch (e) {
     return callback(e);
   }
-  var _objectStore = _transaction.objectStore(key);
-
-  if (!Array.isArray(value)) {
-    value = [value];
-  }
-
-  var _cursor = 0;
-  function _next () {
-    var _request = _objectStore.put(value[_cursor]);
-    _cursor++;
-    _request.onsuccess = function onsuccess () {
-      if (_cursor === value.length) {
-        return callback();
-      }
-
-      _next();
-    };
-    _request.onerror = function onerror (e) {
-      if (_cursor === value.length) {
-        return callback(e);
-      }
-
-      _next();
-    };
-  }
-
-  _next();
 }
 
 /**
@@ -256,41 +238,31 @@ function _del (key, value, callback) {
     return callback();
   }
 
-  var _transaction;
   try {
-    _transaction = database.transaction([key], 'readwrite');
+    var _transaction = database.transaction([key], 'readwrite');
+
+    _transaction.onerror = function (e) {
+      callback(e);
+    };
+    _transaction.onsuccess = function () {
+      callback();
+    };
+
+    var _objectStore = _transaction.objectStore(key);
+
+    if (!Array.isArray(value)) {
+      value = [value];
+    }
+
+    for (var i = 0, len = value.length; i < len; i++) {
+      _objectStore.delete(value[i]);
+    }
+
+    _transaction.commit();
   }
   catch (e) {
     return callback(e);
   }
-
-  var _objectStore = _transaction.objectStore(key);
-
-  if (!Array.isArray(value)) {
-    value = [value];
-  }
-
-  var _cursor = 0;
-  function _next () {
-    var _request = _objectStore.delete(value[_cursor]);
-    _cursor++;
-    _request.onsuccess = function onsuccess () {
-      if (_cursor === value.length) {
-        return callback();
-      }
-
-      _next();
-    };
-    _request.onerror = function onerror (e) {
-      if (_cursor === value.length) {
-        return callback(e);
-      }
-
-      _next();
-    };
-  }
-
-  _next();
 }
 
 /**

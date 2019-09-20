@@ -1,3 +1,5 @@
+var isBrowser = require('./exports.js').isBrowser;
+
 /**
  * Clone a value
  * @param {*} value
@@ -437,3 +439,18 @@ exports.queue = function queue (items, handler, done) {
 
   next();
 };
+
+/**
+ * Get process time in ms
+ */
+exports.getProcessTime = function getProcessTime (before) {
+  if (!isBrowser) {
+    return 0;
+  }
+
+  if (!before) {
+    return window.performance.now();
+  }
+
+  return window.performance.now() - before;
+}
