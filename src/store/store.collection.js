@@ -670,21 +670,16 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     },
 
     /**
-     * Set index id value
-     * @param {Array} value
+     * Remove index id value
+     * - when offline, the PK is generted from _id
+     * - the collection ensures to not duplicate PK
      */
-    setIndexIdValue : function (key, value) {
-      if (key === null || key === undefined || value === null || value === undefined) {
+    removeIndexIdValue : function (key) {
+      if (key == null) {
         return;
       }
 
-      var _search = index.binarySearch(_indexes.id[1], key);
-
-      if (!_search.found) {
-        return;
-      }
-
-      _indexes.id[0][_search.index] = value;
+      _removeFromIndex(key, '_' + key);
     },
 
     /**

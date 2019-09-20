@@ -19,14 +19,11 @@ sync.setImportFunction(upsert);
 /**
  * Update collection index id value
  * When offline push, we must replace offline generated primary key by new one returned by server
- * @param {Object} store
  * @param {Object} collection
  * @param {Object} value
  */
-function _updateCollectionIndexId (store, collection, value) {
-  var pkFn = store.getPrimaryKeyFn || storeUtils.getPrimaryKeyValue;
-
-  collection.setIndexIdValue(value._id, pkFn(value));
+function _updateCollectionIndexId (collection, value) {
+  collection.removeIndexIdValue(value._id);
 }
 
 /**
@@ -216,7 +213,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
       collection.upsert(value, _version);
 
       if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
-        _updateCollectionIndexId(store, collection, value);
+        _updateCollectionIndexId(collection, value);
       }
 
       value = collection.commit(_version);
@@ -238,7 +235,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
               collection.upsert(value[i], _version);
 
               if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
-                _updateCollectionIndexId(store, collection, value[i]);
+                _updateCollectionIndexId(collection, value[i]);
               }
             }
           }
@@ -248,7 +245,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
           collection.upsert(value[i], _version);
 
           if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
-            _updateCollectionIndexId(store, collection, value[i]);
+            _updateCollectionIndexId(collection, value[i]);
           }
         }
       }

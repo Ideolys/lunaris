@@ -68,6 +68,8 @@ function _getCache (store, collection, request, transactionId, callback, nextGet
   var _values      = [];
 
   if (_cacheValues) {
+    logger.debug('CACHE', decodeURIComponent(request.request));
+
     if (typeof _cacheValues === 'object') {
       storeUtils.saveState(store, collection);
       _values = _transformGetCache(collection, store.clone(_cacheValues));

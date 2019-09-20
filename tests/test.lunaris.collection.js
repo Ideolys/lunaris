@@ -1567,21 +1567,21 @@ describe('lunaris internal collection', () => {
 
   describe('setIndexIdValue()', () => {
     it('should be defined', () => {
-      should(collection(null, false, null, null, null, null, null, utils.clone).setIndexIdValue).be.ok();
+      should(collection(null, false, null, null, null, null, null, utils.clone).removeIndexIdValue).be.ok();
     });
 
-    it('should not set index id value', () => {
+    it('should not crash if there is no value', () => {
       var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.getIndexId()).eql([
         [], []
       ]);
-      _collection.setIndexIdValue(1, 2);
+      _collection.removeIndexIdValue(1);
       should(_collection.getIndexId()).eql([
         [], []
       ]);
     });
 
-    it('should set index id value', () => {
+    it('should remove index id value', () => {
       var _collection = collection((item) => {
         return item.id;
       });
@@ -1595,13 +1595,13 @@ describe('lunaris internal collection', () => {
         ['_1'], [1]
       ]);
 
-      _collection.setIndexIdValue(1, 2);
+      _collection.removeIndexIdValue(1);
       should(_collection.getIndexId()).eql([
-        [2], [1]
+        [], []
       ]);
     });
 
-    it('should set index id value = 0', () => {
+    it('should remove index id value = 0', () => {
       var _collection = collection((item) => {
         return item.id;
       });
@@ -1615,13 +1615,13 @@ describe('lunaris internal collection', () => {
         ['_1'], [1]
       ]);
 
-      _collection.setIndexIdValue(1, 0);
+      _collection.removeIndexIdValue(1);
       should(_collection.getIndexId()).eql([
-        [0], [1]
+        [], []
       ]);
     });
 
-    it('should not set index id value if key = null', () => {
+    it('should not remove index id value if key = null', () => {
       var _collection = collection((item) => {
         return item.id;
       });
@@ -1635,13 +1635,13 @@ describe('lunaris internal collection', () => {
         ['_1'], [1]
       ]);
 
-      _collection.setIndexIdValue(null, 0);
+      _collection.removeIndexIdValue(null);
       should(_collection.getIndexId()).eql([
         ['_1'], [1]
       ]);
     });
 
-    it('should not set index id value if key = undefined', () => {
+    it('should not remove index id value if key = undefined', () => {
       var _collection = collection((item) => {
         return item.id;
       });
@@ -1655,53 +1655,13 @@ describe('lunaris internal collection', () => {
         ['_1'], [1]
       ]);
 
-      _collection.setIndexIdValue(undefined, 0);
+      _collection.removeIndexIdValue(undefined);
       should(_collection.getIndexId()).eql([
         ['_1'], [1]
       ]);
     });
 
-    it('should not set index id value if value = undefined', () => {
-      var _collection = collection((item) => {
-        return item.id;
-      });
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
-
-      _collection.add({ id : '_1', label : 'A' });
-
-      should(_collection.getIndexId()).eql([
-        ['_1'], [1]
-      ]);
-
-      _collection.setIndexIdValue(1, undefined);
-      should(_collection.getIndexId()).eql([
-        ['_1'], [1]
-      ]);
-    });
-
-    it('should not set index id value if value = null', () => {
-      var _collection = collection((item) => {
-        return item.id;
-      });
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
-
-      _collection.add({ id : '_1', label : 'A' });
-
-      should(_collection.getIndexId()).eql([
-        ['_1'], [1]
-      ]);
-
-      _collection.setIndexIdValue(1, null);
-      should(_collection.getIndexId()).eql([
-        ['_1'], [1]
-      ]);
-    });
-
-    it('should set index id value with multiple in the collection', () => {
+    it('should remove index id value with multiple in the collection', () => {
       var _collection = collection((item) => {
         return item.id;
       });
@@ -1719,10 +1679,10 @@ describe('lunaris internal collection', () => {
         [1, 2, 3, 4]
       ]);
 
-      _collection.setIndexIdValue(3, 33);
+      _collection.removeIndexIdValue(3);
       should(_collection.getIndexId()).eql([
-        ['_1', '_2', 33, '_4'],
-        [1, 2, 3, 4]
+        ['_1', '_2', '_4'],
+        [1, 2, 4]
       ]);
     });
   });

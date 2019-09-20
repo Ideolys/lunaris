@@ -174,6 +174,8 @@ function pushToHandlers (store, hook, payload, transactionId, callback) {
     return callback();
   }
 
+  logger.debug('store "@' + store.name + '" emits -> ' + hook);
+
   if (transactionId && (hook === 'error' || hook === 'errorHttp')) {
     transaction.addErrorEvent(transactionId);
   }
@@ -200,6 +202,7 @@ function removeAllHooks () {
 
         _handlers.splice(i, 1);
         _isInternalHooks.splice(i, 1);
+        _stores[_storename].realHooks[_hook].splice(i, 1);
       }
     }
   }

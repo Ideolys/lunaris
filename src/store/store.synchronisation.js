@@ -4,7 +4,7 @@ var utils                       = require('../utils.js');
 var storeUtils                  = require('./store.utils.js');
 var collection                  = require('./store.collection.js');
 var transaction                 = require('./store.transaction.js');
-var hook                        = require('./store.hook.js');
+var cache                       = require('../cache.js');
 var indexedDB                   = require('../localStorageDriver.js').indexedDB;
 var localStorage                = require('../localStorageDriver.js').localStorage;
 var OPERATIONS                  = utils.OPERATIONS;
@@ -157,6 +157,8 @@ function pushOfflineHttpTransactions (callback) {
     if (_currentTransaction.method === OPERATIONS.DELETE) {
       imports.deleteStore(_currentTransaction.store, _currentTransaction.data, _currentTransaction);
     }
+
+    cache.invalidate(_currentTransaction.store);
 
     transaction.commit(function (isError) {
       // We must hold the transaction in error and its dependent transactions

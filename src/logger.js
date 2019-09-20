@@ -4,6 +4,7 @@ var baseMessageError      = '[Lunaris error] ';
 var baseMessageTip        = '[Lunaris tip] ';
 var baseMessageDeprecated = '[Lunaris deprecated]';
 var baseMessageLog        = '[Lunaris info]';
+var baseMessageDebug      = '[Lunaris debug]';
 
 /**
  * Log message in the console
@@ -20,15 +21,23 @@ function log (strings, msg, baseMessage, fn) {
     strings = [strings];
   }
 
-  var _message = baseMessage + strings.join(' ');
+  var _message = baseMessage + ' ' + strings.join(' ');
   if (!msg) {
     return fn(_message);
   }
 
-  fn(baseMessage + strings.join(' '), msg);
+  fn(baseMessage + ' ' + strings.join(' '), msg);
 }
 
+var isDebug = false;
 var logger = {
+  get isDebug () {
+    return isDebug;
+  },
+  set isDebug (value) {
+    isDebug = value;
+  },
+
   info : function (strings, msg) {
     return log(strings, msg, baseMessageLog, console.log);
   },
@@ -58,6 +67,19 @@ var logger = {
    */
   deprecated : function deprecated (strings, info) {
     return log(strings, info, baseMessageDeprecated, console.warn);
+  },
+
+  /**
+   * Send debug info to dev
+   * @param {String/Array} strings
+   * @param {*} debug
+   */
+  debug : function (strings, debug) {
+    if (!isDebug) {
+      return;
+    }
+
+    return log(strings, debug, baseMessageDebug, console.log);
   }
 };
 

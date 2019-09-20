@@ -1,5 +1,6 @@
 var lunarisExports = require('./exports.js');
 var utils          = require('./utils.js');
+var logger         = require('./logger.js');
 
 var baseOptions = {
   onComplete : null
@@ -40,6 +41,8 @@ function request (method, request, body, callback, options) {
       _body                        = pako.gzip(_body);
     }
   }
+
+  logger.debug('HTTP ' + method, decodeURIComponent(request));
 
   fetch(lunarisExports.baseUrl + request, {
     method      : method,
