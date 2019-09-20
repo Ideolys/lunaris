@@ -149,7 +149,6 @@
     storeHooks : {
       'get@lunarisOfflineTransactions' : function (items) {
         if (!items.length) {
-          this.currentComponent = 'syncLoad';
           return this.onPushOfflineTransactionEnd();
         }
 
@@ -258,7 +257,8 @@
           return this.onEnd();
         }
 
-        this.nbStoresToLoad = storesToLoad.length;
+        this.currentComponent = 'syncLoad';
+        this.nbStoresToLoad   = storesToLoad.length;
 
         lunaris.offline.isSynchronizing = true;
 
