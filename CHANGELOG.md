@@ -15,7 +15,11 @@
   - The offline app is not anymore mount when the the browser is online. The `lunaris._vue.mountOfflineApp` function must be used.
   - Add `lunaris.load(store)` function. It loads data of a store. The flag `lunaris.offline.isOfflineMode` must equal `true`.
   - Add event `insert` for store `lunarisOfflineTransaction` (i.e. where HTTP transactions are stored in offline/offline mode).
-  - Add `lunaris.logger.isDebug` to activate or get debug mode value.
+  - Add `lunaris.logger.isDebug` to activate or get debug mode value :
+    + Log HTTP request
+    + Log Cache request
+    + Log in-collection indexedb performances
+    + Log store events
 - Fix:
   - Improve offline app.
   - In offline or offline mode, generated urls were not encoded.
