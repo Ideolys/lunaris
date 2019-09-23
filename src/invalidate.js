@@ -103,11 +103,7 @@ module.exports = {
           continue;
         }
 
-        indexedDB.clear(stores[index]);
-        _storesToDeleteStates.push(stores[index]);
-
-        cache.invalidate(stores[index]);
-
+        store.clear('@' + stores[index]);
         stores.splice(index, 1);
       }
     }

@@ -48,6 +48,10 @@ function reconnect (host) {
  * @param {String} host
  */
 function connect (host) {
+  if (ws) {
+    return;
+  }
+
   ws = new WebSocket(host);
 
   ws.onopen = function () {
