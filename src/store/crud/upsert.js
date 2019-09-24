@@ -81,13 +81,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
     }
   }
 
-  try {
-    value = collection.commit(version);
-  }
-  catch (e) {
-    console.log(store.name);
-    console.log(e);
-  }
+  value = collection.commit(version);
 
   // If offline set PK
   if (isMultipleItems && !offline.isOnline && !isUpdate) {

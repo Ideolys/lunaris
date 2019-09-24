@@ -359,7 +359,8 @@ function _load (store, options, transactionId, callback) {
           });
         });
       }, {
-        isOffline : true
+        isOffline : true,
+        store     : _options.store.name
       });
     });
   }
