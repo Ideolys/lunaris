@@ -453,4 +453,4 @@ exports.getProcessTime = function getProcessTime (before) {
   }
 
   return window.performance.now() - before;
-}
+};

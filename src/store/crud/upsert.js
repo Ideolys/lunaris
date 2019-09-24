@@ -21,9 +21,10 @@ sync.setImportFunction(upsert);
  * When offline push, we must replace offline generated primary key by new one returned by server
  * @param {Object} collection
  * @param {Object} value
+ * @returns {int/sting} old primary key
  */
 function _updateCollectionIndexId (collection, value) {
-  collection.removeIndexIdValue(value._id);
+  return collection.removeIndexIdValue(value._id);
 }
 
 /**
@@ -132,12 +133,10 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
     sync.setOfflineHttpTransaction(store.name, method, request, !isMultipleItems && !store.isStoreObject ? value[0] : value);
   }
 
-  crudUtils.propagateReferences(store, value, function () {
-    crudUtils.propagate(store, value, method, function () {
-      crudUtils.afterAction(store, isUpdate ? 'update' : 'insert', value, null, function () {
-        storeUtils.saveState(store, collection, function () {
-          callback({ version : version, value : _requestValue, request : request });
-        });
+  crudUtils.propagate(store, value, method, function () {
+    crudUtils.afterAction(store, isUpdate ? 'update' : 'insert', value, null, function () {
+      storeUtils.saveState(store, collection, function () {
+        callback({ version : version, value : _requestValue, request : request });
       });
     });
   });
@@ -154,17 +153,15 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
  * @param {Function} callback
  */
 function _upsertHTTPEvents (store, collection, value, isUpdate, method, transactionId, callback) {
-  crudUtils.propagateReferences(store, value, function () {
-    crudUtils.propagate(store, value, utils.OPERATIONS.UPDATE, function () {
-      crudUtils.afterAction(store, 'update', value, null, function () {
-        crudUtils.afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false), function () {
-          storeUtils.saveState(store, collection, function () {
-            if (store.isFilter) {
-              return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
-            }
+  crudUtils.propagate(store, value, utils.OPERATIONS.UPDATE, function () {
+    crudUtils.afterAction(store, 'update', value, null, function () {
+      crudUtils.afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false), function () {
+        storeUtils.saveState(store, collection, function () {
+          if (store.isFilter) {
+            return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
+          }
 
-            callback();
-          });
+          callback();
         });
       });
     });
@@ -200,6 +197,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
     }
 
     var _isEvent = true;
+    var _pks     = [];
     if (store.isStoreObject || !isMultipleItems) {
       if (store.isStoreObject && Array.isArray(data)) {
         throw new Error('The store "' + store.name + '" is a store object. The ' + method + ' method tries to ' + (isUpdate ? 'update' : 'insert') + ' multiple elements!');
@@ -214,6 +212,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
 
       if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
         _updateCollectionIndexId(collection, value);
+        _pks.push(['_' + value._id, storeUtils.getPrimaryKeyValue(store, value)]);
       }
 
       value = collection.commit(_version);
@@ -236,6 +235,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
 
               if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
                 _updateCollectionIndexId(collection, value[i]);
+                _pks.push(['_' + value[i]._id, storeUtils.getPrimaryKeyValue(store, value[i])]);
               }
             }
           }
@@ -246,6 +246,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
 
           if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
             _updateCollectionIndexId(collection, value[i]);
+            _pks.push(['_' + value[i]._id, storeUtils.getPrimaryKeyValue(store, value[i])]);
           }
         }
       }
@@ -254,7 +255,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
     }
 
     if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
-      return crudUtils.propagateReferences(store, value, function () {
+      return crudUtils.propagateReferences(store, _pks, function () {
         sync.updateOfflineTransactionData(store.storesToPropagateReferences);
 
         if (!_isEvent) {
@@ -285,16 +286,12 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
 function _upsertLocal (store, value, isUpdate, isLocal, transactionId, callback) {
   if (store.isLocal || isLocal) {
     if (store.isFilter) {
-      return crudUtils.propagateReferences(store, value, function () {
-        crudUtils.propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, function () {
-          hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
-        });
+      return crudUtils.propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, function () {
+        hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
       });
     }
 
-    return crudUtils.propagateReferences(store, value, function () {
-      crudUtils.propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, callback);
-    });
+    return crudUtils.propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, callback);
   }
 
   callback();

@@ -281,30 +281,10 @@ describe('builder', () => {
     });
   });
 
-  it('should reference an object of the store when inserting', done => {
-    var _referencedObj = { id : 10, label : 'A' };
-    var _obj           = { id : 20, http : { id : 10 }};
-
-    var _hook = references => {
-      should(references[0].http.id).eql(10);
-      should(references[0].http.label).eql('A');
-      should(references[0].http._id).eql(1);
-
-      lunaris.removeHook('insert@reference', _hook);
-      done();
-    };
-
-    lunaris.hook('insert@reference', _hook);
-    lunaris.insert('@http', _referencedObj);
-    lunaris.insert('@reference', _obj);
-  });
-
   it('should define the inherits', () => {
     should(lunaris._stores.http.data).eql(lunaris._stores.inherits.data);
     should(lunaris._stores.http.filterFns).be.an.Object().and.not.empty();
     should(lunaris._stores.inherits.filterFns).be.an.Object().and.empty();
-
-
 
     should(lunaris._stores.http.meta).eql(lunaris._stores.inherits.meta);
     should(lunaris._stores.http.data === lunaris._stores.inherits.data).eql(false);

@@ -665,7 +665,7 @@ describe('local storage', () => {
             should(data[0].data).eql({
               _id      : 1,
               _rowId   : 1,
-              _version : [1, 3],
+              _version : [1, 2],
               id       : 1,
               label    : 'A'
             });
@@ -693,7 +693,7 @@ describe('local storage', () => {
             should(data[0].data).eql({
               _id      : 1,
               _rowId   : 1,
-              _version : [1, 3],
+              _version : [1, 2],
               id       : 1,
               label    : 'A'
             });
@@ -758,7 +758,7 @@ describe('local storage', () => {
             label    : 'A',
             _rowId   : 1,
             _id      : 1,
-            _version : [1, 3]
+            _version : [1, 2]
           });
           should(data[1]).eql({
             id       : 1,
@@ -766,7 +766,7 @@ describe('local storage', () => {
             post     : true,
             _rowId   : 2,
             _id      : 1,
-            _version : [3]
+            _version : [2]
           });
 
           setTimeout(() => {
@@ -952,7 +952,7 @@ describe('local storage', () => {
                     label    : 'A',
                     _rowId   : 1,
                     _id      : 1,
-                    _version : [1, 3]
+                    _version : [1, 2]
                   });
                   should(data[1]).eql({
                     id       : 1,
@@ -960,14 +960,14 @@ describe('local storage', () => {
                     post     : true,
                     _rowId   : 2,
                     _id      : 1,
-                    _version : [3, 5]
+                    _version : [2, 3]
                   });
                   should(data[2]).eql({
                     id       : 1,
                     label    : 'B',
                     _rowId   : 3,
                     _id      : 1,
-                    _version : [5]
+                    _version : [3]
                   });
                 });
               });
@@ -988,7 +988,7 @@ describe('local storage', () => {
             put      : true,
             _rowId   : 4,
             _id      : 1,
-            _version : [7]
+            _version : [4]
           });
 
           setTimeout(() => {
@@ -1041,7 +1041,7 @@ describe('local storage', () => {
             should(data[0].data).eql({
               _id      : 1,
               _rowId   : 2,
-              _version : [4],
+              _version : [3],
               id       : 1,
               label    : 'A.1'
             });
@@ -1079,7 +1079,7 @@ describe('local storage', () => {
             should(data[0].data).eql({
               _id      : 1,
               _rowId   : 2,
-              _version : [4],
+              _version : [3],
               id       : 1,
               label    : 'A.1'
             });
@@ -1306,7 +1306,7 @@ describe('local storage', () => {
               label    : 'A',
               _rowId   : 1,
               _id      : 1,
-              _version : [1, 3]
+              _version : [1, 2]
             });
             should(data[1]).eql({
               id       : 1,
@@ -1314,7 +1314,7 @@ describe('local storage', () => {
               post     : true,
               _rowId   : 2,
               _id      : 1,
-              _version : [3]
+              _version : [2]
             });
 
             lunaris.websocket.send('INVALIDATE', 'GET /http', true);
@@ -1476,7 +1476,7 @@ describe('local storage', () => {
               label    : 'A',
               _rowId   : 1,
               _id      : 1,
-              _version : [1, 3]
+              _version : [1, 2]
             });
             should(data[1]).eql({
               id       : 1,
@@ -1484,7 +1484,7 @@ describe('local storage', () => {
               post     : true,
               _rowId   : 2,
               _id      : 1,
-              _version : [3]
+              _version : [2]
             });
 
             lunaris.offline.isOfflineMode = true;
@@ -1541,7 +1541,7 @@ describe('local storage', () => {
               label    : 'A',
               _rowId   : 1,
               _id      : 1,
-              _version : [1, 3]
+              _version : [1, 2]
             });
             should(data[1]).eql({
               id       : 1,
@@ -1549,7 +1549,7 @@ describe('local storage', () => {
               post     : true,
               _rowId   : 2,
               _id      : 1,
-              _version : [3]
+              _version : [2]
             });
 
             lunaris.offline.isOfflineMode = true;

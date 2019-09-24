@@ -22,13 +22,22 @@ sync.setImportFunction(deleteStore);
  * @param {Object} value
  * @param {Function} callback (err)
  */
-function _deleteValueInReferencedStores (store, value, callback) {
-  // If references, we must find if the id is stille referenced
+function _deleteValueInReferencedStores (store, collection, value, callback) {
+  // If references, we must find if the id is still referenced
   var _storesToPropagateLength = store.storesToPropagateReferences.length;
 
   if (!_storesToPropagateLength) {
     return callback();
   }
+
+  var _indexIds    = collection.getIndexId();
+  var _searchIndex = utils.index.binarySearch(_indexIds[1], value._id);
+
+  if (!_searchIndex.found) {
+    return callback();
+  }
+
+  var _pkValue = _indexIds[0][_searchIndex.index];
 
   queue(store.storesToPropagateReferences, function handlerItem (storeToPropagate, next) {
     var _store      = storeUtils.getStore('@' + storeToPropagate);
@@ -39,7 +48,7 @@ function _deleteValueInReferencedStores (store, value, callback) {
       return next();
     }
 
-    if (!utils.index.binarySearch(_references[store.name][0], value._id).found) {
+    if (!utils.index.binarySearch(_references[store.name][0], _pkValue).found) {
       return next();
     }
 
@@ -61,7 +70,7 @@ function _deleteValueInReferencedStores (store, value, callback) {
 function _deleteLocal (store, collection, value, isLocal, callback) {
   var _version = collection.begin();
 
-  _deleteValueInReferencedStores(store, value, function (isError) {
+  _deleteValueInReferencedStores(store, collection, value, function (isError) {
     if (isError) {
       return callback(isError);
     }
@@ -74,17 +83,15 @@ function _deleteLocal (store, collection, value, isLocal, callback) {
       return callback(new Error('You cannot delete a value not in the store!'));
     }
 
-    crudUtils.propagateReferences(store, value, function () {
-      crudUtils.propagate(store, value, utils.OPERATIONS.DELETE, function () {
-        crudUtils.afterAction(store, 'delete', value, null, function () {
-          if (!store.isStoreObject) {
-            value = value[0];
-          }
+    crudUtils.propagate(store, value, utils.OPERATIONS.DELETE, function () {
+      crudUtils.afterAction(store, 'delete', value, null, function () {
+        if (!store.isStoreObject) {
+          value = value[0];
+        }
 
-          cache.invalidate(store.name);
-          storeUtils.saveState(store, collection, function () {
-            callback(null, [_version, value]);
-          });
+        cache.invalidate(store.name);
+        storeUtils.saveState(store, collection, function () {
+          callback(null, [_version, value]);
         });
       });
     });

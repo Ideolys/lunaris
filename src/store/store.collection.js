@@ -46,8 +46,8 @@ function incrementVersionNumber () {
  * @param {String} storeName
  * @param {Object} referencesDescriptor {
  *  referencesFn : { get : { storeN : fn }, update : { storeN : fn } },
- *  getPrimaryKeyFns : { storeN : fn },
- *  collections      : {Object} key / value (store / value to store)
+ *  stores       : [ 'store1', storeN ],
+ *  references   : { pathToRef : store }
  * }
  * @param {Function} cloneFn clone fn specifi to the store or default one
  */
@@ -62,7 +62,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   var _joinsDescriptor          = joinsDescriptor || {};
   var _joins                    = joinsDescriptor ? Object.keys(_joinsDescriptor.joins) : [];
   var _referencesDescriptor     = referencesDescriptor || {};
-  var _references               = _referencesDescriptor.referencesFn && referencesDescriptor.referencesFn.get ? Object.keys(referencesDescriptor.referencesFn.get) : [];
+  var _references               = _referencesDescriptor.stores && _referencesDescriptor.stores.length ? _referencesDescriptor.stores : [];
   var _getPrimaryKey            = getPrimaryKeyFn;
   var _aggregateFn              = aggregateFn;
   var _computedsFn              = computedsFn;
@@ -76,7 +76,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
 
   /**
    * id : [[id], [_id]]
-   * references : { storeN : [[_ids refrence store], [_ids local collection]] }
+   * references : { storeN : [[PKs refrence store], [_ids local collection]] }
    */
   var _indexes = {
     id         : [[], []],
@@ -142,38 +142,26 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return;
     }
 
-    for (var i = 0; i < _references.length; i++) {
-      var _collection = _referencesDescriptor.collections[_references[i]];
+    for (var _reference in _referencesDescriptor.references) {
+      var _store =_referencesDescriptor.references[_reference];
+      var _ids   = _referencesDescriptor.referencesFn.get[_reference](value);
 
-      if (!_collection) {
-        continue;
+      if (!_indexes.references[_store]) {
+        _indexes.references[_store] = [[], []];
       }
 
-      var _pkFn             = _referencesDescriptor.getPrimaryKeyFns[_references[i]];
-      var _ids              = _referencesDescriptor.referencesFn.get[_references[i]](_pkFn, value);
-      var _referencedValues = _collection.getAll(_ids, true);
+      for (var j = 0; j < _ids.length; j++) {
+        var _searchReferencedId = index.binarySearch(_indexes.references[_store][0], _ids[j]);
 
-      if (!_indexes.references[_references[i]]) {
-        _indexes.references[_references[i]] = [[], []];
-      }
-
-      if (!Array.isArray(_referencedValues)) {
-        _referencedValues = [_referencedValues];
-      }
-
-      for (var j = 0; j < _referencedValues.length; j++) {
-        _referencesDescriptor.referencesFn.update[_references[i]](_pkFn, _referencedValues[j], value);
-
-        var _searchReferencedId = index.binarySearch(_indexes.references[_references[i]][0], _referencedValues[j]._id);
         if (!_searchReferencedId.found) {
-          index.insertAt(_indexes.references[_references[i]][0], _searchReferencedId.index, _referencedValues[j]._id);
-          index.insertAt(_indexes.references[_references[i]][1], _searchReferencedId.index, []);
+          index.insertAt(_indexes.references[_store][0], _searchReferencedId.index, _ids[j]);
+          index.insertAt(_indexes.references[_store][1], _searchReferencedId.index, []);
         }
 
-        var _search = index.binarySearch(_indexes.references[_references[i]][1][_searchReferencedId.index], value._id);
+        var _search = index.binarySearch(_indexes.references[_store][1][_searchReferencedId.index], value._id);
 
         if (!_search.found) {
-          index.insertAt(_indexes.references[_references[i]][1][_searchReferencedId.index], _search.index, value._id);
+          index.insertAt(_indexes.references[_store][1][_searchReferencedId.index], _search.index, value._id);
         }
       }
     }
@@ -188,42 +176,31 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return;
     }
 
-    for (var i = 0; i < _references.length; i++) {
-      var _collection = _referencesDescriptor.collections[_references[i]];
+    for (var _reference in _referencesDescriptor.references) {
+      var _store =_referencesDescriptor.references[_reference];
+      var _ids   = _referencesDescriptor.referencesFn.get[_reference](value);
 
-      if (!_collection) {
-        continue;
+      if (!_indexes.references[_store]) {
+        _indexes.references[_store] = [[], []];
       }
 
-      var _pkFn             = _referencesDescriptor.getPrimaryKeyFns[_references[i]];
-      var _ids              = _referencesDescriptor.referencesFn.get[_references[i]](_pkFn, value);
-      var _referencedValues = _collection.getAll(_ids, true);
-
-      if (!_indexes.references[_references[i]]) {
-        _indexes.references[_references[i]] = [[], []];
-      }
-
-      if (!Array.isArray(_referencedValues)) {
-        _referencedValues = [_referencedValues];
-      }
-
-      for (var j = 0; j < _referencedValues.length; j++) {
-        var _searchReferencedId = index.binarySearch(_indexes.references[_references[i]][0], _referencedValues[j]._id);
+      for (var j = 0; j < _ids.length; j++) {
+        var _searchReferencedId = index.binarySearch(_indexes.references[_store][0], _ids[j]);
         if (!_searchReferencedId.found) {
           continue;
         }
 
-        var _search = index.binarySearch(_indexes.references[_references[i]][1][_searchReferencedId.index], value._id);
+        var _search = index.binarySearch(_indexes.references[_store][1][_searchReferencedId.index], value._id);
 
         if (!_search.found) {
           continue;
         }
 
-        index.removeAt(_indexes.references[_references[i]][1][_searchReferencedId.index], _search.index);
+        index.removeAt(_indexes.references[_store][1][_searchReferencedId.index], _search.index);
 
-        if (!_indexes.references[_references[i]][1][_searchReferencedId.index].length) {
-          index.removeAt(_indexes.references[_references[i]][0], _searchReferencedId.index);
-          index.removeAt(_indexes.references[_references[i]][1], _searchReferencedId.index);
+        if (!_indexes.references[_store][1][_searchReferencedId.index].length) {
+          index.removeAt(_indexes.references[_store][0], _searchReferencedId.index);
+          index.removeAt(_indexes.references[_store][1], _searchReferencedId.index);
         }
       }
     }
@@ -645,53 +622,62 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   /**
    * Propagate reference operations
    * @param {String} store
-   * @param {Object/Array} data referenced object(s)
+   * @param {String/int} lastPK
+   * @param {String/int} newPK
    */
-  function propagateReferences (store, data) {
+  function replaceReferences (store, lastPK, newPK) {
     if (!_referencesDescriptor.referencesFn) {
       return;
     }
 
-    if (data && !Array.isArray(data)) {
-      data = [data];
-    }
-
-    if (!(data && data.length)) {
+    if (!_indexes.references[store]) {
       return;
     }
 
-    var _version = begin();
+    var _version          = begin();
+    var _searchReferences = index.binarySearch(_indexes.references[store][0], lastPK);
+
+    if (!_searchReferences.found) {
+      return;
+    }
+
+    var _index = _indexes.references[store][1][_searchReferences.index];
+
     for (var i = 0; i < _data.length; i++) {
       var _item         = _data[i];
       var _lowerVersion = _item._version[0];
       var _upperVersion = _item._version[1];
-      if (_lowerVersion <= currentVersionNumber && !_upperVersion) {
+
+      if (_lowerVersion <= currentVersionNumber && !_upperVersion && _index.indexOf(_item._id) !== -1) {
         // Remember, we cannot directly edit a value from the collection (clone)
         var _obj = cloneFn(_item);
-        for (var j = 0; j < data.length; j++) {
-          _obj = _referencesDescriptor.referencesFn.update[store](_referencesDescriptor.getPrimaryKeyFns[store], data[j], _obj);
+        for (var path in _referencesDescriptor.references) {
+          _referencesDescriptor.referencesFn.update[path](
+            lastPK,
+            newPK,
+            _obj
+          );
         }
 
         upsert(_obj, _version);
       }
     }
 
-
     return _internalCommit(_version);
   }
 
   return {
-    get                 : get,
-    add                 : add,
-    upsert              : upsert,
-    remove              : remove,
-    clear               : clear,
-    getFirst            : getFirst,
-    begin               : begin,
-    commit              : commit,
-    rollback            : rollback,
-    propagate           : propagate,
-    propagateReferences : propagateReferences,
+    get               : get,
+    add               : add,
+    upsert            : upsert,
+    remove            : remove,
+    clear             : clear,
+    getFirst          : getFirst,
+    begin             : begin,
+    commit            : commit,
+    rollback          : rollback,
+    propagate         : propagate,
+    replaceReferences : replaceReferences,
 
     getIndexId : function () {
       return _indexes.id;

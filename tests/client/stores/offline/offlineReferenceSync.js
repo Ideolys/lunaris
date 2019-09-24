@@ -3,6 +3,8 @@ module.exports = {
   map  : [{
     id           : ['<<int>>'],
     label        : ['string'],
-    offlineArray : ['array', 'ref', '@offlineArraySync']
+    offlineArray : ['array', {
+      id : ['<<int>>', 'ref', '@offlineArraySync']
+    }]
   }]
 };

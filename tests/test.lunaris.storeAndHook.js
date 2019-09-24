@@ -5206,484 +5206,6 @@ describe('lunaris store', function () {
   });
 
   describe('References propagation', () => {
-    it('should propagate to a store object : GET', done => {
-      var _store                = initStore('store1', null, null, null, null, null, null, ['reference']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id          : ['<<int>>'],
-        store1Value : ['object', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-      _storeToPropagate.isLocal    = true;
-      lunaris._stores['reference'] = _storeToPropagate;
-
-      lunaris.hook('errorHttp@store1', err => {
-        done(err);
-      });
-
-      lunaris.insert('@reference', { id : 1, store1Value : { id : 20 } });
-      lunaris.get('@store1');
-      lunaris.hook('update@reference', res => {
-        should(res).eql({
-          _rowId      : 2,
-          _id         : 1,
-          id          : 1,
-          store1Value : { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
-          _version    : [3]
-        });
-        done();
-      });
-    });
-
-    it('should propagate to a store array : GET', done => {
-      var _store                = initStore('store1', null, null, null, null, null, null, ['reference']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id           : ['<<int>>'],
-        store1Values : ['array', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-      _storeToPropagate.isLocal    = true;
-      lunaris._stores['reference'] = _storeToPropagate;
-
-      lunaris.hook('errorHttp@store1', err => {
-        done(err);
-      });
-
-      lunaris.insert('@reference', { id : 1, store1Values : [{ id : 20 }, { id : 10 }] });
-      lunaris.get('@store1');
-      lunaris.hook('update@reference', res => {
-        should(res).eql({
-          _rowId       : 2,
-          _id          : 1,
-          id           : 1,
-          store1Values : [
-            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
-            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
-          ],
-          _version : [3]
-        });
-        done();
-      });
-    });
-
-    it('should propagate to a store array and a store object : GET', done => {
-      var _store                = initStore('store1', null, null, null, null, null, null, ['reference', 'reference2']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id           : ['<<int>>'],
-        store1Values : ['array', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-
-      var _object2Descriptor = {
-        id          : ['<<int>>'],
-        store1Value : ['object', 'ref', '@store1']
-      };
-      var _schema2           = schema.analyzeDescriptor(_object2Descriptor);
-      var _storeToPropagate2 = initStore('reference2', _object2Descriptor, null, null, null, null, {
-        referencesFn     : _schema2.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-
-      _storeToPropagate.isLocal     = true;
-      _storeToPropagate2.isLocal    = true;
-      lunaris._stores['reference']  = _storeToPropagate;
-      lunaris._stores['reference2'] = _storeToPropagate2;
-
-      lunaris.hook('errorHttp@store1', err => {
-        done(err);
-      });
-
-      lunaris.insert('@reference', { id : 1, store1Values : [{ id : 20 }, { id : 10 }] });
-      lunaris.insert('@reference2', { id : 1, store1Value : { id : 20 } });
-      lunaris.hook('update@reference', res => {
-        should(res).eql({
-          _rowId       : 2,
-          _id          : 1,
-          id           : 1,
-          store1Values : [
-            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [3] },
-            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [3] }
-          ],
-          _version : [4]
-        });
-      });
-      lunaris.hook('update@reference2', res => {
-        should(res).eql({
-          _rowId      : 2,
-          _id         : 1,
-          id          : 1,
-          store1Value : { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [3] },
-          _version    : [5]
-        });
-        done();
-      });
-      lunaris.get('@store1');
-    });
-
-    it('should propagate to a store object : set object', done => {
-      var _storeDescriptor = [{
-        id : ['<<int>>']
-      }];
-      var _store                = initStore('store1', _storeDescriptor, null, null, null, null, null, ['reference']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id          : ['<<int>>'],
-        store1Value : ['object', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-      _storeToPropagate.isLocal    = true;
-      _store.isLocal               = true;
-      lunaris._stores['reference'] = _storeToPropagate;
-
-      lunaris.hook('insert@reference', res => {
-        should(res).eql({
-          _rowId      : 1,
-          _id         : 1,
-          id          : 1,
-          store1Value : { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [1] },
-          _version    : [3]
-        });
-        done();
-      });
-
-      lunaris.hook('insert@store1', () => {
-        lunaris.insert('@reference', { id : 1, store1Value : { id : 20 } });
-      });
-
-      lunaris.insert('@store1', { id : 20, label : 'B' });
-    });
-
-    it('should propagate to a store object : INSERT', done => {
-      var _store                = initStore('store1', null, null, null, null, null, null, ['reference']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id          : ['<<int>>'],
-        store1Value : ['object', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-      _storeToPropagate.isLocal    = true;
-      _store.isLocal               = true;
-      lunaris._stores['reference'] = _storeToPropagate;
-
-      lunaris.hook('update@reference', res => {
-        should(res).eql({
-          _rowId      : 2,
-          _id         : 1,
-          id          : 1,
-          store1Value : { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
-          _version    : [3]
-        });
-        done();
-      });
-
-      lunaris.insert('@reference', { id : 1, store1Value : { id : 20 } });
-      lunaris.insert('@store1', { id : 20, label : 'B' });
-    });
-
-    it('should propagate to a store array : INSERT', done => {
-      var _store                = initStore('store1', null, null, null, null, null, null, ['reference']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id           : ['<<int>>'],
-        store1Values : ['array', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-      _store.isLocal               = true;
-      _storeToPropagate.isLocal    = true;
-      lunaris._stores['reference'] = _storeToPropagate;
-
-      lunaris.hook('errorHttp@store1', err => {
-        done(err);
-      });
-
-      lunaris.hook('update@reference', res => {
-        should(res).eql({
-          _rowId       : 2,
-          _id          : 1,
-          id           : 1,
-          store1Values : [
-            { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
-            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
-          ],
-          _version : [3]
-        });
-        done();
-      });
-      lunaris.insert('@reference', { id : 1, store1Values : [{ id : 20 }, { id : 10 }] });
-      lunaris.insert('@store1', [{ id : 20, label : 'B' }, { id : 30, label : 'D' }, { id : 10, label : 'E' }]);
-    });
-
-    it('should propagate to a store array : INSERT & not local store', done => {
-      var _store                = initStore('store1', null, null, null, null, null, null, ['reference']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id           : ['<<int>>'],
-        store1Values : ['array', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-      _storeToPropagate.isLocal    = true;
-      lunaris._stores['reference'] = _storeToPropagate;
-
-      lunaris.hook('errorHttp@store1', err => {
-        done(err);
-      });
-
-      var _nbCalls = 0;
-      lunaris.hook('update@reference', res => {
-        _nbCalls++;
-
-        if (_nbCalls === 1) {
-          should(res).eql({
-            _rowId       : 2,
-            _id          : 1,
-            id           : 1,
-            store1Values : [
-              { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [2] },
-              { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
-            ],
-            _version : [3]
-          });
-          return;
-        }
-
-        delete res.store1Values[0].body;
-        delete res.store1Values[1].body;
-
-        should(res).eql({
-          _rowId       : 3,
-          _id          : 1,
-          id           : 1,
-          store1Values : [
-            { _rowId : 4, _id : 1, id : 20, label : 'B', _version : [4], query : {}, params : {} },
-            { _rowId : 6, _id : 3, id : 10, label : 'E', _version : [4], query : {}, params : {} }
-          ],
-          _version : [5]
-        });
-        done();
-      });
-      lunaris.insert('@reference', { id : 1, store1Values : [{ id : 20 }, { id : 10 }] });
-      lunaris.insert('@store1', [{ id : 20, label : 'B' }, { id : 30, label : 'D' }, { id : 10, label : 'E' }]);
-    });
-
-    it('should propagate to a store object : UPDATE', done => {
-      var _storeDescriptor = [{
-        id : ['<<int>>']
-      }];
-      var _store                = initStore('store1', _storeDescriptor, null, null, null, null, null, ['reference']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id          : ['<<int>>'],
-        store1Value : ['object', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-      _storeToPropagate.isLocal    = true;
-      _store.isLocal               = true;
-      lunaris._stores['reference'] = _storeToPropagate;
-
-      lunaris.hook('update@reference', res => {
-        should(res).eql({
-          _rowId      : 2,
-          _id         : 1,
-          id          : 1,
-          store1Value : { _rowId : 2, _id : 1, id : 20, label : 'B-1', _version : [3] },
-          _version    : [4]
-        });
-        done();
-      });
-
-      _store.data.add({ id : 20, label : 'B' });
-      lunaris.insert('@reference', { id : 1, store1Value : { id : 20 } });
-
-      lunaris.update('@store1', { _id : 1, id : 20, label : 'B-1' });
-    });
-
-    it('should propagate to a store array : UPDATE', done => {
-      var _storeDescriptor = [{
-        id : ['<<int>>']
-      }];
-      var _store                = initStore('store1', _storeDescriptor, null, null, null, null, null, ['reference']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id           : ['<<int>>'],
-        store1Values : ['array', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-      _store.isLocal               = true;
-      _storeToPropagate.isLocal    = true;
-      lunaris._stores['reference'] = _storeToPropagate;
-
-      lunaris.hook('errorHttp@store1', err => {
-        done(err);
-      });
-
-      lunaris.hook('update@reference', res => {
-        should(res).eql({
-          _rowId       : 2,
-          _id          : 1,
-          id           : 1,
-          store1Values : [
-            { _rowId : 4, _id : 1, id : 20, label : 'B-1', _version : [3] },
-            { _rowId : 5, _id : 3, id : 10, label : 'E-1', _version : [3] }
-          ],
-          _version : [4]
-        });
-        done();
-      });
-      var _version = _store.data.begin();
-      _store.data.add({ id : 20, label : 'B' }, _version);
-      _store.data.add({ id : 30, label : 'D' }, _version);
-      _store.data.add({ id : 10, label : 'E' }, _version);
-      _store.data.commit(_version);
-
-      lunaris.insert('@reference', { id : 1, store1Values : [{ id : 20 }, { id : 10 }] });
-      lunaris.update('@store1', [{ _id : 1, id : 20, label : 'B-1' }, { _id : 3, id : 10, label : 'E-1' }]);
-    });
-
-    it('should propagate to a store array : UPDATE & not local store', done => {
-      var _storeDescriptor = [{
-        id : ['<<int>>']
-      }];
-      var _store                = initStore('store1', _storeDescriptor, null, null, null, null, null, ['reference']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id           : ['<<int>>'],
-        store1Values : ['array', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-      _storeToPropagate.isLocal    = true;
-      lunaris._stores['reference'] = _storeToPropagate;
-
-      lunaris.hook('errorHttp@store1', err => {
-        done(err);
-      });
-
-      var _nbCalls = 0;
-      lunaris.hook('update@reference', res => {
-        _nbCalls++;
-
-        if (_nbCalls === 1) {
-          should(res).eql({
-            _rowId       : 2,
-            _id          : 1,
-            id           : 1,
-            store1Values : [
-              { _rowId : 4, _id : 1, id : 20, label : 'B-1', _version : [3] },
-              { _rowId : 3, _id : 3, id : 10, label : 'E'  , _version : [1] }
-            ],
-            _version : [4]
-          });
-          return;
-        }
-
-        delete res.store1Values[0].body;
-
-        should(res).eql({
-          _rowId       : 3,
-          _id          : 1,
-          id           : 1,
-          store1Values : [
-            { _rowId : 5, _id : 1, id : 20, label : 'B-1', _version : [5], query : {}, params : { id : '20'} },
-            { _rowId : 3, _id : 3, id : 10, label : 'E'  , _version : [1] }
-          ],
-          _version : [6]
-        });
-        done();
-      });
-
-      var _version = _store.data.begin();
-      _store.data.add({ id : 20, label : 'B' }, _version);
-      _store.data.add({ id : 30, label : 'D' }, _version);
-      _store.data.add({ id : 10, label : 'E' }, _version);
-      _store.data.commit(_version);
-
-      lunaris.insert('@reference', { id : 1, store1Values : [{ id : 20 }, { id : 10 }] });
-      lunaris.update('@store1', { _id : 1, id : 20, label : 'B-1' });
-    });
 
     it('should not propagate DELETE if the object is already referenced in one store', done => {
       var _storeDescriptor = [{
@@ -5694,15 +5216,15 @@ describe('lunaris store', function () {
 
       var _objectDescriptor     = {
         id          : ['<<int>>'],
-        store1Value : ['object', 'ref', '@store1']
+        store1Value : ['object', {
+          id : ['int', 'ref', '@store1']
+        }]
       };
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
+        referencesFn : _schema.referencesFn,
+        references   : { 'store1Value.id' : 'store1' },
+        stores       : ['store1']
       });
       _storeToPropagate.isLocal        = true;
       _storeToPropagate.nameTranslated = '${reference}';
@@ -5722,6 +5244,7 @@ describe('lunaris store', function () {
       lunaris.delete('@store1', { _id : 1 });
     });
 
+
     it('should not propagate DELETE if the object is already referenced in one store : multiple stores', done => {
       var _storeMap = [{
         id : ['<<int>>']
@@ -5731,28 +5254,28 @@ describe('lunaris store', function () {
 
       var _objectDescriptor     = {
         id           : ['<<int>>'],
-        store1Values : ['array', 'ref', '@store1']
+        store1Values : ['array', {
+          id : ['<<int>>', 'ref', '@store1']
+        }]
       };
       var _schema           = schema.analyzeDescriptor(_objectDescriptor);
       var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
+        referencesFn : _schema.referencesFn,
+        references   : { 'store1Values.id' : 'store1' },
+        stores       : ['store1']
       });
 
       var _object2Descriptor = {
         id          : ['<<int>>'],
-        store1Value : ['object', 'ref', '@store1']
+        store1Value : ['object', {
+          id : ['int', 'ref', '@store1']
+        }]
       };
       var _schema2           = schema.analyzeDescriptor(_object2Descriptor);
       var _storeToPropagate2 = initStore('reference2', _object2Descriptor, null, null, null, null, {
-        referencesFn     : _schema2.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
+        referencesFn : _schema2.referencesFn,
+        references   : { 'store1Value.id' : 'store1' },
+        stores       : ['store1']
       });
 
       _storeToPropagate.isLocal     = true;
@@ -5772,61 +5295,6 @@ describe('lunaris store', function () {
       _store.data.add({ id : 20, label : 'B' });
       _storeToPropagate.data.add({ id : 1, store1Values : [{ id : 30 }] });
       _storeToPropagate.data.add({ id : 1, store1Values : [{ id : 30 }] });
-      _storeToPropagate2.data.add({ id : 1, store1Value : { id : 20 } });
-
-
-      lunaris.delete('@store1', { _id : 1 });
-    });
-
-    it('should not propagate DELETE if the object is already referenced in multiple stores', done => {
-      var _storeMap = [{
-        id : ['<<int>>']
-      }];
-      var _store                = initStore('store1', _storeMap, null, null, null, null, null, ['reference', 'reference2']);
-      lunaris._stores['store1'] = _store;
-
-      var _objectDescriptor     = {
-        id           : ['<<int>>'],
-        store1Values : ['array', 'ref', '@store1']
-      };
-      var _schema           = schema.analyzeDescriptor(_objectDescriptor);
-      var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
-        referencesFn     : _schema.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-
-      var _object2Descriptor = {
-        id          : ['<<int>>'],
-        store1Value : ['object', 'ref', '@store1']
-      };
-      var _schema2           = schema.analyzeDescriptor(_object2Descriptor);
-      var _storeToPropagate2 = initStore('reference2', _object2Descriptor, null, null, null, null, {
-        referencesFn     : _schema2.referencesFn,
-        getPrimaryKeyFns : { store1 : (item) => { return item.id; } },
-        collections      : {
-          store1 : _store.data
-        }
-      });
-
-      _storeToPropagate.isLocal     = true;
-      _storeToPropagate2.isLocal    = true;
-      _storeToPropagate.nameTranslated  = '${reference}';
-      _storeToPropagate2.nameTranslated = '${reference2}';
-      lunaris._stores['reference']  = _storeToPropagate;
-      lunaris._stores['reference2'] = _storeToPropagate2;
-
-      lunaris.hook('error@store1', (error) => {
-        should(error.data).not.ok();
-        should(error.error).eql('${Cannot delete the value, it is still referenced in the store} ${reference}');
-        should(lunaris.getOne('@store1', 1)).be.ok();
-        done();
-      });
-
-      _store.data.add({ id : 20, label : 'B' });
-      _storeToPropagate.data.add({ id : 1, store1Values : [{ id : 20 }] });
       _storeToPropagate2.data.add({ id : 1, store1Value : { id : 20 } });
 
 

@@ -432,7 +432,7 @@ describe('Offline to online synchronisation', () => {
       ]);
       should(lunaris._stores.offlineReferenceSync.data.getIndexReferences()).eql({
         offlineArraySync : [
-          [1, 2, 3, 4], [[1], [2], [1, 2], [2]]
+          [1, '_2', '_3', '_4'], [[1], [2], [1, 2], [2]]
         ]
       });
 
@@ -541,7 +541,7 @@ describe('Offline to online synchronisation', () => {
       ]);
       should(lunaris._stores.offlineReferenceSync.data.getIndexReferences()).eql({
         offlineArraySync : [
-          [1, 2, 3, 4], [[1], [2], [1, 2], [2]]
+          [1, '_2', '_3', '_4'], [[1], [2], [1, 2], [2]]
         ]
       });
       should(lunaris._stores.offlineReference.data.getIndexId()).eql([
@@ -549,10 +549,10 @@ describe('Offline to online synchronisation', () => {
       ]);
       should(lunaris._stores.offlineReference.data.getIndexReferences()).eql({
         offlineArraySync : [
-          [1, 3], [[1], [1]]
+          [1, '_3'], [[1], [1]]
         ],
         offlineReferenceSync : [
-          [2], [[1]]
+          ['_2'], [[1]]
         ]
       });
 
@@ -701,7 +701,7 @@ describe('Offline to online synchronisation', () => {
       ]);
       should(lunaris._stores.offlineReferenceSync.data.getIndexReferences()).eql({
         offlineArraySync : [
-          [1, 2, 3, 4], [[1], [2], [1, 2], [2]]
+          [1, '_2', '_3', '_4'], [[1], [2], [1, 2], [2]]
         ]
       });
 

@@ -3,6 +3,8 @@ module.exports = {
   islocal : true,
   map     : [{
     id   : ['<<int>>'],
-    http : ['object', 'ref', '@http']
+    http : ['object', {
+      id : ['int', 'ref', '@http']
+    }]
   }]
 };

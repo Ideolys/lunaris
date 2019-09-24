@@ -101,10 +101,10 @@ function propagate (store, data, operation, callback) {
 /**
  * Propagate references to the dependent stores (joins)
  * @param {Object} store
- * @param {Object/Array} data
+ * @param {Array} primaryKeys [ [oldPk, newPk], ... ]
  * @param {Int} transactionId
  */
-function propagateReferences (store, data, callback) {
+function propagateReferences (store, primaryKeys, callback) {
   if (!store.storesToPropagateReferences || !store.storesToPropagateReferences.length) {
     return callback();
   }
@@ -112,7 +112,11 @@ function propagateReferences (store, data, callback) {
   queue(store.storesToPropagateReferences, function (storeToPropagate, next) {
     var _store            = storeUtils.getStore('@' + storeToPropagate);
     var _collection       = storeUtils.getCollection(_store);
-    var _res              = _collection.propagateReferences(store.name, data);
+    var _res              = [];
+    for (var i = 0; i < primaryKeys.length; i++) {
+      _res = _res.concat(_collection.replaceReferences(store.name, primaryKeys[i][0], primaryKeys[i][1]));
+    }
+
     pushCommitResToHandlers(_store, 'update', _res, next);
   }, callback);
 }
