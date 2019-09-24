@@ -13,6 +13,7 @@ var transaction    	   = require('./store/store.transaction.js');
 var websocket          = require('./websocket.js');
 var localStorageDriver = require('./localStorageDriver.js');
 var invalidate         = require('./invalidate.js');
+var debug              = require('./debug.js');
 
 utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
 
@@ -27,6 +28,8 @@ module.exports = {
   _resetVersionNumber : collection.resetVersionNumber,
   _indexedDB          : localStorageDriver.indexedDB,
   _removeAllHooks     : hook.removeAllHooks,
+
+  debug : debug,
 
   utils  : utils,
   logger : logger,

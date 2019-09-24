@@ -1,6 +1,7 @@
 var logger         = require('../logger.js');
 var transaction    = require('./store.transaction.js');
 var lunarisExports = require('../exports.js');
+var debug          = require('../debug.js');
 
 transaction.registerHookFn(pushToHandlers);
 
@@ -174,7 +175,7 @@ function pushToHandlers (store, hook, payload, transactionId, callback) {
     return callback();
   }
 
-  logger.debug('[' + store.name + '] emits -> ' + hook);
+  debug.log(store.name, debug.NAMESPACES.HOOKS, 'emits -> ' + hook);
 
   if (transactionId && (hook === 'error' || hook === 'errorHttp')) {
     transaction.addErrorEvent(transactionId);

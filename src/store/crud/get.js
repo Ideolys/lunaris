@@ -15,6 +15,7 @@ var upsertCRUD      = require('./upsert.js');
 var indexedDB       = require('../../localStorageDriver.js').indexedDB;
 var getRequestQueue = {};
 var OPERATIONS      = utils.OPERATIONS;
+var debug           = require('../../debug.js');
 
 
 /**
@@ -68,7 +69,7 @@ function _getCache (store, collection, request, transactionId, callback, nextGet
   var _values      = [];
 
   if (_cacheValues) {
-    logger.debug('[' + store.name + '][Cache] get', decodeURIComponent(request.request));
+    debug.log(store.name, debug.NAMESPACES.CACHE, 'Get ' + decodeURIComponent(request.request));
 
     if (typeof _cacheValues === 'object') {
       storeUtils.saveState(store, collection);
@@ -184,7 +185,7 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
         storeUtils.saveState(store, collection, callback);
       });
     });
-  });
+  }, { store : store.name });
 }
 
 /**

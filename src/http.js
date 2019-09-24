@@ -1,6 +1,6 @@
 var lunarisExports = require('./exports.js');
 var utils          = require('./utils.js');
-var logger         = require('./logger.js');
+var debug          = require('./debug.js');
 
 var baseOptions = {
   onComplete : null
@@ -16,7 +16,7 @@ function setup (options) {
  * @param {String} method
  * @param {Object} body
  * @param {Function} callback
- * @param {Options} { 'Content-Type' }
+ * @param {Options} { 'Content-Type', store : '@store' }
  */
 function request (method, request, body, callback, options) {
   var _body               = body;
@@ -42,7 +42,7 @@ function request (method, request, body, callback, options) {
     }
   }
 
-  logger.debug('HTTP ' + method, decodeURIComponent(request));
+  debug.log(options.store, debug.NAMESPACES.HTTP, method + ' ' + decodeURIComponent(request));
 
   fetch(lunarisExports.baseUrl + request, {
     method      : method,

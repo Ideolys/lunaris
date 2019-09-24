@@ -7,6 +7,7 @@ var logger             = require('../logger.js');
 var localStorageDriver = require('../localStorageDriver.js');
 var localStorage       = localStorageDriver.localStorage;
 var localDatabase      = localStorageDriver.indexedDB;
+var debug              = require('../debug.js');
 
 
 /**
@@ -67,6 +68,8 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   var _aggregateFn              = aggregateFn;
   var _computedsFn              = computedsFn;
   var _storeName                = storeName;
+
+  var _debug = debug.debug(_storeName, debug.NAMESPACES.COLLECTION);
 
   // only for transactions
   var _locaDatabaseActions = {
@@ -539,18 +542,18 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     }
 
     if (_locaDatabaseActions.upsert.length) {
-      var _processTimeUpsert = utils.getProcessTime();
+      _debug.time('upsert_indexedDB');
       var _nbObjects         = _locaDatabaseActions.upsert.length;
       localDatabase.upsert(_storeName, _locaDatabaseActions.upsert, function () {
-        logger.debug('[' + _storeName + '][Collection] Update IndexedDB (upsert) in ' + utils.getProcessTime(_processTimeUpsert) + 'ms, ' + _nbObjects + ' lines');
+        _debug.timeEnd('upsert_indexedDB', [_nbObjects + ' lines']);
       });
       _locaDatabaseActions.upsert = [];
     }
     if (_locaDatabaseActions.del.length) {
-      var _processTimeDel = utils.getProcessTime();
+      _debug.time('delete_indexedDB');
       var _nbObjects      = _locaDatabaseActions.del.length;
       localDatabase.del(_storeName, _locaDatabaseActions.del, function () {
-        logger.debug('[' + _storeName + '][Collection] Update IndexedDB (delete) in ' + utils.getProcessTime(_processTimeDel) + 'ms, ' + _nbObjects + ' lines');
+        _debug.timeEnd('delete_indexedDB', [_nbObjects + ' lines']);
       });
       _locaDatabaseActions.del = [];
     }

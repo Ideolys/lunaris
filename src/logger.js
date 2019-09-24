@@ -29,15 +29,7 @@ function log (strings, msg, baseMessage, fn) {
   fn(baseMessage + strings.join(' '), msg);
 }
 
-var isDebug = false;
 var logger  = {
-  get isDebug () {
-    return isDebug;
-  },
-  set isDebug (value) {
-    isDebug = value;
-  },
-
   info : function (strings, msg) {
     return log(strings, msg, baseMessageLog, console.log);
   },
@@ -75,10 +67,6 @@ var logger  = {
    * @param {*} debug
    */
   debug : function (strings, debug) {
-    if (!isDebug) {
-      return;
-    }
-
     return log(strings, debug, baseMessageDebug, console.log);
   }
 };
