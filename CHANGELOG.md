@@ -21,7 +21,7 @@
     + Log in-collection indexedb performances
     + Log store events
     Debug logs are organized in different namespaces:
-      - `colleciton`
+      - `collection`
       - `crud`
       - `http`
       - `hooks`
