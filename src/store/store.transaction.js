@@ -2,6 +2,7 @@ var exportsLunaris   = require('../exports.js');
 var storeUtils       = require('./store.utils.js');
 var queue            = require('../utils.js').queue;
 var storeDependecies = exportsLunaris.storeDependencies;
+var debug            = require('../debug.js');
 
 var transactionIdGenerator = 0;
 
@@ -41,6 +42,8 @@ function begin () {
   transactionIdGenerator++;
   currentTransactionId               = transactionIdGenerator;
   transactions[currentTransactionId] = { actions : [], uniqueEvents : {}, isCommitingTransaction : false, isError : false };
+
+  debug.log(null, debug.NAMESPACES.TRANSACTION, 'Begin id : ' + currentTransactionId);
 }
 
 /**
@@ -102,6 +105,8 @@ function commit (callback) {
     return;
   }
 
+  debug.log(null, debug.NAMESPACES.TRANSACTION, 'Commiting id : ' + currentTransactionId);
+
   isTransaction = false;
   transactions[currentTransactionId].isCommitingTransaction = true;
   _processNextAction(-1, currentTransactionId, callback);
@@ -124,6 +129,7 @@ function _processNextAction (iterator, transactionId, callback) {
     return _end(transactionId, function () {
       var isError = transactions[transactionId].isError;
       delete transactions[transactionId];
+      debug.log(null, debug.NAMESPACES.TRANSACTION, 'End id : ' + transactionId);
       if (callback) {
         callback(isError);
       }
@@ -137,10 +143,12 @@ function _processNextAction (iterator, transactionId, callback) {
   }
 
   function _next () {
+    debug.log(null, debug.NAMESPACES.TRANSACTION, 'End action: ' + _action.operation + ' on @' + _action.store);
     _processNextAction(iterator, transactionId, callback);
   }
 
   _arguments.push(_next);
+  debug.log(null, debug.NAMESPACES.TRANSACTION, 'Start action: ' + _action.operation + ' on @' + _action.store);
   _action.handler.apply(null, _arguments);
 }
 

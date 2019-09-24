@@ -4,18 +4,20 @@ var getProcessTime = utils.getProcessTime;
 
 var isDebug    = false;
 var NAMESPACES = {
-  COLLECTION : 'collection',
-  CRUD       : 'crud',
-  HTTP       : 'http',
-  HOOKS      : 'hooks',
-  CACHE      : 'cache'
+  COLLECTION  : 'collection',
+  CRUD        : 'crud',
+  HTTP        : 'http',
+  HOOKS       : 'hooks',
+  CACHE       : 'cache',
+  TRANSACTION : 'transaction'
 };
 var CONFIG  = {
-  collection : true,
-  crud       : true,
-  http       : true,
-  hooks      : true,
-  cache      : true
+  collection  : true,
+  crud        : true,
+  http        : true,
+  hooks       : true,
+  cache       : true,
+  transaction : true
 };
 
 /**

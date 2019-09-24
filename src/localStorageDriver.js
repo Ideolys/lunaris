@@ -1,6 +1,7 @@
 var logger            = require('./logger.js');
 var lunarisExports    = require('./exports.js');
 var offlineVersionKey = 'lunaris:indexedDB_version';
+var debug             = require('./debug.js');
 
 var database;
 function _isDatabaseExists (dbname, callback) {
@@ -168,7 +169,7 @@ function _add (key, value, callback) {
     _transaction.onerror = function (e) {
       callback(e);
     };
-    _transaction.onsuccess = function () {
+    _transaction.oncomplete = function () {
       callback();
     };
 
@@ -181,8 +182,6 @@ function _add (key, value, callback) {
     for (var i = 0, len = value.length; i < len; i++) {
       _objectStore.add(value[i]);
     }
-
-    _transaction.commit();
   }
   catch (e) {
     return callback(e);
@@ -206,7 +205,7 @@ function _upsert (key, value, callback) {
     _transaction.onerror = function (e) {
       callback(e);
     };
-    _transaction.onsuccess = function () {
+    _transaction.oncomplete = function () {
       callback();
     };
 
@@ -219,8 +218,6 @@ function _upsert (key, value, callback) {
     for (var i = 0, len = value.length; i < len; i++) {
       _objectStore.put(value[i]);
     }
-
-    _transaction.commit();
   }
   catch (e) {
     return callback(e);
@@ -244,7 +241,7 @@ function _del (key, value, callback) {
     _transaction.onerror = function (e) {
       callback(e);
     };
-    _transaction.onsuccess = function () {
+    _transaction.oncomplete = function () {
       callback();
     };
 
@@ -257,8 +254,6 @@ function _del (key, value, callback) {
     for (var i = 0, len = value.length; i < len; i++) {
       _objectStore.delete(value[i]);
     }
-
-    _transaction.commit();
   }
   catch (e) {
     return callback(e);
@@ -332,22 +327,21 @@ function _clear (key, callback) {
     return callback();
   }
 
-  var _transaction;
   try {
-    _transaction = database.transaction([key], 'readwrite');
+    var _transaction = database.transaction([key], 'readwrite');
+
+    _transaction.onerror = function onerror (e) {
+      callback(e);
+    };
+    _transaction.oncomplete = function onsuccess () {
+      callback();
+    };
   }
   catch (e) {
     return callback(e);
   }
   var _objectStore = _transaction.objectStore(key);
-  var _request     = _objectStore.clear();
-
-  _request.onsuccess = function onsuccess (e) {
-    callback(null, e.target.result);
-  };
-  _request.onerror = function onerror (e) {
-    callback(e);
-  };
+  _objectStore.clear();
 }
 
 var drivers = {
