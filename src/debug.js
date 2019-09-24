@@ -4,7 +4,7 @@ var getProcessTime = utils.getProcessTime;
 
 var isDebug    = false;
 var NAMESPACES = {
-  COLLECTION : 'colleciton',
+  COLLECTION : 'collection',
   CRUD       : 'crud',
   HTTP       : 'http',
   HOOKS      : 'hooks',
