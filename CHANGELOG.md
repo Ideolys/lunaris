@@ -20,6 +20,18 @@
     + Log Cache request
     + Log in-collection indexedb performances
     + Log store events
+  - BREAKING CHANGE : the reference feature does not copy object anymore. It ensures to propagate store primary keys. Notation:
+  ```js
+    // map storeA
+    {
+      id        : ['<<int>>'],
+      label     : ['<string>'],
+      objStoreB : ['object', {
+        id    : ['int', 'ref', '@storeB'], // belongs to storeB
+        label : ['string']                 // belongs to current store
+      }]
+    }
+  ```
 - Fix:
   - Improve offline app.
   - In offline or offline mode, generated urls were not encoded.
