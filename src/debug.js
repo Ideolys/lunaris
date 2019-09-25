@@ -1,10 +1,11 @@
+var lunarisExports = require('./exports.js');
 var logger         = require('./logger.js');
 var utils          = require('./utils.js');
 var getProcessTime = utils.getProcessTime;
 
 var isDebug    = false;
 var NAMESPACES = {
-  COLLECTION  : 'collection',
+  PERFORMANCE : 'performance',
   CRUD        : 'crud',
   HTTP        : 'http',
   HOOKS       : 'hooks',
@@ -12,7 +13,7 @@ var NAMESPACES = {
   TRANSACTION : 'transaction'
 };
 var CONFIG  = {
-  collection  : true,
+  performance : true,
   crud        : true,
   http        : true,
   hooks       : true,
@@ -70,6 +71,10 @@ module.exports = {
        * @param {String} key
        */
       time : function (key) {
+        if (!lunarisExports.isBrowser) {
+          return;
+        }
+
         times[key] = getProcessTime();
       },
 
@@ -79,6 +84,10 @@ module.exports = {
        * @param {Array} options ['2 lines']
        */
       timeEnd : function (key, options) {
+        if (!lunarisExports.isBrowser) {
+          return;
+        }
+
         times[key] = getProcessTime(times[key]);
         log(store, namespace, key + ' in ' + times[key] + 'ms, ' + options.join(';'));
       }

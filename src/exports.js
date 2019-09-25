@@ -55,16 +55,6 @@ catch (e) {
   exports.isBrowser = true;
 }
 
-/**
- * Set stopwords value
- */
-try {
-  exports.stopwords = STOPWORDS;
-}
-catch (e) {
-  exports.stopwords = [];
-}
-
 try {
   exports.compilationErrors = COMPILATION_ERRORS;
 }

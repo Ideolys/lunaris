@@ -69,7 +69,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   var _computedsFn              = computedsFn;
   var _storeName                = storeName;
 
-  var _debug = debug.debug(_storeName, debug.NAMESPACES.COLLECTION);
+  var _debug = debug.debug(_storeName, debug.NAMESPACES.PERFORMANCE);
 
   // only for transactions
   var _locaDatabaseActions = {

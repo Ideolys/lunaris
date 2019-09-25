@@ -1,10 +1,8 @@
-var utils          = require('../utils.js');
-var lunarisExports = require('../exports.js');
-var stopwords      = lunarisExports.stopwords;
-var OPERATORS      = utils.OPERATORS;
-var cache          = require('../cache.js');
-var md5            = require('../md5.js');
-var url            = require('./store.url.js');
+var utils     = require('../utils.js');
+var OPERATORS = utils.OPERATORS;
+var cache     = require('../cache.js');
+var md5       = require('../md5.js');
+var url       = require('./store.url.js');
 
 /**
  * Delete fields
@@ -73,26 +71,16 @@ function ilike (filterValue, objValue) {
 
   for (var k = 0; k < filterValue.length; k++) {
     filterValue[k]                = utils.unaccent(filterValue[k]);
-    var _searchWords              = filterValue[k].split(' ');
+    var _searchWords              = filterValue[k].toLowerCase().split(' ');
     var _document                 = objValue.split(' ');
     var _nbSearchWordHasBeenFound = 0;
 
-    for (var i = 0; i < stopwords.length; i++) {
-      for (var j = 0; j < _searchWords.length; j++) {
-        if (stopwords[i] === _searchWords[j]) {
-          _searchWords.splice(j, 1);
-        }
-      }
-    }
+    for (var j = 0; j < _searchWords.length; j++) {
+      for (var i = 0; i < _document.length; i++) {
+        var _unaccentWord = utils.unaccent(_document[i]).toLowerCase();
 
-    for (j = 0; j < _searchWords.length; j++) {
-      for (i = 0; i < _document.length; i++) {
-        if (stopwords.indexOf(_document[i]) === -1) {
-          var _unaccentWord = utils.unaccent(_document[i]);
-
-          if (_unaccentWord.indexOf(_searchWords[j].toLowerCase()) !== -1 || _unaccentWord.indexOf(_searchWords[j].toUpperCase()) !== -1) {
-            _nbSearchWordHasBeenFound++;
-          }
+        if (_unaccentWord.indexOf(_searchWords[j]) !== -1) {
+          _nbSearchWordHasBeenFound++;
         }
       }
     }

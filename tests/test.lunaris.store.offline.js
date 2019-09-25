@@ -327,61 +327,6 @@ describe('offline filters', () => {
     ]);
   });
 
-  it('should ILIKE filter does not use stopwords', () => {
-    var _map = [{
-      id    : ['<<int>>'],
-      label : ['string']
-    }];
-    var _store = storeTestUtils.initStore('store', _map, null, null, [
-      {
-        source          : '@source',
-        sourceAttribute : 'label',
-        localAttribute  : 'label',
-        operator        : 'ILIKE'
-      }
-    ]);
-
-    var _data = [
-      {
-        id    : 1,
-        label : 'c\'est une patate chaude'
-      }, {
-        id    : 2,
-        label : 'je suis une patate chaude'
-      }
-    ];
-
-    for (var i = 0; i < _data.length; i++) {
-      _store.data.add(_data[i]);
-    }
-
-    var _filterValues = {
-      requiredOptions : {},
-      optionalOptions : {
-        0 : [null, 'label', 'tu es une patate chaude', 'ILIKE']
-      },
-      cache : { limit : 2, offset : 0 }
-    };
-
-    var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
-    should(_filteredValues).be.an.Array().and.have.lengthOf(2);
-    should(_filteredValues).eql([
-      {
-        id       : 1,
-        label    : 'c\'est une patate chaude',
-        _rowId   : 1,
-        _id      : 1,
-        _version : [1]
-      }, {
-        id       : 2,
-        label    : 'je suis une patate chaude',
-        _rowId   : 2,
-        _id      : 2,
-        _version : [2]
-      }
-    ]);
-  });
-
   it('should ILIKE filter remove accentuation', () => {
     var _map = [{
       id    : ['<<int>>'],
@@ -474,6 +419,24 @@ describe('offline filters', () => {
     };
 
     var _filteredValues = storeOffline.filter(_store, _store.data, _filterValues);
+    should(_filteredValues).be.an.Array().and.have.lengthOf(2);
+    should(_filteredValues).eql([
+      {
+        id       : 1,
+        label    : 'purée chaude',
+        _rowId   : 1,
+        _id      : 1,
+        _version : [1]
+      }, {
+        id       : 2,
+        label    : 'PUREE',
+        _rowId   : 2,
+        _id      : 2,
+        _version : [2]
+      }
+    ]);
+
+    _filterValues.optionalOptions[0][2] = 'PurEE';
     should(_filteredValues).be.an.Array().and.have.lengthOf(2);
     should(_filteredValues).eql([
       {
