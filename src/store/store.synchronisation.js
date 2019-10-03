@@ -218,6 +218,9 @@ function computeStoreTransactions (transactions, storeName, method, request, val
       var _lengthTransactionValue = _transaction.data.length;
 
       if (_transaction.store !== storeName) {
+        if (!_isTransactionValueAnArray) {
+          _transaction.data = _transaction.data[0];
+        }
         continue;
       }
 
