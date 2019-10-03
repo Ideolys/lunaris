@@ -1020,7 +1020,7 @@ describe('Compute offline transactions', () => {
     computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.INSERT, '/storeB', { _id : 1, label : 'a' });
     computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.DELETE, '/storeB', { _id : 1, label : 'a' });
     computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.INSERT, '/storeB', { _id : 2, label : 'b' });
-    computeOfflineTransactions(_transactions, 'storeA', OPERATIONS.DELETE, '/storeA', [{ _id : 5, label : 'E' }]);
+    computeOfflineTransactions(_transactions, 'storeA', OPERATIONS.DELETE, '/storeA', { _id : 5, label : 'E' });
     computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.UPDATE, '/storeB', { _id : 2, label : 'b-1' });
     computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.UPDATE, '/storeB', { _id : 2, label : 'b_1' });
     computeOfflineTransactions(_transactions, 'storeB', OPERATIONS.UPDATE, '/storeB', [
@@ -1070,14 +1070,12 @@ describe('Compute offline transactions', () => {
         store  : 'storeB',
         method : OPERATIONS.INSERT,
         url    : '/storeB',
-        data   : [{ _id : 2, label : 'b__1' }]
+        data   : { _id : 2, label : 'b__1' }
       }, {
         store  : 'storeA',
         method : OPERATIONS.DELETE,
         url    : '/storeA',
-        data   : [
-          { _id : 5, label : 'E' }
-        ]
+        data   : { _id : 5, label : 'E' }
       }, {
         store  : 'storeB',
         method : OPERATIONS.UPDATE,
