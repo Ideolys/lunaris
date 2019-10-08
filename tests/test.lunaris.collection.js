@@ -1121,7 +1121,7 @@ describe('lunaris internal collection', () => {
         var _objectCollection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
         _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, { id : '_3' }], type : { id : '_2' } });
 
-        should(_objectCollection.replaceReferences('aStore', 0, 1)).eql(undefined);
+        should(_objectCollection.replaceReferences('aStore', 0, 1)).eql([]);
       });
 
       it('should do nothing if referenced store is not defined', () => {
@@ -1144,7 +1144,7 @@ describe('lunaris internal collection', () => {
 
         _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, { id : '_3' }], type : { id : '_2' } });
 
-        should(_objectCollection.replaceReferences('aStore', 0, 1)).eql(undefined);
+        should(_objectCollection.replaceReferences('aStore', 0, 1)).eql([]);
       });
 
 
@@ -1168,7 +1168,7 @@ describe('lunaris internal collection', () => {
 
         _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, ], type : { id : '_2' } });
 
-        should(_objectCollection.replaceReferences('aStore', '_4', 4)).eql(undefined);
+        should(_objectCollection.replaceReferences('aStore', '_4', 4)).eql([]);
       });
 
       it('should replace value', () => {

@@ -630,18 +630,18 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    */
   function replaceReferences (store, lastPK, newPK) {
     if (!_referencesDescriptor.referencesFn) {
-      return;
+      return [];
     }
 
     if (!_indexes.references[store]) {
-      return;
+      return [];
     }
 
     var _version          = begin();
     var _searchReferences = index.binarySearch(_indexes.references[store][0], lastPK);
 
     if (!_searchReferences.found) {
-      return;
+      return [];
     }
 
     var _index = _indexes.references[store][1][_searchReferences.index];
