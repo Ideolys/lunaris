@@ -21,11 +21,12 @@
     + Log in-collection indexedb performances
     + Log store events
     Debug logs are organized in different namespaces:
-      - `collection`
+      - `performance`
       - `crud`
       - `http`
       - `hooks`
-      - `cach`
+      - `cache`
+      - `transaction`
 
     To activate or desactivate a namespace : `lunaris.debug.config.<namespace> = <true> / <false>`
   - BREAKING CHANGE : the reference feature does not copy object anymore. It ensures to propagate store primary keys. Notation:
