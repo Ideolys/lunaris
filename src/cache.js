@@ -68,7 +68,7 @@ function _getOrUpdatevalues (store, hash, values) {
   if (_isFilterMatchValue && values) {
     if (_cacheValue.stores.indexOf(store) === -1) {
       _cacheValue.stores.push(store);
-      database.upsert('cache', _cacheValue);
+      // database.upsert('cache', _cacheValue);
     }
 
     return _cacheValue.values = values;
@@ -127,7 +127,7 @@ module.exports = {
       };
 
       cache.push(_caheObj);
-      database.upsert('cache', _caheObj);
+      // database.upsert('cache', _caheObj);
     }
   },
 

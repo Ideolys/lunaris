@@ -1207,7 +1207,7 @@ describe('lunaris store', function () {
       lunaris.delete('@store_del', { _id : 1, id : 1 });
     });
 
-    it('should delete the value and execute the hooks : delete & deleted', done => {
+    it.only('should delete the value and execute the hooks : delete & deleted', done => {
       var _isDeleteHook                    = false;
       var _isDeletedHook                   = false;
       var _store                           = initStore('store1');
@@ -1239,6 +1239,9 @@ describe('lunaris store', function () {
 
       lunaris.hook('deleted@store1', (data) => {
         _isDeletedHook = true;
+
+        console.log(data);
+
         should(data).eql({ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] });
 
         if (_isDeletedHook && _isDeleteHook) {

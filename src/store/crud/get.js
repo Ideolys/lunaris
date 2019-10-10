@@ -16,6 +16,7 @@ var indexedDB       = require('../../localStorageDriver.js').indexedDB;
 var getRequestQueue = {};
 var OPERATIONS      = utils.OPERATIONS;
 var debug           = require('../../debug.js');
+var debugObject     = debug.debug(null, debug.NAMESPACES.PERFORMANCE);
 
 
 /**

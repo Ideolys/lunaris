@@ -10,7 +10,8 @@ var NAMESPACES = {
   HTTP        : 'http',
   HOOKS       : 'hooks',
   CACHE       : 'cache',
-  TRANSACTION : 'transaction'
+  TRANSACTION : 'transaction',
+  INDEXEDDB   : 'indexedDB'
 };
 var CONFIG  = {
   performance : true,
@@ -18,7 +19,8 @@ var CONFIG  = {
   http        : true,
   hooks       : true,
   cache       : true,
-  transaction : true
+  transaction : true,
+  indexedDB   : true
 };
 
 /**

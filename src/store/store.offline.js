@@ -9,8 +9,8 @@ var url       = require('./store.url.js');
  * @param {Object} obj
  * @returns {Object}
  */
-function _transformCacheData (obj) {
-  var _clonedData = utils.clone(obj);
+function _transformCacheData (obj, cloneFn) {
+  var _clonedData = cloneFn(obj);
   delete _clonedData._id;
   delete _clonedData._version;
   delete _clonedData._rowId;
@@ -28,7 +28,7 @@ function _preloadCache (store, filterValues, data) {
   var _len = data.length;
   var _cacheValues = [];
   for (var j = 0; j < _len && j < store.paginationLimit; j++) {
-    _cacheValues.push(_transformCacheData(data[j]));
+    _cacheValues.push(_transformCacheData(data[j], store.clone));
   }
 
   filterValues.cache.offset = 0;
@@ -45,7 +45,7 @@ function _preloadCache (store, filterValues, data) {
   var _n = 0;
   for (var i = store.paginationLimit; i < _len; i++) {
     _n++;
-    _cacheValues.push(_transformCacheData(data[i]));
+    _cacheValues.push(_transformCacheData(data[i], store.clone));
 
     if (!(_n % store.paginationLimit) || i + 1 === _len) {
       filterValues.cache.offset += store.paginationLimit;
@@ -65,28 +65,22 @@ function _preloadCache (store, filterValues, data) {
  * @returns {Boolean}
  */
 function ilike (filterValue, objValue) {
-  if (!Array.isArray(filterValue)) {
-    filterValue = [filterValue];
-  }
+  var _document = objValue.split(' ');
 
-  for (var k = 0; k < filterValue.length; k++) {
-    filterValue[k]                = utils.unaccent(filterValue[k]);
-    var _searchWords              = filterValue[k].toLowerCase().split(' ');
-    var _document                 = objValue.split(' ');
+  for (var j = 0; j < filterValue.length; j++) {
     var _nbSearchWordHasBeenFound = 0;
-
-    for (var j = 0; j < _searchWords.length; j++) {
+    for (var k = 0; k < filterValue[j].length; k++) {
       for (var i = 0; i < _document.length; i++) {
         var _unaccentWord = utils.unaccent(_document[i]).toLowerCase();
 
-        if (_unaccentWord.indexOf(_searchWords[j]) !== -1) {
+        if (_unaccentWord.indexOf(filterValue[j][k]) !== -1) {
           _nbSearchWordHasBeenFound++;
+
+          if (_nbSearchWordHasBeenFound >= filterValue[j].length) {
+            return true;
+          }
         }
       }
-    }
-
-    if (_nbSearchWordHasBeenFound === _searchWords.length) {
-      return true;
     }
   }
 
@@ -98,17 +92,39 @@ function ilike (filterValue, objValue) {
  * @param {Function} filterFn
  * @param {Array} filter [attributeUrl, attribute, value, operator]
  * @param {Array} data
+ * @param {Boolean} isRequiredFilter
  */
-function _reduce (filterFn, filter, data) {
+function _reduce (filterFn, filter, data, isRequiredFilter) {
   if ((!filterFn && filter[3] !== OPERATORS.ILIKE) || !filter) {
-    return;
+    return data;
   }
 
-  for (var i = data.length - 1; i >= 0; i--) {
-    if (!filterFn.call(null, filter[2], data[i], ilike)) {
-      data.splice(i, 1);
+  var _filterValue = filter[2];
+
+  if (filter[3] === 'ILIKE' && !isRequiredFilter) {
+
+    if (!Array.isArray(_filterValue)) {
+      _filterValue = [_filterValue];
+    }
+
+    var _searchWords = [];
+    for (var k = 0; k < _filterValue.length; k++) {
+      _filterValue[k] = utils.unaccent(_filterValue[k]);
+      _searchWords.push(_filterValue[k].toLowerCase().split(' '));
+    }
+
+    _filterValue = _searchWords;
+  }
+
+
+  var _res = [];
+  for (var i = 0, len = data.length; i < len; i++) {
+    if (filterFn.call(null, _filterValue, data[i], ilike)) {
+      _res.push(data[i]);
     }
   }
+
+  return _res;
 }
 
 /**
@@ -124,7 +140,7 @@ function _reduce (filterFn, filter, data) {
  * }
  */
 function filter (store, collection, filterValues) {
-  var _data = collection.getAll();
+  var _data = collection.getAll(null, false, false);
 
   if (!filterValues || !store.filterFns) {
     return _data;
@@ -140,7 +156,7 @@ function filter (store, collection, filterValues) {
       continue;
     }
 
-    _reduce(store.filterFns[_requiredFilters[i]], filterValues.requiredOptions[_requiredFilters[i]], _data);
+    _data = _reduce(store.filterFns[_requiredFilters[i]], filterValues.requiredOptions[_requiredFilters[i]], _data, true);
   }
 
   var _optionalFilters = Object.keys(filterValues.optionalOptions);
@@ -149,7 +165,7 @@ function filter (store, collection, filterValues) {
       continue;
     }
 
-    _reduce(store.filterFns[_optionalFilters[i]], filterValues.optionalOptions[_optionalFilters[i]], _data);
+    _data = _reduce(store.filterFns[_optionalFilters[i]], filterValues.optionalOptions[_optionalFilters[i]], _data, false);
   }
 
   if (store.isStoreObject) {

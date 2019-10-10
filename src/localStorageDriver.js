@@ -2,6 +2,8 @@ var logger            = require('./logger.js');
 var lunarisExports    = require('./exports.js');
 var offlineVersionKey = 'lunaris:indexedDB_version';
 var debug             = require('./debug.js');
+var debugObj          = debug.debug(null, debug.NAMESPACES.INDEXEDDB);
+var LIMIT_ITEMS       = 10000;
 
 var database;
 function _isDatabaseExists (dbname, callback) {
@@ -127,6 +129,18 @@ function _addInQueue (args) {
   _startQueue();
 }
 
+function _batchify (_currentItem, callback) {
+  var _data = _currentItem[2];
+
+  while (_data.length > LIMIT_ITEMS) {
+    _addInQueue([_currentItem[0], _currentItem[1], _data.splice(0, LIMIT_ITEMS), _data.length ? null : callback]);
+  }
+
+  if (_data.length) {
+    _addInQueue([_currentItem[0], _currentItem[1], _data.splice(0, _data.length), callback]);
+  }
+}
+
 /**
  * Process indexedDB queue
  */
@@ -141,7 +155,19 @@ function _processQueue () {
   var _callback = _currentItem.pop();
   var _args     = _currentItem.slice(1);
 
+  if (_currentItem.length === 3 && Array.isArray(_currentItem[2]) && _currentItem[2].length > LIMIT_ITEMS) {
+    _batchify(_currentItem, _callback);
+    return _processQueue();
+  }
+
+  var _debugOptions = [
+    'function -> ' + _currentItem[0].name,
+    'items -> '    + (_currentItem.length === 3 ? (Array.isArray(_currentItem[2]) ? _currentItem[2].length : 1) : 0)
+  ];
+
+  debugObj.time(_currentItem[1]);
   _args.push(function (err, data) {
+    debugObj.timeEnd(_currentItem[1], _debugOptions);
     if (_callback) {
       _callback(err, data);
     }
@@ -163,28 +189,26 @@ function _add (key, value, callback) {
     return callback ();
   }
 
-  try {
-    var _transaction = database.transaction([key], 'readwrite');
+  var _transaction = database.transaction(key, 'readwrite');
 
-    _transaction.onerror = function (e) {
-      callback(e);
-    };
-    _transaction.oncomplete = function () {
-      callback();
-    };
+  _transaction.onerror = function (e) {
+    callback(e);
+  };
+  _transaction.onblocked = function (e) {
+    callback(e);
+  };
+  _transaction.oncomplete = function () {
+    callback();
+  };
 
-    var _objectStore = _transaction.objectStore(key);
+  var _objectStore = _transaction.objectStore(key);
 
-    if (!Array.isArray(value)) {
-      value = [value];
-    }
-
-    for (var i = 0, len = value.length; i < len; i++) {
-      _objectStore.add(value[i]);
-    }
+  if (!Array.isArray(value)) {
+    value = [value];
   }
-  catch (e) {
-    return callback(e);
+
+  for (var i = 0, len = value.length; i < len; i++) {
+    _objectStore.add(value[i]);
   }
 }
 
@@ -199,28 +223,26 @@ function _upsert (key, value, callback) {
     return callback();
   }
 
-  try {
-    var _transaction = database.transaction([key], 'readwrite');
+  var _transaction = database.transaction(key, 'readwrite');
 
-    _transaction.onerror = function (e) {
-      callback(e);
-    };
-    _transaction.oncomplete = function () {
-      callback();
-    };
+  _transaction.onerror = function (e) {
+    callback(e);
+  };
+  _transaction.onblocked = function (e) {
+    callback(e);
+  };
+  _transaction.oncomplete = function () {
+    callback();
+  };
 
-    var _objectStore = _transaction.objectStore(key);
+  var _objectStore = _transaction.objectStore(key);
 
-    if (!Array.isArray(value)) {
-      value = [value];
-    }
-
-    for (var i = 0, len = value.length; i < len; i++) {
-      _objectStore.put(value[i]);
-    }
+  if (!Array.isArray(value)) {
+    value = [value];
   }
-  catch (e) {
-    return callback(e);
+
+  for (var i = 0, len = value.length; i < len; i++) {
+    _objectStore.put(value[i]);
   }
 }
 
@@ -235,28 +257,26 @@ function _del (key, value, callback) {
     return callback();
   }
 
-  try {
-    var _transaction = database.transaction([key], 'readwrite');
+  var _transaction = database.transaction(key, 'readwrite');
 
-    _transaction.onerror = function (e) {
-      callback(e);
-    };
-    _transaction.oncomplete = function () {
-      callback();
-    };
+  _transaction.onerror = function (e) {
+    callback(e);
+  };
+  _transaction.onblocked = function (e) {
+    callback(e);
+  };
+  _transaction.oncomplete = function () {
+    callback();
+  };
 
-    var _objectStore = _transaction.objectStore(key);
+  var _objectStore = _transaction.objectStore(key);
 
-    if (!Array.isArray(value)) {
-      value = [value];
-    }
-
-    for (var i = 0, len = value.length; i < len; i++) {
-      _objectStore.delete(value[i]);
-    }
+  if (!Array.isArray(value)) {
+    value = [value];
   }
-  catch (e) {
-    return callback(e);
+
+  for (var i = 0, len = value.length; i < len; i++) {
+    _objectStore.delete(value[i]);
   }
 }
 
@@ -271,14 +291,13 @@ function _get (key, value, callback) {
     return callback();
   }
 
-  var _transaction;
-  try {
-    _transaction = database.transaction([key], 'readonly');
-  }
-  catch (e) {
-    return callback(e);
-  }
-
+  var _transaction = database.transaction(key, 'readonly');
+  _transaction.onerror = function onerror (e) {
+    callback(e);
+  };
+  _transaction.onblocked = function (e) {
+    callback(e);
+  };
   var _objectStore = _transaction.objectStore(key);
   var _request     = _objectStore.get(value);
 
@@ -300,13 +319,13 @@ function _getAll (key, callback) {
     return callback();
   }
 
-  var _transaction;
-  try {
-    _transaction = database.transaction([key], 'readonly');
-  }
-  catch (e) {
-    return callback(e);
-  }
+  var _transaction       = database.transaction(key, 'readonly');
+  _transaction.onerror = function onerror (e) {
+    callback(e);
+  };
+  _transaction.onblocked = function (e) {
+    callback(e);
+  };
   var _objectStore = _transaction.objectStore(key);
   var _request     = _objectStore.getAll();
 
@@ -327,19 +346,18 @@ function _clear (key, callback) {
     return callback();
   }
 
-  try {
-    var _transaction = database.transaction([key], 'readwrite');
+  var _transaction = database.transaction(key, 'readwrite');
 
-    _transaction.onerror = function onerror (e) {
-      callback(e);
-    };
-    _transaction.oncomplete = function onsuccess () {
-      callback();
-    };
-  }
-  catch (e) {
-    return callback(e);
-  }
+  _transaction.onerror = function onerror (e) {
+    callback(e);
+  };
+  _transaction.onblocked = function (e) {
+    callback(e);
+  };
+  _transaction.oncomplete = function onsuccess () {
+    callback();
+  };
+
   var _objectStore = _transaction.objectStore(key);
   _objectStore.clear();
 }

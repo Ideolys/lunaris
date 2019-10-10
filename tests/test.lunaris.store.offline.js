@@ -515,7 +515,7 @@ describe('offline filters', () => {
         0 : [null, 'label'      , 'B', 'ILIKE']
       },
       optionalOptions : {
-        1 : [null, 'category.id', '4', 'ILIKE']
+        1 : [null, 'category.id', '4', '=']
       },
       cache : { limit : 2, offset : 0 }
     };

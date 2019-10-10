@@ -90,12 +90,12 @@ function _getFilterValuesHTTPRequest (store, method) {
 
     var _operator = _filter.operator;
 
-    if (!_sourceStore.isStoreObject) {
-      _operator = 'ILIKE';
+    //if (!_sourceStore.isStoreObject) {
+    //  _operator = 'ILIKE';
       // if (_filter.operator && _filter.operator !== 'ILIKE') {
       //   throw new Error('Array filter must declare ILIKE operator or nothing!');
       // }
-    }
+    //}
 
     for (var j = _sourceValue.length - 1; j >= 0; j--) {
       if (!_filter.sourceWhere || (_filter.sourceWhere && _runWhereCondition(_filter.sourceWhere, _sourceValue[j]))) {

@@ -302,14 +302,14 @@ describe('lunaris internal collection', () => {
         var _schema  = schema.analyzeDescriptor(_objectDescriptor);
         var _joinFns = schema.getJoinFns({ elements : { isStoreObject : true }}, _schema.compilation, _schema.virtualCompilation, _schema.meta.joins, _schema.meta.externalAggregates);
 
-        var _elements         = collection(getPrimaryKey, true , { joins : {}, joinFns : {}, collections : {}});
+        var _elements         = collection(getPrimaryKey, true , { joins : {}, joinFns : {}, collections : {}}, null, null, null, null, utils.clone);
         var _elementsOverview = collection(getPrimaryKey, false, {
           joins       : _schema.meta.joins,
           joinFns     : _joinFns,
           collections : {
             elements : _elements
           }
-        });
+        }, null, null, null, null, utils.clone);
 
         _elements.add({ id : 1, cost : 1 });
 
@@ -1375,8 +1375,8 @@ describe('lunaris internal collection', () => {
 
       var _items = _collection.getAll([10, 20, 30], true);
       should(_items).be.an.Array().and.have.lengthOf(2);
-      should(_items[0]).eql({ _rowId : 3, _id : 3, id : 30, _version : [3] });
-      should(_items[1]).eql({ _rowId : 4, _id : 2, id : 20, label : 'A', _version : [4] });
+      should(_items[0]).eql({ _rowId : 4, _id : 2, id : 20, label : 'A', _version : [4] });
+      should(_items[1]).eql({ _rowId : 3, _id : 3, id : 30, _version : [3] });
     });
 
     it('should return the valid items in the collection filtered by ids with PK : fallback to _id if no getPrimaryKey function', () => {
@@ -2011,6 +2011,250 @@ describe('lunaris internal collection', () => {
       should(_collection.get(1)).eql({ _rowId : 3, _id : 1, id : 1, test : 1, _version : [3]});
       should(_collection.get(2)).eql(null);
     });
+  });
+
+  describe('data cache', () => {
+
+    it('should be defined', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      should(_collection.getIndexDataCache()).eql([[], []]);
+      should(_collection._getAllCache()).eql([]);
+    });
+
+    it('should be updated when adding an object', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      _collection.add({ label : 'a' });
+      should(_collection.getIndexDataCache()).eql([[1], [0]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(1);
+      should(_dataCache[0]._id).eql(1);
+    });
+
+    it('should be updated when adding multiple objects', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      _collection.add({ label : 'a' });
+      _collection.add({ label : 'b' });
+      should(_collection.getIndexDataCache()).eql([[1, 2], [0, 1]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(2);
+      should(_dataCache[0]._id).eql(1);
+      should(_dataCache[1]._id).eql(2);
+    });
+
+    it('should be updated when updating an object', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      _collection.add({ label : 'a' });
+      _collection.upsert({ _id : 1, label : 'b' });
+      should(_collection.getIndexDataCache()).eql([[1], [1]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(1);
+      should(_dataCache[0]._id).eql(1);
+      should(_dataCache[0].label).eql('b');
+    });
+
+    it('should be updated when updating objects', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      _collection.add({ label : 'a' });
+      _collection.add({ label : 'b' });
+      _collection.upsert({ _id : 1, label : 'a.2' });
+      _collection.upsert({ _id : 2, label : 'b.2' });
+      should(_collection.getIndexDataCache()).eql([[1, 2], [2, 3]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(2);
+      should(_dataCache[0]._id).eql(1);
+      should(_dataCache[0].label).eql('a.2');
+      should(_dataCache[1]._id).eql(2);
+      should(_dataCache[1].label).eql('b.2');
+    });
+
+    it('should be updated when removing an object', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      _collection.add({ label : 'a' });
+      _collection.remove({ _id : 1 });
+      should(_collection.getIndexDataCache()).eql([[], []]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(0);
+    });
+
+    it('should be updated when removing objects', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      _collection.add({ label : 'a' });
+      _collection.add({ label : 'b' });
+      _collection.remove({ _id : 1 });
+      _collection.remove({ _id : 2 });
+      should(_collection.getIndexDataCache()).eql([[], []]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(0);
+    });
+
+    it('should be updated when adding an object in transaction', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[1], [0]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(1);
+      should(_dataCache[0]._id).eql(1);
+    });
+
+    it('should be updated when adding multiple objects in transaction', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.add({ label : 'b' }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[1, 2], [0, 1]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(2);
+      should(_dataCache[0]._id).eql(1);
+      should(_dataCache[1]._id).eql(2);
+    });
+
+    it('should be updated when updating an object in transaction', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.upsert({ _id : 1, label : 'b' }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[1], [0]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(1);
+      should(_dataCache[0]._id).eql(1);
+      should(_dataCache[0].label).eql('b');
+    });
+
+    it('should be updated when updating objects in transaction', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.add({ label : 'b' }, _version);
+      _collection.upsert({ _id : 1, label : 'a.2' }, _version);
+      _collection.upsert({ _id : 2, label : 'b.2' }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[1, 2], [0, 1]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(2);
+      should(_dataCache[0]._id).eql(1);
+      should(_dataCache[0].label).eql('a.2');
+      should(_dataCache[1]._id).eql(2);
+      should(_dataCache[1].label).eql('b.2');
+    });
+
+    it('should be updated when removing an object in transaction', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.remove({ _id : 1 }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[], []]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(0);
+    });
+
+    it('should be updated when removing objects in transaction', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.add({ label : 'b' }, _version);
+      _collection.remove({ _id : 1 }, _version);
+      _collection.remove({ _id : 2 }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[], []]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(0);
+    });
+
+    it('should be updated when adding multiple objects in separate transactions', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.commit(_version);
+      _version = _collection.begin();
+      _collection.add({ label : 'b' }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[1, 2], [0, 1]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(2);
+      should(_dataCache[0]._id).eql(1);
+      should(_dataCache[1]._id).eql(2);
+    });
+
+    it('should be updated when updating an object in separate transactions', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.commit(_version);
+      _version = _collection.begin();
+      _collection.upsert({ _id : 1, label : 'b' }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[1], [1]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(1);
+      should(_dataCache[0]._id).eql(1);
+      should(_dataCache[0].label).eql('b');
+    });
+
+    it('should be updated when updating objects in separate transactions', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.add({ label : 'b' }, _version);
+      _collection.commit(_version);
+      _version = _collection.begin();
+      _collection.upsert({ _id : 1, label : 'a.2' }, _version);
+      _collection.upsert({ _id : 2, label : 'b.2' }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[1, 2], [2, 3]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(2);
+      should(_dataCache[0]._id).eql(1);
+      should(_dataCache[0].label).eql('a.2');
+      should(_dataCache[1]._id).eql(2);
+      should(_dataCache[1].label).eql('b.2');
+    });
+
+    it('should be updated when removing an object in separate transactions', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.commit(_version);
+      _version = _collection.begin();
+      _collection.remove({ _id : 1 }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[], []]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(0);
+    });
+
+    it('should be updated when removing objects in separate transactions', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      let _version = _collection.begin();
+      _collection.add({ label : 'a' }, _version);
+      _collection.add({ label : 'b' }, _version);
+      _collection.commit(_version);
+      _version = _collection.begin();
+      _collection.remove({ _id : 1 }, _version);
+      _collection.remove({ _id : 2 }, _version);
+      _collection.commit(_version);
+      should(_collection.getIndexDataCache()).eql([[], []]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(0);
+    });
+
+    it('should reset index and data cache when clearing store', () => {
+      let _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      _collection.add({ label : 'a' });
+      _collection.add({ label : 'b' });
+      should(_collection.getIndexDataCache()).eql([[1, 2], [0, 1]]);
+      let _dataCache = _collection._getAllCache();
+      should(_dataCache).be.an.Array().and.have.lengthOf(2);
+
+      _collection.clear();
+      should(_collection.getIndexDataCache()).eql([[], []]);
+      should(_collection._getAllCache()).eql([]);
+    });
+
   });
 
 });
