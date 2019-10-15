@@ -1,6 +1,12 @@
 describe('Offline to online synchronisation', () => {
 
+  before(done => {
+    // Let time to lunaris to init
+    setTimeout(done, 400);
+  });
+
   beforeEach(done => {
+    lunaris.offline.isOnline = true;
     lunaris.begin();
     lunaris.clear('@offlineArraySync');
     lunaris.clear('@offlineObjectSync');
@@ -9,10 +15,7 @@ describe('Offline to online synchronisation', () => {
     lunaris.clear('@offlineErrorSync');
     lunaris.clear('@lunarisOfflineTransactions');
     lunaris.localStorage.clear('lunarisOfflineTransactions');
-    lunaris.commit(() => {
-      lunaris.offline.isOnline = true;
-      done();
-    });
+    lunaris.commit(done);
   });
 
   it('should have added the transaction to the collection', done => {
@@ -190,8 +193,8 @@ describe('Offline to online synchronisation', () => {
       label : 'A'
     });
 
-    should(lunaris._stores.offlineArraySync.data.getIndexId()).eql([
-      [], []
+    should(lunaris._stores.offlineObjectSync.data.getIndexId()).eql([
+      [1], [1]
     ]);
 
     let transactions = lunaris._stores[lunaris.utils.offlineStore].data.getAll();

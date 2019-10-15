@@ -153,14 +153,12 @@ function pushOfflineHttpTransactions (callback) {
     if (_currentTransaction.method === OPERATIONS.INSERT || _currentTransaction.method === OPERATIONS.UPDATE) {
       imports.upsert(_currentTransaction.store, _currentTransaction.data, false, _currentTransaction);
     }
-
-    if (_currentTransaction.method === OPERATIONS.DELETE) {
+    else if (_currentTransaction.method === OPERATIONS.DELETE) {
       imports.deleteStore(_currentTransaction.store, _currentTransaction.data, _currentTransaction);
     }
 
-    cache.invalidate(_currentTransaction.store);
-
     transaction.commit(function (isError) {
+      cache.invalidate(_currentTransaction.store);
       // We must hold the transaction in error and its dependent transactions
       if (isError) {
         offlineTransactionsInError.push(_currentTransaction);

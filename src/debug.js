@@ -20,7 +20,7 @@ var CONFIG  = {
   hooks       : true,
   cache       : true,
   transaction : true,
-  indexedDB   : true
+  indexedDB   : false
 };
 
 /**

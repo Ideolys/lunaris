@@ -14,6 +14,7 @@ var logger             = require('./logger.js');
 var localStorageDriver = require('./localStorageDriver.js');
 var database           = localStorageDriver.indexedDB;
 var cacheGraph         = require('./exports.js').cacheGraph;
+var offline            = require('./offline.js');
 
 // https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript/14853974
 Array.prototype.equals = function (array) {
@@ -68,7 +69,9 @@ function _getOrUpdatevalues (store, hash, values) {
   if (_isFilterMatchValue && values) {
     if (_cacheValue.stores.indexOf(store) === -1) {
       _cacheValue.stores.push(store);
-      // database.upsert('cache', _cacheValue);
+      if (offline.isOnline) {
+        database.upsert('cache', _cacheValue);
+      }
     }
 
     return _cacheValue.values = values;
@@ -127,7 +130,10 @@ module.exports = {
       };
 
       cache.push(_caheObj);
-      // database.upsert('cache', _caheObj);
+
+      if (offline.isOnline) {
+        database.upsert('cache', _caheObj);
+      }
     }
   },
 

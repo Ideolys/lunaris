@@ -52,7 +52,7 @@ function _clear (store, isSilent, transactionId, callback) {
       return transaction.addAction({
         id        : transaction.getCurrentTransactionId(),
         store     : _options.store.name,
-        operation : OPERATIONS.DELETE,
+        operation : OPERATIONS.RESET,
         handler   : _clear,
         arguments : [store, isSilent, transaction.getCurrentTransactionId()]
       });
