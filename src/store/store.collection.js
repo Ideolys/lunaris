@@ -55,7 +55,7 @@ function incrementVersionNumber () {
 function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, computedsFn, storeName, referencesDescriptor, cloneFn) {
   var _data                     = [];
   var _dataCache                = []; // data available
-  var _dateCacheIndex           = [[], []]; // _ids, index in _data
+  var _dataCacheIndex           = [[], []]; // _ids, index in _data
   var _currentId                = 1;
   var _currentRowId             = 1;
   var _transactions             = {};
@@ -215,14 +215,14 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    * @param {Int} indexDataArray index of _id in _data
    */
   function _updateDataCacheIndex (_id, indexDataArray) {
-    var _search = index.binarySearch(_dateCacheIndex[0], _id);
+    var _search = index.binarySearch(_dataCacheIndex[0], _id);
     if (!_search.found) {
-      index.insertAt(_dateCacheIndex[0], _search.index, _id);
-      index.insertAt(_dateCacheIndex[1], _search.index, indexDataArray);
+      index.insertAt(_dataCacheIndex[0], _search.index, _id);
+      index.insertAt(_dataCacheIndex[1], _search.index, indexDataArray);
       return;
     }
 
-    _dateCacheIndex[1][_search.index] = indexDataArray;
+    _dataCacheIndex[1][_search.index] = indexDataArray;
   }
   /**
    * Build data cache index
@@ -231,8 +231,8 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     var _iterator = 0;
     for (var i = 0, len = _data.length; i < len; i++) {
       if (_data[i]._version.length === 1) {
-        index.insertAt(_dateCacheIndex[0], _iterator, _data[i]._id);
-        index.insertAt(_dateCacheIndex[1], _iterator, i);
+        index.insertAt(_dataCacheIndex[0], _iterator, _data[i]._id);
+        index.insertAt(_dataCacheIndex[1], _iterator, i);
         _iterator++;
       }
     }
@@ -243,9 +243,9 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   function _buildDataCache () {
     _dataCache = [];
 
-    var _dateCacheIndexes = _dateCacheIndex[1];
-    for (var i = 0, len = _dateCacheIndex[0].length; i < len; i++) {
-      _dataCache.push(_data[_dateCacheIndexes[i]]);
+    var _dataCacheIndexes = _dataCacheIndex[1];
+    for (var i = 0, len = _dataCacheIndex[0].length; i < len; i++) {
+      _dataCache.push(_data[_dataCacheIndexes[i]]);
     }
   }
   /**
@@ -253,8 +253,8 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    * @param {Int} index
    */
   function _moveDataCacheIndexEntries (index) {
-    for (var i = index, len = _dateCacheIndex[0].length; i < len; i++) {
-      --_dateCacheIndex[1][i];
+    for (var i = index, len = _dataCacheIndex[0].length; i < len; i++) {
+      --_dataCacheIndex[1][i];
     }
   }
 
@@ -371,6 +371,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     if (!versionNumber) {
       _buildDataCache();
     }
+
     return value;
   }
 
@@ -392,14 +393,18 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return;
     }
 
-    var _search = index.binarySearch(_dateCacheIndex[0], value._id);
+    var _search = index.binarySearch(_dataCacheIndex[0], value._id);
 
     if (!_search.found) {
+      if (isRemove) {
+        return;
+      }
+
       return add(value, _transactionVersionNumber ? _transactionVersionNumber : null, true);
     }
 
     var _version      = _transactionVersionNumber || currentVersionNumber;
-    var _dataObject   = _data[_dateCacheIndex[1][_search.index]];
+    var _dataObject   = _data[_dataCacheIndex[1][_search.index]];
     var _lowerVersion = _dataObject._version[0];
     var _upperVersion = _dataObject._version[1] || _version;
 
@@ -416,8 +421,8 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       _dataObject._version.pop();
       if (isRemove) {
         _addActionToLocalDatabase(localDatabase.del, _dataObject._rowId);
-        index.removeAt(_dateCacheIndex[0], _search.index);
-        index.removeAt(_dateCacheIndex[1], _search.index);
+        index.removeAt(_dataCacheIndex[0], _search.index);
+        index.removeAt(_dataCacheIndex[1], _search.index);
         _moveDataCacheIndexEntries(_search.index);
         _data.splice(_search.index, 1);
         return;
@@ -433,8 +438,8 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return add(_objToUpdate, _transactionVersionNumber ? _transactionVersionNumber : null, true, isFromIndex);
     }
 
-    index.removeAt(_dateCacheIndex[0], _search.index);
-    index.removeAt(_dateCacheIndex[1], _search.index);
+    index.removeAt(_dataCacheIndex[0], _search.index);
+    index.removeAt(_dataCacheIndex[1], _search.index);
 
     if (!versionNumber) {
       _buildDataCache();
@@ -453,7 +458,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     _indexes.id         = [[], []];
     _indexes.references = {};
     _dataCache          = [];
-    _dateCacheIndex     = [[], []];
+    _dataCacheIndex     = [[], []];
   }
 
   /**
@@ -755,7 +760,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     },
 
     getIndexDataCache : function () {
-      return _dateCacheIndex;
+      return _dataCacheIndex;
     },
 
     /**
@@ -827,10 +832,10 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       else {
         for (var i = 0; i < ids.length; i++) {
           if (!isPK) {
-            var _search = index.binarySearch(_dateCacheIndex[0], ids[i]);
+            var _search = index.binarySearch(_dataCacheIndex[0], ids[i]);
 
             if (_search.found) {
-              _res.push(_data[_dateCacheIndex[1][_search.index]]);
+              _res.push(_data[_dataCacheIndex[1][_search.index]]);
             }
             continue;
           }
@@ -840,8 +845,8 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
             continue;
           }
 
-          _search = index.binarySearch(_dateCacheIndex[0], _indexes.id[1][_search.index]);
-          _res.push(_data[_dateCacheIndex[1][_search.index]]);
+          _search = index.binarySearch(_dataCacheIndex[0], _indexes.id[1][_search.index]);
+          _res.push(_data[_dataCacheIndex[1][_search.index]]);
         }
       }
 

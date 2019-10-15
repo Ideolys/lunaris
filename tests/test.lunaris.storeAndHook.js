@@ -1207,7 +1207,7 @@ describe('lunaris store', function () {
       lunaris.delete('@store_del', { _id : 1, id : 1 });
     });
 
-    it.only('should delete the value and execute the hooks : delete & deleted', done => {
+    it('should delete the value and execute the hooks : delete & deleted', done => {
       var _isDeleteHook                    = false;
       var _isDeletedHook                   = false;
       var _store                           = initStore('store1');
@@ -1240,9 +1240,17 @@ describe('lunaris store', function () {
       lunaris.hook('deleted@store1', (data) => {
         _isDeletedHook = true;
 
-        console.log(data);
-
-        should(data).eql({ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] });
+        // body, query, params come from insert
+        should(data).eql({
+          _rowId   : 2,
+          _id      : 1,
+          id       : 2,
+          label    : 'A',
+          _version : [3, 4],
+          body     : { id : 2, label : 'A', _id : 1, _rowId : 1 },
+          query    : {},
+          params   : {}
+        });
 
         if (_isDeletedHook && _isDeleteHook) {
           done();
@@ -1272,7 +1280,16 @@ describe('lunaris store', function () {
         // delete is sent before and after HTTP DELETE
         if (_nbCalls === 1) {
           should(data).be.an.Array().and.have.lengthOf(1);
-          should(data).eql([{ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] }]);
+          should(data).eql([{
+            _rowId   : 2,
+            _id      : 1,
+            id       : 2,
+            label    : 'A',
+            _version : [2, 3],
+            body     : { id : 2, label : 'A', _id : 1, _rowId : 1 },
+            query    : {},
+            params   : {}
+          }]);
           should(_store.data.getAll()).have.lengthOf(0);
 
           // we simulate collection insert
@@ -1281,7 +1298,7 @@ describe('lunaris store', function () {
         }
 
         should(data).be.an.Array().and.have.lengthOf(1);
-        should(data).eql([{ _rowId : 2, _id : 2, id : 2, label : 'A', _version : [3, 5] }]);
+        should(data).eql([{ _rowId : 3, _id : 2, id : 2, label : 'A', _version : [4, 5] }]);
         should(_store.data.getAll()).have.lengthOf(0);
         done();
       });
@@ -1290,9 +1307,10 @@ describe('lunaris store', function () {
         done(err);
       });
 
+      lunaris.begin();
       lunaris.insert('@store1', { id : 2, label : 'A' });
-      should(_store.data.get(1)).eql(_expectedValue);
       lunaris.delete('@store1', _expectedValue);
+      lunaris.commit();
     });
 
     it('should delete the value and display the tip : no primary key', done => {
@@ -1318,7 +1336,16 @@ describe('lunaris store', function () {
 
       lunaris.hook('deleted@store1', (data) => {
         _isDeletedHook = true;
-        should(data).eql({ _rowId : 1, id : 2, label : 'A', _id : 1, _version : [1, 2] });
+        should(data).eql({
+          _rowId   : 2,
+          _id      : 1,
+          id       : 2,
+          label    : 'A',
+          _version : [3, 4],
+          body     : { id : 2, label : 'A', _id : 1, _rowId : 1 },
+          query    : {},
+          params   : {}
+        });
 
         if (_isDeletedHook && _isDeleteHook) {
           should(lastTip.length).eql(2);
@@ -1371,11 +1398,9 @@ describe('lunaris store', function () {
 
     it('should delete the value and execute the hook and return false if the value has not been deleted', () => {
       var _store                = initStore('store1');
-      var _expectedValue        = { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] };
       lunaris._stores['store1'] = _store;
 
       lunaris.insert('@store1', { id : 1, label : 'A' });
-      should(_store.data.get(1)).eql(_expectedValue);
       lunaris.delete('@store1', { _id : 2, id : 2, label : 'B' });
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.delete@store1');
@@ -3929,7 +3954,6 @@ describe('lunaris store', function () {
 
       var _events = [];
       lunaris.hook('reset@store1', (data, doneHook) => {
-        console.log(1);
         _events.push('reset@store1');
         lunaris.begin();
         lunaris.get('@store1');
@@ -4532,6 +4556,10 @@ describe('lunaris store', function () {
       lunaris.insert('@propagate', [{ id : 1 }, { id : 2 }]);
       lunaris.get('@store1');
 
+      lunaris.hook('deleted@store1', () => {
+        done();
+      });
+
       lunaris.hook('update@propagate', res => {
         _nbCalled++;
         if (_nbCalled === 1) {
@@ -4563,29 +4591,30 @@ describe('lunaris store', function () {
           return lunaris.delete('@store1', { _id : 1});
         }
 
-        should(res).eql([
-          {
-            _rowId       : 5,
-            _id          : 1,
-            id           : 1,
-            store1Values : [
-              { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
-              { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
-            ],
-            _version : [5]
-          },
-          {
-            _rowId       : 6,
-            _id          : 2,
-            id           : 2,
-            store1Values : [
-              { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
-              { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
-            ],
-            _version : [5]
-          }
-        ]);
-        done();
+        if (_nbCalled === 2) {
+          should(res).eql([
+            {
+              _rowId       : 5,
+              _id          : 1,
+              id           : 1,
+              store1Values : [
+                { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+                { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
+              ],
+              _version : [5]
+            },
+            {
+              _rowId       : 6,
+              _id          : 2,
+              id           : 2,
+              store1Values : [
+                { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+                { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
+              ],
+              _version : [5]
+            }
+          ]);
+        }
       });
     });
 
@@ -4616,6 +4645,10 @@ describe('lunaris store', function () {
       lunaris.insert('@propagate', { id : 1 });
       lunaris.get('@store1');
 
+      lunaris.hook('deleted@store1', () => {
+        done();
+      });
+
       lunaris.hook('update@propagate', res => {
         _nbCalled++;
         if (_nbCalled === 1) {
@@ -4634,17 +4667,18 @@ describe('lunaris store', function () {
           return lunaris.delete('@store1', { _id : 1});
         }
 
-        should(res).eql({
-          _rowId       : 3,
-          _id          : 1,
-          id           : 1,
-          store1Values : [
-            { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
-            { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
-          ],
-          _version : [5]
-        });
-        done();
+        if (_nbCalled === 2) {
+          should(res).eql({
+            _rowId       : 3,
+            _id          : 1,
+            id           : 1,
+            store1Values : [
+              { _rowId : 2, _id : 2, id : 30, label : 'D', _version : [2] },
+              { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
+            ],
+            _version : [5]
+          });
+        }
       });
     });
 

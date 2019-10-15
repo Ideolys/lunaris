@@ -1207,6 +1207,22 @@ describe('lunaris internal collection', () => {
   });
 
   describe('remove()', () => {
+    it('should not remove an item that does not belong to the collection : PK', () => {
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
+
+      _collection.remove({ id : 1 });
+      var _data = _collection._getAll();
+      should(_data).have.length(0);
+    });
+
+    it('should not remove an item that does not belong to the collection : _id', () => {
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
+
+      _collection.remove({ _id : 1 });
+      var _data = _collection._getAll();
+      should(_data).have.length(0);
+    });
+
     it('should remove the item', () => {
       var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 10 });
