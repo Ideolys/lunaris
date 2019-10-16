@@ -54,6 +54,29 @@ function setPagination (store, page, limit) {
 }
 
 /**
+ * Clear the store with custom pagination instead of the default one
+ * @param {String} store
+ * @param {Int} page
+ * @param {Int} limit
+ * @param {Boolean} isSilent
+ */
+function clearWithPagination (store, page, limit, isSilent) {
+  try {
+    var _options = crudUtils.beforeAction(store, null, true);
+
+    _options.store.keepPaginationOnClear = true;
+
+    setPagination(store, page, limit);
+    clearCrud.clear(store, isSilent);
+
+    _options.store.keepPaginationOnClear = false;
+  }
+  catch (e) {
+    logger.warn(['lunaris.clearWithPagination' + store], e);
+  }
+}
+
+/**
  * Get firt value or the value identified by its _id
  * @param {String} store
  * @param {Int} id lunaris _id value
@@ -189,15 +212,16 @@ function validate (store, value, isUpdate, callback, eventName) {
   }
 }
 
-exports.get             = getCRUD.get;
-exports.getOne          = getOne;
-exports.insert          = upsertCRUD.upsert;
-exports.update          = upsertCRUD.upsert;
-exports.upsert          = upsertCRUD.upsert;
-exports.delete          = deleteCrud.delete;
-exports.clear           = clearCrud.clear;
-exports.retry           = retry;
-exports.rollback        = rollback;
-exports.getDefaultValue = getDefaultValue;
-exports.validate        = validate;
-exports.setPagination   = setPagination;
+exports.get                 = getCRUD.get;
+exports.getOne              = getOne;
+exports.insert              = upsertCRUD.upsert;
+exports.update              = upsertCRUD.upsert;
+exports.upsert              = upsertCRUD.upsert;
+exports.delete              = deleteCrud.delete;
+exports.clear               = clearCrud.clear;
+exports.retry               = retry;
+exports.rollback            = rollback;
+exports.getDefaultValue     = getDefaultValue;
+exports.validate            = validate;
+exports.setPagination       = setPagination;
+exports.clearWithPagination = clearWithPagination;

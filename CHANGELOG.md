@@ -2,6 +2,7 @@
 
 ## 1.14.0
 - Features:
+  - Add function lunaris.clearWithPagination to clear a store with a custom pagination instead of the default one
 - Fix:
 
 ## 1.13.0

@@ -58,9 +58,12 @@ function _clear (store, isSilent, transactionId, callback) {
       });
     }
 
-    _options.store.paginationCurrentPage = 1;
-    _options.store.paginationOffset      = 0;
-    _options.store.paginationLimit       = 50;
+    if (!_options.store.keepPaginationOnClear) {
+      _options.store.paginationCurrentPage = 1;
+      _options.store.paginationOffset      = 0;
+      _options.store.paginationLimit       = 50;
+    }
+
     _options.store.massOperations        = {};
     cache.invalidate(_options.store.name);
 
