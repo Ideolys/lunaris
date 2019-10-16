@@ -1,5 +1,7 @@
-const cache = require('../src/cache');
-const md5   = require('../src/md5');
+const lunarisExports     = require('../src/exports');
+lunarisExports.isBrowser = false;
+const cache              = require('../src/cache');
+const md5                = require('../src/md5');
 
 describe('cache', () => {
 

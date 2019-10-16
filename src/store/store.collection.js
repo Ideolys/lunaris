@@ -55,7 +55,7 @@ function incrementVersionNumber () {
 function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateFn, computedsFn, storeName, referencesDescriptor, cloneFn) {
   var _data                     = [];
   var _dataCache                = []; // data available
-  var _dataCacheIndex           = [[], []]; // _ids, index in _data
+  var _dataCacheIndex           = {}; // key = _ids, value = index in _data
   var _currentId                = 1;
   var _currentRowId             = 1;
   var _transactions             = {};
@@ -72,11 +72,9 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   var _storeName                = storeName;
 
   // only for transactions
-  var _locaDatabaseActions = {
-    upsert : [],
-    del    : []
-  };
+  var _locaDatabaseActions = [];
 
+  var _idIndex = {}; // key = PK, value = _id
   /**
    * id : [[id], [_id]]
    * references : { storeN : [[PKs refrence store], [_ids local collection]] }
@@ -96,7 +94,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return actionFn(_storeName, data);
     }
 
-    _locaDatabaseActions[actionFn.name].push(data);
+    _locaDatabaseActions.push(data);
   }
 
   /**
@@ -210,30 +208,21 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   }
 
   /**
-   * Update cache index
-   * @param {Int} _id
-   * @param {Int} indexDataArray index of _id in _data
-   */
-  function _updateDataCacheIndex (_id, indexDataArray) {
-    var _search = index.binarySearch(_dataCacheIndex[0], _id);
-    if (!_search.found) {
-      index.insertAt(_dataCacheIndex[0], _search.index, _id);
-      index.insertAt(_dataCacheIndex[1], _search.index, indexDataArray);
-      return;
-    }
-
-    _dataCacheIndex[1][_search.index] = indexDataArray;
-  }
-  /**
    * Build data cache index
    */
-  function _buildDataCacheIndex () {
+  function _buildIndexes () {
     var _iterator = 0;
     for (var i = 0, len = _data.length; i < len; i++) {
-      if (_data[i]._version.length === 1) {
-        index.insertAt(_dataCacheIndex[0], _iterator, _data[i]._id);
-        index.insertAt(_dataCacheIndex[1], _iterator, i);
-        _iterator++;
+      var _item = _data[i];
+      if (_item._version.length > 1) {
+        continue;
+      }
+      _dataCacheIndex[_item._id] = _iterator;
+      _iterator++;
+
+      if (_getPrimaryKey) {
+        var _pk = _getPrimaryKey(_item);
+        _idIndex[_pk] = _item._id;
       }
     }
   }
@@ -243,18 +232,10 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   function _buildDataCache () {
     _dataCache = [];
 
-    var _dataCacheIndexes = _dataCacheIndex[1];
-    for (var i = 0, len = _dataCacheIndex[0].length; i < len; i++) {
-      _dataCache.push(_data[_dataCacheIndexes[i]]);
-    }
-  }
-  /**
-   * Move cache entries when an element is removing from _data
-   * @param {Int} index
-   */
-  function _moveDataCacheIndexEntries (index) {
-    for (var i = index, len = _dataCacheIndex[0].length; i < len; i++) {
-      --_dataCacheIndex[1][i];
+    for (var _id in _dataCacheIndex) {
+      if (_dataCacheIndex[_id] != null) {
+        _dataCache.push(_data[_dataCacheIndex[_id]]);
+      }
     }
   }
 
@@ -270,18 +251,16 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       if (_getPrimaryKey) {
         var _id = _getPrimaryKey(value);
         if (_id !== null && _id !== undefined) {
-          var _arrayIdValues = _indexes.id[0];
-          var _search        = index.binarySearch(_arrayIdValues, _id);
-          if (!_search.found) {
-            index.insertAt(_arrayIdValues, _search.index, _id);
-            index.insertAt(_indexes.id[1], _search.index, value._id);
+          var _search        = _idIndex[_id];
+          if (_search == null) {
+            _idIndex[_id] = value._id;
           }
         }
       }
       value._rowId = _currentRowId++;
       _setReferencedValues(value);
       _addActionToLocalDatabase(localDatabase.upsert, value);
-      _updateDataCacheIndex(value._id, _data.length);
+      _dataCacheIndex[value._id] = _data.length;
       return _data.push(value);
     }
 
@@ -297,7 +276,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     if (isFromIndex || !_getPrimaryKey) {
       value._rowId = _currentRowId++;
       _addActionToLocalDatabase(localDatabase.upsert, value);
-      _updateDataCacheIndex(value._id, _data.length);
+      _dataCacheIndex[value._id] = _data.length;
       return _data.push(value);
     }
 
@@ -305,22 +284,21 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     if (!(_id !== null && value._id !== undefined)) {
       value._rowId = _currentRowId++;
       _addActionToLocalDatabase(localDatabase.upsert, value);
-      _updateDataCacheIndex(value._id, _data.length);
+      _dataCacheIndex[value._id] = _data.length;
       return _data.push(value);
     }
 
-    _arrayIdValues = _indexes.id[0];
-    _search        = index.binarySearch(_arrayIdValues, _id);
+    _search = _idIndex[_id];
     // We upsert the last version of the object
-    if (_search.found) {
-      value._id    = _indexes.id[1][_search.index];
+    if (_search != null) {
+      value._id    = _idIndex[_id];
       value._rowId = _currentRowId;
       upsert(value, versionNumber, false, true);
       return;
     }
-    index.insertAt(_arrayIdValues, _search.index, _id);
-    index.insertAt(_indexes.id[1], _search.index, value._id);
-    _updateDataCacheIndex(value._id, _data.length);
+
+    _idIndex[_id] = value._id;
+    _dataCacheIndex[value._id] = _data.length;
     value._rowId = _currentRowId++;
     _data.push(value);
     _addActionToLocalDatabase(localDatabase.upsert, value);
@@ -332,12 +310,10 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    * @param {Int} id
    */
   function _removeFromIndex (_id, id) {
-    var _arrayIdValues = _indexes.id[0];
-    var _search        = index.binarySearch(_arrayIdValues, id);
+    var _search = _idIndex[id];
 
-    if (_search.found) {
-      index.removeAt(_arrayIdValues, _search.index);
-      index.removeAt(_indexes.id[1], _search.index);
+    if (_search != null) {
+      _idIndex[id] = null;
     }
   }
 
@@ -368,7 +344,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
 
     _addToValues(value, versionNumber, isFromUpsert, isFromIndex);
 
-    if (!versionNumber) {
+    if (!_isTransactionCommit) {
       _buildDataCache();
     }
 
@@ -393,9 +369,9 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return;
     }
 
-    var _search = index.binarySearch(_dataCacheIndex[0], value._id);
+    var _search = _dataCacheIndex[value._id];
 
-    if (!_search.found) {
+    if (_search == null) {
       if (isRemove) {
         return;
       }
@@ -404,7 +380,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     }
 
     var _version      = _transactionVersionNumber || currentVersionNumber;
-    var _dataObject   = _data[_dataCacheIndex[1][_search.index]];
+    var _dataObject   = _data[_search];
     var _lowerVersion = _dataObject._version[0];
     var _upperVersion = _dataObject._version[1] || _version;
 
@@ -416,17 +392,13 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     //   - If insert / update : the updated row will be merged with the inserted one
     //   - If Insert / delete : the inserted row will be removed
     if (_lowerVersion === _version && _upperVersion === _version && _dataObject._version[1] >= 0) {
-      _addActionToLocalDatabase(localDatabase.del, _dataObject._rowId);
-      utils.merge(_dataObject, _objToUpdate);
-      _dataObject._version.pop();
       if (isRemove) {
-        _addActionToLocalDatabase(localDatabase.del, _dataObject._rowId);
-        index.removeAt(_dataCacheIndex[0], _search.index);
-        index.removeAt(_dataCacheIndex[1], _search.index);
-        _moveDataCacheIndexEntries(_search.index);
-        _data.splice(_search.index, 1);
+        _addActionToLocalDatabase(localDatabase.upsert, _dataObject);
+        _dataCacheIndex[value._id] = null;
         return;
       }
+      utils.merge(_dataObject, _objToUpdate);
+      _dataObject._version.pop();
       _addActionToLocalDatabase(localDatabase.upsert, _dataObject);
       return _dataObject;
     }
@@ -438,10 +410,9 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return add(_objToUpdate, _transactionVersionNumber ? _transactionVersionNumber : null, true, isFromIndex);
     }
 
-    index.removeAt(_dataCacheIndex[0], _search.index);
-    index.removeAt(_dataCacheIndex[1], _search.index);
+    _dataCacheIndex[value._id] = null;
 
-    if (!versionNumber) {
+    if (!_isTransactionCommit) {
       _buildDataCache();
     }
 
@@ -455,10 +426,10 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     _data               = [];
     _currentId          = 1;
     _currentRowId       = 1;
-    _indexes.id         = [[], []];
+    _idIndex            = {};
     _indexes.references = {};
     _dataCache          = [];
-    _dataCacheIndex     = [[], []];
+    _dataCacheIndex     = {};
   }
 
   /**
@@ -480,13 +451,12 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       }
     }
     else if (_getPrimaryKey && isPK) {
-      var _pk            = _getPrimaryKey(value);
-      var _arrayIdValues = _indexes.id[0];
-      var _search        = index.binarySearch(_arrayIdValues, _pk);
+      var _pk     = _getPrimaryKey(value);
+      var _search = _idIndex[_pk];
 
-      if (_search.found) {
-        value._id = _indexes.id[1][_search.index];
-        _removeFromIndex(_indexes.id[1][_search.index], _pk);
+      if (_search != null) {
+        value._id     = _search;
+        _idIndex[_pk] = null;
       }
     }
 
@@ -498,16 +468,11 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    * @param {Int} id
    */
   function get (id) {
-    for (var i = 0; i < _data.length; i++) {
-      var _item         = _data[i];
-      var _lowerVersion = _item._version[0];
-      var _upperVersion = _item._version[1];
-      if (_item._id === id && _lowerVersion <= currentVersionNumber && !_upperVersion) {
-        return _item;
-      }
+    if (_dataCacheIndex[id] == null) {
+      return null;
     }
 
-    return null;
+    return _data[_dataCacheIndex[id]];
   }
 
   /**
@@ -548,6 +513,11 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
 
     var _version = begin();
     for (var j = 0; j < _objToRollback.length; j++) {
+      // Item added and removed in the same transaction
+      if (_objToRollback[j]._version[0] === _objToRollback[j]._version[1]) {
+        continue;
+      }
+
       if (_objToRollback[j]._version[1]) {
         add(_objToRollback[j], _version);
       }
@@ -563,10 +533,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
    */
   function begin () {
     _transactions[currentVersionNumber] = [];
-    _locaDatabaseActions = {
-      upsert : [],
-      del    : []
-    };
+    _locaDatabaseActions                = [];
     return currentVersionNumber;
   }
 
@@ -617,13 +584,9 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       }
     }
 
-    if (_locaDatabaseActions.upsert.length) {
-      localDatabase.upsert(_storeName, _locaDatabaseActions.upsert);
-      _locaDatabaseActions.upsert = [];
-    }
-    if (_locaDatabaseActions.del.length) {
-      localDatabase.del(_storeName, _locaDatabaseActions.del);
-      _locaDatabaseActions.del = [];
+    if (_locaDatabaseActions.length) {
+      localDatabase.upsert(_storeName, _locaDatabaseActions);
+      _locaDatabaseActions = [];
     }
 
     _transactions[versionNumber] = _transactionVersionNumber;
@@ -752,7 +715,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     replaceReferences : replaceReferences,
 
     getIndexId : function () {
-      return _indexes.id;
+      return _idIndex;
     },
 
     getIndexReferences : function () {
@@ -761,14 +724,6 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
 
     getIndexDataCache : function () {
       return _dataCacheIndex;
-    },
-
-    /**
-     * Set index id values
-     * @param {Array} values
-     */
-    setIndexId : function (values) {
-      _indexes.id = values;
     },
 
     /**
@@ -814,7 +769,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
      */
     setData : function (value) {
       _data = value;
-      _buildDataCacheIndex();
+      _buildIndexes();
       _buildDataCache();
     },
 
@@ -831,22 +786,22 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       }
       else {
         for (var i = 0; i < ids.length; i++) {
+          var _id = ids[i];
           if (!isPK) {
-            var _search = index.binarySearch(_dataCacheIndex[0], ids[i]);
+            var _search = _dataCacheIndex[_id];
 
-            if (_search.found) {
-              _res.push(_data[_dataCacheIndex[1][_search.index]]);
+            if (_search != null) {
+              _res.push(_data[_search]);
             }
             continue;
           }
 
-          _search = index.binarySearch(_indexes.id[0], ids[i]);
-          if (!_search.found) {
+          _search =  _idIndex[_id];
+          if (_search == null) {
             continue;
           }
 
-          _search = index.binarySearch(_dataCacheIndex[0], _indexes.id[1][_search.index]);
-          _res.push(_data[_dataCacheIndex[1][_search.index]]);
+          _res.push(_data[_dataCacheIndex[_search]]);
         }
       }
 

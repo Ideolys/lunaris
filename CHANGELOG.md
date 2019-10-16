@@ -42,6 +42,7 @@
     }
   ```
   - Add circular reference detection when compilating stores in builder.
+  - Improve internal store collection performances (x15).
 - Fix:
   - Improve offline app.
   - In offline or offline mode, generated urls were not encoded.

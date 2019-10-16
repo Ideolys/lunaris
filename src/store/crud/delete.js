@@ -30,14 +30,14 @@ function _deleteValueInReferencedStores (store, collection, value, callback) {
     return callback();
   }
 
-  var _indexIds    = collection.getIndexId();
-  var _searchIndex = utils.index.binarySearch(_indexIds[1], value._id);
+  var _indexIds    = collection.getIndexDataCache();
+  var _indexArray  = _indexIds[value._id];
 
-  if (!_searchIndex.found) {
+  if (_indexArray == null) {
     return callback();
   }
 
-  var _pkValue = _indexIds[0][_searchIndex.index];
+  var _pkValue = storeUtils.getPrimaryKeyValue(store, collection.get(value._id));
 
   queue(store.storesToPropagateReferences, function handlerItem (storeToPropagate, next) {
     var _store      = storeUtils.getStore('@' + storeToPropagate);

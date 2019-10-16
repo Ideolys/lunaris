@@ -1242,14 +1242,11 @@ describe('lunaris store', function () {
 
         // body, query, params come from insert
         should(data).eql({
-          _rowId   : 2,
+          _rowId   : 1,
           _id      : 1,
           id       : 2,
           label    : 'A',
-          _version : [3, 4],
-          body     : { id : 2, label : 'A', _id : 1, _rowId : 1 },
-          query    : {},
-          params   : {}
+          _version : [1, 2]
         });
 
         if (_isDeletedHook && _isDeleteHook) {
@@ -1337,14 +1334,11 @@ describe('lunaris store', function () {
       lunaris.hook('deleted@store1', (data) => {
         _isDeletedHook = true;
         should(data).eql({
-          _rowId   : 2,
+          _rowId   : 1,
           _id      : 1,
           id       : 2,
           label    : 'A',
-          _version : [3, 4],
-          body     : { id : 2, label : 'A', _id : 1, _rowId : 1 },
-          query    : {},
-          params   : {}
+          _version : [1, 2]
         });
 
         if (_isDeletedHook && _isDeleteHook) {

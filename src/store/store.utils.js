@@ -235,7 +235,6 @@ function saveState (store, collection, callback) {
     collection     : {
       currentId       : collection.getCurrentId(),
       currentRowId    : collection.getCurrentRowId(),
-      index           : collection.getIndexId(),
       indexReferences : collection.getIndexReferences()
     }
   };

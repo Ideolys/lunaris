@@ -44,12 +44,7 @@ describe('lunaris internal collection', () => {
       should(_values).be.an.Array().and.have.length(1);
       should(_values[0]).eql({ _rowId : 1, _id : 1, id : 1, _version : [1]});
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([1]);
-      should(_index[1]).have.lengthOf(1);
-      should(_index[1]).eql([1]);
+      should(_collection.getIndexId()).eql({ 1 : 1 });
     });
 
     it('should add multiple items to the collection', () => {
@@ -61,12 +56,7 @@ describe('lunaris internal collection', () => {
       should(_values[0]).eql({ _rowId : 1, _id : 1, id : 1, _version : [1]});
       should(_values[1]).eql({ _rowId : 2, _id : 2, id : 2, _version : [2]});
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(2);
-      should(_index[0]).eql([1, 2]);
-      should(_index[1]).have.lengthOf(2);
-      should(_index[1]).eql([1, 2]);
+      should(_collection.getIndexId()).eql({ 1 : 1, 2 : 2 });
     });
 
     it('should add multiple items to the collection : inverse', () => {
@@ -78,12 +68,7 @@ describe('lunaris internal collection', () => {
       should(_values[0]).eql({ _rowId : 1, _id : 1, id : 20, _version : [1]});
       should(_values[1]).eql({ _rowId : 2, _id : 2, id : 10, _version : [2]});
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(2);
-      should(_index[0]).eql([10, 20]);
-      should(_index[1]).have.lengthOf(2);
-      should(_index[1]).eql([2, 1]);
+      should(_collection.getIndexId()).eql({ 20 : 1, 10 : 2 });
     });
 
     it('should start the id generation from 6', () => {
@@ -105,20 +90,12 @@ describe('lunaris internal collection', () => {
       _collection.add({ id : 1 });
       should(_collection._getAll()).be.an.Array().and.have.length(1);
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([1]);
-      should(_index[1]).have.lengthOf(1);
-      should(_index[1]).eql([1]);
+      should(_collection.getIndexId()).eql({ 1 : 1 });
 
       _collection.clear();
       should(_collection._getAll()).be.an.Array().and.have.length(0);
 
-      _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(0);
-      should(_index[1]).have.lengthOf(0);
+      should(_collection.getIndexId()).eql({});
     });
 
     it('should clear the collection and the id', () => {
@@ -146,10 +123,7 @@ describe('lunaris internal collection', () => {
       should(_values).be.an.Array().and.have.length(1);
       should(_values[0]).eql({ _rowId : 1, _id : 1, id : 1, _version : [1]});
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(0);
-      should(_index[1]).have.lengthOf(0);
+      should(_collection.getIndexId()).eql({});
     });
 
     it('should add the value to the collection if no id has been returned by the function getPrimaryKey', () => {
@@ -159,10 +133,7 @@ describe('lunaris internal collection', () => {
       should(_values).be.an.Array().and.have.length(1);
       should(_values[0]).eql({ _rowId : 1, _id : 1, label : 'A', _version : [1]});
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(0);
-      should(_index[1]).have.lengthOf(0);
+      should(_collection.getIndexId()).eql({});
     });
 
     it('should not duplicate values if the same id has been already used', () => {
@@ -174,12 +145,7 @@ describe('lunaris internal collection', () => {
       should(_values[0]).eql({ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 3]});
       should(_values[1]).eql({ _rowId : 2, _id : 1, id : 2, label : 'B', _version : [3]});
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([2]);
-      should(_index[1]).have.lengthOf(1);
-      should(_index[1]).eql([1]);
+      should(_collection.getIndexId()).eql({ 2 : 1 });
     });
 
     it('should not duplicate values : insert / upsert', () => {
@@ -189,12 +155,7 @@ describe('lunaris internal collection', () => {
       should(_values).be.an.Array().and.have.length(1);
       should(_values[0]).eql({ _rowId : 1, _id : 1, id : null, label : 'A', _version : [1]});
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(0);
-      should(_index[0]).eql([]);
-      should(_index[1]).have.lengthOf(0);
-      should(_index[1]).eql([]);
+      should(_collection.getIndexId()).eql({});
 
       _collection.upsert({ _rowId : 1, _id : 1, id : 10, label : 'A', _version : [1]});
 
@@ -203,12 +164,7 @@ describe('lunaris internal collection', () => {
       should(_values[0]).eql({ _rowId : 1, _id : 1, id : null, label : 'A', _version : [1, 2]});
       should(_values[1]).eql({ _rowId : 2, _id : 1, id : 10  , label : 'A', _version : [2]});
 
-      _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([10]);
-      should(_index[1]).have.lengthOf(1);
-      should(_index[1]).eql([1]);
+      should(_collection.getIndexId()).eql({ 10 : 1 });
     });
 
     it('should compute computed property', () => {
@@ -1227,12 +1183,7 @@ describe('lunaris internal collection', () => {
       var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 10 });
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([10]);
-      should(_index[1]).have.lengthOf(1);
-      should(_index[1]).eql([1]);
+      should(_collection.getIndexId()).eql({ 10 : 1 });
 
       _collection.remove({ _id : 1 });
       var _data = _collection._getAll();
@@ -1240,24 +1191,14 @@ describe('lunaris internal collection', () => {
       should(_data[0]).eql({ _rowId : 1, _id : 1, id : 10, _version : [1, 2]});
       should(_collection.get(2)).eql(null);
 
-      _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(0);
-      should(_index[0]).eql([]);
-      should(_index[1]).have.lengthOf(0);
-      should(_index[1]).eql([]);
+      should(_collection.getIndexId()).eql({ 10 : null });
     });
 
     it('should remove the item by PK', () => {
       var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       _collection.add({ id : 10 });
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([10]);
-      should(_index[1]).have.lengthOf(1);
-      should(_index[1]).eql([1]);
+      should(_collection.getIndexId()).eql({ 10 : 1 });
 
       _collection.remove({ id : 10 }, null, true);
       var _data = _collection._getAll();
@@ -1265,12 +1206,7 @@ describe('lunaris internal collection', () => {
       should(_data[0]).eql({ _rowId : 1,_id : 1, id : 10, _version : [1, 2]});
       should(_collection.get(2)).eql(null);
 
-      _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(0);
-      should(_index[0]).eql([]);
-      should(_index[1]).have.lengthOf(0);
-      should(_index[1]).eql([]);
+      should(_collection.getIndexId()).eql({ 10 : null });
     });
 
     it('should remove the item from multiple items', () => {
@@ -1284,12 +1220,7 @@ describe('lunaris internal collection', () => {
       should(_values[1]).eql({ _rowId : 2, _id : 2, id : 20, _version : [2, 3]});
       should(_collection.get(2)).eql(null);
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([10]);
-      should(_index[1]).have.lengthOf(1);
-      should(_index[1]).eql([1]);
+      should(_collection.getIndexId()).eql({ 10 : 1, 20 : null });
     });
 
     it('should remove items within the same transaction', () => {
@@ -1299,12 +1230,10 @@ describe('lunaris internal collection', () => {
       _collection.add({ id : 20 }, _version);
       _collection.commit(_version);
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(2);
-      should(_index[0]).eql([10, 20]);
-      should(_index[1]).have.lengthOf(2);
-      should(_index[1]).eql([1, 2]);
+      should(_collection.getIndexId()).eql({
+        10 : 1,
+        20 : 2
+      });
 
       _version = _collection.begin();
       _collection.remove({ _id : 2 }, _version);
@@ -1318,12 +1247,10 @@ describe('lunaris internal collection', () => {
       should(_collection.get(1)).eql(null);
       should(_collection.get(2)).eql(null);
 
-      _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(0);
-      should(_index[0]).eql([]);
-      should(_index[1]).have.lengthOf(0);
-      should(_index[1]).eql([]);
+      should(_collection.getIndexId()).eql({
+        10 : null,
+        20 : null
+      });
     });
   });
 
@@ -1543,29 +1470,14 @@ describe('lunaris internal collection', () => {
     });
 
     it('should set data', () => {
-      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
       should(_collection._getAll()).eql([]);
       _collection.setData([{ _id : 1, id : 1, _version : [1] }]);
       should(_collection._getAll()).eql([
         { _id : 1, id : 1, _version : [1] }
       ]);
-    });
-  });
-
-  describe('setIndexId()', () => {
-    it('should be defined', () => {
-      should(collection(null, false, null, null, null, null, null, utils.clone).setIndexId).be.ok();
-    });
-
-    it('should set index id', () => {
-      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
-      _collection.setIndexId([[1], [1]]);
-      should(_collection.getIndexId()).eql([
-        [1], [1]
-      ]);
+      should(_collection.getIndexId()).eql({ 1 : 1 });
+      should(_collection.getIndexDataCache()).eql({ 1 : 0 });
     });
   });
 
@@ -1576,118 +1488,94 @@ describe('lunaris internal collection', () => {
 
     it('should not crash if there is no value', () => {
       var _collection = collection(null, false, null, null, null, null, null, utils.clone);
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
+      should(_collection.getIndexId()).eql({});
       _collection.removeIndexIdValue(1);
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
+      should(_collection.getIndexId()).eql({});
     });
 
     it('should remove index id value', () => {
       var _collection = collection((item) => {
         return item.id;
       });
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
+      should(_collection.getIndexId()).eql({});
 
       _collection.add({ id : '_1', label : 'A' });
 
-      should(_collection.getIndexId()).eql([
-        ['_1'], [1]
-      ]);
+      should(_collection.getIndexId()).eql({ _1 : 1 });
 
       _collection.removeIndexIdValue(1);
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
+      should(_collection.getIndexId()).eql({ _1 : null });
     });
 
     it('should remove index id value = 0', () => {
       var _collection = collection((item) => {
         return item.id;
       });
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
+      should(_collection.getIndexId()).eql({});
 
       _collection.add({ id : '_1', label : 'A' });
 
-      should(_collection.getIndexId()).eql([
-        ['_1'], [1]
-      ]);
+      should(_collection.getIndexId()).eql({ _1 : 1 });
 
       _collection.removeIndexIdValue(1);
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
+      should(_collection.getIndexId()).eql({ _1 : null });
     });
 
     it('should not remove index id value if key = null', () => {
       var _collection = collection((item) => {
         return item.id;
       });
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
+      should(_collection.getIndexId()).eql({});
 
       _collection.add({ id : '_1', label : 'A' });
 
-      should(_collection.getIndexId()).eql([
-        ['_1'], [1]
-      ]);
+      should(_collection.getIndexId()).eql({ _1 : 1 });
 
       _collection.removeIndexIdValue(null);
-      should(_collection.getIndexId()).eql([
-        ['_1'], [1]
-      ]);
+      should(_collection.getIndexId()).eql({ _1 : 1 });
     });
 
     it('should not remove index id value if key = undefined', () => {
       var _collection = collection((item) => {
         return item.id;
       });
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
+      should(_collection.getIndexId()).eql({});
 
       _collection.add({ id : '_1', label : 'A' });
 
-      should(_collection.getIndexId()).eql([
-        ['_1'], [1]
-      ]);
+      should(_collection.getIndexId()).eql({ _1 : 1 });
 
       _collection.removeIndexIdValue(undefined);
-      should(_collection.getIndexId()).eql([
-        ['_1'], [1]
-      ]);
+
+      should(_collection.getIndexId()).eql({ _1 : 1 });
     });
 
     it('should remove index id value with multiple in the collection', () => {
       var _collection = collection((item) => {
         return item.id;
       });
-      should(_collection.getIndexId()).eql([
-        [], []
-      ]);
+      should(_collection.getIndexId()).eql({});
 
       _collection.add({ id : '_1', label : 'A' });
       _collection.add({ id : '_2', label : 'B' });
       _collection.add({ id : '_3', label : 'C' });
       _collection.add({ id : '_4', label : 'D' });
 
-      should(_collection.getIndexId()).eql([
-        ['_1', '_2', '_3', '_4'],
-        [1, 2, 3, 4]
-      ]);
+      should(_collection.getIndexId()).eql({
+        _1 : 1,
+        _2 : 2,
+        _3 : 3,
+        _4 : 4
+      });
 
       _collection.removeIndexIdValue(3);
-      should(_collection.getIndexId()).eql([
-        ['_1', '_2', '_4'],
-        [1, 2, 4]
-      ]);
+
+      should(_collection.getIndexId()).eql({
+        _1 : 1,
+        _2 : 2,
+        _3 : null,
+        _4 : 4
+      });
     });
   });
 
@@ -1844,12 +1732,9 @@ describe('lunaris internal collection', () => {
       // Must _rowId = 2
       should(_values[0]).eql({ _rowId : 2, _id : 1, id : 2, label : 'B', _version : [1]});
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([2]);
-      should(_index[1]).have.lengthOf(1);
-      should(_index[1]).eql([1]);
+      should(_collection.getIndexId()).eql({
+        2 : 1
+      });
     });
 
     it('should not duplicate values if the same id has been already used in two different transactions', () => {
@@ -1865,12 +1750,9 @@ describe('lunaris internal collection', () => {
       should(_values[0]).eql({ _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2]});
       should(_values[1]).eql({ _rowId : 2, _id : 1, id : 2, label : 'B', _version : [2]});
 
-      var _index = _collection.getIndexId();
-      should(_index).have.lengthOf(2);
-      should(_index[0]).have.lengthOf(1);
-      should(_index[0]).eql([2]);
-      should(_index[1]).have.lengthOf(1);
-      should(_index[1]).eql([1]);
+      should(_collection.getIndexId()).eql({
+        2 : 1
+      });
     });
   });
 
@@ -2003,7 +1885,10 @@ describe('lunaris internal collection', () => {
       should(_collection.get(1)).eql(null);
       _collection.rollback(_version);
       var _values = _collection._getAll();
-      should(_values).have.length(0);
+      should(_values).have.length(1);
+      should(_values).eql([
+        { _id : 1, id : 1, test : 2, _rowId : 1, _version : [1, 1] }
+      ]);
     });
 
     it('should rollback the item : delete & insert', () => {
@@ -2033,14 +1918,14 @@ describe('lunaris internal collection', () => {
 
     it('should be defined', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
-      should(_collection.getIndexDataCache()).eql([[], []]);
+      should(_collection.getIndexDataCache()).eql({});
       should(_collection._getAllCache()).eql([]);
     });
 
     it('should be updated when adding an object', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ label : 'a' });
-      should(_collection.getIndexDataCache()).eql([[1], [0]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 0 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(1);
       should(_dataCache[0]._id).eql(1);
@@ -2050,7 +1935,7 @@ describe('lunaris internal collection', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ label : 'a' });
       _collection.add({ label : 'b' });
-      should(_collection.getIndexDataCache()).eql([[1, 2], [0, 1]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 0, 2 : 1 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(2);
       should(_dataCache[0]._id).eql(1);
@@ -2061,7 +1946,7 @@ describe('lunaris internal collection', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ label : 'a' });
       _collection.upsert({ _id : 1, label : 'b' });
-      should(_collection.getIndexDataCache()).eql([[1], [1]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 1 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(1);
       should(_dataCache[0]._id).eql(1);
@@ -2074,7 +1959,7 @@ describe('lunaris internal collection', () => {
       _collection.add({ label : 'b' });
       _collection.upsert({ _id : 1, label : 'a.2' });
       _collection.upsert({ _id : 2, label : 'b.2' });
-      should(_collection.getIndexDataCache()).eql([[1, 2], [2, 3]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 2, 2 : 3 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(2);
       should(_dataCache[0]._id).eql(1);
@@ -2087,7 +1972,7 @@ describe('lunaris internal collection', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ label : 'a' });
       _collection.remove({ _id : 1 });
-      should(_collection.getIndexDataCache()).eql([[], []]);
+      should(_collection.getIndexDataCache()).eql({ 1 : null });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(0);
     });
@@ -2098,7 +1983,7 @@ describe('lunaris internal collection', () => {
       _collection.add({ label : 'b' });
       _collection.remove({ _id : 1 });
       _collection.remove({ _id : 2 });
-      should(_collection.getIndexDataCache()).eql([[], []]);
+      should(_collection.getIndexDataCache()).eql({ 1 : null, 2 : null });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(0);
     });
@@ -2108,7 +1993,7 @@ describe('lunaris internal collection', () => {
       let _version = _collection.begin();
       _collection.add({ label : 'a' }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[1], [0]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 0 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(1);
       should(_dataCache[0]._id).eql(1);
@@ -2120,7 +2005,7 @@ describe('lunaris internal collection', () => {
       _collection.add({ label : 'a' }, _version);
       _collection.add({ label : 'b' }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[1, 2], [0, 1]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 0, 2 : 1 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(2);
       should(_dataCache[0]._id).eql(1);
@@ -2133,7 +2018,7 @@ describe('lunaris internal collection', () => {
       _collection.add({ label : 'a' }, _version);
       _collection.upsert({ _id : 1, label : 'b' }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[1], [0]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 0 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(1);
       should(_dataCache[0]._id).eql(1);
@@ -2148,7 +2033,7 @@ describe('lunaris internal collection', () => {
       _collection.upsert({ _id : 1, label : 'a.2' }, _version);
       _collection.upsert({ _id : 2, label : 'b.2' }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[1, 2], [0, 1]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 0, 2 : 1 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(2);
       should(_dataCache[0]._id).eql(1);
@@ -2163,7 +2048,7 @@ describe('lunaris internal collection', () => {
       _collection.add({ label : 'a' }, _version);
       _collection.remove({ _id : 1 }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[], []]);
+      should(_collection.getIndexDataCache()).eql({ 1 : null });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(0);
     });
@@ -2176,7 +2061,7 @@ describe('lunaris internal collection', () => {
       _collection.remove({ _id : 1 }, _version);
       _collection.remove({ _id : 2 }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[], []]);
+      should(_collection.getIndexDataCache()).eql({ 1 : null, 2 : null });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(0);
     });
@@ -2189,7 +2074,7 @@ describe('lunaris internal collection', () => {
       _version = _collection.begin();
       _collection.add({ label : 'b' }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[1, 2], [0, 1]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 0, 2 : 1 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(2);
       should(_dataCache[0]._id).eql(1);
@@ -2204,7 +2089,7 @@ describe('lunaris internal collection', () => {
       _version = _collection.begin();
       _collection.upsert({ _id : 1, label : 'b' }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[1], [1]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 1 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(1);
       should(_dataCache[0]._id).eql(1);
@@ -2221,7 +2106,7 @@ describe('lunaris internal collection', () => {
       _collection.upsert({ _id : 1, label : 'a.2' }, _version);
       _collection.upsert({ _id : 2, label : 'b.2' }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[1, 2], [2, 3]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 2, 2 : 3 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(2);
       should(_dataCache[0]._id).eql(1);
@@ -2238,7 +2123,7 @@ describe('lunaris internal collection', () => {
       _version = _collection.begin();
       _collection.remove({ _id : 1 }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[], []]);
+      should(_collection.getIndexDataCache()).eql({ 1 : null });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(0);
     });
@@ -2253,7 +2138,7 @@ describe('lunaris internal collection', () => {
       _collection.remove({ _id : 1 }, _version);
       _collection.remove({ _id : 2 }, _version);
       _collection.commit(_version);
-      should(_collection.getIndexDataCache()).eql([[], []]);
+      should(_collection.getIndexDataCache()).eql({ 1 : null, 2 : null });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(0);
     });
@@ -2262,12 +2147,12 @@ describe('lunaris internal collection', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       _collection.add({ label : 'a' });
       _collection.add({ label : 'b' });
-      should(_collection.getIndexDataCache()).eql([[1, 2], [0, 1]]);
+      should(_collection.getIndexDataCache()).eql({ 1 : 0, 2 : 1 });
       let _dataCache = _collection._getAllCache();
       should(_dataCache).be.an.Array().and.have.lengthOf(2);
 
       _collection.clear();
-      should(_collection.getIndexDataCache()).eql([[], []]);
+      should(_collection.getIndexDataCache()).eql({});
       should(_collection._getAllCache()).eql([]);
     });
 

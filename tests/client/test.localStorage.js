@@ -97,7 +97,6 @@ describe('local storage', () => {
               collection     : {
                 currentId       : 4,
                 currentRowId    : 4,
-                index           : [[1, 2, 3], [1, 2, 3]],
                 indexReferences : {}
               }
             }));
@@ -150,7 +149,6 @@ describe('local storage', () => {
                 collection : {
                   currentId       : 4,
                   currentRowId    : 4,
-                  index           : [[1, 2, 3], [1, 2, 3]],
                   indexReferences : {}
                 },
                 massOperations : {}
@@ -192,7 +190,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 4,
                 currentRowId    : 4,
-                index           : [[1, 2, 3], [1, 2, 3]],
                 indexReferences : {}
               },
               massOperations : {}
@@ -251,7 +248,6 @@ describe('local storage', () => {
                 collection : {
                   currentId       : 4,
                   currentRowId    : 4,
-                  index           : [[1, 2, 3], [1, 2, 3]],
                   indexReferences : {}
                 },
                 massOperations : {}
@@ -293,7 +289,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 4,
                 currentRowId    : 4,
-                index           : [[1, 2, 3], [1, 2, 3]],
                 indexReferences : {}
               },
               massOperations : {}
@@ -345,7 +340,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 1,
                 currentRowId    : 1,
-                index           : [[], []],
                 indexReferences : {}
               },
               massOperations : {}
@@ -392,7 +386,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 4,
                 currentRowId    : 4,
-                index           : [[1, 2, 3], [1, 2, 3]],
                 indexReferences : {}
               },
               massOperations : {}
@@ -440,7 +433,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 4,
                 currentRowId    : 4,
-                index           : [[1, 2, 3], [1, 2, 3]],
                 indexReferences : {}
               },
               massOperations : {}
@@ -488,7 +480,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 1,
                 currentRowId    : 1,
-                index           : [[], []],
                 indexReferences : {}
               },
               massOperations : {}
@@ -537,7 +528,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 1,
                 currentRowId    : 1,
-                index           : [[], []],
                 indexReferences : {}
               },
               massOperations : {}
@@ -583,7 +573,6 @@ describe('local storage', () => {
             collection : {
               currentId       : 1,
               currentRowId    : 1,
-              index           : [[], []],
               indexReferences : {}
             },
             massOperations : {}
@@ -615,7 +604,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 4,
                 currentRowId    : 4,
-                index           : [[2, 3], [2, 3]],
                 indexReferences : {}
               },
               massOperations : {}
@@ -708,7 +696,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 2,
                 currentRowId    : 2,
-                index           : [[1], [1]],
                 indexReferences : {}
               },
               massOperations : {}
@@ -767,7 +754,6 @@ describe('local storage', () => {
                 collection : {
                   currentId       : 2,
                   currentRowId    : 3,
-                  index           : [[1], [1]],
                   indexReferences : {}
                 },
                 massOperations : {}
@@ -903,7 +889,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 2,
                 currentRowId    : 3,
-                index           : [[1], [1]],
                 indexReferences : {}
               },
               massOperations : {}
@@ -921,7 +906,6 @@ describe('local storage', () => {
                   collection : {
                     currentId       : 2,
                     currentRowId    : 4,
-                    index           : [[1], [1]],
                     indexReferences : {}
                   },
                   massOperations : {}
@@ -989,7 +973,6 @@ describe('local storage', () => {
                 collection : {
                   currentId       : 2,
                   currentRowId    : 5,
-                  index           : [[1], [1]],
                   indexReferences : {}
                 },
                 massOperations : {}
@@ -1155,7 +1138,6 @@ describe('local storage', () => {
               collection : {
                 currentId       : 1,
                 currentRowId    : 1,
-                index           : [[], []],
                 indexReferences : {}
               },
               massOperations : {
@@ -1175,7 +1157,6 @@ describe('local storage', () => {
                   collection : {
                     currentId       : 1,
                     currentRowId    : 1,
-                    index           : [[], []],
                     indexReferences : {}
                   },
                   massOperations : {
@@ -1208,7 +1189,7 @@ describe('local storage', () => {
           var _lunaris = lunarisInstance();
           var _store   = 'http';
           setTimeout(() => {
-            should(_lunaris._stores[_store].data.getIndexId()).eql([[1, 2, 3], [1, 2, 3]]);
+            should(_lunaris._stores[_store].data.getIndexId()).eql({ 1 : 1, 2 : 2, 3 : 3 });
             should(_lunaris._stores[_store].data.getCurrentId()).eql(4);
             should(_lunaris._stores[_store].data.getCurrentRowId()).eql(4);
             should(_lunaris._stores[_store].data.getAll()).eql([
@@ -1253,7 +1234,6 @@ describe('local storage', () => {
             collection     : {
               currentId       : 4,
               currentRowId    : 4,
-              index           : [[1, 2, 3], [1, 2, 3]],
               indexReferences : {}
             }
           }));
@@ -1324,7 +1304,6 @@ describe('local storage', () => {
                     collection : {
                       currentId       : 1,
                       currentRowId    : 1,
-                      index           : [[], []],
                       indexReferences : {}
                     },
                     massOperations : {}
@@ -1387,7 +1366,7 @@ describe('local storage', () => {
               var _store   = 'http';
               setTimeout(() => {
                 should(_lunaris._stores[_store].data.getIndexReferences()).eql({});
-                should(_lunaris._stores[_store].data.getIndexId()).eql([[], []]);
+                should(_lunaris._stores[_store].data.getIndexId()).eql({});
                 should(_lunaris._stores[_store].data.getCurrentId()).eql(1);
                 should(_lunaris._stores[_store].data.getCurrentRowId()).eql(1);
                 should(_lunaris._stores[_store].data.getAll()).eql([]);
@@ -1416,7 +1395,7 @@ describe('local storage', () => {
               var _lunaris = lunarisInstance();
               var _store   = 'http';
               setTimeout(() => {
-                should(_lunaris._stores[_store].data.getIndexId()).eql([[1, 2, 3], [1, 2, 3]]);
+                should(_lunaris._stores[_store].data.getIndexId()).eql({ 1 : 1, 2 : 2, 3 : 3 });
                 should(_lunaris._stores[_store].data.getIndexReferences()).eql({});
                 should(_lunaris._stores[_store].data.getCurrentId()).eql(4);
                 should(_lunaris._stores[_store].data.getCurrentRowId()).eql(4);
@@ -1496,7 +1475,6 @@ describe('local storage', () => {
                     collection     : {
                       currentId       : 2,
                       currentRowId    : 3,
-                      index           : [[1], [1]],
                       indexReferences : {}
                     }
                   });
@@ -1666,7 +1644,8 @@ describe('local storage', () => {
             done(err);
           }
 
-          should(data).be.an.Array().and.have.lengthOf(0);
+          should(data).be.an.Array().and.have.lengthOf(1);
+          should(data[0]).eql({ id : 10, _id : 1, _rowId : 1, _version : [1, 1] });
           done();
         });
       }, 20);
