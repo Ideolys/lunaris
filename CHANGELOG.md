@@ -2,6 +2,7 @@
 
 ## 1.14.0
 - Features:
+  - Add `lunaris.createUrl(store, method, primaryKey)` method to generate url for a store.
   - Add `lunaris.offline.isOfflineMode` attribute to set offline mode. In online the offline mode capture the invalidations and simulate offline connection.
   - Add `lunaris.offline.isSynchronizing` attribute. Internal use.
   - Add `lunaris._onInvalidate(event, handler)` to capture events in invalidation module. Only `invalidate` event is sent. It allows an handler to capture invalidations when offline mode is activated.

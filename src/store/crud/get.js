@@ -206,6 +206,9 @@ function _get (store, primaryKeyValue, retryOptions, transactionId, callback) {
 
     if (!retryOptions) {
       _request = url.create(_options.store, 'GET', primaryKeyValue);
+      _options.store.paginationOffset = _options.store.paginationLimit * _options.store.paginationCurrentPage;
+      _options.store.paginationCurrentPage++;
+
       // required filters condition not fullfilled
       if (!_request) {
         return callback(store);

@@ -144,10 +144,10 @@ function setPrimaryKeyValue (store, value, id) {
  */
 function checkArgs (store, value, isNoValue) {
   if (value === undefined && !isNoValue) {
-    throw new Error('lunaris.<insert|update|delete>(<store>, <value>) must have a value, provided value: ' + value);
+    throw new Error('Must have a value, provided value: ' + value);
   }
   if (!store || typeof store !== 'string') {
-    throw new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>');
+    throw new Error('Must have a correct store value: @<store>');
   }
 }
 

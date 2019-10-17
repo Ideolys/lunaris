@@ -184,8 +184,6 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
     var _offset = store.paginationOffset;
     _options.push(['limit' , _limit]);
     _options.push(['offset', _offset]);
-    store.paginationOffset = _limit * store.paginationCurrentPage;
-    store.paginationCurrentPage++;
   }
 
   // _options = _options.concat(filterValues);

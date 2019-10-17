@@ -85,14 +85,14 @@ describe('lunaris store', function () {
       lunaris.insert('@store');
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.insert@store');
-      should(lastError[1]).eql(new Error('lunaris.<insert|update|delete>(<store>, <value>) must have a value, provided value: undefined'));
+      should(lastError[1]).eql(new Error('Must have a value, provided value: undefined'));
     });
 
     it('should throw an error if the store is not a string', () => {
       lunaris.insert({}, { id : 1 });
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.insert' + {});
-      should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
+      should(lastError[1]).eql(new Error('Must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
@@ -1133,14 +1133,14 @@ describe('lunaris store', function () {
       lunaris.delete('@store');
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.delete@store');
-      should(lastError[1]).eql(new Error('lunaris.<insert|update|delete>(<store>, <value>) must have a value, provided value: undefined'));
+      should(lastError[1]).eql(new Error('Must have a value, provided value: undefined'));
     });
 
     it('should throw an error if the store is not a string', () => {
       lunaris.delete({}, { id : 1 });
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.delete' + {});
-      should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
+      should(lastError[1]).eql(new Error('Must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
@@ -1411,7 +1411,7 @@ describe('lunaris store', function () {
       lunaris.getOne({});
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.getOne' + {});
-      should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
+      should(lastError[1]).eql(new Error('Must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
@@ -1466,7 +1466,7 @@ describe('lunaris store', function () {
       lunaris.get({});
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.get' + {});
-      should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
+      should(lastError[1]).eql(new Error('Must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
@@ -2767,7 +2767,7 @@ describe('lunaris store', function () {
       lunaris.clear({});
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.clear' + {});
-      should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
+      should(lastError[1]).eql(new Error('Must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
@@ -2952,7 +2952,7 @@ describe('lunaris store', function () {
       lunaris.rollback({});
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.rollback' + {});
-      should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
+      should(lastError[1]).eql(new Error('Must have a correct store value: @<store>'));
     });
 
     it('should throw an error if the store is not defined', () => {
@@ -3189,7 +3189,7 @@ describe('lunaris store', function () {
       lunaris.getDefaultValue({});
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.getDefaultValue' + {});
-      should(lastError[1]).eql(new Error('lunaris.<get|insert|update|clear|delete>(<store>, <value>) must have a correct store value: @<store>'));
+      should(lastError[1]).eql(new Error('Must have a correct store value: @<store>'));
     });
 
     it('should return an empty object if no map has been provided', () => {
@@ -3602,6 +3602,110 @@ describe('lunaris store', function () {
       });
 
       lunaris.get('@pagination2');
+    });
+  });
+
+  describe('createUrl', () => {
+    it('createUrl() should be defined', () => {
+      should(lunaris.createUrl).be.a.Function();
+    });
+
+    it('should throw an error if the store is not a string', () => {
+      lunaris.createUrl({});
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris error] lunaris.createUrl');
+      should(lastError[1]).eql(new Error('Must have a correct store value: @<store>'));
+    });
+
+    it('should throw an error if the store is not defined', () => {
+      lunaris.createUrl('@store');
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris error] lunaris.createUrl');
+      should(lastError[1]).eql(new Error('The store "store" has not been defined'));
+    });
+
+    it('should throw an error if not method has been given', () => {
+      lunaris._stores['store'] = initStore('store1');
+
+      lunaris.createUrl('@store');
+      should(lastError.length).eql(2);
+      should(lastError[0]).eql('[Lunaris error] lunaris.createUrl');
+      should(lastError[1]).eql(new Error('Must provide a method, ex: GET, POST, etc.'));
+    });
+
+    it('should build the url : GET', () => {
+      lunaris._stores['store'] = initStore('store');
+
+      should(lunaris.createUrl('@store', 'GET')).eql(
+        '/store?limit=50&offset=0'
+      );
+    });
+
+    it('should build the url & not increment pagination: GET', () => {
+      lunaris._stores['store'] = initStore('store');
+
+      should(lunaris.createUrl('@store', 'GET')).eql(
+        '/store?limit=50&offset=0'
+      );
+      should(lunaris.createUrl('@store', 'GET')).eql(
+        '/store?limit=50&offset=0'
+      );
+    });
+
+    it('should build the url with PK : GET', () => {
+      lunaris._stores['store'] = initStore('store');
+
+      should(lunaris.createUrl('@store', 'GET', 1)).eql(
+        '/store/1?limit=50&offset=0'
+      );
+    });
+
+    it('should build the url: POST', () => {
+      lunaris._stores['store'] = initStore('store');
+
+      should(lunaris.createUrl('@store', 'POST')).eql(
+        '/store'
+      );
+    });
+
+    it('should build the url: PUT', () => {
+      lunaris._stores['store'] = initStore('store');
+
+      should(lunaris.createUrl('@store', 'PUT')).eql(
+        '/store'
+      );
+    });
+
+    it('should build the url with PK : PUT', () => {
+      lunaris._stores['store'] = initStore('store');
+
+      should(lunaris.createUrl('@store', 'PUT', 1)).eql(
+        '/store/1'
+      );
+    });
+
+    it('should build the url: PATCH', () => {
+      lunaris._stores['store'] = initStore('store');
+
+      should(lunaris.createUrl('@store', 'PATCH')).eql(
+        '/store'
+      );
+    });
+
+    it('should build the url: DELETE', () => {
+      lunaris._stores['store'] = initStore('store');
+
+      should(lunaris.createUrl('@store', 'DELETE')).eql(
+        '/store'
+      );
+    });
+
+    it('should build the url with PK : DELETE', () => {
+      lunaris._stores['store'] = initStore('store');
+
+      should(lunaris.createUrl('@store', 'DELETE', 1)).eql(
+        '/store/1'
+      );
     });
   });
 
