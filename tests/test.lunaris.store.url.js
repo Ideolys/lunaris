@@ -195,7 +195,7 @@ describe('store url', () => {
       });
     });
 
-    it('should increment the pagination offset', () => {
+    it('should not increment the pagination offset', () => {
       var _url = url.create(stores.noFilter, 'GET');
       should(_url.request).eql('/noFilter?limit=50&offset=0');
       should(_url.cache).eql({
@@ -204,10 +204,10 @@ describe('store url', () => {
       });
 
       _url = url.create(stores.noFilter, 'GET');
-      should(_url.request).eql('/noFilter?limit=50&offset=50');
+      should(_url.request).eql('/noFilter?limit=50&offset=0');
       should(_url.cache).eql({
         limit  : 50,
-        offset : 50
+        offset : 0
       });
     });
 
@@ -262,13 +262,6 @@ describe('store url', () => {
       should(_url.cache).eql({
         limit  : 50,
         offset : 0,
-        0      : 'cat'
-      });
-      _url = url.create(stores.required, 'GET');
-      should(_url.request).eql('/required/label/cat?limit=50&offset=50');
-      should(_url.cache).eql({
-        limit  : 50,
-        offset : 50,
         0      : 'cat'
       });
     });

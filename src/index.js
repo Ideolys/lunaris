@@ -48,6 +48,7 @@ module.exports = {
   getDefaultValue : store.getDefaultValue,
   validate        : store.validate,
   setPagination   : store.setPagination,
+  createUrl       : store.createUrl,
   begin           : transaction.begin,
   commit          : transaction.commit,
   invalidate      : invalidate.invalidate,

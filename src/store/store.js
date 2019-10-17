@@ -9,6 +9,7 @@ var upsertCRUD                  = require('./crud/upsert.js');
 var getCRUD                     = require('./crud/get.js');
 var clearCrud                   = require('./crud/clear.js');
 var deleteCrud                  = require('./crud/delete.js');
+var storeUrl                    = require('./store.url.js');
 var emptyObject                 = {};
 
 lunarisExports._stores.lunarisErrors = {
@@ -189,6 +190,33 @@ function validate (store, value, isUpdate, callback, eventName) {
   }
 }
 
+/**
+ * Create url for a store
+ * @param {String} store  ex: '@store'
+ * @param {String} method  ex: 'PUT'
+ * @param {*} primaryKey @optional
+ */
+function createUrl (store, method, primaryKey) {
+  try {
+    var _options = crudUtils.beforeAction(store, null, true);
+
+    if (!method) {
+      throw new Error('Must provide a method, ex: GET, POST, etc.');
+    }
+
+    var _request = storeUrl.create(_options.store, method, primaryKey);
+
+    if (_request) {
+      return _request.request;
+    }
+
+    return;
+  }
+  catch (e) {
+    logger.warn(['lunaris.createUrl'], e);
+  }
+}
+
 exports.get             = getCRUD.get;
 exports.getOne          = getOne;
 exports.insert          = upsertCRUD.upsert;
@@ -201,3 +229,4 @@ exports.rollback        = rollback;
 exports.getDefaultValue = getDefaultValue;
 exports.validate        = validate;
 exports.setPagination   = setPagination;
+exports.createUrl       = createUrl;

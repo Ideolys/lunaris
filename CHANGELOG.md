@@ -2,6 +2,7 @@
 
 ## 1.14.0
 - Features:
+  - Add `lunaris.createUrl(store, method, primaryKey)` method to generate url for a store.
 - Fix:
 
 ## 1.13.0
