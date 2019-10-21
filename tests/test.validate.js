@@ -409,6 +409,18 @@ describe('Validate', () => {
           should(validate.isEmailList('')).eql(false);
         });
 
+        it('should retrue if value is defined', () => {
+          should(validate.isNotNull()).eql(false);
+          should(validate.isNotNull(undefined)).eql(false);
+          should(validate.isNotNull(null)).eql(false);
+          should(validate.isNotNull('')).eql(true);
+          should(validate.isNotNull(0)).eql(true);
+          should(validate.isNotNull('abc')).eql(true);
+          should(validate.isNotNull([])).eql(true);
+          should(validate.isNotNull(['a'])).eql(true);
+          should(validate.isNotNull({})).eql(true);
+          should(validate.isNotNull({ label : 'a' })).eql(true);
+        });
       }); /* End of descript test */
     });
 
