@@ -123,6 +123,16 @@ describe('lunaris index', () => {
     should(index.setPagination).be.a.Function();
   });
 
+  it('clearWithPagination() should be defined', () => {
+    should(index.clearWithPagination).be.ok();
+    should(index.clearWithPagination).be.a.Function();
+  });
+
+  it('createUrl() should be defined', () => {
+    should(index.createUrl).be.ok();
+    should(index.createUrl).be.a.Function();
+  });
+
   it('begin() should be defined', () => {
     should(index.begin).be.ok();
     should(index.begin).be.a.Function();

@@ -49,6 +49,7 @@ module.exports = {
   validate            : store.validate,
   setPagination       : store.setPagination,
   clearWithPagination : store.clearWithPagination,
+  createUrl           : store.createUrl,
   begin               : transaction.begin,
   commit              : transaction.commit,
   invalidate          : invalidate.invalidate,

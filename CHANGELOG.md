@@ -2,7 +2,8 @@
 
 ## 1.14.0
 - Features:
-  - Add function lunaris.clearWithPagination to clear a store with a custom pagination instead of the default one
+  - Add `lunaris.createUrl(store, method, primaryKey)` method to generate url for a store.
+  - Add `lunaris.clearWithPagination(store, page, limit, isSilent)` to clear a store with a custom pagination instead of the default one
 - Fix:
 
 ## 1.13.0
