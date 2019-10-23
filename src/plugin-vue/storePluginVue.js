@@ -153,7 +153,8 @@ lunaris._vue = {
         for (var i = 0; i < items.length; i++) {
           for (var j = 0; j < _state.length; j++) {
             if (_state[j]._id === items[i]._id) {
-              _state.splice(j, 1, items[i]);
+              Vue.set(_state, j, items[i]);
+              // _state.splice(j, 1, items[i]);
               _hasBeenFound = true;
               break;
             }
