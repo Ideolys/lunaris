@@ -135,7 +135,7 @@ describe('Compute offline transactions', () => {
       }]);
     });
 
-    it('should compute POST->DELETE to nothing', () => {
+    it('should not compute POST->DELETE', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -145,10 +145,10 @@ describe('Compute offline transactions', () => {
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
-      should(_transactions).eql([]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute PUT->DELETE to DELETE', () => {
+    it('should not compute PUT->DELETE', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -159,18 +159,10 @@ describe('Compute offline transactions', () => {
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
 
-      should(_transactions[0].date).be.a.Number();
-      delete _transactions[0].date;
-
-      should(_transactions).eql([{
-        store  : 'test',
-        method : OPERATIONS.DELETE,
-        url    : '/test',
-        data   : { _id : 1, id : 1, label : 'A' }
-      }]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute POST->PUT->DELETE to nothing', () => {
+    it('should not compute POST->PUT->DELETE', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -182,7 +174,9 @@ describe('Compute offline transactions', () => {
 
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.UPDATE, '/test', { _id : 1, id : 1, label : 'B' });
       _transactions     = computeOfflineTransactions(_transactions, 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'B' });
-      should(_transactions).eql([]);
+      should(_transactions).have.lengthOf(2);
+      should(_transactions[0].method).eql(OPERATIONS.INSERT);
+      should(_transactions[1].method).eql(OPERATIONS.DELETE);
     });
   });
 
@@ -636,7 +630,7 @@ describe('Compute offline transactions', () => {
     });
 
 
-    it('should compute POST->DELETE to nothing', () => {
+    it('should not compute POST->DELETE', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -646,10 +640,10 @@ describe('Compute offline transactions', () => {
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
-      should(_transactions).eql([]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute POST->DELETE to POST : POST has an object value', () => {
+    it('should not compute POST->DELETE : POST has an object value', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -659,10 +653,10 @@ describe('Compute offline transactions', () => {
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
-      should(_transactions).eql([]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute POST->DELETE to nothing : DELETE has an object value', () => {
+    it('should not compute POST->DELETE : DELETE has an object value', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -672,10 +666,10 @@ describe('Compute offline transactions', () => {
       };
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
-      should(_transactions).eql([]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute POST->DELETE to nothing : multiple items', () => {
+    it('should not compute POST->DELETE: multiple items', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -693,10 +687,10 @@ describe('Compute offline transactions', () => {
           { _id : 2, id : 2, label : 'B' }
         ]
       );
-      should(_transactions).eql([]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute POST->DELETE to POST : multiple items and discontinuation', () => {
+    it('should not compute POST->DELETE : multiple items and discontinuation', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -718,20 +712,10 @@ describe('Compute offline transactions', () => {
           { _id : 2, id : 2, label : 'B' }
         ]
       );
-      should(_transactions).eql([{
-        store  : 'test',
-        method : OPERATIONS.INSERT,
-        url    : '/test',
-        data   : [
-          { _id : 3, id : 3, label : 'C' }
-        ],
-        _id      : 1,
-        _rowId   : 1,
-        _version : [1]
-      }]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute POST->DELETE to nothing : multiple transactions && multiple items', () => {
+    it('should not compute POST->DELETE : multiple transactions && multiple items', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -763,11 +747,11 @@ describe('Compute offline transactions', () => {
         ]
       );
 
-      should(_transactions).eql([]);
+      should(_transactions).have.lengthOf(3);
     });
 
 
-    it('should compute PUT->DELETE to DELETE', () => {
+    it('should not compute PUT->DELETE', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -778,18 +762,10 @@ describe('Compute offline transactions', () => {
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
 
-      should(_transactions[0].date).be.a.Number();
-      delete _transactions[0].date;
-
-      should(_transactions).eql([{
-        store  : 'test',
-        method : OPERATIONS.DELETE,
-        url    : '/test',
-        data   : [{ _id : 1, id : 1, label : 'A' }]
-      }]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute PUT->DELETE to DELETE : UPDATE has an object value', () => {
+    it('should not compute PUT->DELETE : UPDATE has an object value', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -800,18 +776,10 @@ describe('Compute offline transactions', () => {
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', [{ _id : 1, id : 1, label : 'A' }]);
 
-      should(_transactions[0].date).be.a.Number();
-      delete _transactions[0].date;
-
-      should(_transactions).eql([{
-        store  : 'test',
-        method : OPERATIONS.DELETE,
-        url    : '/test',
-        data   : [{ _id : 1, id : 1, label : 'A' }]
-      }]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute PUT->DELETE to DELETE : PUT has an object value', () => {
+    it('should not compute PUT->DELETE : PUT has an object value', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -822,18 +790,10 @@ describe('Compute offline transactions', () => {
       _collection.add(_valueInit);
       let _transactions = computeOfflineTransactions(_collection.getAll(), 'test', OPERATIONS.DELETE, '/test', { _id : 1, id : 1, label : 'A' });
 
-      should(_transactions[0].date).be.a.Number();
-      delete _transactions[0].date;
-
-      should(_transactions).eql([{
-        store  : 'test',
-        method : OPERATIONS.DELETE,
-        url    : '/test',
-        data   : { _id : 1, id : 1, label : 'A' }
-      }]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute PUT->DELETE to DELETE : multiple items', () => {
+    it('should not compute PUT->DELETE : multiple items', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -852,18 +812,10 @@ describe('Compute offline transactions', () => {
         ]
       );
 
-      should(_transactions[0].date).be.a.Number();
-      delete _transactions[0].date;
-
-      should(_transactions).eql([{
-        store  : 'test',
-        method : OPERATIONS.DELETE,
-        url    : '/test',
-        data   : [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }]
-      }]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute PUT->DELETE to DELETE : multiple items and discontinuation', () => {
+    it('should not compute PUT->DELETE : multiple items and discontinuation', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -886,34 +838,10 @@ describe('Compute offline transactions', () => {
         ]
       );
 
-      should(_transactions[1].date).be.a.Number();
-      delete _transactions[1].date;
-
-      should(_transactions).eql([
-        {
-          store  : 'test',
-          method : OPERATIONS.UPDATE,
-          url    : '/test',
-          data   : [
-            { _id : 3, id : 3, label : 'C' }
-          ],
-          _id      : 1,
-          _rowId   : 1,
-          _version : [1]
-        },
-        {
-          store  : 'test',
-          method : OPERATIONS.DELETE,
-          url    : '/test',
-          data   : [
-            { _id : 1, id : 1, label : 'A' },
-            { _id : 2, id : 2, label : 'B' }
-          ]
-        }
-      ]);
+      should(_transactions).have.lengthOf(2);
     });
 
-    it('should compute PUT->DELETE to DELETE : multiple transactions && multiple items', () => {
+    it('should not compute PUT->DELETE : multiple transactions && multiple items', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -945,32 +873,10 @@ describe('Compute offline transactions', () => {
         ]
       );
 
-      should(_transactions[0].date).be.a.Number();
-      delete _transactions[0].date;
-      should(_transactions[1].date).be.a.Number();
-      delete _transactions[1].date;
-
-      should(_transactions).eql([
-        {
-          store  : 'test',
-          method : OPERATIONS.DELETE,
-          url    : '/test',
-          data   : [
-            { _id : 1, id : 1, label : 'A' },
-            { _id : 2, id : 2, label : 'B' }
-          ]
-        }, {
-          store  : 'test',
-          method : OPERATIONS.DELETE,
-          url    : '/test',
-          data   : [
-            { _id : 3, id : 3, label : 'C' }
-          ]
-        }
-      ]);
+      should(_transactions).have.lengthOf(3);
     });
 
-    it('should compute POST->PUT->DELETE to nothing : multiple transactions && multiple items', () => {
+    it('should not compute POST->PUT->DELETE : multiple transactions && multiple items', () => {
       let _collection = collection(null, false, null, null, null, null, null, utils.clone);
       let _valueInit  = {
         store  : 'test',
@@ -1004,7 +910,7 @@ describe('Compute offline transactions', () => {
         ]
       );
 
-      should(_transactions).eql([]);
+      should(_transactions).have.lengthOf(2);
     });
   });
 
@@ -1049,6 +955,12 @@ describe('Compute offline transactions', () => {
     delete _transactions[4].date;
     should(_transactions[5].date).be.a.Number();
     delete _transactions[5].date;
+    should(_transactions[6].date).be.a.Number();
+    delete _transactions[6].date;
+    should(_transactions[7].date).be.a.Number();
+    delete _transactions[7].date;
+    should(_transactions[8].date).be.a.Number();
+    delete _transactions[8].date;
 
     should(_transactions).eql([
       {
@@ -1057,26 +969,43 @@ describe('Compute offline transactions', () => {
         url    : '/storeA',
         data   : [
           { _id : 1, label : 'A' },
-          { _id : 2, label : 'B' }
+          { _id : 2, label : 'B' },
+          { _id : 3, label : 'C' }
         ]
-      }, {
+      },
+      {
         store  : 'storeA',
         method : OPERATIONS.INSERT,
         url    : '/storeA',
         data   : [
           { _id : 4, label : 'D' }
         ]
-      }, {
+      },
+      {
+        store  : 'storeB',
+        method : OPERATIONS.INSERT,
+        url    : '/storeB',
+        data   : { _id : 1, label : 'a' }
+      },
+      {
+        store  : 'storeB',
+        method : OPERATIONS.DELETE,
+        url    : '/storeB',
+        data   : { _id : 1, label : 'a' }
+      },
+      {
         store  : 'storeB',
         method : OPERATIONS.INSERT,
         url    : '/storeB',
         data   : { _id : 2, label : 'b__1' }
-      }, {
+      },
+      {
         store  : 'storeA',
         method : OPERATIONS.DELETE,
         url    : '/storeA',
         data   : { _id : 5, label : 'E' }
-      }, {
+      },
+      {
         store  : 'storeB',
         method : OPERATIONS.UPDATE,
         url    : '/storeB',
@@ -1084,12 +1013,22 @@ describe('Compute offline transactions', () => {
           { _id : 3, label : 'c_1' },
           { _id : 4, label : 'd_1' }
         ]
-      }, {
+      },
+      {
+        store  : 'storeA',
+        method : OPERATIONS.UPDATE,
+        url    : '/storeA',
+        data   : [
+          { _id : 6, label : 'F.2' },
+        ]
+      },
+      {
         store  : 'storeA',
         method : OPERATIONS.DELETE,
         url    : '/storeA',
         data   : [
-          { _id : 6, label : 'F.2' }
+          { _id : 6, label : 'F.2' },
+          { _id : 3, label : 'C'   },
         ]
       }
     ]);

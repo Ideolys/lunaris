@@ -248,42 +248,14 @@ function computeStoreTransactions (transactions, storeName, method, request, val
           _mustBeAdded          = false;
           break;
         }
-
-        if (
-          (_transaction.method === OPERATIONS.INSERT && method === OPERATIONS.DELETE) ||
-          (_transaction.method === OPERATIONS.UPDATE && method === OPERATIONS.DELETE)
-        ) {
-          if (value[j]._id !== _transaction.data[k]._id) {
-            continue;
-          }
-
-          _transaction.data.splice(k, 1);
-
-          if (!_transaction.data.length) {
-            transactions.splice(i, 1);
-          }
-
-          if (_transaction.method === OPERATIONS.INSERT) {
-            value.splice(j, 1);
-
-            if (!value.length) {
-              _mustBeAdded = false;
-            }
-
-            break;
-          }
-        }
-
-        // Do not try to merge DELETE, it will be way to complicated to manage PUT->DELETE->DELETE with discontinuations
-        // if (_transaction.method === OPERATIONS.DELETE && method === OPERATIONS.DELETE && _isArrayValue) {
-        //   _transaction.value.push(value[j]);
-        //   _mustBeAdded = false;
-        //   break;
-        // }
       }
 
       if (!_isTransactionValueAnArray) {
         _transaction.data = _transaction.data[0];
+      }
+
+      if (!value[j]) {
+        break;
       }
     }
   }
