@@ -18,7 +18,7 @@ Pourquoi faire cette fonctionnalité ? Quels sont les besoins ? Quels bénéfice
 
 # Inconvénients
 
-Pourquoi on ne drevrait pas implémenter cette solution ?
+Pourquoi on ne devrait pas implémenter cette solution ?
 
 # Alternatives
 
