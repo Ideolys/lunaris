@@ -11,6 +11,7 @@ var url         = require('../store.url.js');
 var template    = require('../store.template.js');
 var sync        = require('../store.synchronisation.js');
 var upsertCrud  = require('./upsert.js');
+var lazyLoad    = require('./_lazyLoad.js');
 var queue       = utils.queue;
 var OPERATIONS  = utils.OPERATIONS;
 
@@ -48,7 +49,7 @@ function _deleteValueInReferencedStores (store, collection, value, callback) {
       return next();
     }
 
-    if (!utils.index.binarySearch(_references[store.name][0], _pkValue).found) {
+    if (!_references[store.name][_pkValue]) {
       return next();
     }
 
@@ -181,6 +182,10 @@ function deleteStore (store, value, retryOptions, isLocal, transactionId, callba
         handler   : deleteStore,
         arguments : [store, value, retryOptions, isLocal, transaction.getCurrentTransactionId()]
       });
+    }
+
+    if (!_options.store.isInitialized) {
+      return lazyLoad.load(_options.store, [deleteStore, arguments]);
     }
 
     var _version;

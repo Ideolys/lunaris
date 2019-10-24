@@ -739,7 +739,7 @@ describe('lunaris internal collection', () => {
       ]);
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [['_1'], [[1]]]
+        reference : { _1 : [1] }
       });
     });
 
@@ -771,7 +771,7 @@ describe('lunaris internal collection', () => {
       ]);
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [['_1'], [[1]]]
+        reference : { _1 : [1] }
       });
     });
 
@@ -804,7 +804,11 @@ describe('lunaris internal collection', () => {
       ]);
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [['_1', '_2', '_3'], [[1], [1], [1]]]
+        reference : {
+          _1 : [1],
+          _2 : [1],
+          _3 : [1]
+        }
       });
     });
 
@@ -839,8 +843,12 @@ describe('lunaris internal collection', () => {
       ]);
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [['_1', '_2', '_3'], [[1], [1], [1]]],
-        type      : [['_2'], [[1]]]
+        reference : {
+          _1 : [1],
+          _2 : [1],
+          _3 : [1]
+        },
+        type : { _2 : [1] }
       });
     });
 
@@ -875,7 +883,11 @@ describe('lunaris internal collection', () => {
       ]);
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [['_1', '_2', '_3'], [[1], [1], [1]]],
+        reference : {
+          _1 : [1],
+          _2 : [1],
+          _3 : [1]
+        }
       });
     });
 
@@ -910,8 +922,14 @@ describe('lunaris internal collection', () => {
       ]);
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [['_1', '_2', '_3'], [[1], [1], [1]]],
-        type      : [['_2'], [[1]]]
+        reference : {
+          _1 : [1],
+          _2 : [1],
+          _3 : [1]
+        },
+        type : {
+          _2 : [1]
+        }
       });
 
       _objectCollection.upsert({
@@ -928,8 +946,13 @@ describe('lunaris internal collection', () => {
       });
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [['_1', '_3', '_4'], [[1], [1], [1]]],
-        type      : [['_2'], [[1]]]
+        reference : {
+          _1 : [1],
+          _2 : null,
+          _3 : [1],
+          _4 : [1]
+        },
+        type : { _2 : [1] }
       });
     });
 
@@ -964,15 +987,23 @@ describe('lunaris internal collection', () => {
       ]);
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [['_1', '_2', '_3'], [[1], [1], [1]]],
-        type      : [['_2'], [[1]]]
+        reference : {
+          _1 : [1],
+          _2 : [1],
+          _3 : [1]
+        },
+        type : { _2 : [1] }
       });
 
       _objectCollection.remove({ _id : 1 });
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [[], []],
-        type      : [[], []]
+        reference : {
+          _1 : null,
+          _2 : null,
+          _3 : null
+        },
+        type : { _2 : null }
       });
     });
 
@@ -999,14 +1030,17 @@ describe('lunaris internal collection', () => {
       _objectCollection.add({ id : 3, elements : [{ id : '_5' }], type : { id : '_1' } });
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [
-          ['_1', '_2', '_3', '_4', '_5'],
-          [[1, 2], [1], [1], [2], [3]]
-        ],
-        type : [
-          ['_1', '_2'],
-          [[3], [1, 2]]
-        ]
+        reference : {
+          _1 : [1, 2],
+          _2 : [1],
+          _3 : [1],
+          _4 : [2],
+          _5 : [3],
+        },
+        type : {
+          _1 : [3],
+          _2 : [1, 2]
+        }
       });
 
       var _obj2 = utils.clone(_objectCollection.get(2));
@@ -1020,14 +1054,17 @@ describe('lunaris internal collection', () => {
       _objectCollection.upsert(_obj3);
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [
-          ['_1', '_2', '_3', '_4', '_5'],
-          [[1], [1], [1, 2], [2], [3]]
-        ],
-        type : [
-          ['_2'],
-          [[1]]
-        ]
+        reference : {
+          _1 : [1],
+          _2 : [1],
+          _3 : [1, 2],
+          _4 : [2],
+          _5 : [3],
+        },
+        type : {
+          _1 : null,
+          _2 : [1]
+        }
       });
     });
 
@@ -1062,8 +1099,14 @@ describe('lunaris internal collection', () => {
       ]);
 
       should(_objectCollection.getIndexReferences()).eql({
-        reference : [['_1', '_2', '_3'], [[1], [1], [1]]],
-        type      : [['_2'], [[1]]]
+        reference : {
+          _1 : [1],
+          _2 : [1],
+          _3 : [1]
+        },
+        type : {
+          _2 : [1]
+        }
       });
 
       _objectCollection.clear();
@@ -1479,6 +1522,31 @@ describe('lunaris internal collection', () => {
       should(_collection.getIndexId()).eql({ 1 : 1 });
       should(_collection.getIndexDataCache()).eql({ 1 : 0 });
     });
+
+    it('should set data and build reference index', () => {
+      var _objectDescriptor = [{
+        id      : ['<<id>>'],
+        element : ['array', {
+          id : ['<<int>>', 'ref', '@reference']
+        }]
+      }];
+
+      var _schemaObj        = schema.analyzeDescriptor(_objectDescriptor);
+      var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
+        referencesFn : _schemaObj.referencesFn,
+        references   : _schemaObj.meta.references,
+        stores       : ['reference']
+      }, utils.clone);
+
+      _objectCollection.setData([
+        { _id : 1, _version : [1], id : 1, element : [{ id : 1}, { id : 2 }] },
+        { _id : 2, _version : [1], id : 2, element : [{ id : 20 }] },
+      ]);
+
+      should(_objectCollection.getIndexReferences()).eql({
+        reference : { 1 : [1], 2 : [1], 20 : [2] }
+      });
+    });
   });
 
   describe('setIndexIdValue()', () => {
@@ -1576,19 +1644,6 @@ describe('lunaris internal collection', () => {
         _3 : null,
         _4 : 4
       });
-    });
-  });
-
-  describe('setIndexReferences()', () => {
-    it('should be defined', () => {
-      should(collection(null, false, null, null, null, null, null, utils.clone).setIndexReferences).be.a.Function();
-    });
-
-    it('should set index id', () => {
-      var _collection = collection(null, false, null, null, null, null, null, utils.clone);
-      should(_collection.getIndexReferences()).eql({});
-      _collection.setIndexReferences({ store : [[1], [[1]]] });
-      should(_collection.getIndexReferences()).eql({ store : [[1], [[1]]] });
     });
   });
 

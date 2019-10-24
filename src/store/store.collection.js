@@ -148,21 +148,16 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       var _ids   = _referencesDescriptor.referencesFn.get[_reference](value);
 
       if (!_indexes.references[_store]) {
-        _indexes.references[_store] = [[], []];
+        _indexes.references[_store] = {};
       }
 
       for (var j = 0; j < _ids.length; j++) {
-        var _searchReferencedId = index.binarySearch(_indexes.references[_store][0], _ids[j]);
-
-        if (!_searchReferencedId.found) {
-          index.insertAt(_indexes.references[_store][0], _searchReferencedId.index, _ids[j]);
-          index.insertAt(_indexes.references[_store][1], _searchReferencedId.index, []);
+        if (!_indexes.references[_store][_ids[j]]) {
+          _indexes.references[_store][_ids[j]] = [];
         }
 
-        var _search = index.binarySearch(_indexes.references[_store][1][_searchReferencedId.index], value._id);
-
-        if (!_search.found) {
-          index.insertAt(_indexes.references[_store][1][_searchReferencedId.index], _search.index, value._id);
+        if (_indexes.references[_store][_ids[j]].indexOf(value._id) === -1) {
+          _indexes.references[_store][_ids[j]].push(value._id);
         }
       }
     }
@@ -186,22 +181,20 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       }
 
       for (var j = 0; j < _ids.length; j++) {
-        var _searchReferencedId = index.binarySearch(_indexes.references[_store][0], _ids[j]);
-        if (!_searchReferencedId.found) {
+        if (!_indexes.references[_store][_ids[j]]) {
           continue;
         }
 
-        var _search = index.binarySearch(_indexes.references[_store][1][_searchReferencedId.index], value._id);
+        var _searchIndex = _indexes.references[_store][_ids[j]].indexOf(value._id);
 
-        if (!_search.found) {
+        if (_searchIndex === -1) {
           continue;
         }
 
-        index.removeAt(_indexes.references[_store][1][_searchReferencedId.index], _search.index);
+        _indexes.references[_store][_ids[j]].splice(_searchIndex, 1);
 
-        if (!_indexes.references[_store][1][_searchReferencedId.index].length) {
-          index.removeAt(_indexes.references[_store][0], _searchReferencedId.index);
-          index.removeAt(_indexes.references[_store][1], _searchReferencedId.index);
+        if (!_indexes.references[_store][_ids[j]].length) {
+          _indexes.references[_store][_ids[j]] = null;
         }
       }
     }
@@ -224,6 +217,8 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
         var _pk = _getPrimaryKey(_item);
         _idIndex[_pk] = _item._id;
       }
+
+      _setReferencedValues(_item);
     }
   }
   /**
@@ -669,14 +664,12 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       return [];
     }
 
-    var _version          = begin();
-    var _searchReferences = index.binarySearch(_indexes.references[store][0], lastPK);
-
-    if (!_searchReferences.found) {
+    if (!_indexes.references[store][lastPK]) {
       return [];
     }
 
-    var _index = _indexes.references[store][1][_searchReferences.index];
+    var _version = begin();
+    var _index   = _indexes.references[store][lastPK];
 
     for (var i = 0; i < _data.length; i++) {
       var _item         = _data[i];
@@ -737,14 +730,6 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       }
 
       _removeFromIndex(key, '_' + key);
-    },
-
-    /**
-     * Set index referneces
-     * @param {Array} value
-     */
-    setIndexReferences : function (value) {
-      _indexes.references = value;
     },
 
     /**
