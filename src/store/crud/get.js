@@ -13,6 +13,7 @@ var hook            = require('../store.hook.js');
 var template        = require('../store.template.js');
 var upsertCRUD      = require('./upsert.js');
 var indexedDB       = require('../../localStorageDriver.js').indexedDB;
+var lazyLoad        = require('./_lazyLoad.js');
 var getRequestQueue = {};
 var OPERATIONS      = utils.OPERATIONS;
 var debug           = require('../../debug.js');
@@ -202,6 +203,11 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
 function _get (store, primaryKeyValue, retryOptions, transactionId, callback) {
   try {
     var _options = crudUtils.beforeAction(store, null, true);
+
+    if (!_options.store.isInitialized) {
+      return lazyLoad.load(_options.store, [_get, arguments]);
+    }
+
     var _request = '/';
 
     if (!retryOptions) {

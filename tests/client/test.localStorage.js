@@ -1187,18 +1187,7 @@ describe('local storage', () => {
       var _hook = () => {
         setTimeout(() => {
           var _lunaris = lunarisInstance();
-          var _store   = 'http';
           setTimeout(() => {
-            should(_lunaris._stores[_store].data.getIndexId()).eql({ 1 : 1, 2 : 2, 3 : 3 });
-            should(_lunaris._stores[_store].data.getCurrentId()).eql(4);
-            should(_lunaris._stores[_store].data.getCurrentRowId()).eql(4);
-            should(_lunaris._stores[_store].data.getAll()).eql([
-              { id : 1, label : 'A', _rowId : 1, _id : 1, _version : [1] },
-              { id : 2, label : 'B', _rowId : 2, _id : 2, _version : [1] },
-              { id : 3, label : 'C', _rowId : 3, _id : 3, _version : [1] }
-            ]);
-            should(_lunaris._stores[_store].massOperations).eql({});
-
             should(_lunaris._cache._cache()).eql([
               {
                 hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
@@ -1393,19 +1382,7 @@ describe('local storage', () => {
 
             lunaris._indexedDB.del('_invalidations', 'GET /http', () => {
               var _lunaris = lunarisInstance();
-              var _store   = 'http';
               setTimeout(() => {
-                should(_lunaris._stores[_store].data.getIndexId()).eql({ 1 : 1, 2 : 2, 3 : 3 });
-                should(_lunaris._stores[_store].data.getIndexReferences()).eql({});
-                should(_lunaris._stores[_store].data.getCurrentId()).eql(4);
-                should(_lunaris._stores[_store].data.getCurrentRowId()).eql(4);
-                should(_lunaris._stores[_store].data.getAll()).eql([
-                  { id : 1, label : 'A', _rowId : 1, _id : 1, _version : [1] },
-                  { id : 2, label : 'B', _rowId : 2, _id : 2, _version : [1] },
-                  { id : 3, label : 'C', _rowId : 3, _id : 3, _version : [1] }
-                ]);
-                should(_lunaris._stores[_store].massOperations).eql({});
-
                 should(_lunaris._cache._cache()).eql([
                   {
                     hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
@@ -1537,6 +1514,198 @@ describe('local storage', () => {
       });
     });
 
+  });
+
+  describe('lazy load', () => {
+
+    it('should initialize the store : get', done => {
+      let _lunaris;
+      let _store = 'http';
+
+      const _hookGet = () => {
+        should(_lunaris._stores[_store].data.getIndexId()).eql({ 1 : 1, 2 : 2 });
+        should(_lunaris._stores[_store].data.getCurrentId()).eql(3);
+        should(_lunaris._stores[_store].data.getCurrentRowId()).eql(5);
+        should(_lunaris._stores[_store].data.getAll()).eql([
+          { id : 1, label : 'A', _rowId : 3, _id : 1, _version : [2] },
+          { id : 2, label : 'B', _rowId : 4, _id : 2, _version : [2] }
+        ]);
+        should(_lunaris._stores[_store].massOperations).eql({});
+
+        lunaris.removeHook('insert@http', _hookInsert);
+        _lunaris.removeHook('get@http'  , _hookGet);
+        lunaris.offline.isOnline = true;
+        done();
+      };
+
+      const _hookInsert = () => {
+        _lunaris                  = lunarisInstance();
+        _lunaris.offline.isOnline = false;
+        setTimeout(() => {
+          should(_lunaris._stores[_store].data.getIndexId()).eql({});
+          should(_lunaris._stores[_store].data.getCurrentId()).eql(1);
+          should(_lunaris._stores[_store].data.getCurrentRowId()).eql(1);
+          should(_lunaris._stores[_store].data.getAll()).eql([]);
+          should(_lunaris._stores[_store].massOperations).eql({});
+
+          _lunaris.hook('get@http', _hookGet);
+          _lunaris.get('@http');
+        }, 400);
+      };
+
+      lunaris.offline.isOnline = false;
+      lunaris.hook('insert@http', _hookInsert);
+
+      lunaris.insert('@http', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ]);
+    });
+
+    it('should initialize the store : upsert', done => {
+      let _lunaris;
+      let _store = 'http';
+
+      const _hookInsert2 = () => {
+        should(_lunaris._stores[_store].data.getIndexId()).eql({ 1 : 1, 2 : 2, 3 : 3 });
+        should(_lunaris._stores[_store].data.getCurrentId()).eql(4);
+        should(_lunaris._stores[_store].data.getCurrentRowId()).eql(6);
+        should(_lunaris._stores[_store].data.getAll()).eql([
+          { id : 1, label : 'A', _rowId : 3, _id : 1, _version : [2] },
+          { id : 2, label : 'B', _rowId : 4, _id : 2, _version : [2] },
+          { id : 3, label : 'C', _rowId : 5, _id : 3, _version : [4] },
+        ]);
+        should(_lunaris._stores[_store].massOperations).eql({});
+
+        lunaris.removeHook('insert@http', _hookInsert);
+        _lunaris.removeHook('insert@http'  , _hookInsert2);
+        lunaris.offline.isOnline = true;
+        done();
+      };
+
+      const _hookInsert = () => {
+        _lunaris                  = lunarisInstance();
+        _lunaris.offline.isOnline = false;
+        setTimeout(() => {
+          should(_lunaris._stores[_store].data.getIndexId()).eql({});
+          should(_lunaris._stores[_store].data.getCurrentId()).eql(1);
+          should(_lunaris._stores[_store].data.getCurrentRowId()).eql(1);
+          should(_lunaris._stores[_store].data.getAll()).eql([]);
+          should(_lunaris._stores[_store].massOperations).eql({});
+
+          _lunaris.hook('insert@http', _hookInsert2);
+          _lunaris.insert('@http', {
+            id    : 3,
+            label : 'C'
+          });
+        }, 400);
+      };
+
+      lunaris.offline.isOnline = false;
+      lunaris.hook('insert@http', _hookInsert);
+
+      lunaris.insert('@http', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ]);
+    });
+
+    it('should initialize the store : delete', done => {
+      let _lunaris;
+      let _store = 'http';
+
+      const _hookDelete = () => {
+        should(_lunaris._stores[_store].data.getIndexId()).eql({ 1 : 1, 2 : null });
+        should(_lunaris._stores[_store].data.getCurrentId()).eql(3);
+        should(_lunaris._stores[_store].data.getCurrentRowId()).eql(5);
+        should(_lunaris._stores[_store].data.getAll()).eql([
+          { id : 1, label : 'A', _rowId : 3, _id : 1, _version : [2] }
+        ]);
+        should(_lunaris._stores[_store].massOperations).eql({});
+
+        lunaris.removeHook('insert@http', _hookInsert);
+        _lunaris.removeHook('delete@http'  , _hookDelete);
+        lunaris.offline.isOnline = true;
+        done();
+      };
+
+      const _hookInsert = () => {
+        _lunaris                  = lunarisInstance();
+        _lunaris.offline.isOnline = false;
+        setTimeout(() => {
+          should(_lunaris._stores[_store].data.getIndexId()).eql({});
+          should(_lunaris._stores[_store].data.getCurrentId()).eql(1);
+          should(_lunaris._stores[_store].data.getCurrentRowId()).eql(1);
+          should(_lunaris._stores[_store].data.getAll()).eql([]);
+          should(_lunaris._stores[_store].massOperations).eql({});
+
+          _lunaris.hook('delete@http', _hookDelete);
+          _lunaris.delete('@http', {
+            _id   : 2,
+            id    : 2,
+            label : 'B'
+          });
+        }, 400);
+      };
+
+      lunaris.offline.isOnline = false;
+      lunaris.hook('insert@http', _hookInsert);
+
+      lunaris.insert('@http', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ]);
+    });
+
+    it('should initialize the store and remove deleted rows', done => {
+      let _lunaris;
+      let _store = 'http';
+
+      const _hookGet = () => {
+        should(_lunaris._stores[_store].data.getIndexId()).eql({ 2 : 2 });
+        should(_lunaris._stores[_store].data.getCurrentId()).eql(3);
+        should(_lunaris._stores[_store].data.getCurrentRowId()).eql(5);
+        should(_lunaris._stores[_store].data.getAll()).eql([
+          { id : 2, label : 'B', _rowId : 4, _id : 2, _version : [2] }
+        ]);
+        should(_lunaris._stores[_store].massOperations).eql({});
+
+        lunaris.removeHook('delete@http', _hookDelete);
+        _lunaris.removeHook('get@http'  , _hookGet);
+        lunaris.offline.isOnline = true;
+        done();
+      };
+
+      const _hookDelete = () => {
+        _lunaris                  = lunarisInstance();
+        _lunaris.offline.isOnline = false;
+        setTimeout(() => {
+          should(_lunaris._stores[_store].data.getIndexId()).eql({});
+          should(_lunaris._stores[_store].data.getCurrentId()).eql(1);
+          should(_lunaris._stores[_store].data.getCurrentRowId()).eql(1);
+          should(_lunaris._stores[_store].data.getAll()).eql([]);
+          should(_lunaris._stores[_store].massOperations).eql({});
+
+          _lunaris.hook('get@http', _hookGet);
+          _lunaris.get('@http');
+        }, 400);
+      };
+
+      lunaris.offline.isOnline = false;
+      lunaris.hook('delete@http', _hookDelete);
+
+      lunaris.begin();
+      lunaris.insert('@http', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ]);
+      lunaris.commit(() => {
+        lunaris.delete('@http', {
+          _id : 1,
+          id  : 1
+        });
+      });
+    });
   });
 
   describe('collection data', () => {

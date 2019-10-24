@@ -454,3 +454,17 @@ exports.getProcessTime = function getProcessTime (before) {
 
   return window.performance.now() - before;
 };
+
+/**
+ * Delete rows when version.length === 2
+ */
+exports.deleteRows = function deleteRows (data) {
+  var _length = data.length;
+  for (var i = _length - 1; i >= 0; i--) {
+    if (data[i]._version.length === 1) {
+      continue;
+    }
+
+    data.splice(i, 1);
+  }
+};

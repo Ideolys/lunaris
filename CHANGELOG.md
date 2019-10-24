@@ -38,6 +38,7 @@
   - Add circular reference detection when compilating stores in builder.
   - Improve internal store collection performances (x15).
   - Lunaris do not try to compute anymore POST->DELETE and UPDATE->DELETE offline transactions.
+  - Add lazy loading for stores. Stores are no more loaded on application startup but on first use.
 - Fix:
   - Improve offline app.
   - In offline or offline mode, generated urls were not encoded.

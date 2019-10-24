@@ -4,6 +4,7 @@ describe('builder', () => {
     lunaris.begin();
     lunaris.clear('@child');
     lunaris.clear('@childAggregate');
+    lunaris.clear('@childAggregateSum');
     lunaris.clear('@computed');
     lunaris.clear('@filter.parent');
     lunaris.clear('@filter.child');
@@ -173,15 +174,21 @@ describe('builder', () => {
       should(lunaris._stores.child.joins.joins).eql({ parent : 'parent' });
     });
 
-    it('should set value at insert', () => {
+    it('should set value at insert', done => {
+      const hook = () => {
+        should(lunaris._stores.child.data.getAll()).eql([{
+          _rowId   : 1,
+          _id      : 1,
+          id       : 1,
+          _version : [1],
+          parent   : []
+        }]);
+        lunaris.removeHook('insert@child', hook);
+        done();
+      };
+
+      lunaris.hook('insert@child', hook);
       lunaris.insert('@child' , { id : 1 });
-      should(lunaris._stores.child.data.getAll()).eql([{
-        _rowId   : 1,
-        _id      : 1,
-        id       : 1,
-        _version : [1],
-        parent   : []
-      }]);
     });
 
     it('should propagate update', done => {
@@ -245,7 +252,30 @@ describe('builder', () => {
       lunaris.insert('@parent', [{ id : 1, price : 1 }, { id : 2, price : 3 }]);
     });
 
-    it('should calculate aggregate value', () => {
+    it('should calculate aggregate value', done => {
+      const hook = () => {
+        should(lunaris._stores.childAggregateSum.data.getAll()).eql([{
+          _rowId   : 1,
+          _id      : 1,
+          _version : [1],
+          id       : 1,
+          total    : 4,
+          parent   : [
+            {
+              id   : 1,
+              cost : 1,
+            },
+            {
+              id   : 2,
+              cost : 3,
+            }
+          ]
+        }]);
+
+        lunaris.removeHook('insert@childAggregateSum', hook);
+        done();
+      };
+      lunaris.hook('insert@childAggregateSum', hook);
       lunaris.insert('@childAggregateSum' , {
         id     : 1,
         total  : 4,
@@ -260,24 +290,6 @@ describe('builder', () => {
           }
         ]
       });
-
-      should(lunaris._stores.childAggregateSum.data.getAll()).eql([{
-        _rowId   : 1,
-        _id      : 1,
-        _version : [1],
-        id       : 1,
-        total    : 4,
-        parent   : [
-          {
-            id   : 1,
-            cost : 1,
-          },
-          {
-            id   : 2,
-            cost : 3,
-          }
-        ]
-      }]);
     });
   });
 
