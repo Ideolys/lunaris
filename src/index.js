@@ -14,6 +14,7 @@ var websocket          = require('./websocket.js');
 var localStorageDriver = require('./localStorageDriver.js');
 var invalidate         = require('./invalidate.js');
 var debug              = require('./debug.js');
+var lazyLoad           = require('./store/crud/_lazyLoad.js');
 
 utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
 
@@ -28,6 +29,7 @@ module.exports = {
   _resetVersionNumber : collection.resetVersionNumber,
   _indexedDB          : localStorageDriver.indexedDB,
   _removeAllHooks     : hook.removeAllHooks,
+  _initStore          : lazyLoad.load,
 
   debug : debug,
 
