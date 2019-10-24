@@ -5359,7 +5359,8 @@ describe('lunaris store', function () {
       var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
         referencesFn : _schema.referencesFn,
         references   : { 'store1Value.id' : 'store1' },
-        stores       : ['store1']
+        stores       : ['store1'],
+        collections  : {}
       });
       _storeToPropagate.isLocal        = true;
       _storeToPropagate.nameTranslated = '${reference}';
@@ -5397,7 +5398,8 @@ describe('lunaris store', function () {
       var _storeToPropagate = initStore('reference', _objectDescriptor, null, null, null, null, {
         referencesFn : _schema.referencesFn,
         references   : { 'store1Values.id' : 'store1' },
-        stores       : ['store1']
+        stores       : ['store1'],
+        collections  : {}
       });
 
       var _object2Descriptor = {
@@ -5410,7 +5412,8 @@ describe('lunaris store', function () {
       var _storeToPropagate2 = initStore('reference2', _object2Descriptor, null, null, null, null, {
         referencesFn : _schema2.referencesFn,
         references   : { 'store1Value.id' : 'store1' },
-        stores       : ['store1']
+        stores       : ['store1'],
+        collections  : {}
       });
 
       _storeToPropagate.isLocal     = true;

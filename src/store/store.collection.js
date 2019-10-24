@@ -1,5 +1,4 @@
 var utils              = require('../utils.js');
-var index              = utils.index;
 var OPERATIONS         = utils.OPERATIONS;
 var aggregates         = require('./store.aggregate.js').aggregates;
 var lunarisExports     = require('../exports.js');
@@ -48,7 +47,8 @@ function incrementVersionNumber () {
  * @param {Object} referencesDescriptor {
  *  referencesFn : { get : { storeN : fn }, update : { storeN : fn } },
  *  stores       : [ 'store1', storeN ],
- *  references   : { pathToRef : store }
+ *  references   : { pathToRef : store },
+ *  collections  : {Object} key / value (store / value to store)
  * }
  * @param {Function} cloneFn clone fn specifi to the store or default one
  */
@@ -135,6 +135,34 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   }
 
   /**
+   * Detect if a value is referenced in references index
+   * @param {String} referencedStore
+   * @param {*} referencedPK
+   * @param {*} storePK
+   * @returns {Boolean}
+   */
+  function isValueInReferenceIndex (referencedStore, referencedPK, storePK) {
+    if (!_references.length) {
+      return false;
+    }
+
+    if (!_indexes.references[referencedStore]) {
+      return false;
+    }
+
+
+    if (!_indexes.references[referencedStore][referencedPK]) {
+      return false;
+    }
+
+    if (!_idIndex[storePK]) {
+      return false;
+    }
+
+    return _indexes.references[referencedStore][referencedPK].indexOf(_idIndex[storePK]) > -1;
+  }
+
+  /**
    * Complete current object with referenced object
    * @param {Object} value
    */
@@ -144,7 +172,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     }
 
     for (var _reference in _referencesDescriptor.references) {
-      var _store =_referencesDescriptor.references[_reference];
+      var _store = _referencesDescriptor.references[_reference];
       var _ids   = _referencesDescriptor.referencesFn.get[_reference](value);
 
       if (!_indexes.references[_store]) {
@@ -157,6 +185,10 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
         }
 
         if (_indexes.references[_store][_ids[j]].indexOf(value._id) === -1) {
+          if (_referencesDescriptor.collections[_store] && _referencesDescriptor.collections[_store].isValueInReferenceIndex(_storeName, getPrimaryKeyFn(value), _ids[j])) {
+            continue;
+          }
+
           _indexes.references[_store][_ids[j]].push(value._id);
         }
       }
@@ -173,7 +205,7 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
     }
 
     for (var _reference in _referencesDescriptor.references) {
-      var _store =_referencesDescriptor.references[_reference];
+      var _store =  _referencesDescriptor.references[_reference];
       var _ids   = _referencesDescriptor.referencesFn.get[_reference](value);
 
       if (!_indexes.references[_store]) {
@@ -695,17 +727,18 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   }
 
   return {
-    get               : get,
-    add               : add,
-    upsert            : upsert,
-    remove            : remove,
-    clear             : clear,
-    getFirst          : getFirst,
-    begin             : begin,
-    commit            : commit,
-    rollback          : rollback,
-    propagate         : propagate,
-    replaceReferences : replaceReferences,
+    get                     : get,
+    add                     : add,
+    upsert                  : upsert,
+    remove                  : remove,
+    clear                   : clear,
+    getFirst                : getFirst,
+    begin                   : begin,
+    commit                  : commit,
+    rollback                : rollback,
+    propagate               : propagate,
+    replaceReferences       : replaceReferences,
+    isValueInReferenceIndex : isValueInReferenceIndex,
 
     getIndexId : function () {
       return _idIndex;

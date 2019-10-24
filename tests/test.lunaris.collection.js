@@ -704,10 +704,80 @@ describe('lunaris internal collection', () => {
   });
 
   describe('references', () => {
+    const referenceCollection = collection(getPrimaryKey, true);
 
     it('replaceReferences should be defined', () => {
       var _elements = collection(getPrimaryKey, true, { joins : {}, joinFns : {}, collections : {}});
       should(_elements.replaceReferences).be.a.Function();
+    });
+
+    it('should not reference a store : circular reference', () => {
+      var _objectDescriptor = [{
+        id       : ['<<id>>'],
+        elements : ['array', {
+          id : ['<<int>>', 'ref', '@reference']
+        }]
+      }];
+
+      var _objectDescriptor2 = [{
+        id    : ['<<id>>'],
+        types : ['array', {
+          id : ['<<int>>', 'ref', '@type']
+        }]
+      }];
+
+
+      var _schemaObj  = schema.analyzeDescriptor(_objectDescriptor);
+      var _schemaObj2 = schema.analyzeDescriptor(_objectDescriptor2);
+
+      var _collections  = {};
+      _collections.type = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, 'type', {
+        referencesFn : _schemaObj.referencesFn,
+        references   : _schemaObj.meta.references,
+        stores       : ['reference'],
+        collections  : _collections
+      }, utils.clone);
+      _collections.reference = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, 'reference', {
+        referencesFn : _schemaObj2.referencesFn,
+        references   : _schemaObj2.meta.references,
+        stores       : ['type'],
+        collections  : _collections
+      }, utils.clone);
+
+      _collections.type.add({ id : 1, elements : [{ id : '_1' }] });
+      should(_collections.type._getAll()).eql([
+        {
+          id       : 1,
+          elements : [
+            { id : '_1', }
+          ],
+          _id      : 1,
+          _version : [1],
+          _rowId   : 1
+        }
+      ]);
+
+      should(_collections.type.getIndexReferences()).eql({
+        reference : { _1 : [1] }
+      });
+
+      _collections.reference.add({ id : '_1', types : [{ id : 1 }] });
+
+      should(_collections.reference._getAll()).eql([
+        {
+          id    : '_1',
+          types : [
+            { id : 1, }
+          ],
+          _id      : 1,
+          _version : [2],
+          _rowId   : 1
+        }
+      ]);
+
+      should(_collections.reference.getIndexReferences()).eql({
+        type : { 1 : [] }
+      });
     });
 
     it('should reference a store', () => {
@@ -722,7 +792,8 @@ describe('lunaris internal collection', () => {
       var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn : _schemaObj.referencesFn,
         references   : _schemaObj.meta.references,
-        stores       : ['reference']
+        stores       : ['reference'],
+        collections  : { reference : referenceCollection }
       }, utils.clone);
 
       _objectCollection.add({ id : 1, elements : [{ id : '_1' }] });
@@ -755,7 +826,8 @@ describe('lunaris internal collection', () => {
       var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn : _schemaObj.referencesFn,
         references   : _schemaObj.meta.references,
-        stores       : ['reference']
+        stores       : ['reference'],
+        collections  : { reference : referenceCollection }
       }, utils.clone);
 
       _objectCollection.add({ id : 1, element : { id : '_1' } });
@@ -787,7 +859,8 @@ describe('lunaris internal collection', () => {
       var _objectCollection    = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn : _schemaObj.referencesFn,
         references   : _schemaObj.meta.references,
-        stores       : ['reference']
+        stores       : ['reference'],
+        collections  : { reference : referenceCollection }
       }, utils.clone);
 
 
@@ -827,7 +900,8 @@ describe('lunaris internal collection', () => {
       var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn : _schemaObj.referencesFn,
         references   : _schemaObj.meta.references,
-        stores       : ['reference', 'type']
+        stores       : ['reference', 'type'],
+        collections  : { reference : referenceCollection, type : collection(getPrimaryKey, false) }
       }, utils.clone);
 
       _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, { id : '_3' }], type : { id : '_2' } });
@@ -867,7 +941,8 @@ describe('lunaris internal collection', () => {
       var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn : _schemaObj.referencesFn,
         references   : _schemaObj.meta.references,
-        stores       : ['reference']
+        stores       : ['reference'],
+        collections  : { reference : referenceCollection }
       }, utils.clone);
 
       _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, { id : '_3' }], elementsBis : { id : '_2' } });
@@ -906,7 +981,8 @@ describe('lunaris internal collection', () => {
       var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn : _schemaObj.referencesFn,
         references   : _schemaObj.meta.references,
-        stores       : ['reference', 'type']
+        stores       : ['reference', 'type'],
+        collections  : { reference : referenceCollection, type : collection(getPrimaryKey, false) }
       }, utils.clone);
 
       _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, { id : '_3' }], type : { id : '_2' } });
@@ -971,7 +1047,8 @@ describe('lunaris internal collection', () => {
       var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn : _schemaObj.referencesFn,
         references   : _schemaObj.meta.references,
-        stores       : ['reference', 'type']
+        stores       : ['reference', 'type'],
+        collections  : { reference : referenceCollection, type : collection(getPrimaryKey, false) }
       }, utils.clone);
 
       _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, { id : '_3' }], type : { id : '_2' } });
@@ -1022,7 +1099,8 @@ describe('lunaris internal collection', () => {
       var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn : _schemaObj.referencesFn,
         references   : _schemaObj.meta.references,
-        stores       : ['reference', 'type']
+        stores       : ['reference', 'type'],
+        collections  : { reference : referenceCollection, type : collection(getPrimaryKey, false) }
       }, utils.clone);
 
       _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, { id : '_3' }], type : { id : '_2' } });
@@ -1083,7 +1161,8 @@ describe('lunaris internal collection', () => {
       var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn : _schemaObj.referencesFn,
         references   : _schemaObj.meta.references,
-        stores       : ['reference', 'type']
+        stores       : ['reference', 'type'],
+        collections  : { reference : referenceCollection, type : collection(getPrimaryKey, false) }
       }, utils.clone);
 
       _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, { id : '_3' }], type : { id : '_2' } });
@@ -1138,7 +1217,8 @@ describe('lunaris internal collection', () => {
         var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
           referencesFn : _schemaObj.referencesFn,
           references   : _schemaObj.meta.references,
-          stores       : ['reference', 'type']
+          stores       : ['reference', 'type'],
+          collections  : { reference : referenceCollection, type : collection(getPrimaryKey, false) }
         }, utils.clone);
 
         _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, { id : '_3' }], type : { id : '_2' } });
@@ -1162,7 +1242,8 @@ describe('lunaris internal collection', () => {
         var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
           referencesFn : _schemaObj.referencesFn,
           references   : _schemaObj.meta.references,
-          stores       : ['reference', 'type']
+          stores       : ['reference', 'type'],
+          collections  : { reference : referenceCollection, type : collection(getPrimaryKey, false) }
         }, utils.clone);
 
         _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }, ], type : { id : '_2' } });
@@ -1185,7 +1266,8 @@ describe('lunaris internal collection', () => {
         var _objectCollection = collection(getPrimaryKey, false, null, null, null, null, {
           referencesFn : _schemaObj.referencesFn,
           references   : _schemaObj.meta.references,
-          stores       : ['reference', 'type']
+          stores       : ['reference', 'type'],
+          collections  : { reference : referenceCollection, type : collection(getPrimaryKey, false) }
         }, utils.clone);
 
         _objectCollection.add({ id : 1, elements : [{ id : '_1' }, { id : '_2' }], type : { id : '_2' } });
@@ -1535,7 +1617,8 @@ describe('lunaris internal collection', () => {
       var _objectCollection = collection(getPrimaryKey, false, { joins : {}, joinFns : {}, collections : {}}, null, null, null, {
         referencesFn : _schemaObj.referencesFn,
         references   : _schemaObj.meta.references,
-        stores       : ['reference']
+        stores       : ['reference'],
+        collections  : { reference : collection(getPrimaryKey, false) }
       }, utils.clone);
 
       _objectCollection.setData([

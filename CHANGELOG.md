@@ -35,7 +35,6 @@
       }]
     }
   ```
-  - Add circular reference detection when compilating stores in builder.
   - Improve internal store collection performances (x15).
   - Lunaris do not try to compute anymore POST->DELETE and UPDATE->DELETE offline transactions.
   - Add lazy loading for stores. Use `isLazyLoad = true` in stores to activate it.
