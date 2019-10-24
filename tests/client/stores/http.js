@@ -9,5 +9,6 @@ module.exports = {
   map : [{
     id    : ['<<int>>'],
     label : ['string']
-  }]
+  }],
+  isLazyLoad : true
 };
