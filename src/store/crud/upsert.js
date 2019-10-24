@@ -10,7 +10,6 @@ var http        = require('../../http.js');
 var url         = require('../store.url.js');
 var template    = require('../store.template.js');
 var sync        = require('../store.synchronisation.js');
-var lazyLoad    = require('./_lazyLoad.js');
 var OPERATIONS  = utils.OPERATIONS;
 
 var imports = {};
@@ -305,10 +304,6 @@ function _upsertLocal (store, value, isUpdate, isLocal, transactionId, callback)
  * @param {Function} callback
  */
 function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryOptions, transactionId, callback) {
-  if (!store.isInitialized) {
-    return lazyLoad.load(store, [_upsert, arguments]);
-  }
-
   var _isMultipleItems = Array.isArray(value);
   var _version;
 

@@ -10,7 +10,6 @@ var getCRUD                     = require('./crud/get.js');
 var clearCrud                   = require('./crud/clear.js');
 var deleteCrud                  = require('./crud/delete.js');
 var storeUrl                    = require('./store.url.js');
-var indexedDB                   = require('../localStorageDriver.js').indexedDB;
 var emptyObject                 = {};
 
 lunarisExports._stores.lunarisErrors = {
