@@ -1312,9 +1312,28 @@ describe('lunaris internal collection', () => {
       should(_collection.get(2)).eql({ _rowId : 2, _id : 2, id : 2, _version : [2]});
     });
 
-    it('should return null if not value has been found', () => {
+    it('should return null if no value has been found', () => {
       var _collection = collection(null, false, null, null, null, null, null, utils.clone);
       should(_collection.get(1)).eql(null);
+    });
+
+    it('should get the item by pK', () => {
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
+      _collection.add({ id : 10 });
+      _collection.add({ id : 20 });
+      should(_collection.get(10, true)).eql({ _rowId : 1, _id : 1, id : 10, _version : [1]});
+    });
+
+    it('should not get the item by pK if no value has been found', () => {
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
+      _collection.add({ id : 10 });
+      _collection.add({ id : 20 });
+      should(_collection.get(30, true)).eql(null);
+    });
+
+    it('should not get the item by pK if the collection has no value', () => {
+      var _collection = collection(getPrimaryKey, false, null, null, null, null, null, utils.clone);
+      should(_collection.get(30, true)).eql(null);
     });
   });
 

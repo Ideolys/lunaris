@@ -59,14 +59,15 @@ function setPagination (store, page, limit) {
  * Get firt value or the value identified by its _id
  * @param {String} store
  * @param {Int} id lunaris _id value
+ * @param {Boolean} isPrimaryKey
  */
-function getOne (store, id) {
+function getOne (store, id, isPrimaryKey) {
   try {
     var _options = crudUtils.beforeAction(store, null, true);
     var _item;
 
     if (id)  {
-      _item = _options.collection.get(id);
+      _item = _options.collection.get(id, isPrimaryKey);
     }
     else {
       _item = _options.collection.getFirst();

@@ -461,8 +461,17 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
   /**
    * Get a specific item
    * @param {Int} id
+   * @param {Booelan} isPrimaryKey
    */
-  function get (id) {
+  function get (id, isPrimaryKey) {
+    if (isPrimaryKey) {
+      if (_idIndex[id] == null) {
+        return null;
+      }
+
+      id = _idIndex[id];
+    }
+
     if (_dataCacheIndex[id] == null) {
       return null;
     }

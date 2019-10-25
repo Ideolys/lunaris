@@ -1450,6 +1450,19 @@ describe('lunaris store', function () {
       );
     });
 
+    it('should get the identified value by PK', () => {
+      var _store                = initStore('store1', [{ id : ['<<int>>'], label : ['string'] }]);
+      lunaris._stores['store1'] = _store;
+
+      lunaris.insert('@store1', { id : 1, label : 'A' });
+      lunaris.insert('@store1', { id : 3, label : 'B' });
+      lunaris.insert('@store1', { id : 2, label : 'B' });
+      var _val = lunaris.getOne('@store1', 2, true);
+      should(_val).eql(
+        { _rowId : 3, _id : 3, id : 2, label : 'B', _version : [3] }
+      );
+    });
+
     it('should get undefined if no value is in the collection', () => {
       var _store                = initStore('store1');
       lunaris._stores['store1'] = _store;
