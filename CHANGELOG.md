@@ -45,6 +45,7 @@
   - In offline or offline mode, generated urls were not encoded.
   - When pushing offline transaction, the cache was not invalidate.
   - When pushing new object in offline transaction, the collection's index of ids was not correctly updated.
+  - When pushing offline transaction, the plugin state was never updated.
   - The method `lunaris._removeAllHooks` was not correctly removing hooks.
 
 ## 1.13.0

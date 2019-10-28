@@ -138,7 +138,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
 }
 
 /**
- * Sned events and propagate values to dependent stores   fter HTTP upsert request
+ * Send events and propagate values to dependent stores after HTTP upsert request
  * @param {Object} store
  * @param {Object} collection
  * @param {Object/Array} value

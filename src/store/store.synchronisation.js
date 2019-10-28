@@ -172,6 +172,7 @@ function pushOfflineHttpTransactions (callback) {
       }
 
       lunarisExports._stores.lunarisOfflineTransactions.data.remove(_currentTransaction);
+      hook.pushToHandlers(lunarisExports._stores.lunarisOfflineTransactions, 'delete', _currentTransaction);
       _processNextOfflineTransaction();
       // indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
     });

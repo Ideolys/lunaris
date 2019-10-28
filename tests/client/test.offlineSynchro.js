@@ -93,6 +93,31 @@ describe('Offline to online synchronisation', () => {
     });
   });
 
+  it('should send delete event', done => {
+    lunaris.offline.isOnline = false;
+
+    lunaris.insert('@offlineArraySync', {
+      label : 'A'
+    });
+
+    let collectionItems = lunaris._stores[lunaris.utils.offlineStore].data.getAll();
+    should(collectionItems).be.an.Array().and.have.lengthOf(1);
+
+    let hasBeenCalled = false;
+    const hook = () => {
+      hasBeenCalled = true;
+      lunaris.removeHook('delete@' + lunaris.utils.offlineStore, hook);
+    };
+    lunaris.hook('delete@' + lunaris.utils.offlineStore, hook);
+
+    lunaris.offline.isOnline = true;
+
+    lunaris.offline.pushOfflineHttpTransactions(() => {
+      should(hasBeenCalled).eql(true);
+      done();
+    });
+  });
+
   it('should have populated the collection at application startup', done => {
     lunaris.offline.isOnline = false;
 
