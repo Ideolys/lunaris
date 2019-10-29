@@ -3,6 +3,7 @@
 ## 1.14.0
 - Features:
   - Add `lunaris.createUrl(store, method, primaryKey)` method to generate url for a store.
+  - Update kitten-format to 1.6.3
 - Fix:
 
 ## 1.13.0
