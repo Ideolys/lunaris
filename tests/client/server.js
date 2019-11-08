@@ -207,15 +207,15 @@ const appWS = uWS.App().ws('/*', {
   message          : (ws, message) => {
     let messageJSON = JSON.parse(Buffer.from(message));
 
-    if (messageJSON.type === 'INVALIDATE') {
+    if (messageJSON.channel === 'invalidated') {
       // Simulate server invalidation
-      ws.send(JSON.stringify({ type : 'INVALIDATE', data : messageJSON.data, success : true }));
+      ws.send(JSON.stringify({ channel : 'invalidated', data : messageJSON.data, success : true }));
     }
 
-    if (messageJSON.type === 'GET_CACHE_INVALIDATIONS') {
+    if (messageJSON.channel === 'invalidations') {
       // Simulate server invalidation
       ws.send(JSON.stringify({
-        type    : 'GET_CACHE_INVALIDATIONS',
+        channel : 'invalidations',
         data    : { 'GET /http' : Date.now(), 'GET /http/#' : Date.now() },
         success : true
       }));

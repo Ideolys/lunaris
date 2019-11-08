@@ -58,7 +58,7 @@ function connect (host) {
     lastInterval = reconnectInterval;
     logger.info('[Websocket]', 'Connected!');
 
-    _send('GET_CACHE_INVALIDATIONS', null, true);
+    _send('invalidations', null, true);
   };
   ws.onerror = function (evt) {
   };
@@ -75,11 +75,11 @@ function connect (host) {
     try {
       var message = JSON.parse(msg.data);
 
-      if (message.type === 'INVALIDATE') {
+      if (message.channel === 'invalidated') {
         return invalidate.invalidate(message.data);
       }
 
-      if (message.type === 'GET_CACHE_INVALIDATIONS') {
+      if (message.channel === 'invalidations') {
         if (events['initCacheInvalidations']) {
           events['initCacheInvalidations'](message.data);
         }
@@ -99,8 +99,8 @@ function connect (host) {
  * @param {*} data
  * @param {Boolean} success
  */
-function _send (type, data, success) {
-  ws.send(JSON.stringify({ type : type, data : data, sucess : success || false }));
+function _send (cahnnel, data, success) {
+  ws.send(JSON.stringify({ channel : cahnnel, data : data, sucess : success || false }));
 }
 
 module.exports = {

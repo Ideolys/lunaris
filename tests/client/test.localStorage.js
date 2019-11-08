@@ -1217,281 +1217,280 @@ describe('local storage', () => {
       lunaris.offline.isOfflineMode = true;
       lunaris.load('@http');
     });
+  });
 
-    describe('invalidate', () => {
-      it('should init invalidations', done => {
-        lunaris._indexedDB.upsert('_invalidations', { url : 'GET /all', date : Date.now() });
-        lunaris.invalidations.init(() => {
-          should(lunaris.invalidations._invalidations).be.an.Object();
-          should(lunaris.invalidations._invalidations['GET /all']).be.ok();
-          lunaris._indexedDB.clear('_invalidations', done);
-        });
+  describe('invalidate', () => {
+    it('should init invalidations', done => {
+      lunaris._indexedDB.upsert('_invalidations', { url : 'GET /all', date : Date.now() });
+      lunaris.invalidations.init(() => {
+        should(lunaris.invalidations._invalidations).be.an.Object();
+        should(lunaris.invalidations._invalidations['GET /all']).be.ok();
+        lunaris._indexedDB.clear('_invalidations', done);
       });
+    });
 
-      it('should invalidate a store from the server', done => {
-        var _insertedHook = () => {
-          lunaris._indexedDB.getAll('http', (err, data) => {
-            if (err) {
-              done(err);
-            }
+    it('should invalidate a store from the server', done => {
+      var _insertedHook = () => {
+        lunaris._indexedDB.getAll('http', (err, data) => {
+          if (err) {
+            done(err);
+          }
 
-            should(data).be.an.Array().and.have.lengthOf(2);
-            should(data[0]).eql({
-              id       : 1,
-              label    : 'A',
-              _rowId   : 1,
-              _id      : 1,
-              _version : [1, 2]
-            });
-            should(data[1]).eql({
-              id       : 1,
-              label    : 'A',
-              post     : true,
-              _rowId   : 2,
-              _id      : 1,
-              _version : [2]
-            });
+          should(data).be.an.Array().and.have.lengthOf(2);
+          should(data[0]).eql({
+            id       : 1,
+            label    : 'A',
+            _rowId   : 1,
+            _id      : 1,
+            _version : [1, 2]
+          });
+          should(data[1]).eql({
+            id       : 1,
+            label    : 'A',
+            post     : true,
+            _rowId   : 2,
+            _id      : 1,
+            _version : [2]
+          });
 
-            lunaris.websocket.send('INVALIDATE', 'GET /http', true);
+          lunaris.websocket.send('invalidated', 'GET /http', true);
 
-            setTimeout(() => {
-              lunaris._indexedDB.getAll('http', (err, data) => {
+          setTimeout(() => {
+            lunaris._indexedDB.getAll('http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).be.an.Array().and.have.lengthOf(0);
+
+              lunaris._indexedDB.get('_states', 'http', (err, data) => {
                 if (err) {
-                  done(err);
+                  return done(err);
                 }
 
-                should(data).be.an.Array().and.have.lengthOf(0);
-
-                lunaris._indexedDB.get('_states', 'http', (err, data) => {
-                  if (err) {
-                    return done(err);
-                  }
-
-                  should(data).be.an.Object();
-                  should(data).eql({
-                    store      : 'http',
-                    collection : {
-                      currentId    : 1,
-                      currentRowId : 1
-                    },
-                    massOperations : {}
-                  });
-
-                  lunaris.removeHook('inserted@http', _insertedHook);
-                  done();
+                should(data).be.an.Object();
+                should(data).eql({
+                  store      : 'http',
+                  collection : {
+                    currentId    : 1,
+                    currentRowId : 1
+                  },
+                  massOperations : {}
                 });
+
+                lunaris.removeHook('inserted@http', _insertedHook);
+                done();
               });
-            }, 100);
-          });
-        };
+            });
+          }, 100);
+        });
+      };
 
-        lunaris.hook('inserted@http', _insertedHook);
-        lunaris.insert('@http', { id : 1, label : 'A' });
-      });
+      lunaris.hook('inserted@http', _insertedHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
 
-      it('should invalidate the cache when a store is invalidated from the server', done => {
-        var _getHook = () => {
-          var _isKeyInTheCache = false;
-          var _cache = lunaris._cache._cache();
+    it('should invalidate the cache when a store is invalidated from the server', done => {
+      var _getHook = () => {
+        var _isKeyInTheCache = false;
+        var _cache = lunaris._cache._cache();
+        for (var i = _cache.length - 1; i >= 0; i--) {
+          if (_cache[i].stores.indexOf('http') !== -1) {
+            _isKeyInTheCache = true;
+            break;
+          }
+        }
+
+        should(_isKeyInTheCache).eql(true);
+
+        lunaris.websocket.send('invalidated', 'GET /http', true);
+
+        setTimeout(() => {
+          _isKeyInTheCache = false;
+          _cache           = lunaris._cache._cache();
           for (var i = _cache.length - 1; i >= 0; i--) {
             if (_cache[i].stores.indexOf('http') !== -1) {
               _isKeyInTheCache = true;
               break;
             }
           }
+          should(_isKeyInTheCache).eql(false);
+          lunaris.removeHook('get@http', _getHook);
+          done();
+        }, 100);
+      };
 
-          should(_isKeyInTheCache).eql(true);
+      lunaris.hook('get@http', _getHook);
+      lunaris.get('@http');
+    });
 
+    it('should invalidate the cache at app loading when invalidation client < invalidation server', done => {
+      var _hook = () => {
+        setTimeout(() => {
+
+          let dateInvalidation = Date.now() - 20000;
+
+          lunaris._indexedDB.upsert('_invalidations', { url : 'GET /http', date : dateInvalidation }, () => {
+            var _lunaris = lunarisInstance();
+            var _store   = 'http';
+            setTimeout(() => {
+              should(_lunaris._stores[_store].data.getIndexReferences()).eql({});
+              should(_lunaris._stores[_store].data.getIndexId()).eql({});
+              should(_lunaris._stores[_store].data.getCurrentId()).eql(1);
+              should(_lunaris._stores[_store].data.getCurrentRowId()).eql(1);
+              should(_lunaris._stores[_store].data.getAll()).eql([]);
+              should(_lunaris._stores[_store].massOperations).eql({});
+
+              should(_lunaris._cache._cache()).eql([]);
+
+              lunaris._indexedDB.get('_invalidations', 'GET /http', (err, invalidation) => {
+                should(invalidation.date).be.aboveOrEqual(dateInvalidation); // should be nearly Date.now()
+                lunaris.removeHook('get@http', _hook);
+                done();
+              });
+            }, 700);
+          });
+        }, 200);
+      };
+      lunaris.hook('get@http', _hook);
+      lunaris.get('@http');
+    });
+
+    it('should not invalidate the cache at app loading when invalidation client does not exist', done => {
+      var _hook = () => {
+        setTimeout(() => {
+
+          lunaris._indexedDB.del('_invalidations', 'GET /http', () => {
+            var _lunaris = lunarisInstance();
+            setTimeout(() => {
+              should(_lunaris._cache._cache()).eql([
+                {
+                  hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
+                  values : [
+                    { id : 1, label : 'A' },
+                    { id : 2, label : 'B' },
+                    { id : 3, label : 'C' }
+                  ],
+                  stores : ['http']
+                }
+              ]);
+
+              lunaris.removeHook('get@http', _hook);
+              done();
+            }, 700);
+          });
+        }, 200);
+      };
+      lunaris.hook('get@http', _hook);
+      lunaris.get('@http');
+    });
+
+    it('should not invalidate a store from the server when the app is in offline mode', done => {
+      var _insertedHook = () => {
+        lunaris._indexedDB.getAll('http', (err, data) => {
+          if (err) {
+            done(err);
+          }
+
+          should(data).be.an.Array().and.have.lengthOf(2);
+          should(data[0]).eql({
+            id       : 1,
+            label    : 'A',
+            _rowId   : 1,
+            _id      : 1,
+            _version : [1, 2]
+          });
+          should(data[1]).eql({
+            id       : 1,
+            label    : 'A',
+            post     : true,
+            _rowId   : 2,
+            _id      : 1,
+            _version : [2]
+          });
+
+          lunaris.offline.isOfflineMode = true;
           lunaris.websocket.send('INVALIDATE', 'GET /http', true);
 
           setTimeout(() => {
-            _isKeyInTheCache = false;
-            _cache           = lunaris._cache._cache();
-            for (var i = _cache.length - 1; i >= 0; i--) {
-              if (_cache[i].stores.indexOf('http') !== -1) {
-                _isKeyInTheCache = true;
-                break;
+            lunaris._indexedDB.getAll('http', (err, data) => {
+              if (err) {
+                done(err);
               }
-            }
-            should(_isKeyInTheCache).eql(false);
-            lunaris.removeHook('get@http', _getHook);
-            done();
-          }, 100);
-        };
 
-        lunaris.hook('get@http', _getHook);
-        lunaris.get('@http');
-      });
+              should(data).be.an.Array().and.have.lengthOf(2);
 
-      it('should invalidate the cache at app loading when invalidation client < invalidation server', done => {
-        var _hook = () => {
-          setTimeout(() => {
-
-            let dateInvalidation = Date.now() - 20000;
-
-            lunaris._indexedDB.upsert('_invalidations', { url : 'GET /http', date : dateInvalidation }, () => {
-              var _lunaris = lunarisInstance();
-              var _store   = 'http';
-              setTimeout(() => {
-                should(_lunaris._stores[_store].data.getIndexReferences()).eql({});
-                should(_lunaris._stores[_store].data.getIndexId()).eql({});
-                should(_lunaris._stores[_store].data.getCurrentId()).eql(1);
-                should(_lunaris._stores[_store].data.getCurrentRowId()).eql(1);
-                should(_lunaris._stores[_store].data.getAll()).eql([]);
-                should(_lunaris._stores[_store].massOperations).eql({});
-
-                should(_lunaris._cache._cache()).eql([]);
-
-                lunaris._indexedDB.get('_invalidations', 'GET /http', (err, invalidation) => {
-                  should(invalidation.date).be.aboveOrEqual(dateInvalidation); // should be nearly Date.now()
-                  lunaris.removeHook('get@http', _hook);
-                  done();
-                });
-              }, 700);
-            });
-          }, 200);
-        };
-        lunaris.hook('get@http', _hook);
-        lunaris.get('@http');
-      });
-
-      it('should not invalidate the cache at app loading when invalidation client does not exist', done => {
-        var _hook = () => {
-          setTimeout(() => {
-
-            lunaris._indexedDB.del('_invalidations', 'GET /http', () => {
-              var _lunaris = lunarisInstance();
-              setTimeout(() => {
-                should(_lunaris._cache._cache()).eql([
-                  {
-                    hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
-                    values : [
-                      { id : 1, label : 'A' },
-                      { id : 2, label : 'B' },
-                      { id : 3, label : 'C' }
-                    ],
-                    stores : ['http']
-                  }
-                ]);
-
-                lunaris.removeHook('get@http', _hook);
-                done();
-              }, 700);
-            });
-          }, 200);
-        };
-        lunaris.hook('get@http', _hook);
-        lunaris.get('@http');
-      });
-
-      it('should not invalidate a store from the server when the app is in offline mode', done => {
-        var _insertedHook = () => {
-          lunaris._indexedDB.getAll('http', (err, data) => {
-            if (err) {
-              done(err);
-            }
-
-            should(data).be.an.Array().and.have.lengthOf(2);
-            should(data[0]).eql({
-              id       : 1,
-              label    : 'A',
-              _rowId   : 1,
-              _id      : 1,
-              _version : [1, 2]
-            });
-            should(data[1]).eql({
-              id       : 1,
-              label    : 'A',
-              post     : true,
-              _rowId   : 2,
-              _id      : 1,
-              _version : [2]
-            });
-
-            lunaris.offline.isOfflineMode = true;
-            lunaris.websocket.send('INVALIDATE', 'GET /http', true);
-
-            setTimeout(() => {
-              lunaris._indexedDB.getAll('http', (err, data) => {
+              lunaris._indexedDB.get('_states', 'http', (err, data) => {
                 if (err) {
-                  done(err);
+                  return done(err);
                 }
 
-                should(data).be.an.Array().and.have.lengthOf(2);
-
-                lunaris._indexedDB.get('_states', 'http', (err, data) => {
-                  if (err) {
-                    return done(err);
+                should(data).be.an.Object();
+                should(data).eql({
+                  store          : 'http',
+                  massOperations : {},
+                  collection     : {
+                    currentId    : 2,
+                    currentRowId : 3
                   }
-
-                  should(data).be.an.Object();
-                  should(data).eql({
-                    store          : 'http',
-                    massOperations : {},
-                    collection     : {
-                      currentId    : 2,
-                      currentRowId : 3
-                    }
-                  });
-
-                  lunaris.removeHook('inserted@http', _insertedHook);
-                  lunaris.offline.isOfflineMode = false;
-                  done();
                 });
+
+                lunaris.removeHook('inserted@http', _insertedHook);
+                lunaris.offline.isOfflineMode = false;
+                done();
               });
-            }, 100);
-          });
-        };
-
-        lunaris.hook('inserted@http', _insertedHook);
-        lunaris.insert('@http', { id : 1, label : 'A' });
-      });
-
-      it('should send a custom event when invalidating', done => {
-        var _insertedHook = () => {
-          lunaris._indexedDB.getAll('http', (err, data) => {
-            if (err) {
-              done(err);
-            }
-
-            should(data).be.an.Array().and.have.lengthOf(2);
-            should(data[0]).eql({
-              id       : 1,
-              label    : 'A',
-              _rowId   : 1,
-              _id      : 1,
-              _version : [1, 2]
             });
-            should(data[1]).eql({
-              id       : 1,
-              label    : 'A',
-              post     : true,
-              _rowId   : 2,
-              _id      : 1,
-              _version : [2]
-            });
+          }, 100);
+        });
+      };
 
-            lunaris.offline.isOfflineMode = true;
-
-            let hook = (url) => {
-              should(url).eql('GET /http');
-              lunaris.invalidations.on('invalidate', null);
-              lunaris.removeHook('inserted@http', _insertedHook);
-              lunaris.offline.isOfflineMode = false;
-              done();
-            };
-
-            lunaris.invalidations.on('invalidate', hook);
-
-            lunaris.websocket.send('INVALIDATE', 'GET /http', true);
-          });
-        };
-
-        lunaris.hook('inserted@http', _insertedHook);
-        lunaris.insert('@http', { id : 1, label : 'A' });
-      });
+      lunaris.hook('inserted@http', _insertedHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
     });
 
+    it('should send a custom event when invalidating', done => {
+      var _insertedHook = () => {
+        lunaris._indexedDB.getAll('http', (err, data) => {
+          if (err) {
+            done(err);
+          }
+
+          should(data).be.an.Array().and.have.lengthOf(2);
+          should(data[0]).eql({
+            id       : 1,
+            label    : 'A',
+            _rowId   : 1,
+            _id      : 1,
+            _version : [1, 2]
+          });
+          should(data[1]).eql({
+            id       : 1,
+            label    : 'A',
+            post     : true,
+            _rowId   : 2,
+            _id      : 1,
+            _version : [2]
+          });
+
+          lunaris.offline.isOfflineMode = true;
+
+          let hook = (url) => {
+            should(url).eql('GET /http');
+            lunaris.invalidations.on('invalidate', null);
+            lunaris.removeHook('inserted@http', _insertedHook);
+            lunaris.offline.isOfflineMode = false;
+            done();
+          };
+
+          lunaris.invalidations.on('invalidate', hook);
+
+          lunaris.websocket.send('invalidated', 'GET /http', true);
+        });
+      };
+
+      lunaris.hook('inserted@http', _insertedHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
   });
 
   describe('lazy load', () => {
