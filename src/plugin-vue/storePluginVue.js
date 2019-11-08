@@ -317,10 +317,55 @@ lunaris._vue = {
       // }
     }
 
+
+    /**
+     * Register socket hooks
+     * @param {Object} _this instance vue
+     */
+    function _registerSocketHooks (_this) {
+      // We must reference hook fn. bind() rename the fn
+      _this.socketChannels = {};
+      var _hooks = _this.$options.socketChannels;
+      if (!_hooks) {
+        return;
+      }
+      if (typeof _hooks !== 'object') {
+        return lunaris.logger.warn('Error in component \'' + _this.$options.name + '\':', 'vm.socketChannels must be an Object!');
+      }
+
+      var _hookKeys = Object.keys(_hooks);
+      for (var i = 0; i < _hookKeys.length; i++) {
+        var _hook = _hooks[_hookKeys[i]];
+
+        if (typeof _hook !== 'function') {
+          return lunaris.logger.warn('Error in component \'' + _this.$options.name + '\':', 'vm.socketChannels.' + _hookKeys[i] + ' must be a Function!');
+        }
+        _this.hooks[_hookKeys[i]] = _hook.bind(_this);
+        lunaris.websocket.subscribe(_hookKeys[i], _this.hooks[_hookKeys[i]]);
+      }
+    }
+
+    /**
+     * Remove socket hooks
+     * @param {Object} _this
+     */
+    function _removeSocketHooks (_this) {
+      var _hooks = _this.$options.socketChannels;
+      if (!_hooks) {
+        return;
+      }
+
+      var _hookKeys = Object.keys(_hooks);
+      for (var i = 0; i < _hookKeys.length; i++) {
+        lunaris.websocket.unsubscribe(_hookKeys[i]);
+      }
+    }
+
     Vue.mixin({
       beforeCreate : function () {
         _registerStores(this);
         _registerHooks(this);
+        _registerSocketHooks(this);
 
         this._registerStores = _registerStores;
         this._registerHooks  = _registerHooks;
@@ -390,10 +435,12 @@ lunaris._vue = {
 
       beforeDestroy : function () {
         _removeHooks(this);
+        _removeSocketHooks(this);
       },
 
       beforeRouteLeave : function (to, from, next) {
         _removeHooks(this);
+        _removeSocketHooks(this);
         next();
       }
     });

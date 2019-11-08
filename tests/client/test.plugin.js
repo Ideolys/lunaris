@@ -208,6 +208,52 @@ describe('Store plugin', () => {
     }, 50);
   });
 
+  it('should add socket handlers', () => {
+    const vm = new Vue({
+      el             : '#app',
+      stores         : ['test'],
+      socketChannels : {
+        channel : function test () {
+        }
+      }
+    });
+    should(lunaris.websocket._handlers).have.keys('channel');
+    vm.$destroy();
+  });
+
+  it('should remove socket handlers', () => {
+    const vm = new Vue({
+      el             : '#app',
+      stores         : ['test'],
+      socketChannels : {
+        channel : function test () {
+        },
+        channel2 : function test2 () {
+        }
+      }
+    });
+    should(lunaris.websocket._handlers).have.keys('channel', 'channel2');
+    vm.$destroy();
+    should(lunaris.websocket._handlers).not.have.keys('channel', 'channel2');
+  });
+
+  it('should call socketChannel handler', () => {
+    let _hasBeenCalled = false;
+    const vm = new Vue({
+      el             : '#app',
+      stores         : ['test'],
+      socketChannels : {
+        channel : function test () {
+          _hasBeenCalled = true;
+        }
+      }
+    });
+
+    lunaris.websocket._handlers.channel();
+    should(_hasBeenCalled).eql(true);
+    vm.$destroy();
+  });
+
   it('should update the state when get : store array', () => {
     const vm = new Vue({
       el     : '#app',

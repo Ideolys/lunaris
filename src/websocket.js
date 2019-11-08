@@ -1,5 +1,4 @@
 var logger         = require('./logger.js');
-var invalidate     = require('./invalidate.js');
 var lunarisExports = require('./exports.js');
 var offline        = require('./offline.js');
 
@@ -11,8 +10,7 @@ var reconnectIntervalFactor = 1.2; // multiply last interval to slow down reconn
 var timeout                 = null;
 
 var isReload = false;
-
-var events = {};
+var handlers = {};
 
 if (lunarisExports.isBrowser) {
   window.onbeforeunload = function () {
@@ -58,7 +56,7 @@ function connect (host) {
     lastInterval = reconnectInterval;
     logger.info('[Websocket]', 'Connected!');
 
-    _send('invalidations', null, true);
+    _send('invalidations');
   };
   ws.onerror = function (evt) {
   };
@@ -75,54 +73,40 @@ function connect (host) {
     try {
       var message = JSON.parse(msg.data);
 
-      if (message.channel === 'invalidated') {
-        return invalidate.invalidate(message.data);
-      }
-
-      if (message.channel === 'invalidations') {
-        if (events['initCacheInvalidations']) {
-          events['initCacheInvalidations'](message.data);
-        }
-
-        return;
+      if (handlers[message.channel]) {
+        handlers[message.channel].call(null, message);
       }
     }
     catch (e) {
-      logger.warn('[Websocket] Cannot invalidate', e);
+      logger.warn('[Websocket] Cannot parse message incomming message', e);
     }
   };
 }
 
 /**
  * Send data from client to server
- * @param {String} type
+ * @param {String} channel
  * @param {*} data
- * @param {Boolean} success
  */
-function _send (cahnnel, data, success) {
-  ws.send(JSON.stringify({ channel : cahnnel, data : data, sucess : success || false }));
+function _send (channel, data) {
+  ws.send(JSON.stringify({
+    channel : channel,
+    data    : data,
+    ts      : Date.now()
+  }));
 }
 
 module.exports = {
-  connect : connect,
+  _handlers : handlers,
+  connect   : connect,
 
   /**
    * Send data from client to server
    * @param {String} type
    * @param {*} data
-   * @param {Boolean} success
    */
-  send : function (type, data, success) {
-    _send(type, data, success);
-  },
-
-  /**
-   * Event emmitter
-   * @param {String} event
-   * @param {Function} handler
-   */
-  on : function (event, handler) {
-    events[event] = handler;
+  send : function (channel, data) {
+    _send(channel, data);
   },
 
   /**
@@ -146,5 +130,30 @@ module.exports = {
       isReload = false;
     };
     ws.close();
-  }
+  },
+
+  /**
+   * Subscribe to a channel (or event)
+   * @param {String} channel
+   * @param {Function} handler
+   */
+  subscribe (channel, handler) {
+    if (typeof handler !== 'function') {
+      return logger.warn('[lunaris.websocket.subscribe] Handler is not a function');
+    }
+
+    if (channel === 'invalidated' || channel === 'invalidations') {
+      return logger.warn('[lunaris.websocket.subscribe] Given channel is reserved');
+    }
+
+    handlers[channel] = handler;
+  },
+
+  /**
+   * Unsubscribe from a channel (or event)
+   * @param {String} channel
+   */
+  unsubscribe (channel) {
+    delete handlers[channel];
+  },
 };

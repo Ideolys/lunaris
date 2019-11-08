@@ -201,4 +201,13 @@ describe('lunaris index', () => {
     should(index.debug.log).be.a.Function();
     should(index.debug.NAMESPACES).be.an.Object();
   });
+
+  it('websocket should be defined', () => {
+    should(index.websocket).be.ok();
+    should(index.websocket).be.an.Object();
+    should(index.websocket.subscribe).be.a.Function();
+    should(index.websocket.unsubscribe).be.a.Function();
+    should(index.websocket.send).be.a.Function();
+    should(index.websocket.stop).be.a.Function();
+  });
 });
