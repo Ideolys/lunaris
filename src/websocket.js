@@ -142,7 +142,7 @@ module.exports = {
       return logger.warn('[lunaris.websocket.subscribe] Handler is not a function');
     }
 
-    if (channel === 'invalidated' || channel === 'invalidations') {
+    if ((channel === 'invalidated' || channel === 'invalidations') && handlers[channel]) {
       return logger.warn('[lunaris.websocket.subscribe] Given channel is reserved');
     }
 
