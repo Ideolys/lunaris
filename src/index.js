@@ -72,7 +72,7 @@ module.exports = {
     * Get invalidations and compute
     */
     getAndCompute  : function () {
-      websocket.subscribe('invalidaitons', function (serverInvalidations) {
+      websocket.subscribe('invalidations', function (serverInvalidations) {
         invalidate.computeInvalidations(serverInvalidations, Object.keys(lunarisExports._stores));
       });
 
