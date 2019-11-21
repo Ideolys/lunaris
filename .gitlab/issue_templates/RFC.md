@@ -1,4 +1,3 @@
-
 - Nom de la fonctionnalité : (my_awesome_feature)
 
 # Résumé
@@ -22,7 +21,7 @@ Pourquoi on ne devrait pas implémenter cette solution ?
 
 # Alternatives
 
-Quels autres solutions ont été envisagées ?
+Quelles autres solutions ont été envisagées ?
 
 # Questions non répondues
 
