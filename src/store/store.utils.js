@@ -75,24 +75,21 @@ function getPrimaryKeyValue (store, value, isInsertOrMassiveUpdate) {
 
   var _primaryKey = store.primaryKey;
   if (Array.isArray(_primaryKey)) {
+    _id = [];
     for (var i = 0; i < _primaryKey.length; i++) {
       var _value = value[_primaryKey[i]];
       if (_value === undefined || _value === null) {
         return null;
       }
 
-      _id += _value + '-';
+      _id.push(_value);
     }
 
-    if (_id !== '') {
-      _id = _id.slice(0, _id.length - 1);
+    if (_id.length > 1) {
+      _id = _id.join('-');
     }
 
-    if (!isNaN(Number(_id))) {
-      return Number(_id);
-    }
-
-    return _id;
+    return _id[0];
   }
 
   return value[store.primaryKey];

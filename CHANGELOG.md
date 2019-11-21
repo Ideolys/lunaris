@@ -50,6 +50,7 @@
   - When pushing new object in offline transaction, the collection's index of ids was not correctly updated.
   - When pushing offline transaction, the plugin state was never updated.
   - The method `lunaris._removeAllHooks` was not correctly removing hooks.
+  - The internal method `getPrimaryKeyValue()` was trying to cast primary keys as Number.
 
 ## 1.13.0
 *2019-09-30*
