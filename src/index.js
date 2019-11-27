@@ -73,6 +73,8 @@ module.exports = {
     */
     getAndCompute  : function () {
       websocket.subscribe('invalidations', function (serverInvalidations) {
+        // remove handler when receiving data
+        lunaris.websocket.unsubscribe('invalidations');
         invalidate.computeInvalidations(serverInvalidations, Object.keys(lunarisExports._stores));
       });
 
