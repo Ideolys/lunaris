@@ -3,13 +3,13 @@ const bodyParser  = require('body-parser');
 const cors        = require('cors');
 const express     = require('express');
 const app         = express();
+const httpProxy   = require('http-proxy');
 
 const fs          = require('fs');
 const path        = require('path');
 const build       = require('../../lib/builder').build;
 const constants   = require('./build.constants');
 
-let server     = express();
 let serverPort = 3001;
 
 var Server      = require('karma').Server;
@@ -172,33 +172,8 @@ app.post('/offlineReferenceSync', (req, res) => {
   });
 });
 
-
-app.listen(serverPort, () => {
-  console.log('-- Server started on port ' + serverPort);
-
-  constants.indexedDBNumber = 7;
-
-  build({
-    baseUrl             : '"http://localhost:' + serverPort + '"',
-    clientFolder        : __dirname,
-    storesFolder        : path.join(__dirname, 'stores'),
-    isProduction        : false,
-    constants           : constants,
-    indexedDBNumber     : constants.indexedDBNumber,
-    isOfflineStrategies : true
-  }, (err, code) => {
-    if (err) {
-      console.log(err);
-    }
-    fs.writeFileSync(path.join(__dirname, 'testbuild.index.js'), code);
-    karma.start();
-  });
-});
-
-
-const uWS  = require('uWebSockets.js');
-const port = 4000;
-
+const uWS   = require('uWebSockets.js');
+const port  = 4000;
 const appWS = uWS.App().ws('/*', {
   /* Options */
   compression      : 0,
@@ -227,4 +202,37 @@ const appWS = uWS.App().ws('/*', {
   } else {
     console.log('[WS] Failed to listen to port ' + port);
   }
+});
+
+let server = app.listen(serverPort, () => {
+  console.log('-- Server started on port ' + serverPort);
+
+  constants.indexedDBNumber = 7;
+
+  build({
+    baseUrl             : '"http://localhost:' + serverPort + '"',
+    clientFolder        : __dirname,
+    storesFolder        : path.join(__dirname, 'stores'),
+    isProduction        : false,
+    constants           : constants,
+    indexedDBNumber     : constants.indexedDBNumber,
+    isOfflineStrategies : true
+  }, (err, code) => {
+    if (err) {
+      console.log(err);
+    }
+    fs.writeFileSync(path.join(__dirname, 'testbuild.index.js'), code);
+    karma.start();
+  });
+});
+
+let proxy  = httpProxy.createProxyServer({
+  target : {
+    host : 'localhost',
+    port : port
+  }
+});
+
+server.on('upgrade', (req, socket, head) => {
+  return proxy.ws(req, socket, head);
 });

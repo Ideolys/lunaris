@@ -50,7 +50,7 @@ function connect (host) {
     return;
   }
 
-  ws = new WebSocket(host + '/websocket');
+  ws = new WebSocket(host);
 
   ws.onopen = function () {
     lastInterval = reconnectInterval;
