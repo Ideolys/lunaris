@@ -72,6 +72,8 @@
     <div v-if="currentComponent === 'syncLoad'">
       <h3 class="title is-3 has-text-light" style="margin-top: 3rem">${Synchronizing data}</h3>
       <progress style="margin-bottom: .4rem" class="progress is-small" :value="nbStoresLoaded" :max="nbStoresToLoad"></progress>
+      <p>${Synchronizing} {{ storesToLoadTranslated[nbStoresLoaded] }}
+      </p>
     </div>
   </div>
 </template>
@@ -139,8 +141,9 @@
 
         isOfflineModeActivated : lunaris.offline.isOfflineMode,
 
-        nbStoresLoaded : 0,
-        nbStoresToLoad : 0,
+        nbStoresLoaded         : 0,
+        nbStoresToLoad         : 0,
+        storesToLoadTranslated : [],
 
         defaultWaitTime : 800
       }
@@ -269,10 +272,12 @@
         // First, init filters
         loadFilters(storesToLoad, function () {
           // Then load
+          _that.storesToLoadTranslated = [];
           lunaris.begin();
           for (var i = 0; i < _that.nbStoresToLoad; i++) {
             lunaris.load(storesToLoad[i].store, storesToLoad[i].options);
             lunaris.hook('loaded' + storesToLoad[i].store, getHook(_that, storesToLoad[i].store));
+            _that.storesToLoadTranslated.push(lunaris._stores[storesToLoad[i].store.replace('@', '')].nameTranslated);
           }
 
           lunaris.commit(function () {
