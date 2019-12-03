@@ -254,6 +254,9 @@ function collection (getPrimaryKeyFn, isStoreObject, joinsDescriptor, aggregateF
       }
       value._rowId = _currentRowId++;
       _setReferencedValues(value);
+      if (_aggregateFn) {
+        _aggregateFn(value, aggregates, lunarisExports.constants, logger);
+      }
       _addActionToLocalDatabase(localDatabase.upsert, value);
       _dataCacheIndex[value._id] = _data.length;
       return _data.push(value);
