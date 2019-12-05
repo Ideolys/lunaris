@@ -9,7 +9,12 @@ function _loadDependentStores (store, callback)  {
   _dependentStores = _dependentStores.concat(store.storesToPropagate || []).concat(store.storesToPropagateReferences || []);
 
   utils.queue(_dependentStores, function (storeToLoad, next) {
-    var _store = storeUtils.getStore('@' + storeToLoad);
+    try {
+      var _store = storeUtils.getStore('@' + storeToLoad);
+    }
+    catch (e) {
+      return next();
+    }
 
     if (_store.isInitialized) {
       return next();
@@ -69,7 +74,7 @@ function load (store, fnAndParams, isRetry) {
         }
 
         store.isInitialized = true;
-        return load(store.name, fnAndParams, true);
+        return load(store, fnAndParams, true);
       }
 
       utils.deleteRows(data);

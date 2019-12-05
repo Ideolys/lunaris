@@ -189,7 +189,12 @@ function _add (key, value, callback) {
     return callback ();
   }
 
-  var _transaction = database.transaction(key, 'readwrite');
+  try {
+    var _transaction = database.transaction(key, 'readwrite');
+  }
+  catch (e) {
+    return callback(e);
+  }
 
   _transaction.onerror = function (e) {
     callback(e);
@@ -223,7 +228,12 @@ function _upsert (key, value, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction(key, 'readwrite');
+  try {
+    var _transaction = database.transaction(key, 'readwrite');
+  }
+  catch (e) {
+    return callback(e);
+  }
 
   _transaction.onerror = function (e) {
     callback(e);
@@ -257,7 +267,12 @@ function _del (key, value, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction(key, 'readwrite');
+  try {
+    var _transaction = database.transaction(key, 'readwrite');
+  }
+  catch (e) {
+    return callback(e);
+  }
 
   _transaction.onerror = function (e) {
     callback(e);
@@ -291,7 +306,13 @@ function _get (key, value, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction(key, 'readonly');
+  try {
+    var _transaction = database.transaction(key, 'readonly');
+  }
+  catch (e) {
+    return callback(e);
+  }
+
   _transaction.onerror = function onerror (e) {
     callback(e);
   };
@@ -319,7 +340,13 @@ function _getAll (key, callback) {
     return callback();
   }
 
-  var _transaction       = database.transaction(key, 'readonly');
+  try {
+    var _transaction = database.transaction(key, 'readonly');
+  }
+  catch (e) {
+    return callback(e);
+  }
+
   _transaction.onerror = function onerror (e) {
     callback(e);
   };
@@ -346,7 +373,12 @@ function _clear (key, callback) {
     return callback();
   }
 
-  var _transaction = database.transaction(key, 'readwrite');
+  try {
+    var _transaction = database.transaction(key, 'readwrite');
+  }
+  catch (e) {
+    return callback(e);
+  }
 
   _transaction.onerror = function onerror (e) {
     callback(e);
