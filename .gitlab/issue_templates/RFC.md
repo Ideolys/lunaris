@@ -1,4 +1,3 @@
-
 - Nom de la fonctionnalité : (my_awesome_feature)
 
 # Résumé
@@ -18,11 +17,11 @@ Pourquoi faire cette fonctionnalité ? Quels sont les besoins ? Quels bénéfice
 
 # Inconvénients
 
-Pourquoi on ne drevrait pas implémenter cette solution ?
+Pourquoi on ne devrait pas implémenter cette solution ?
 
 # Alternatives
 
-Quels autres solutions ont été envisagées ?
+Quelles autres solutions ont été envisagées ?
 
 # Questions non répondues
 

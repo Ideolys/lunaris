@@ -1,8 +1,6 @@
 # Lunaris
 
-## 1.14.0
-- Features:
-  - Add `lunaris.createUrl(store, method, primaryKey)` method to generate url for a store.
+## 1.15.0
   - Add `lunaris.offline.isOfflineMode` attribute to set offline mode. In online the offline mode capture the invalidations and simulate offline connection.
   - Add `lunaris.offline.isSynchronizing` attribute. Internal use.
   - Add `lunaris._onInvalidate(event, handler)` to capture events in invalidation module. Only `invalidate` event is sent. It allows an handler to capture invalidations when offline mode is activated.
@@ -52,6 +50,12 @@
   - The method `lunaris._removeAllHooks` was not correctly removing hooks.
   - The internal method `getPrimaryKeyValue()` was trying to cast primary keys as Number.
   - IndexedDB could block the application initialisation when opening a transaction of an inexistant store.
+
+## 1.14.0
+*2019-11-04*
+- Features:
+  - Add `lunaris.createUrl(store, method, primaryKey)` method to generate url for a store.
+  - Update kitten-format to 1.6.3
 
 ## 1.13.0
 *2019-09-30*
