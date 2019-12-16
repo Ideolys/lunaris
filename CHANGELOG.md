@@ -41,6 +41,7 @@
   - Add `lunaris.websocket.subscribe({String} channel, {Function} handler)`.
   - Add `lunaris.websocket.unsubscribe({String} channel)`.
   - Add `vm.socketChannels` to subscribe to websocket channels.
+  - Add `filter.isSearchable`. If `false`, the filter value will be added to the url query options and not in the `search` value.
 - Fix:
   - Improve offline app.
   - In offline or offline mode, generated urls were not encoded.

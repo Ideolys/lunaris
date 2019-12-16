@@ -5,22 +5,25 @@ exportsLunaris.constants = { TRUE : true };
 const testUtils          = require('./testUtils');
 const url                = require('../src/store/store.url');
 const stores             = {
-  noFilter             : testUtils.initStore('noFilter'),
-  'required.filter.A'  : testUtils.initStore('required.filter.A'),
-  'required.filter.B'  : testUtils.initStore('required.filter.B'),
-  required             : testUtils.initStore('required'),
-  requiredMultiple     : testUtils.initStore('requiredMultiple'),
-  'optional.filter.A'  : testUtils.initStore('optional.filter.A'),
-  'optional.filter.B'  : testUtils.initStore('optional.filter.B'),
-  optional             : testUtils.initStore('optional'),
-  optionalMultiple     : testUtils.initStore('optionalMultiple'),
-  mix                  : testUtils.initStore('mix'),
-  array                : testUtils.initStore('array'),
-  where                : testUtils.initStore('where'),
-  whereObject          : testUtils.initStore('whereObject'),
-  offlineFalse         : testUtils.initStore('offlineFalse'),
-  attributeUrl         : testUtils.initStore('attributeUrl'),
-  arrayAttrStoreObject : testUtils.initStore('arrayAttrStoreObject')
+  noFilter                                 : testUtils.initStore('noFilter'),
+  'required.filter.A'                      : testUtils.initStore('required.filter.A'),
+  'required.filter.B'                      : testUtils.initStore('required.filter.B'),
+  required                                 : testUtils.initStore('required'),
+  requiredMultiple                         : testUtils.initStore('requiredMultiple'),
+  'optional.filter.A'                      : testUtils.initStore('optional.filter.A'),
+  'optional.filter.B'                      : testUtils.initStore('optional.filter.B'),
+  optional                                 : testUtils.initStore('optional'),
+  optionalMultiple                         : testUtils.initStore('optionalMultiple'),
+  mix                                      : testUtils.initStore('mix'),
+  array                                    : testUtils.initStore('array'),
+  where                                    : testUtils.initStore('where'),
+  whereObject                              : testUtils.initStore('whereObject'),
+  offlineFalse                             : testUtils.initStore('offlineFalse'),
+  attributeUrl                             : testUtils.initStore('attributeUrl'),
+  arrayAttrStoreObject                     : testUtils.initStore('arrayAttrStoreObject'),
+  arrayAttrStoreObjectSearchable           : testUtils.initStore('arrayAttrStoreObjectSearchable'),
+  objAttrStoreObjectSearchable             : testUtils.initStore('objAttrStoreObjectSearchable'),
+  objAttrStoreObjectSearchableOtherFilters : testUtils.initStore('objAttrStoreObjectSearchableOtherFilters'),
 };
 const defaultStoresValue = JSON.parse(JSON.stringify(exportsLunaris._stores));
 const store              = require('../src/store/store');
@@ -162,6 +165,39 @@ describe('store url', () => {
         localAttribute  : 'label',
         attributeUrl    : 'LABEL',
         operator        : '='
+      }
+    ];
+
+    stores.arrayAttrStoreObjectSearchable.filters = [
+      {
+        source          : '@optional.filter.A',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        attributeUrl    : 'LABEL',
+        isSearchable    : false
+      }
+    ];
+    stores.objAttrStoreObjectSearchable.filters = [
+      {
+        source          : '@optional.filter.A',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        attributeUrl    : 'LABEL',
+        isSearchable    : false
+      }
+    ];
+    stores.objAttrStoreObjectSearchableOtherFilters.filters = [
+      {
+        source          : '@optional.filter.A',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        isSearchable    : false
+      },
+      {
+        source          : '@required.filter.B',
+        sourceAttribute : 'label',
+        localAttribute  : 'label',
+        operator        : ['ILIKE']
       }
     ];
   });
@@ -609,6 +645,39 @@ describe('store url', () => {
       limit  : 50,
       offset : 0,
       0      : ['cat', 'dog']
+    });
+  });
+
+  it('should create the url with array attribute in store object not searchable', () => {
+    store.upsert('@optional.filter.A', { label : ['cat', 'dog'] });
+    var _url         = url.create(stores.arrayAttrStoreObjectSearchable, 'GET');
+    var _expectedUrl = '/arrayAttrStoreObjectSearchable?limit=50&offset=0&LABEL=' +
+      encodeURIComponent('[cat,dog]')
+    ;
+
+    should(_url.request).eql(_expectedUrl);
+    should(_url.cache).eql({
+      limit  : 50,
+      offset : 0,
+      0      : ['cat', 'dog']
+    });
+  });
+
+  it('should create the url with attribute in store object not searchable and one is', () => {
+    store.upsert('@optional.filter.A', { label : 'dog' });
+    store.upsert('@required.filter.B', { label : 'cat' });
+    var _url         = url.create(stores.objAttrStoreObjectSearchableOtherFilters, 'GET');
+    var _expectedUrl = '/objAttrStoreObjectSearchableOtherFilters?limit=50&offset=0&label=' +
+      encodeURIComponent('dog') +
+      '&search=label' + encodeURIComponent(':') + encodeURIComponent('cat')
+    ;
+
+    should(_url.request).eql(_expectedUrl);
+    should(_url.cache).eql({
+      limit  : 50,
+      offset : 0,
+      0      : 'dog',
+      1      : 'cat'
     });
   });
 });

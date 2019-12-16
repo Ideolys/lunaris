@@ -46,11 +46,12 @@ function _runWhereCondition (whereFn, item) {
 */
 function _getFilterValuesHTTPRequest (store, method) {
   var _filterValues            = {
-    isRequiredOptionsFilled    : true,
-    constructedRequiredOptions : '',
-    requiredOptions            : {},
-    optionalOptions            : {},
-    cache                      : {}
+    isRequiredOptionsFilled     : true,
+    constructedRequiredOptions  : '',
+    requiredOptions             : {},
+    optionalOptions             : {},
+    optionalUnsearchableOptions : {},
+    cache                       : {}
   };
   var _nbRequiredFIlters       = 0;
   var _nbRequiredFilledFilters = 0;
@@ -123,7 +124,10 @@ function _getFilterValuesHTTPRequest (store, method) {
           _nbRequiredFilledFilters++;
         }
 
-        if (_value[3] && !_filter.isRequired) {
+        if (_filter.isSearchable === false) {
+          _filterValues.optionalUnsearchableOptions[_filterKey] = _value;
+        }
+        else if (_value[3] && !_filter.isRequired) {
           _filterValues.optionalOptions[_filterKey] = _value;
         }
         else {
@@ -167,6 +171,18 @@ function _getSearchOption (filterValues) {
   return ['search', _search];
 }
 
+function _getUnsearchableOption (filterValue) {
+  var _value = filterValue[2];
+  if (Array.isArray(_value)) {
+    _value = '[' + _value.join(',') + ']';
+  }
+
+  _value         = fixedEncodeURIComponent(_value);
+  var _attribute = filterValue[0] || filterValue[1];
+
+  return [_attribute, _value];
+}
+
 /**
 * Get and construct the url options
 * @param {Object} store
@@ -176,7 +192,6 @@ function _getSearchOption (filterValues) {
 function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
   var _optionsStr = '';
   var _options    = [];
-  filterValues    = filterValues || [];
 
   // Pagination
   if (isPagination) {
@@ -186,9 +201,18 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
     _options.push(['offset', _offset]);
   }
 
-  // _options = _options.concat(filterValues);
-  if (filterValues.length) {
-    _options.push(_getSearchOption(filterValues));
+  var _keys = Object.keys(filterValues.optionalUnsearchableOptions);
+  for (var i = 0; i < _keys.length; i++) {
+    _options.push(_getUnsearchableOption(filterValues.optionalUnsearchableOptions[_keys[i]]));
+  }
+
+  var _optionsSearchable = [];
+  _keys                  = Object.keys(filterValues.optionalOptions);
+  for (i = 0; i < _keys.length; i++) {
+    _optionsSearchable.push(filterValues.optionalOptions[_keys[i]]);
+  }
+  if (_optionsSearchable.length) {
+    _options.push(_getSearchOption(_optionsSearchable));
   }
 
   if (_options.length) {
@@ -245,12 +269,7 @@ function createUrl (store, method, primaryKeyValue, isPagination) {
     logger.deprecated('store.urlSuffix is deprecated. It will be removed!');
   }
 
-  var _options = [];
-  var _keys    = Object.keys(_filterValues.optionalOptions);
-  for (var i = 0; i < _keys.length; i++) {
-    _options.push(_filterValues.optionalOptions[_keys[i]]);
-  }
-  _request.request += _getUrlOptionsForHTTPRequest(store, _isGet, _options);
+  _request.request += _getUrlOptionsForHTTPRequest(store, _isGet, _filterValues);
 
   utils.merge(_request.cache, _filterValues.cache);
   _request.requiredOptions            = _filterValues.requiredOptions;
