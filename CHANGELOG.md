@@ -42,6 +42,7 @@
   - Add `lunaris.websocket.unsubscribe({String} channel)`.
   - Add `vm.socketChannels` to subscribe to websocket channels.
   - Add `filter.isSearchable`. If `false`, the filter value will be added to the url query options and not in the `search` value.
+  - Every 10 minutes, the server invalidations are retrieved to compare local invalidations with server ones.
 - Fix:
   - Improve offline app.
   - In offline or offline mode, generated urls were not encoded.
