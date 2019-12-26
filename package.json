@@ -16,6 +16,7 @@
     "pako": "1.0.6",
     "promise-polyfill": "8.1.0",
     "serialize-javascript": "1.7.0",
+    "timsort": "0.3.0",
     "vue": "2.6.2",
     "vue-color": "2.6.0",
     "vue-observe-visibility": "0.4.3",

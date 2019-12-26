@@ -1,20 +1,21 @@
-var hook               = require('./store/store.hook.js');
-var store              = require('./store/store.js');
-var storeSynchro       = require('./store/store.synchronisation.js');
-var storeUtils         = require('./store/store.utils.js');
-var lunarisExports     = require('./exports.js');
-var collection         = require('./store/store.collection.js');
-var utils              = require('./utils.js');
-var logger             = require('./logger.js');
-var http               = require('./http.js');
-var offline            = require('./offline.js');
-var cache              = require('./cache.js');
-var transaction    	   = require('./store/store.transaction.js');
-var websocket          = require('./websocket.js');
-var localStorageDriver = require('./localStorageDriver.js');
-var invalidate         = require('./invalidate.js');
-var debug              = require('./debug.js');
-var lazyLoad           = require('./store/crud/_lazyLoad.js');
+var hook                = require('./store/store.hook.js');
+var store               = require('./store/store.js');
+var storeSynchro        = require('./store/store.synchronisation.js');
+var storeUtils          = require('./store/store.utils.js');
+var lunarisExports      = require('./exports.js');
+var collection          = require('./store/store.collection.js');
+var utils               = require('./utils.js');
+var logger              = require('./logger.js');
+var http                = require('./http.js');
+var offline             = require('./offline.js');
+var cache               = require('./cache.js');
+var transaction    	    = require('./store/store.transaction.js');
+var websocket           = require('./websocket.js');
+var localStorageDriver  = require('./localStorageDriver.js');
+var invalidate          = require('./invalidate.js');
+var debug               = require('./debug.js');
+var lazyLoad            = require('./store/crud/_lazyLoad.js');
+var collectionResultSet = require('./store/store.collectionResultSet.js');
 
 utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
 
@@ -30,6 +31,8 @@ module.exports = {
   _indexedDB          : localStorageDriver.indexedDB,
   _removeAllHooks     : hook.removeAllHooks,
   _initStore          : lazyLoad.load,
+
+  collectionResultSet : collectionResultSet,
 
   debug : debug,
 
