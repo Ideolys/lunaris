@@ -43,6 +43,7 @@
   - Add `vm.socketChannels` to subscribe to websocket channels.
   - Add `filter.isSearchable`. If `false`, the filter value will be added to the url query options and not in the `search` value.
   - Every 10 minutes, the server invalidations are retrieved to compare local invalidations with server ones.
+  - Add `store.isAutoRequest` atttribute to enable or disable automatic `lunaris.get` call on `reset` event when subscribing to store with `vm.stores`.
 - Fix:
   - Improve offline app.
   - In offline or offline mode, generated urls were not encoded.

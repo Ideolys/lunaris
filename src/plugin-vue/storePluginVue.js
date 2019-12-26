@@ -126,7 +126,9 @@ lunaris._vue = {
           _storeObj.state.splice(0);
         }
 
-        lunaris.get('@' + store);
+        if (lunaris._stores[store].isAutoRequest !== false) {
+          lunaris.get('@' + store);
+        }
       };
     }
 
