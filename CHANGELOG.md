@@ -52,6 +52,7 @@
   - The method `lunaris._removeAllHooks` was not correctly removing hooks.
   - The internal method `getPrimaryKeyValue()` was trying to cast primary keys as Number.
   - IndexedDB could block the application initialisation when opening a transaction of an inexistant store.
+  - Localstorage was not able to save false value.
 
 ## 1.14.0
 *2019-11-04*

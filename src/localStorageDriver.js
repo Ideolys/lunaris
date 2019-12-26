@@ -513,7 +513,7 @@ var drivers = {
       if (!lunarisExports.isBrowser || !lunarisExports.isOfflineStrategies) {
         return;
       }
-      return localStorage.setItem(key, value ? JSON.stringify(value) : null);
+      return localStorage.setItem(key, value != null ? JSON.stringify(value) : null);
     },
 
     clear : function clear (key) {
