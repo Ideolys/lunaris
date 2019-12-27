@@ -658,6 +658,18 @@ describe('collectionResultSet', () => {
         should(res[0].amount).eql(2);
         should(res[1].amount).eql(4);
       });
+
+      it('should query an attribute at root level : $nin', () => {
+        let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ amount : { $nin : [1,2,3,4] } }).data();
+        should(res).have.lengthOf(1);
+        should(res[0].amount).eql(6);
+      });
     });
 
     describe('sub objects', () => {

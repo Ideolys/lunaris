@@ -59,6 +59,10 @@ var queryOpertors = {
     return b.indexOf(a) > -1;
   },
 
+  $nin : function (a, b) {
+    return b.indexOf(a) === -1;
+  },
+
   $and : function (a, b) {
     for (var i = 0, len = a.length; i < len; i++) {
       if (!doQuery(a[i], b)) {
@@ -371,7 +375,7 @@ function CollectionResultSet (store) {
         itemValues[attributes[j]] = itemValue;
       }
 
-      var conditionValue = false;
+      var conditionValue = true;
 
       if (_and.length) {
         conditionValue = queryOpertors.$and(_and, itemValues);
@@ -385,9 +389,11 @@ function CollectionResultSet (store) {
         conditionValue = queryOpertors.$or(_or, itemValues);
       }
 
-      if (conditionValue) {
-        _dataFiltered.push(item);
+      if (!conditionValue) {
+        continue;
       }
+
+      _dataFiltered.push(item);
     }
 
     _data = _dataFiltered;
