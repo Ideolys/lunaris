@@ -699,6 +699,29 @@ describe.only('collectionResultSet', () => {
         should(res).have.lengthOf(1);
         should(res[0].amount).eql(2);
       });
+
+      it('should query an attribute at root level : $text', () => {
+        let items = [{ label : 'purée' }, { label : 'puree' }, { label : 'chaude purée' }];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          label : {
+            $text : 'purée'
+          }
+        }).data();
+        should(res).have.lengthOf(3);
+
+        res = lunaris.collectionResultSet('@db').find({
+          label : {
+            $text : 'chaud'
+          }
+        }).data();
+        should(res).have.lengthOf(1);
+        should(res[0].label).eql('chaude purée');
+      });
     });
 
     describe('sub objects', () => {

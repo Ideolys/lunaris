@@ -177,3 +177,4 @@ function filter (store, collection, filterValues) {
 }
 
 exports.filter = filter;
+exports.ilike  = ilike;

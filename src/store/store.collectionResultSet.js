@@ -1,5 +1,6 @@
 var utils      = require('../utils.js');
 var storeUtils = require('./store.utils.js');
+var ilike      = require('./store.offline.js').ilike;
 
 /**
  * Generate sort copare function
@@ -57,6 +58,10 @@ var queryOpertors = {
 
   '!=' : function (a, b) {
     return a !== b;
+  },
+
+  $text : function (a, b) {
+    return ilike.call(null, [b], a);
   },
 
   $where : function (a, b) {
@@ -309,6 +314,10 @@ function CollectionResultSet (store) {
         }
         else {
           for (var operator in querySearch) {
+            if (operator === '$text') {
+              querySearch[operator] = utils.unaccent(querySearch[operator]).toLowerCase().split(' ');
+            }
+
             subCompilatedExpressions.push({ attribute : field, operator : operator, value : querySearch[operator] });
           }
         }
