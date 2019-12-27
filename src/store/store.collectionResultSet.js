@@ -59,6 +59,10 @@ var queryOpertors = {
     return a !== b;
   },
 
+  $where : function (a, b) {
+    return b.call(null, a);
+  },
+
   $in : function (a, b) {
     return b.indexOf(a) > -1;
   },
