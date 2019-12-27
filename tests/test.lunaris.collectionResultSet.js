@@ -19,7 +19,7 @@ lunaris._stores.db         = initStore('db');
 lunaris._stores.db.isLocal = true;
 
 
-describe('collectionResultSet', () => {
+describe.only('collectionResultSet', () => {
 
   beforeEach(() => {
     lunaris._stores.db.data.clear();
