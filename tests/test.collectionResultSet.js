@@ -1,11 +1,12 @@
 const lunarisExports     = require('../src/exports');
 lunarisExports.isBrowser = false;
-const testUtils    = require('./testUtils');
-const initStore    = testUtils.initStore;
-const buildLunaris = require('../lib/builder').buildLunaris;
-const dayjs        = require('dayjs');
-const pako         = require('pako');
-const timsort      = require('timsort');
+const testUtils          = require('./testUtils');
+const initStore          = testUtils.initStore;
+const buildLunaris       = require('../lib/builder').buildLunaris;
+const dayjs              = require('dayjs');
+const pako               = require('pako');
+const timsort            = require('timsort');
+const resultSetOperators = require('../src/store/store.collectionResultSet').operators;
 
 const window = {};
 var lunaris  = {};
@@ -63,7 +64,8 @@ describe('collectionResultSet', () => {
       'sort',
       'where',
       'reduce',
-      'mapReduce'
+      'mapReduce',
+      'find'
     );
   });
 
@@ -555,6 +557,448 @@ describe('collectionResultSet', () => {
       should(res).have.lengthOf(0);
     });
 
+  });
+
+  describe('find', () => {
+
+    it('should be chainable', () => {
+      let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let res = lunaris.collectionResultSet('@db').find({ label : 'c' });
+      should(res.data).be.ok();
+    });
+
+    describe('one attribute : AND', () => {
+
+      it('should query an attribute at root level : = shorthand', () => {
+        let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ label : 'c' }).data();
+        should(res).have.lengthOf(1);
+        should(res[0].label).eql('c');
+      });
+
+      it('should query an attribute at root level : = explicit', () => {
+        let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ label : { '=' : 'c' }}).data();
+        should(res).have.lengthOf(1);
+        should(res[0].label).eql('c');
+      });
+
+      it('should query an attribute at root level : >', () => {
+        let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ amount : { '>' : 2 } }).data();
+        should(res).have.lengthOf(2);
+        should(res[0].amount).eql(4);
+        should(res[1].amount).eql(6);
+      });
+
+      it('should query an attribute at root level : >=', () => {
+        let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ amount : { '>=' : 2 } }).data();
+        should(res).have.lengthOf(3);
+      });
+
+      it('should query an attribute at root level : <=', () => {
+        let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ amount : { '<=' : 6 } }).data();
+        should(res).have.lengthOf(3);
+      });
+
+      it('should query an attribute at root level : <', () => {
+        let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ amount : { '<' : 6 } }).data();
+        should(res).have.lengthOf(2);
+        should(res[0].amount).eql(2);
+        should(res[1].amount).eql(4);
+      });
+
+      it('should query an attribute at root level : $in', () => {
+        let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ amount : { $in : [1,2,3,4] } }).data();
+        should(res).have.lengthOf(2);
+        should(res[0].amount).eql(2);
+        should(res[1].amount).eql(4);
+      });
+    });
+
+    describe('sub objects', () => {
+
+      it('should query an attribute at sub level 1', () => {
+        let items = [
+          { label : 'b', type : { id : 1 } },
+          { label : 'c', type : { id : 2 } },
+          { label : 'a', type : { id : 3 } }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ 'type.id' : 2 }).data();
+        should(res).have.lengthOf(1);
+        should(res[0].label).eql('c');
+      });
+
+      it('should not crash if objects is undefined', () => {
+        let items = [
+          { label : 'b', type : { id : 1 } },
+          { label : 'c',                   },
+          { label : 'a', type : { id : 3 } }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ 'type.id' : 2 }).data();
+        should(res).have.lengthOf(0);
+      });
+
+      it('should not crash if objects is null', () => {
+        let items = [
+          { label : 'b', type : { id : 1 } },
+          { label : 'c', type : null       },
+          { label : 'a', type : { id : 3 } }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ 'type.id' : 2 }).data();
+        should(res).have.lengthOf(0);
+      });
+
+      it('should not crash if middle sub object is null', () => {
+        let items = [
+          { label : 'b', type : { category : { id : 1 }} },
+          { label : 'c', type : null       },
+          { label : 'a', type : { category : { id : 3 }} }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ 'type.category.id' : 2 }).data();
+        should(res).have.lengthOf(0);
+      });
+
+      it('should not crash if middle sub object is undefined', () => {
+        let items = [
+          { label : 'b', type : { category : { id : 1 }} },
+          { label : 'c', type : undefined                },
+          { label : 'a', type : { category : { id : 3 }} }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ 'type.category.id' : 2 }).data();
+        should(res).have.lengthOf(0);
+      });
+
+      it('should find sub in sub', () => {
+        let items = [
+          { label : 'b', type : { category : { id : 1 }} },
+          { label : 'c', type : { category : { id : 2 }} },
+          { label : 'a', type : { category : { id : 3 }} }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({ 'type.category.id' : 2 }).data();
+        should(res).have.lengthOf(1);
+        should(res[0].label).eql('c');
+      });
+
+    });
+
+    describe('multiple AND', () => {
+
+      it('should find multiple', () => {
+        let items = [
+          { amount : 2, type : 1 },
+          { amount : 4, type : 2 },
+          { amount : 6, type : 3 }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          'type.id' : {
+            $in : [1, 3]
+          },
+          amount : {
+            '>' : 2
+          }
+        }).data();
+        should(res).have.lengthOf(1);
+        should(res[0].amount).eql(6);
+      });
+
+      it('should find multiple on same attribute', () => {
+        let items = [
+          { amount : 2, type : 1 },
+          { amount : 4, type : 2 },
+          { amount : 6, type : 3 }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          amount : {
+            '>' : 2,
+            '<' : 6
+          }
+        }).data();
+        should(res).have.lengthOf(1);
+        should(res[0].amount).eql(4);
+      });
+
+      it('should find multiple (with sub object)', () => {
+        let items = [
+          { amount : 2, type : { id : 1 } },
+          { amount : 4, type : { id : 2 } },
+          { amount : 6, type : { id : 3 } }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          'type.id' : 2,
+          amount    : {
+            '>' : 2
+          }
+        }).data();
+        should(res).have.lengthOf(1);
+        should(res[0].amount).eql(4);
+      });
+
+      it('should find multiple (with sub object) : with $and multiple', () => {
+        let items = [
+          { amount : 2, type : { id : 1 } },
+          { amount : 4, type : { id : 2 } },
+          { amount : 6, type : { id : 3 } }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          $and : [
+            {
+              'type.id' : 2
+            },
+            {
+              amount : {
+                '>' : 2
+              }
+            }
+          ]
+        }).data();
+        should(res).have.lengthOf(1);
+        should(res[0].amount).eql(4);
+      });
+
+      it('should find multiple (with sub object) : with $and', () => {
+        let items = [
+          { amount : 2, type : { id : 1 } },
+          { amount : 4, type : { id : 2 } },
+          { amount : 6, type : { id : 3 } }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          $and : [
+            {
+              'type.id' : 2,
+              amount    : {
+                '>' : 2
+              }
+            }
+          ]
+        }).data();
+        should(res).have.lengthOf(1);
+        should(res[0].amount).eql(4);
+      });
+
+    });
+
+    describe('only OR', () => {
+
+      it('should find with or on the same attribute', () => {
+        let items = [
+          { amount : 2 },
+          { amount : 4 },
+          { amount : 6 }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          $or : [
+            { amount : 2 },
+            { amount : 6 },
+          ]
+        }).data();
+        should(res).have.lengthOf(2);
+        should(res[0].amount).eql(2);
+        should(res[1].amount).eql(6);
+      });
+
+      it('should find with different attributes', () => {
+        let items = [
+          { amount : 2, type : 1 },
+          { amount : 4, type : 1 },
+          { amount : 6, type : 2 },
+          { amount : 8, category : { id : 2 }}
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          $or : [
+            { amount : 2, type : 1 },
+            { type : 2 },
+            { 'category.id' : 2 }
+          ]
+        }).data();
+        should(res).have.lengthOf(3);
+        should(res[0].amount).eql(2);
+        should(res[1].amount).eql(6);
+        should(res[2].amount).eql(8);
+      });
+
+      it('should find with OR', () => {
+        let items = [
+          { amount : 2, type : 1 },
+          { amount : 4, type : 1 },
+          { amount : 6, type : 1 }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          $or : [
+            { amount : { '>' : 2 }},
+            { amount : { '<' : 6 }}
+          ]
+        }).data();
+        should(res).have.lengthOf(3);
+      });
+
+    });
+
+    describe('OR and AND', () => {
+
+      it('should find with OR and AND', () => {
+        let items = [
+          { amount : 2, type : 1 },
+          { amount : 4, type : 1 },
+          { amount : 6, type : 1 },
+          { amount : 8, category : { id : 2 }}
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          type : 1,
+          $or  : [
+            { amount : 2 },
+            { amount : 6 }
+          ]
+        }).data();
+        should(res).have.lengthOf(2);
+        should(res[0].amount).eql(2);
+        should(res[1].amount).eql(6);
+      });
+
+      it('should find with OR and AND', () => {
+        let items = [
+          { amount : 2, type : 1 },
+          { amount : 4, type : 1 },
+          { amount : 6, type : 1 },
+          { amount : 6, type : 2 }
+        ];
+
+        items.forEach(item => {
+          lunaris._stores.db.data.add(item);
+        });
+
+        let res = lunaris.collectionResultSet('@db').find({
+          type : 1,
+          $or  : [
+            { amount : 2 },
+            { amount : 6 }
+          ]
+        }).data();
+        should(res).have.lengthOf(2);
+        should(res[0].amount).eql(2);
+        should(res[1].amount).eql(6);
+      });
+
+    });
   });
 
 });
