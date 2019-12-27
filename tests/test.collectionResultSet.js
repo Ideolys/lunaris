@@ -61,7 +61,9 @@ describe('collectionResultSet', () => {
       'data',
       'map',
       'sort',
-      'where'
+      'where',
+      'reduce',
+      'mapReduce'
     );
   });
 
