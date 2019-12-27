@@ -389,6 +389,125 @@ describe('collectionResultSet', () => {
     });
   });
 
+  describe('reduce', () => {
+
+    it('should not be chainable', () => {
+      let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let res = lunaris.collectionResultSet('@db').reduce((accu, item) => accu + item.label);
+
+      should(res.data).be.not.ok();
+    });
+
+    it('should reduce data', () => {
+      let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let res = lunaris.collectionResultSet('@db').reduce((accu, item) => accu + item.label);
+      should(res).eql('nullbca');
+    });
+
+    it('should clone data', () => {
+      let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let res = lunaris.collectionResultSet('@db').reduce((accu, item) => {
+        item.label = item.label.toUpperCase();
+        return accu + item.label;
+      });
+
+      should(res).eql('nullBCA');
+      should(items[0].label).not.eql('B');
+    });
+
+    it('should set initial accumulator value', () => {
+      let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let res = lunaris.collectionResultSet('@db').reduce((accu, item) => {
+        return accu + item.label;
+      }, { initialValue : '' });
+
+      should(res).eql('bca');
+    });
+  });
+
+  describe('mapReduce', () => {
+
+    it('should not be chainable', () => {
+      let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let mapFn    = item => item.amount;
+      let reduceFn = (accu, value) => accu + value;
+
+      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
+      should(res.data).be.not.ok();
+    });
+
+    it('should map and reduce data', () => {
+      let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let mapFn    = item => item.amount;
+      let reduceFn = (accu, value) => accu + value;
+
+      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
+      should(res).eql(12);
+    });
+
+    it('should clone data', () => {
+      let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let mapFn    = item => {
+        item.amount = item.amount * 2;
+        return item;
+      };
+      let reduceFn = (accu, item) => accu + item.amount;
+
+      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
+      should(res).eql(24);
+      should(items[0].amount).not.eql(4);
+    });
+
+    it('should set initial accumulator value', () => {
+      let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let mapFn    = item => item.amount;
+      let reduceFn = (accu, value) => accu + value;
+
+      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn, { initialValue : 20 });
+      should(res).eql(32);
+    });
+  });
+
   describe('where', () => {
 
     it('should be chainable', () => {

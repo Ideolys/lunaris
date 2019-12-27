@@ -102,21 +102,71 @@ function CollectionResultSet (store) {
 
   /**
    * Map
-   * @param {Function} fn
+   * @param {Function} mapFn
    * @returns {CollectionResultSet}
    */
-  _resultSet.map = function map (fn) {
-    if (typeof fn !== 'function') {
-      throw new Error('fn is not a function');
+  _resultSet.map = function map (mapFn) {
+    if (typeof mapFn !== 'function') {
+      throw new Error('mapFn is not a function');
     }
 
     _cloneIfNotAlreadyIs();
 
     for (var i = 0; i < _data.length; i++) {
-      _data[i] = fn.call(null, _data[i]);
+      _data[i] = mapFn.call(null, _data[i]);
     }
 
     return _resultSet;
+  };
+
+  /**
+   * Reduce
+   * @public
+   * @param {Function} reduceFn
+   * @param {Object} options
+   * options.initialValue {*} Initial value of the accumulator
+   * @returns {*}
+   */
+  _resultSet.reduce = function reduce (reduceFn, options) {
+    if (typeof reduceFn !== 'function') {
+      throw new Error('reduceFn is not a function');
+    }
+
+    _cloneIfNotAlreadyIs();
+
+    var accumulator = options && options.initialValue !== undefined ? options.initialValue : null;
+    for (var i = 0; i < _data.length; i++) {
+      accumulator = reduceFn.call(null, accumulator, _data[i]);
+    }
+
+    return accumulator;
+  };
+
+  /**
+   * Map and reduce
+   * @param {Function} mapFn
+   * @param {Function} reduceFn
+   * @param {Object} options
+   * options.initialValue {*} Initial value of the accumulator
+   * @returns {*}
+   */
+  _resultSet.mapReduce = function mapReduce (mapFn, reduceFn, options) {
+    if (typeof mapFn !== 'function') {
+      throw new Error('mapFn is not a function');
+    }
+    if (typeof reduceFn !== 'function') {
+      throw new Error('reduceFn is not a function');
+    }
+
+    _cloneIfNotAlreadyIs();
+
+    var accumulator = options && options.initialValue !== undefined ? options.initialValue : null;
+    for (var i = 0; i < _data.length; i++) {
+      _data[i] = mapFn.call(null, _data[i]);
+      accumulator = reduceFn.call(null, accumulator, _data[i]);
+    }
+
+    return accumulator;
   };
 
   /**
