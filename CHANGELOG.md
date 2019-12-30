@@ -46,6 +46,7 @@
   - Add `store.isAutoRequest` atttribute to enable or disable automatic `lunaris.get` call on `reset` event when subscribing to store with `vm.stores`.
   - Add `lunaris.collectionResultSet` to query collection data (more in documentation) !.
   - Add `dependencies` option for `lunaris.build`.
+  - La valeur `''` est acceptée pour les champs définis avec l'option `optional`.
 - Fix:
   - Improve offline app.
   - In offline or offline mode, generated urls were not encoded.
