@@ -163,7 +163,7 @@ function CollectionResultSet (store) {
   /**
    * Sort
    * @public
-   * @param {Array/Object} sorts 'label [ASC|DESC]'
+   * @param {Array/String} sorts 'label [ASC|DESC]'
    * @returns {CollectionResultSet}
    */
   _resultSet.sort = function sort (sorts) {
@@ -193,10 +193,12 @@ function CollectionResultSet (store) {
 
     _cloneIfNotAlreadyIs();
 
+    var res = [];
     for (var i = 0; i < _data.length; i++) {
-      _data[i] = mapFn.call(null, _data[i]);
+      res[i] = mapFn.call(null, _data[i], i, res);
     }
 
+    _data = res;
     return _resultSet;
   };
 
@@ -241,12 +243,14 @@ function CollectionResultSet (store) {
 
     _cloneIfNotAlreadyIs();
 
+    var newArray    = [];
     var accumulator = options && options.initialValue !== undefined ? options.initialValue : null;
     for (var i = 0; i < _data.length; i++) {
-      _data[i] = mapFn.call(null, _data[i]);
-      accumulator = reduceFn.call(null, accumulator, _data[i]);
+      newArray[i] = mapFn.call(null, _data[i], i, newArray);
+      accumulator = reduceFn.call(null, accumulator, newArray[i]);
     }
 
+    _data = newArray;
     return accumulator;
   };
 

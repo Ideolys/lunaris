@@ -391,6 +391,32 @@ describe('collectionResultSet', () => {
       should(res[0].label).eql('B');
       should(items[0].label).not.eql(res[0].label);
     });
+
+    it('should map data and provide i', () => {
+      let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let res = lunaris.collectionResultSet('@db').map((item, i) => i).data();
+
+      should(res).have.lengthOf(3);
+      should(res).eql([0, 1, 2]);
+    });
+
+    it('should map data and provide new array', () => {
+      let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let res = lunaris.collectionResultSet('@db').map((item, i, newArray) => newArray.length).data();
+
+      should(res).have.lengthOf(3);
+      should(res).eql([0, 1, 2]);
+    });
   });
 
   describe('reduce', () => {
@@ -477,6 +503,34 @@ describe('collectionResultSet', () => {
 
       let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
       should(res).eql(12);
+    });
+
+    it('should map by providing i and reduce data', () => {
+      let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let mapFn    = (item, i) => i;
+      let reduceFn = (accu, value) => accu + value;
+
+      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
+      should(res).eql(3);
+    });
+
+    it('should map by providing newArray and reduce data', () => {
+      let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
+
+      items.forEach(item => {
+        lunaris._stores.db.data.add(item);
+      });
+
+      let mapFn    = (item, i, newArray) => newArray.length;
+      let reduceFn = (accu, value) => accu + value;
+
+      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
+      should(res).eql(3);
     });
 
     it('should clone data', () => {
