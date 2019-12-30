@@ -424,6 +424,11 @@ function CollectionResultSet (store) {
 
   // Init result set
   var _store      = storeUtils.getStore(store);
+
+  if (_store.isStoreObject) {
+    throw new Error('Cannot initialize a CollectionResultSet on a store object');
+  }
+
   var _collection = storeUtils.getCollection(_store);
   _data = utils.clone(_collection.getAll());
 

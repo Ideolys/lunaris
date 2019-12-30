@@ -56,6 +56,17 @@ describe('collectionResultSet', () => {
     }
   });
 
+  it('should throw an error if store is a store object', () => {
+    try {
+      lunaris._stores.db2               = initStore('db2');
+      lunaris._stores.db2.isStoreObject = true;
+      lunaris.collectionResultSet('@db2');
+    }
+    catch (e) {
+      should(e.message).eql('Cannot initialize a CollectionResultSet on a store object');
+    }
+  });
+
   it('should have defined public properties', () => {
     should(lunaris.collectionResultSet('@db')).keys(
       'count',
