@@ -9,13 +9,11 @@
   "dependencies": {
     "dayjs": "1.7.5-ideolys",
     "graphlib": "2.1.5",
-    "intersection-observer": "0.5.0",
     "pako": "1.0.6",
     "promise-polyfill": "8.1.0",
     "serialize-javascript": "1.7.0",
     "timsort": "0.3.0",
     "vue": "2.6.2",
-    "vue-observe-visibility": "0.4.3",
     "vue-router": "3.0.1",
     "vue-template-compiler": "2.6.2",
     "vue-template-es2015-compiler": "1.6.0",
