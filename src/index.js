@@ -16,6 +16,7 @@ var invalidate          = require('./invalidate.js');
 var debug               = require('./debug.js');
 var lazyLoad            = require('./store/crud/_lazyLoad.js');
 var collectionResultSet = require('./store/store.collectionResultSet.js');
+var dynamicView         = require('./store/store.dynamicView.js');
 
 utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
 
@@ -33,6 +34,7 @@ module.exports = {
   _initStore          : lazyLoad.load,
 
   collectionResultSet : collectionResultSet,
+  dynamicView         : dynamicView,
 
   debug : debug,
 
