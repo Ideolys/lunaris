@@ -25,7 +25,6 @@ function dynamicView (store, options) {
       return;
     }
 
-    _hasBeenMaterialized = true;
     _dynamicView.materialize();
   }
 
@@ -114,7 +113,8 @@ function dynamicView (store, options) {
    * @pulbic
    */
   _dynamicView.materialize = function materialize () {
-    _data = collectionResultSet(store).data();
+    _data                = collectionResultSet(store).data();
+    _hasBeenMaterialized = true;
   };
 
   hooks.hook('get@'    + _store.name, update);
@@ -122,6 +122,12 @@ function dynamicView (store, options) {
   hooks.hook('update@' + _store.name, update);
   hooks.hook('delete@' + _store.name, remove);
   hooks.hook('reset@'  + _store.name, reset);
+
+  /**
+   * Expose for internal use
+   */
+  _dynamicView._update = update;
+  _dynamicView._remove = remove;
 
   return _dynamicView;
 }

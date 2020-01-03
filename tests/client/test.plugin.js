@@ -13,6 +13,9 @@ describe('Store plugin', () => {
     lastError = [];
     lastTip   = [];
     lunaris._vue._vm.$data.$stores['test'].state.splice(0); // reset
+    lunaris._resetVersionNumber();
+    lunaris._stores.testObject.data.clear();
+    lunaris._stores.test.data.clear();
   });
 
   it('store define state in vue data', () => {
@@ -23,7 +26,8 @@ describe('Store plugin', () => {
       silent        : true,
       state         : [],
       isStoreObject : false,
-      form          : {}
+      form          : {},
+      view          : null
     });
   });
 
@@ -100,7 +104,46 @@ describe('Store plugin', () => {
     });
     var _hooks = Object.keys(lunaris._stores.test.hooks);
     should(_hooks).eql([
-      'success', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
+      'success', 'errorHttp', 'error', 'get', 'insert', 'update', 'delete', 'reset'
+    ]);
+
+    should(lunaris._stores.test.hooks.success).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.success[0].name).eql('successHttp');
+
+    should(lunaris._stores.test.hooks.errorHttp).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.errorHttp[0].name).eql('errorHttp');
+
+    should(lunaris._stores.test.hooks.error).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.error[0].name).eql('errorHttp');
+
+    should(lunaris._stores.test.hooks.get).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.get[0].name).eql('update');
+
+    should(lunaris._stores.test.hooks.reset).have.lengthOf(2);
+    should(lunaris._stores.test.realHooks.reset[0].name).eql('reset');
+    should(lunaris._stores.test.realHooks.reset[1].name).eql('resetMagic');
+
+    should(lunaris._stores.test.hooks.insert).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.insert[0].name).eql('update');
+
+    should(lunaris._stores.test.hooks.update).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.update[0].name).eql('update');
+
+    should(lunaris._stores.test.hooks.delete).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.delete[0].name).eql('remove');
+    vm.$destroy();
+  });
+
+  it('reset hook must be not destroyed when component is', () => {
+    const vm = new Vue({
+      el     : '#app',
+      stores : ['test'],
+    });
+    vm.$destroy();
+    var _hooks = Object.keys(lunaris._stores.test.hooks);
+
+    should(_hooks).eql([
+      'success', 'errorHttp', 'error', 'get', 'insert', 'update', 'delete', 'reset'
     ]);
 
     should(lunaris._stores.test.hooks.success).have.lengthOf(1);
@@ -125,50 +168,7 @@ describe('Store plugin', () => {
     should(lunaris._stores.test.realHooks.update[0].name).eql('update');
 
     should(lunaris._stores.test.hooks.delete).have.lengthOf(1);
-    should(lunaris._stores.test.realHooks.delete[0].name).eql('deleteItem');
-    vm.$destroy();
-  });
-
-  it('success and error hooks must be not destroyed when component is', () => {
-    const vm = new Vue({
-      el     : '#app',
-      stores : ['test'],
-    });
-    vm.$destroy();
-    var _hooks = Object.keys(lunaris._stores.test.hooks);
-
-    should(_hooks).eql([
-      'success', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
-    ]);
-
-    should(lunaris._stores.test.hooks.success).have.lengthOf(1);
-    should(lunaris._stores.test.realHooks.success[0].name).eql('successHttp');
-
-    should(lunaris._stores.test.hooks.errorHttp).have.lengthOf(1);
-    should(lunaris._stores.test.realHooks.errorHttp[0].name).eql('errorHttp');
-
-    should(lunaris._stores.test.hooks.error).have.lengthOf(1);
-    should(lunaris._stores.test.realHooks.error[0].name).eql('errorHttp');
-    vm.$destroy();
-  });
-
-  it('other hooks must be not destroyed when component is', () => {
-    const vm = new Vue({
-      el     : '#app',
-      stores : ['test'],
-    });
-    vm.$destroy();
-    var _hooks = Object.keys(lunaris._stores.test.hooks);
-
-    should(_hooks).eql([
-      'success', 'errorHttp', 'error', 'get', 'reset', 'insert', 'update', 'delete'
-    ]);
-
-    should(lunaris._stores.test.hooks.get).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.reset).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.insert).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.update).have.lengthOf(1);
-    should(lunaris._stores.test.hooks.delete).have.lengthOf(1);
+    should(lunaris._stores.test.realHooks.delete[0].name).eql('remove');
     vm.$destroy();
   });
 
@@ -621,7 +621,6 @@ describe('Store plugin', () => {
       });
       should(lastError.length).eql(0);
       vm.$destroy();
-      lunaris._resetVersionNumber();
     });
 
     it('should rollback the inserted item', () => {
@@ -644,28 +643,32 @@ describe('Store plugin', () => {
       });
       should(lunaris.utils.clone(vm.$test)).eql([]);
       vm.$destroy();
-      lunaris._stores.test.data.clear();
-      lunaris._resetVersionNumber();
     });
 
-    it('should rollback the inserted item : store object', () => {
+    it('should rollback the inserted item : store object', done => {
       const vm = new Vue({
         el     : '#app',
         stores : ['testObject'],
       });
 
+      const hook = () => {
+        should(lunaris.utils.clone(vm.$testObject)).eql({ _rowId : 1, _id : 1, id : 1, _version : [1] });
+        vm.$rollback({
+          storeName : 'testObject',
+          data      : { _rowId : 1, _id : 1, id : 1, _version : [1] },
+          method    : 'POST',
+          version   : 1
+        });
+        should(lunaris.utils.clone(vm.$testObject)).eql({});
+        vm.$destroy();
+
+        lunaris.removeHook('insert@testObject', hook);
+        done();
+      };
+
+      lunaris.hook('insert@testObject', hook);
+
       lunaris.insert('@testObject', { id : 1 });
-      should(lunaris.utils.clone(vm.$testObject)).eql({ _rowId : 1, _id : 1, id : 1, _version : [1] });
-      vm.$rollback({
-        storeName : 'testObject',
-        data      : { _rowId : 1, _id : 1, id : 1, _version : [1] },
-        method    : 'POST',
-        version   : 1
-      });
-      should(lunaris.utils.clone(vm.$testObject)).eql({});
-      vm.$destroy();
-      lunaris._stores.testObject.data.clear();
-      lunaris._resetVersionNumber();
     });
 
     it('should rollback the inserted items', () => {
@@ -690,8 +693,6 @@ describe('Store plugin', () => {
       });
       should(lunaris.utils.clone(vm.$test)).eql([]);
       vm.$destroy();
-      lunaris._stores.test.data.clear();
-      lunaris._resetVersionNumber();
     });
 
     it('should rollback the updated item', () => {
@@ -716,8 +717,6 @@ describe('Store plugin', () => {
         { _rowId : 3, _id : 1, id : 1, _version : [3] }
       ]);
       vm.$destroy();
-      lunaris._stores.test.data.clear();
-      lunaris._resetVersionNumber();
     });
 
     it('should rollback the updated item : store object', () => {
@@ -738,8 +737,6 @@ describe('Store plugin', () => {
       });
       should(lunaris.utils.clone(vm.$testObject)).eql({ _rowId : 3, id : 1, _id : 1, _version : [3] });
       vm.$destroy();
-      lunaris._stores.testObject.data.clear();
-      lunaris._resetVersionNumber();
     });
 
     it('should rollback the updated items', () => {
@@ -771,8 +768,6 @@ describe('Store plugin', () => {
         { _rowId : 5, _id : 2, id : 2, _version : [3] }
       ]);
       vm.$destroy();
-      lunaris._stores.test.data.clear();
-      lunaris._resetVersionNumber();
     });
 
     it('should rollback the deleted item', () => {
@@ -792,8 +787,6 @@ describe('Store plugin', () => {
       });
       should(lunaris.utils.clone(vm.$test)).eql([{ _rowId : 2, _id : 1, id : 1, _version : [3] }]);
       vm.$destroy();
-      lunaris._stores.test.data.clear();
-      lunaris._resetVersionNumber();
     });
 
     it('should rollback the inserted item : store object', () => {
@@ -813,8 +806,6 @@ describe('Store plugin', () => {
       });
       should(lunaris.utils.clone(vm.$testObject)).eql({ _rowId : 2, _id : 1, id : 1, _version : [3] });
       vm.$destroy();
-      lunaris._stores.testObject.data.clear();
-      lunaris._resetVersionNumber();
     });
 
   });

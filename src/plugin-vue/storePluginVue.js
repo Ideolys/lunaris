@@ -15,11 +15,14 @@ lunaris._vue = {
           if (!message || lunaris._vue._isVueOffline) {
             return;
           }
-          _this.$buefy.toast.open({
-            message  : message,
-            type     : 'is-success',
-            position : 'is-top-right'
-          });
+
+          if (_this.$buefy) {
+            _this.$buefy.toast.open({
+              message  : message,
+              type     : 'is-success',
+              position : 'is-top-right'
+            });
+          }
         };
       }
 
@@ -48,12 +51,14 @@ lunaris._vue = {
           //   onAction   : onAction
           // });
 
-          _this.$buefy.toast.open({
-            message  : err.error,
-            type     : 'is-danger',
-            position : 'is-top-right',
-            duration : 3000
-          });
+          if (_this.$buefy) {
+            _this.$buefy.toast.open({
+              message  : err.error,
+              type     : 'is-danger',
+              position : 'is-top-right',
+              duration : 3000
+            });
+          }
         };
       }
 
@@ -67,7 +72,8 @@ lunaris._vue = {
           silent        : true,
           isStoreObject : lunaris._stores[_stores[i]].isStoreObject,
           state         : lunaris._stores[_stores[i]].isStoreObject ? {} : [],
-          form          : lunaris.getDefaultValue('@' + _stores[i])
+          form          : lunaris.getDefaultValue('@' + _stores[i]),
+          view          : null
         });
 
         if (_stores[i].name !== 'lunarisErrors') {
@@ -116,16 +122,18 @@ lunaris._vue = {
      * Set _reset hook handler
      * @param {String} store
      */
-    function _reset (store) {
+    function _resetStoreObject (store) {
       return function reset () {
-        var _storeObj = lunaris._vue._vm.$data.$stores[store];
-        if (_storeObj.isStoreObject) {
-          return Vue.set(lunaris._vue._vm.$data.$stores[store], 'state', {});
-        }
-        else {
-          _storeObj.state.splice(0);
-        }
+        return Vue.set(lunaris._vue._vm.$data.$stores[store], 'state', {});
+      };
+    }
 
+    /**
+     * Set _reset hook handler
+     * @param {String} store
+     */
+    function _resetMagic (store) {
+      return function resetMagic () {
         if (lunaris._stores[store].isAutoRequest !== false) {
           lunaris.get('@' + store);
         }
@@ -136,64 +144,12 @@ lunaris._vue = {
      * Set _update hook handler
      * @param {String} store
      */
-    function _update (store) {
+    function _updateStoreObject (store) {
       return function update (items) {
-        var _storeObj = lunaris._vue._vm.$data.$stores[store];
-        if (_storeObj.isStoreObject) {
-          if (Array.isArray(items)) {
-            items = items[0];
-          }
-          return Vue.set(lunaris._vue._vm.$data.$stores[store], 'state', items);
+        if (Array.isArray(items)) {
+          items = items[0];
         }
-
-        if (!Array.isArray(items)) {
-          items = [items];
-        }
-
-        var _state        = _storeObj.state;
-        var _hasBeenFound = false;
-        for (var i = 0; i < items.length; i++) {
-          for (var j = 0; j < _state.length; j++) {
-            if (_state[j]._id === items[i]._id) {
-              Vue.set(_state, j, items[i]);
-              // _state.splice(j, 1, items[i]);
-              _hasBeenFound = true;
-              break;
-            }
-          }
-
-          if (!_hasBeenFound) {
-            _state.push(items[i]);
-          }
-
-          _hasBeenFound = false;
-        }
-      };
-    }
-
-    /**
-     * Set _delete hook handler
-     * @param {String} store
-     */
-    function _delete (store) {
-      return function deleteItem (item) {
-        var _storeObj = lunaris._vue._vm.$data.$stores[store];
-        if (_storeObj.isStoreObject) {
-          return Vue.set(lunaris._vue._vm.$data.$stores[store], 'state', {});
-        }
-
-        if (!Array.isArray(item)) {
-          item = [item];
-        }
-
-        var _state = _storeObj.state;
-        for (var i = 0; i < item.length; i++) {
-          for (var j = 0; j < _state.length; j++) {
-            if (_state[j]._id === item[i]._id) {
-              _state.splice(j, 1);
-            }
-          }
-        }
+        return Vue.set(lunaris._vue._vm.$data.$stores[store], 'state', items);
       };
     }
 
@@ -211,7 +167,7 @@ lunaris._vue = {
         return lunaris.logger.tip('Please register a store with: vm.stores = [<store>, ...]');
       }
 
-      _this.$options.internalStoreHooks = {};
+      _this.$options.internalMagicHooks = [];
 
       for (var i = 0; i < _stores.length; i++) {
         var _store = _stores[i];
@@ -241,21 +197,40 @@ lunaris._vue = {
           _this.$options.storeHooks = {};
         }
 
-        var _resetFn   = _reset(_store);
-        var _updateFn  = _update(_store);
-        var _deleteFn  = _delete(_store);
+        if (lunaris._stores[_store].isStoreObject) {
+          var _resetFn  = _resetStoreObject(_store);
+          var _updateFn = _updateStoreObject(_store);
 
-        _this.$options.internalStoreHooks[_store] = [
-          ['get@'       + _store, _updateFn, true],
-          ['reset@'     + _store, _resetFn , true],
-          ['insert@'    + _store, _updateFn, true],
-          ['update@'    + _store, _updateFn, true],
-          ['delete@'    + _store, _deleteFn, true]
-        ];
+          var hooks = [
+            ['get@'       + _store, _updateFn, true],
+            ['reset@'     + _store, _resetFn , true],
+            ['insert@'    + _store, _updateFn, true],
+            ['update@'    + _store, _updateFn, true],
+            ['delete@'    + _store, _resetFn , true]
+          ];
 
-        for (var k = 0; k < _this.$options.internalStoreHooks[_store].length; k++) {
-          lunaris.hook.apply(null, _this.$options.internalStoreHooks[_store][k]);
+          for (var k = 0; k < hooks.length; k++) {
+            lunaris.hook.apply(null, hooks[k]);
+          }
+
+          continue;
         }
+
+        if (!lunaris._vue._vm.$data.$stores[_store].view) {
+          var dynamicView = lunaris.dynamicView(_store, { shouldNotInitialize : true });
+          lunaris._vue._vm.$data.$stores[_store].view  = dynamicView;
+          lunaris._vue._vm.$data.$stores[_store].state = dynamicView.data();
+        }
+
+        if (lunaris._stores[_store].isAutoRequest === false) {
+          continue;
+        }
+
+        _this.$options.internalMagicHooks.push(['reset@' + _store, _resetMagic(_store)]);
+      }
+
+      for (k = 0; k < _this.$options.internalMagicHooks.length; k++) {
+        lunaris.hook.apply(null, _this.$options.internalMagicHooks[k]);
       }
     }
 
@@ -305,18 +280,13 @@ lunaris._vue = {
         }
       }
 
-      var _internalHooks = _this.$options.internalStoreHooks;
-      if (!_internalHooks) {
+      if (!_this.$options.internalMagicHooks) {
         return;
       }
 
-      // var _internalHookKeys = Object.keys(_internalHooks);
-      // for (i = 0; i < _internalHookKeys.length; i++) {
-      //   _hooks = _internalHooks[_internalHookKeys[i]];
-      //   for (var j = 0; j < _hooks.length; j++) {
-      //     lunaris.removeHook.apply(null, _hooks[j]);
-      //   }
-      // }
+      for (var j = 0; j < _this.$options.internalMagicHooks.length; j++) {
+        lunaris.removeHook.apply(null, _this.$options.internalMagicHooks[j]);
+      }
     }
 
 
@@ -363,6 +333,30 @@ lunaris._vue = {
       }
     }
 
+    /**
+     * Get rollback data
+     * @param {String} storeName
+     * @param {Array|Object} data
+     */
+    function _getDataForRollback (storeName, data) {
+      var _ids  = [];
+      if (!Array.isArray(data)) {
+        data = [data];
+      }
+
+      for (var i = 0; i < data.length; i++) {
+        if (data[i]._id == null) {
+          return lunaris.warn(['Error in component \'' + this.$options.name + '\':', 'vm.$rollback'], 'Provided data must have a defined \"_id\" key!');
+        }
+        _ids.push(data[i]._id);
+      }
+
+      data = lunaris._stores[storeName].data.getAll(_ids);
+      lunaris.utils.cloneAndFreeze(data);
+
+      return data;
+    }
+
     Vue.mixin({
       beforeCreate : function () {
         _registerStores(this);
@@ -383,41 +377,48 @@ lunaris._vue = {
               (lunarisError && !lunarisError.method) ||
               (lunarisError && !lunarisError.version)
           ) {
-            lunaris.logger.warn(['Error in component \'' + this.$options.name + '\':', 'vm.$rollback'] ,  new Error('The value must be an object and have the properties \"data\" and \"version\" defined!'));
+            lunaris.logger.warn(
+              ['Error in component \'' + this.$options.name + '\':', 'vm.$rollback'] ,  new Error('The value must be an object and have the properties \"data\" and \"version\" defined!'));
             return lunaris.logger.tip('vm.$rollback' ,  'value must be: { data : Object, version : Int, storeName : String, method : String }');
           }
 
           lunaris.rollback('@' + lunarisError.storeName, lunarisError.version);
 
+          var _store = lunaris._vue._vm.$data.$stores[lunarisError.storeName];
+
           if (lunarisError.method === lunaris.OPERATIONS.INSERT) {
-            return _delete(lunarisError.storeName)(lunarisError.data);
+            if (_store.isStoreObject) {
+              _resetStoreObject(lunarisError.storeName)();
+              return;
+            }
+
+            if (_store.view) {
+              _store.view._remove(lunaris.utils.cloneAndFreeze(lunarisError.data));
+            }
           }
+
+
           if (lunarisError.method === lunaris.OPERATIONS.UPDATE) {
-            var _data = lunarisError.data;
-            var _ids  = [];
-            if (!Array.isArray(_data)) {
-              _data = [_data];
+            var _data = _getDataForRollback(lunarisError.storeName, lunarisError.data);
+            if (_store.isStoreObject) {
+              _updateStoreObject(lunarisError.storeName)(_data);
+              return;
             }
 
-            for (var i = 0; i < _data.length; i++) {
-              if (!_data[i]._id) {
-                return lunaris.warn(['Error in component \'' + this.$options.name + '\':', 'vm.$rollback'], 'Provided data must have a defined \"_id\" key!');
-              }
-              _ids.push(_data[i]._id);
+            if (_store.view) {
+              _store.view._update(_data);
             }
-
-            _data = lunaris._stores[lunarisError.storeName].data.getAll(_ids);
-            for (var j = 0; j < _data.length; j++) {
-              _data[j] = lunaris.utils.cloneAndFreeze(_data[j]);
-            }
-
-            return _update(lunarisError.storeName)(_data);
           }
+
           if (lunarisError.method === lunaris.OPERATIONS.DELETE) {
-            _data = lunaris._stores[lunarisError.storeName].data.get(lunarisError.data._id);
-            if (_data) {
-              lunaris.utils.cloneAndFreeze(_data);
-              _update(lunarisError.storeName)(_data);
+            _data = _getDataForRollback(lunarisError.storeName, lunarisError.data);
+            if (_store.isStoreObject) {
+              _updateStoreObject(lunarisError.storeName)(_data);
+              return;
+            }
+
+            if (_store.view) {
+              _store.view._update(_data);
             }
           }
         };
