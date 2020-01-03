@@ -117,6 +117,17 @@ function dynamicView (store, options) {
     _hasBeenMaterialized = true;
   };
 
+  /**
+   * Destroy view: remove hooks
+   */
+  _dynamicView.destroy = function destroy () {
+    hooks.removeHook('get@'    + _store.name, update);
+    hooks.removeHook('insert@' + _store.name, update);
+    hooks.removeHook('update@' + _store.name, update);
+    hooks.removeHook('delete@' + _store.name, remove);
+    hooks.removeHook('reset@'  + _store.name, reset);
+  };
+
   hooks.hook('get@'    + _store.name, update);
   hooks.hook('insert@' + _store.name, update);
   hooks.hook('update@' + _store.name, update);

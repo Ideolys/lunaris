@@ -17,10 +17,16 @@ eval(buildLunaris({
 lunaris._stores.db         = initStore('db');
 lunaris._stores.db.isLocal = true;
 
+let dynamicView = null;
+
 describe('Dynamic view', () => {
 
   beforeEach(() => {
     lunaris._stores.db.data.clear();
+
+    if (dynamicView) {
+      dynamicView.destroy();
+    }
   });
 
   it('should be defined', () => {
@@ -48,7 +54,7 @@ describe('Dynamic view', () => {
 
   it('should not throw an error if store exists', () => {
     try {
-      lunaris.dynamicView('@db');
+      dynamicView = lunaris.dynamicView('@db');
     }
     catch (e) {
       should(e).eql(undefined);
@@ -67,26 +73,30 @@ describe('Dynamic view', () => {
   });
 
   it('should have defined public properties', () => {
-    should(lunaris.dynamicView('@db')).be.an.Object();
-    should(lunaris.dynamicView('@db')).keys(
+    dynamicView = lunaris.dynamicView('@db');
+    should(dynamicView).be.an.Object();
+    should(dynamicView).keys(
       'data',
       'count',
-      'materialize'
+      'materialize',
+      'destroy'
     );
   });
 
   it('should be chainable', () => {
-    should(lunaris.dynamicView('@db').data).be.a.Function();
+    dynamicView = lunaris.dynamicView('@db');
+    should(dynamicView.data).be.a.Function();
   });
 
   it('should init data with an empty array', () => {
-    should(lunaris.dynamicView('@db').data()).eql([]);
+    dynamicView = lunaris.dynamicView('@db');
+    should(dynamicView.data()).eql([]);
   });
 
   describe('shouldNotInitialize = false @default', () => {
 
     it('should materialize when calling @data', () => {
-      let dynamicView = lunaris.dynamicView('@db');
+      dynamicView = lunaris.dynamicView('@db');
       lunaris._stores.db.data.add({ id : 1 });
       lunaris._stores.db.data.add({ id : 2 });
 
@@ -97,7 +107,7 @@ describe('Dynamic view', () => {
     });
 
     it('should materialize when calling @count', () => {
-      let dynamicView = lunaris.dynamicView('@db');
+      dynamicView = lunaris.dynamicView('@db');
       lunaris._stores.db.data.add({ id : 1 });
       lunaris._stores.db.data.add({ id : 2 });
 
@@ -106,7 +116,7 @@ describe('Dynamic view', () => {
     });
 
     it('should not materialize when calling each time @data', () => {
-      let dynamicView = lunaris.dynamicView('@db');
+      dynamicView = lunaris.dynamicView('@db');
       lunaris._stores.db.data.add({ id : 1 });
       lunaris._stores.db.data.add({ id : 2 });
 
@@ -120,7 +130,7 @@ describe('Dynamic view', () => {
     });
 
     it('should not materialize when calling each time @count', () => {
-      let dynamicView = lunaris.dynamicView('@db');
+      dynamicView = lunaris.dynamicView('@db');
       lunaris._stores.db.data.add({ id : 1 });
       lunaris._stores.db.data.add({ id : 2 });
 
@@ -132,7 +142,7 @@ describe('Dynamic view', () => {
     });
 
     it('should materialize when calling @materialize', () => {
-      let dynamicView = lunaris.dynamicView('@db');
+      dynamicView = lunaris.dynamicView('@db');
       lunaris._stores.db.data.add({ id : 1 });
       lunaris._stores.db.data.add({ id : 2 });
 
@@ -147,14 +157,14 @@ describe('Dynamic view', () => {
 
   describe('shouldNotInitialize = true', () => {
     it('should watch store : get', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'get', [{ _id : 1 }, { _id : 2 }]);
       should(dynamicView.count()).eql(2);
       should(dynamicView.data()).eql([{ _id : 1 }, { _id : 2 }]);
     });
 
     it('should watch store and not duplicate items : get', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'get', [{ _id : 1 }, { _id : 2 }]);
       lunaris.pushToHandlers(lunaris._stores.db, 'get', [{ _id : 1 }, { _id : 3 }]);
       should(dynamicView.count()).eql(3);
@@ -162,21 +172,21 @@ describe('Dynamic view', () => {
     });
 
     it('should watch store : insert one item', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', { _id : 1 });
       should(dynamicView.count()).eql(1);
       should(dynamicView.data()).eql([{ _id : 1 }]);
     });
 
     it('should watch store : insert multiple items', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', [{ _id : 1 }, { _id : 2 }]);
       should(dynamicView.count()).eql(2);
       should(dynamicView.data()).eql([{ _id : 1 }, { _id : 2 }]);
     });
 
     it('should watch store : update one item', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', { _id : 1 });
       lunaris.pushToHandlers(lunaris._stores.db, 'update', { _id : 1, label : 'A' });
       should(dynamicView.count()).eql(1);
@@ -184,7 +194,7 @@ describe('Dynamic view', () => {
     });
 
     it('should watch store : update with _id = 0', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', { _id : 0 });
       lunaris.pushToHandlers(lunaris._stores.db, 'update', { _id : 0, label : 'A' });
       should(dynamicView.count()).eql(1);
@@ -192,7 +202,7 @@ describe('Dynamic view', () => {
     });
 
     it('should watch store : update multiple items', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', [{ _id : 1 }, { _id : 2 }]);
       lunaris.pushToHandlers(lunaris._stores.db, 'update', [{ _id : 1, label : 'A' }, { _id : 2, label : 'B' }]);
       should(dynamicView.count()).eql(2);
@@ -200,7 +210,7 @@ describe('Dynamic view', () => {
     });
 
     it('should watch store : upsert an item', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', { _id : 1 });
       lunaris.pushToHandlers(lunaris._stores.db, 'update', { _id : 2 });
       should(dynamicView.count()).eql(2);
@@ -208,7 +218,7 @@ describe('Dynamic view', () => {
     });
 
     it('should watch store : upsert multiple items', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', [{ _id : 1 }, { _id : 2 }]);
       lunaris.pushToHandlers(lunaris._stores.db, 'update', [{ _id : 1, label : 'A' }, { _id : 3 }]);
       should(dynamicView.count()).eql(3);
@@ -216,7 +226,7 @@ describe('Dynamic view', () => {
     });
 
     it('should watch store : delete one item', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', { _id : 1 });
       lunaris.pushToHandlers(lunaris._stores.db, 'delete', { _id : 1 });
       should(dynamicView.count()).eql(0);
@@ -224,7 +234,7 @@ describe('Dynamic view', () => {
     });
 
     it('should watch store : delete multiple items', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', [{ _id : 1 }, { _id : 2 }]);
       lunaris.pushToHandlers(lunaris._stores.db, 'delete', [{ _id : 1 }, { _id : 2 }]);
       should(dynamicView.count()).eql(0);
@@ -232,7 +242,7 @@ describe('Dynamic view', () => {
     });
 
     it('should watch store : delete an item not in the view', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', [{ _id : 1 }, { _id : 2 }]);
       lunaris.pushToHandlers(lunaris._stores.db, 'delete', { _id : 3 });
       should(dynamicView.count()).eql(2);
@@ -240,19 +250,37 @@ describe('Dynamic view', () => {
     });
 
     it('should watch store : reset an empty view', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'reset');
       should(dynamicView.count()).eql(0);
       should(dynamicView.data()).eql([]);
     });
 
     it('should watch store : reset', () => {
-      let dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
       lunaris.pushToHandlers(lunaris._stores.db, 'insert', [{ _id : 1 }, { _id : 2 }]);
       lunaris.pushToHandlers(lunaris._stores.db, 'reset');
       should(dynamicView.count()).eql(0);
       should(dynamicView.data()).eql([]);
     });
+  });
+
+  it('should remove the hooks when calling destroy', () => {
+    dynamicView = lunaris.dynamicView('@db');
+
+    should(lunaris._stores.db.hooks.get).have.lengthOf(1);
+    should(lunaris._stores.db.hooks.insert).have.lengthOf(1);
+    should(lunaris._stores.db.hooks.update).have.lengthOf(1);
+    should(lunaris._stores.db.hooks.delete).have.lengthOf(1);
+    should(lunaris._stores.db.hooks.reset).have.lengthOf(1);
+
+    dynamicView.destroy();
+
+    should(lunaris._stores.db.hooks.get).have.lengthOf(0);
+    should(lunaris._stores.db.hooks.insert).have.lengthOf(0);
+    should(lunaris._stores.db.hooks.update).have.lengthOf(0);
+    should(lunaris._stores.db.hooks.delete).have.lengthOf(0);
+    should(lunaris._stores.db.hooks.reset).have.lengthOf(0);
   });
 
 });
