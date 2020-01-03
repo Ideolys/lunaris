@@ -255,12 +255,13 @@ describe('builder', () => {
     it('should calculate aggregate value', done => {
       const hook = () => {
         should(lunaris._stores.childAggregateSum.data.getAll()).eql([{
-          _rowId   : 1,
-          _id      : 1,
-          _version : [1],
-          id       : 1,
-          total    : 4,
-          parent   : [
+          _rowId       : 1,
+          _id          : 1,
+          _version     : [1],
+          id           : 1,
+          total        : 4,
+          _total_state : { value : 4 },
+          parent       : [
             {
               id   : 1,
               cost : 1,
