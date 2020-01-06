@@ -1,6 +1,7 @@
-var storeUtils          = require('./store.utils.js');
-var hooks               = require('./store.hook.js');
+var storeUtils          = require('../store.utils.js');
+var hooks               = require('../store.hook.js');
 var collectionResultSet = require('./store.collectionResultSet.js');
+var queryResultSet      = require('./queryResultSet.js');
 
 /**
  * DynamicView that auto-update on store changes
@@ -13,6 +14,7 @@ function dynamicView (store, options) {
   var _dynamicView         = { idIdx : {} };
   var _data                = [];
   var _hasBeenMaterialized = false;
+  var _pipeline            = [];
 
   _dynamicView.shouldNotInitialize = options && options.shouldNotInitialize ? true : false;
 
@@ -37,15 +39,18 @@ function dynamicView (store, options) {
       items = [items];
     }
 
+    var _itemsFiltered = _runPipeline(items);
+
     var _index = _dynamicView.idIdx;
-    for (var i = 0, len = items.length; i < len; i++) {
-      if (_index[items[i]._id] != null) {
-        _data.splice(_index[items[i]._id], 1, items[i]);
+    for (var i = 0, len = _itemsFiltered.length; i < len; i++) {
+      var _item = _itemsFiltered[i];
+      if (_index[_item._id] != null) {
+        _data.splice(_index[_item._id], 1, _item);
         continue;
       }
 
-      _index[items[i]._id] = _data.length;
-      _data.push(items[i]);
+      _index[_item._id] = _data.length;
+      _data.push(_item);
     }
   }
 
@@ -87,6 +92,7 @@ function dynamicView (store, options) {
   function reset () {
     _data.splice(0);
     _dynamicView.idIdx   = {};
+    _pipeline            = [];
     _hasBeenMaterialized = false;
   }
 
@@ -113,8 +119,93 @@ function dynamicView (store, options) {
    * @pulbic
    */
   _dynamicView.materialize = function materialize () {
-    _data                = collectionResultSet(store).data();
+    var _resultSet = collectionResultSet(store);
+
+    for (var i = 0; i < _pipeline.length; i++) {
+      var _criteria = _pipeline[i];
+      _resultSet[_criteria.type].call(null, _criteria.args);
+    }
+
+    _data                = _resultSet.data();
     _hasBeenMaterialized = true;
+  };
+
+  /**
+   * Push find in pipeline
+   * @public
+   * @param {Object} queryResultSet find queryResultSet object from CollectionResultSet.find
+   * @param {*} uid unique identifiant for the find
+   * @returns {DynamicView}
+   */
+  _dynamicView.applyFindCriteria = function applyFindCriteria (queryResultSet, uid) {
+    _pipeline.push({ id : uid, args : queryResultSet, type : 'find' });
+    return _dynamicView;
+  };
+  /**
+   * Push where in pipeline
+   * @public
+   * @param {Function} whereFn where function
+   * @param {*} uid unique identifiant for the find
+   * @returns {DynamicView}
+   */
+  _dynamicView.applyWhereCriteria = function applyWhereCriteria (whereFn, uid) {
+    _pipeline.push({ id : uid, args : whereFn, type : 'where' });
+    return _dynamicView;
+  };
+  /**
+   * Push sort in pipeline
+   * @public
+   * @param {String|Array} sort
+   * @param {*} uid unique identifiant for the find
+   * @returns {DynamicView}
+   */
+  _dynamicView.applySortCriteria = function applySortCriteria (sort, uid) {
+    _pipeline.push({ id : uid, args : sort, type : 'sort' });
+    return _dynamicView;
+  };
+
+  /**
+   * Remove a criteria
+   * @param {*} uid unique identifiant for the criteria to remove
+   * @returns {DynamicView}
+   */
+  _dynamicView.removeCriteria = function removeCriteria (uid) {
+    for (var i = 0, len =_pipeline.length; i < len; i++) {
+      if (_pipeline[i].id === uid && uid) {
+        _pipeline.splice(i, 1);
+        break;
+      }
+    }
+
+    return _dynamicView;
+  };
+  /**
+   * Remove all criterias
+   * @returns {DynamicView}
+   */
+  _dynamicView.removeCriterias = function removeCriterias () {
+    _pipeline = [];
+    return _dynamicView;
+  };
+
+  function _runPipeline (data) {
+    var _resultSet = queryResultSet(data, { shouldClone : false });
+
+    for (var i = 0; i < _pipeline.length; i++) {
+      var _criteria = _pipeline[i];
+      _resultSet[_criteria.type].call(null, _criteria.args);
+    }
+
+    return _resultSet.data();
+  }
+
+  /**
+   * Return a query object
+   * @public
+   * @returns {QueryResultSet}
+   */
+  _dynamicView.resultSet = function resultSet () {
+    return queryResultSet(_data);
   };
 
   /**

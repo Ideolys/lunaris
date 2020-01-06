@@ -15,8 +15,8 @@ var localStorageDriver  = require('./localStorageDriver.js');
 var invalidate          = require('./invalidate.js');
 var debug               = require('./debug.js');
 var lazyLoad            = require('./store/crud/_lazyLoad.js');
-var collectionResultSet = require('./store/store.collectionResultSet.js');
-var dynamicView         = require('./store/store.dynamicView.js');
+var collectionResultSet = require('./store/dataQuery/store.collectionResultSet.js');
+var dynamicView         = require('./store/dataQuery/store.dynamicView.js');
 
 utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
 

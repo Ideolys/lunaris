@@ -6,7 +6,7 @@ const buildLunaris       = require('../lib/builder').buildLunaris;
 const dayjs              = require('dayjs');
 const pako               = require('pako');
 const timsort            = require('timsort');
-const resultSetOperators = require('../src/store/store.collectionResultSet').operators;
+const resultSetOperators = require('../src/store/dataQuery/queryResultSet').operators;
 
 const window = {};
 var lunaris  = {};

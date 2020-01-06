@@ -79,7 +79,13 @@ describe('Dynamic view', () => {
       'data',
       'count',
       'materialize',
-      'destroy'
+      'destroy',
+      'applyFindCriteria',
+      'applySortCriteria',
+      'applyWhereCriteria',
+      'removeCriteria',
+      'removeCriterias',
+      'resultSet'
     );
   });
 
@@ -281,6 +287,213 @@ describe('Dynamic view', () => {
     should(lunaris._stores.db.hooks.update).have.lengthOf(0);
     should(lunaris._stores.db.hooks.delete).have.lengthOf(0);
     should(lunaris._stores.db.hooks.reset).have.lengthOf(0);
+  });
+
+  describe('criterias', () => {
+
+    it('should apply a sort criteria', () => {
+      dynamicView = lunaris.dynamicView('@db');
+      lunaris._stores.db.data.add({ id : 1 });
+      lunaris._stores.db.data.add({ id : 2 });
+      lunaris._stores.db.data.add({ id : 3 });
+
+      dynamicView.applySortCriteria('id DESC');
+
+      let res = dynamicView.data();
+      should(res).have.length(3);
+      should(res[0].id).eql(3);
+      should(res[1].id).eql(2);
+      should(res[2].id).eql(1);
+    });
+
+    it('should apply a find criteria', () => {
+      dynamicView = lunaris.dynamicView('@db');
+      lunaris._stores.db.data.add({ id : 1 });
+      lunaris._stores.db.data.add({ id : 2 });
+      lunaris._stores.db.data.add({ id : 3 });
+
+      dynamicView.applyFindCriteria({ id : 2 });
+
+      let res = dynamicView.data();
+      should(res).have.length(1);
+      should(res[0].id).eql(2);
+    });
+
+    it('should apply a where criteria', () => {
+      dynamicView = lunaris.dynamicView('@db');
+      lunaris._stores.db.data.add({ id : 1 });
+      lunaris._stores.db.data.add({ id : 2 });
+      lunaris._stores.db.data.add({ id : 3 });
+
+      dynamicView.applyWhereCriteria(item => item.id > 1);
+
+      let res = dynamicView.data();
+      should(res).have.length(2);
+      should(res[0].id).eql(2);
+      should(res[1].id).eql(3);
+    });
+
+    it('should materialize with criterias', () => {
+      dynamicView = lunaris.dynamicView('@db');
+      lunaris._stores.db.data.add({ id : 1 });
+      lunaris._stores.db.data.add({ id : 2 });
+      lunaris._stores.db.data.add({ id : 3 });
+
+      dynamicView.applyWhereCriteria(item => item.id > 1);
+      dynamicView.applyFindCriteria({ id : 3 });
+
+      let res = dynamicView.data();
+      should(res).have.length(1);
+      should(res[0].id).eql(3);
+    });
+
+    it('should materialize with criterias', () => {
+      dynamicView = lunaris.dynamicView('@db');
+      lunaris._stores.db.data.add({ id : 1 });
+      lunaris._stores.db.data.add({ id : 2 });
+      lunaris._stores.db.data.add({ id : 3 });
+
+      dynamicView.applyWhereCriteria(item => item.id > 1);
+      dynamicView.applyFindCriteria({ id : 3 });
+
+      let res = dynamicView.data();
+      should(res).have.length(1);
+      should(res[0].id).eql(3);
+    });
+
+    it('should apply criterias for updates : shouldNotInitialize = true', () => {
+      dynamicView = lunaris.dynamicView('@db', { shouldNotInitialize : true });
+      dynamicView.applyWhereCriteria(item => item.type > 1);
+
+      lunaris.pushToHandlers(lunaris._stores.db, 'insert', [{ _id : 1, type : 1 }, { _id : 2, type : 2 }]);
+
+      let res = dynamicView.data();
+      should(res).have.length(1);
+      should(res[0]._id).eql(2);
+
+      lunaris.pushToHandlers(lunaris._stores.db, 'update', { _id : 1, type : 2 });
+
+      res = dynamicView.data();
+      should(res).have.length(2);
+      should(res[0]._id).eql(2);
+      should(res[0]._id).eql(2);
+    });
+
+    it('should apply criterias for updates', () => {
+      dynamicView = lunaris.dynamicView('@db');
+      dynamicView.applyWhereCriteria(item => item.type > 1);
+
+      lunaris._stores.db.data.add({ id : 1, type : 1 });
+      lunaris._stores.db.data.add({ id : 2, type : 2 });
+
+      let res = dynamicView.data();
+      should(res).have.length(1);
+      should(res[0]._id).eql(2);
+
+      lunaris.pushToHandlers(lunaris._stores.db, 'update', { _id : 1, type : 2 });
+
+      res = dynamicView.data();
+      should(res).have.length(2);
+      should(res[0]._id).eql(2);
+      should(res[0]._id).eql(2);
+    });
+
+    it('should remove a find criteria', () => {
+      dynamicView = lunaris.dynamicView('@db');
+      lunaris._stores.db.data.add({ id : 1 });
+      lunaris._stores.db.data.add({ id : 2 });
+      lunaris._stores.db.data.add({ id : 3 });
+
+      dynamicView.applyFindCriteria({ id : 2 }, 'find');
+
+      let res = dynamicView.data();
+      should(res).have.length(1);
+      should(res[0].id).eql(2);
+
+      dynamicView.removeCriteria('find').materialize();
+
+      res = dynamicView.data();
+      should(res).have.length(3);
+      should(res[0].id).eql(1);
+      should(res[1].id).eql(2);
+      should(res[2].id).eql(3);
+    });
+
+    it('should remove a sort criteria', () => {
+      dynamicView = lunaris.dynamicView('@db');
+      lunaris._stores.db.data.add({ id : 1 });
+      lunaris._stores.db.data.add({ id : 2 });
+      lunaris._stores.db.data.add({ id : 3 });
+
+      dynamicView.applySortCriteria('id DESC', 'sort');
+
+      let res = dynamicView.data();
+      should(res).have.length(3);
+      should(res[0].id).eql(3);
+      should(res[1].id).eql(2);
+      should(res[2].id).eql(1);
+
+      dynamicView.removeCriteria('sort').materialize();
+
+      res = dynamicView.data();
+      should(res).have.length(3);
+      should(res[0].id).eql(1);
+      should(res[1].id).eql(2);
+      should(res[2].id).eql(3);
+    });
+
+    it('should remove a where criteria', () => {
+      dynamicView = lunaris.dynamicView('@db');
+      lunaris._stores.db.data.add({ id : 1 });
+      lunaris._stores.db.data.add({ id : 2 });
+      lunaris._stores.db.data.add({ id : 3 });
+
+      dynamicView.applyWhereCriteria(item => item.id > 1, 'where');
+
+      let res = dynamicView.data();
+      should(res).have.length(2);
+      should(res[0].id).eql(2);
+      should(res[1].id).eql(3);
+
+      dynamicView.removeCriteria('where').materialize();
+
+      res = dynamicView.data();
+      should(res).have.length(3);
+      should(res[0].id).eql(1);
+      should(res[1].id).eql(2);
+      should(res[2].id).eql(3);
+    });
+
+    it('should remove criterias', () => {
+      dynamicView = lunaris.dynamicView('@db');
+      lunaris._stores.db.data.add({ id : 1 });
+      lunaris._stores.db.data.add({ id : 2 });
+      lunaris._stores.db.data.add({ id : 3 });
+
+      dynamicView.applyWhereCriteria(item => item.id > 1, 'where');
+      dynamicView.applyFindCriteria({ id : 3 }, 'find');
+
+      let res = dynamicView.data();
+      should(res).have.length(1);
+      should(res[0].id).eql(3);
+
+      dynamicView.removeCriterias().materialize();
+
+      res = dynamicView.data();
+      should(res).have.length(3);
+      should(res[0].id).eql(1);
+      should(res[1].id).eql(2);
+      should(res[2].id).eql(3);
+    });
+
+    it('should get a resultSet object', () => {
+      dynamicView = lunaris.dynamicView('@db');
+
+      let query = dynamicView.resultSet();
+      should(query).be.an.Object();
+      should(query.data).be.a.Function();
+      should(query.count).be.a.Function();
+    });
   });
 
 });
