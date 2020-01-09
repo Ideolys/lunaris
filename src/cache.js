@@ -144,6 +144,8 @@ module.exports = {
    * @param {String} store
    */
   invalidate : function invalidate (store) {
+    store = store.replace(/^@/, '');
+
     _internalInvalidate(store);
     var _aliasStores = cacheGraph[store];
 

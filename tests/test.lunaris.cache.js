@@ -136,6 +136,13 @@ describe('cache', () => {
       should(cache._cache()).eql([]);
     });
 
+    it('should invalidate a store with @', () => {
+      cache.add('store1', md5('/?offset=0&limit=2'), [1, 2]);
+
+      cache.invalidate('@store1');
+      should(cache._cache()).eql([]);
+    });
+
     it('should invalidate the cache for the two stores', () => {
       cache.add('store1', md5('/'), [1, 2]);
       cache.add('store2', md5('/'), [1, 2]);

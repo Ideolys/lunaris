@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.16.0
+  - Features:
+    - `lunaris.invalidate` & `cache.invalidate` supports `@` notation for store key.
+
 ## 1.15.0
 *2020-01-06*
   - Add `lunaris.offline.isOfflineMode` attribute to set offline mode. In online the offline mode capture the invalidations and simulate offline connection.
