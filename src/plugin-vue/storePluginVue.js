@@ -72,7 +72,6 @@ lunaris._vue = {
           silent        : true,
           isStoreObject : lunaris._stores[_stores[i]].isStoreObject,
           state         : lunaris._stores[_stores[i]].isStoreObject ? {} : [],
-          form          : lunaris.getDefaultValue('@' + _stores[i]),
           view          : null
         });
 
@@ -105,18 +104,6 @@ lunaris._vue = {
       });
     }
 
-    /**
-     * Set $storeNameForm value
-     * @param {String} store
-     * @param {Object} _this
-     */
-    function _setFormValue (store, _this) {
-      Object.defineProperty(_this, '_$' + store,  {
-        get : function () {
-          return lunaris._vue._vm.$data.$stores[store].form;
-        }
-      });
-    }
 
     /**
      * Set _reset hook handler
@@ -191,7 +178,6 @@ lunaris._vue = {
         }
 
         _setGet(_store, _this);
-        _setFormValue(_store, _this);
 
         if (!_this.$options.storeHooks) {
           _this.$options.storeHooks = {};
@@ -421,18 +407,6 @@ lunaris._vue = {
               _store.view._update(_data);
             }
           }
-        };
-
-        /**
-         * Clear form for specified store
-         * @param {String} store
-         */
-        this.$clearForm = function clearForm (store) {
-          if (this['$' + store] === undefined) {
-            return lunaris.logger.warn(['Error in component \'' + this.$options.name + '\':', 'vm.$clearForm'], new Error('The store \"' + store + '\" has not been registered!'));
-          }
-
-          lunaris._vue._vm.$data.$stores[store].form = lunaris.getDefaultValue('@' + store);
         };
       },
 

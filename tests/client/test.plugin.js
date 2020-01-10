@@ -26,7 +26,6 @@ describe('Store plugin', () => {
       silent        : true,
       state         : [],
       isStoreObject : false,
-      form          : {},
       view          : null
     });
   });
@@ -493,90 +492,6 @@ describe('Store plugin', () => {
     should(lunaris._vue._vm.$data.$stores.testObject.state).eql({});
 
     vm.$destroy();
-  });
-
-  describe('form', () => {
-    it('store test form should be defined', () => {
-      const vm = new Vue({
-        el     : '#app',
-        stores : ['test'],
-      });
-      should(vm._$test).be.ok();
-      should(vm._$test).eql({});
-      should(Object.isFrozen(vm._$test)).eql(false);
-      vm.$destroy();
-    });
-
-    it('store test form should be defined : storeObject', () => {
-      const vm = new Vue({
-        el     : '#app',
-        stores : ['testObject'],
-      });
-      should(vm._$testObject).be.ok();
-      should(vm._$testObject).eql(lunaris._stores.testObject.meta.defaultValue);
-      should(Object.isFrozen(vm._$testObject)).eql(false);
-      vm.$destroy();
-    });
-
-    it('store test form should be reactive', () => {
-      const vm = new Vue({
-        el     : '#app',
-        stores : ['testObject'],
-      });
-
-      vm._$testObject.id = 1;
-      should(lunaris._vue._vm.$data.$stores.testObject.form.id).eql(1);
-      vm.$destroy();
-    });
-
-    it('clearForm should be defined', () => {
-      const vm = new Vue({
-        el     : '#app',
-        stores : ['testObject'],
-      });
-
-      should(vm.$clearForm).be.ok();
-      should(vm.$clearForm).be.a.Function();
-      vm.$destroy();
-    });
-
-    it('clearForm should throw an error if the store is not defined', () => {
-      const vm = new Vue({
-        name : 'test',
-        el   : '#app',
-      });
-
-      vm.$clearForm('test');
-      should(lastError.length).eql(2);
-      should(lastError[0]).eql('[Lunaris error] Error in component "test": vm.$clearForm');
-      should(lastError[1]).eql(new Error('The store "test" has not been registered!'));
-
-      vm.$destroy();
-    });
-
-    it('clearForm should clear the form', () => {
-      const vm = new Vue({
-        el     : '#app',
-        stores : ['test']
-      });
-
-      vm._$test.id = 1;
-      vm.$clearForm('test');
-      should(lunaris._vue._vm.$data.$stores.test.form).eql(lunaris.getDefaultValue('@test'));
-      vm.$destroy();
-    });
-
-    it('clearForm should clear the form : store object', () => {
-      const vm = new Vue({
-        el     : '#app',
-        stores : ['testObject']
-      });
-
-      vm._$testObject.id = 1;
-      vm.$clearForm('testObject');
-      should(lunaris._vue._vm.$data.$stores.testObject.form).eql(lunaris.getDefaultValue('@testObject'));
-      vm.$destroy();
-    });
   });
 
   describe('rollback', () => {
