@@ -98,14 +98,9 @@ describe('lunaris index', () => {
     should(index.rollback).be.a.Function();
   });
 
-  it('retry() should be defined', () => {
-    should(index.retry).be.ok();
-    should(index.retry).be.a.Function();
-  });
-
   it('getDefaultValue() should be defined', () => {
     should(index.getDefaultValue).be.ok();
-    should(index.retry).be.a.Function();
+    should(index.getDefaultValue).be.a.Function();
   });
 
   it('_resetVersionNumber() should be defined', () => {

@@ -85,29 +85,6 @@ function getOne (store, id, isPrimaryKey) {
 }
 
 /**
- * retry to perform an http request
- * @param {String} store
- * @param {String} url
- * @param {String} method
- * @param {*} data
- * @param {Int} version
- */
-function retry (store, url, method, data, version) {
-  if (method === 'GET') {
-    return getCRUD.get('@' + store, null, { url : url });
-  }
-  if (method === 'PUT') {
-    return upsertCRUD.upsert('@' + store, null, null, { url : url, method : method, data : data, version : version });
-  }
-  if (method === 'POST') {
-    return upsertCRUD.upsert('@' + store, null, null, { url : url, method : method, data : data, version : version });
-  }
-  if (method === 'DELETE') {
-    return deleteCrud.delete('@' + store, null, { url : url, data : data, version : version });
-  }
-}
-
-/**
  * Rollback a store to the specified version
  * @param {String} store
  * @param {Int} version
@@ -227,7 +204,6 @@ exports.update          = upsertCRUD.upsert;
 exports.upsert          = upsertCRUD.upsert;
 exports.delete          = deleteCrud.delete;
 exports.clear           = clearCrud.clear;
-exports.retry           = retry;
 exports.rollback        = rollback;
 exports.getDefaultValue = getDefaultValue;
 exports.validate        = validate;
