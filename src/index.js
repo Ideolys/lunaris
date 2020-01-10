@@ -59,7 +59,6 @@ module.exports = {
   load            : store.load,
   clear           : store.clear,
   rollback        : store.rollback,
-  retry           : store.retry,
   getDefaultValue : store.getDefaultValue,
   validate        : store.validate,
   setPagination   : store.setPagination,
