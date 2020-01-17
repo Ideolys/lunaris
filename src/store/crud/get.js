@@ -31,9 +31,9 @@ function _processNextGetRequest (store) {
     return;
   }
 
-  if (_getRequest.length === 3) {
-    _getRequest = _getRequest.concat([null, _processNextGetRequest]);
-  }
+  // if (_getRequest.length === 3) {
+    _getRequest = _getRequest.concat([_processNextGetRequest]);
+  // }
 
   _get.apply(null, _getRequest);
 }
@@ -57,39 +57,38 @@ function _transformGetCache (collection, values) {
   return collection.commit(_version);
 }
 
+
 /**
- * Get cache values for GET
+ * Return cache values
  * @param {Object} store
  * @param {Object} collection
- * @param {Object} request
- * @param {Int} transactionId
- * @param {Function} callback
- * @param {Function} nextGet handler to call next get in queue
+ * @param {String} request
+ * @param {Array} cacheValues
+ * @param {Object} options
+ * @param {Function} nextGet
  */
-function _getCache (store, collection, request, transactionId, callback, nextGet) {
-  var _cacheValues = cache.get(store.name, md5(request.request));
-  var _values      = [];
+function _returnCacheValues (store, collection, request, cacheValues, options, nextGet) {
+  var _values = [];
 
-  if (_cacheValues) {
-    debug.log(store.name, debug.NAMESPACES.CACHE, 'Get ' + decodeURIComponent(request.request));
+  debug.log(store.name, debug.NAMESPACES.CACHE, 'Get ' + decodeURIComponent(request));
 
-    if (typeof _cacheValues === 'object') {
-      storeUtils.saveState(store, collection);
-      _values = _transformGetCache(collection, store.clone(_cacheValues));
-    }
-
-    return crudUtils.afterAction(store, 'get', _values, null, function () {
-      if (store.isFilter) {
-        return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
-          nextGet('@' + store.name);
-        });
-      }
-
-      nextGet('@' + store.name);
-    });
+  if (typeof cacheValues === 'object') {
+    storeUtils.saveState(store, collection);
+    _values = _transformGetCache(collection, store.clone(cacheValues));
   }
 
-  callback();
+  return crudUtils.afterAction(store, 'get', _values, null, function () {
+    if (store.isFilter) {
+      return hook.pushToHandlers(store, 'filterUpdated', null, options.transactionId, function () {
+
+        options.callback(null, _values);
+        nextGet('@' + store.name);
+      });
+    }
+
+    options.callback(null, _values);
+    nextGet('@' + store.name);
+  });
 }
 
 /**
@@ -97,34 +96,31 @@ function _getCache (store, collection, request, transactionId, callback, nextGet
  * @param {Object} store
  * @param {Object} collection
  * @param {Object} request
- * @param {Integer} transactionId
- * @param {Function} callback
+ * @param {Object} options
  * @param {Function} nextGet handler to call next get in queue
  */
-function _getLocal (store, collection, request, transactionId, callback, nextGet) {
-  if (!offline.isOnline || store.isLocal) {
-    var _res = storeOffline.filter(
-      store,
-      collection,
-      request
-    );
+function _returnLocalValues (store, collection, request, options, nextGet) {
+  var _res = storeOffline.filter(
+    store,
+    collection,
+    request
+  );
 
-    return crudUtils.afterAction(store, 'get', _res, null, function () {
-      if (store.isFilter && ((store.isStoreObject && _res) || (!store.isStoreObject && _res.length))) {
-        return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
-          storeUtils.saveState(store, collection, function () {
-            nextGet('@' + store.name);
-          });
+  crudUtils.afterAction(store, 'get', _res, null, function () {
+    if (store.isFilter && ((store.isStoreObject && _res) || (!store.isStoreObject && _res.length))) {
+      return hook.pushToHandlers(store, 'filterUpdated', null, options.transactionId, function () {
+        storeUtils.saveState(store, collection, function () {
+          options.callback(null, _res);
+          nextGet('@' + store.name);
         });
-      }
-
-      storeUtils.saveState(store, collection, function () {
-        nextGet('@' + store.name);
       });
-    });
-  }
+    }
 
-  callback();
+    storeUtils.saveState(store, collection, function () {
+      options.callback(null, _res);
+      nextGet('@' + store.name);
+    });
+  });
 }
 
 /**
@@ -134,16 +130,16 @@ function _getLocal (store, collection, request, transactionId, callback, nextGet
  * @param {String} request
  * @param {*} primaryKeyValue -> GET /store/:primaryKeyValue
  * @param {Integer} transactionId
- * @param {Function} callback callback for the get
  * @param {Function} nextGet handler to call next get in queue
  */
-function _getHTTP (store, collection, request, primaryKeyValue, transactionId, callback, nextGet) {
+function _getHTTP (store, collection, request, primaryKeyValue, options, nextGet) {
   http.request('GET', request, null, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, 'GET', true);
       upsertCRUD.setLunarisError(store.name, 'GET', request, null, null, err, _error);
       logger.warn(['lunaris.get@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error }, transactionId, function () {
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error }, options.transactionId, function () {
+        options.callback(err);
         nextGet('@' + store.name);
       });
     }
@@ -151,10 +147,12 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
     var _version = collection.begin();
     if (Array.isArray(data)) {
       if (store.isStoreObject) {
+        err = 'The store "' + store.name + '" is an object store. The GET method cannot return multiple elements!';
         logger.warn(
           ['lunaris.get@' + store.name],
-          new Error('The store "' + store.name + '" is an object store. The GET method cannot return multiple elements!')
+          new Error(err)
         );
+        options.callback(err);
         return nextGet('@' + store.name);
       }
 
@@ -179,12 +177,18 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
     crudUtils.propagate(store, data, utils.OPERATIONS.INSERT, function () {
       crudUtils.afterAction(store, 'get', data, null, function () {
         if (store.isFilter) {
-          return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, function () {
-            storeUtils.saveState(store, collection, callback);
+          return hook.pushToHandlers(store, 'filterUpdated', null, options.transactionId, function () {
+            storeUtils.saveState(store, collection, function () {
+              options.callback(null, data);
+              nextGet('@' + store.name);
+            });
           });
         }
 
-        storeUtils.saveState(store, collection, callback);
+        storeUtils.saveState(store, collection, function () {
+          options.callback(null, data);
+          nextGet('@' + store.name);
+        });
       });
     });
   }, { store : store.name });
@@ -194,13 +198,13 @@ function _getHTTP (store, collection, request, primaryKeyValue, transactionId, c
  * Make get
  * @param {String} store
  * @param {*} primaryKeyValue
- * @param {Object} retryOptions {
- *   url,
+ * @param {Object} options {
+ *   transactionId
+ *   callback
  * }
- * @param {Interger} transactionId
- * @param {function} callback _processNextGetRequest(store)
+ * @param {Function} next _processNextGetRequest(store)
  */
-function _get (store, primaryKeyValue, retryOptions, transactionId, callback) {
+function _get (store, primaryKeyValue, options, next) {
   try {
     var _options = crudUtils.beforeAction(store, null, true);
 
@@ -210,33 +214,26 @@ function _get (store, primaryKeyValue, retryOptions, transactionId, callback) {
 
     var _request = '/';
 
-    if (!retryOptions) {
-      _request = url.create(_options.store, 'GET', primaryKeyValue);
-      _options.store.paginationOffset = _options.store.paginationLimit * _options.store.paginationCurrentPage;
-      _options.store.paginationCurrentPage++;
+    _request = url.create(_options.store, 'GET', primaryKeyValue);
+    _options.store.paginationOffset = _options.store.paginationLimit * _options.store.paginationCurrentPage;
+    _options.store.paginationCurrentPage++;
 
-      // required filters condition not fullfilled
-      if (!_request) {
-        return callback(store);
-      }
-
-      return _getCache(_options.store, _options.collection, _request, transactionId, function () {
-        _getLocal(_options.store, _options.collection, _request, transactionId, function () {
-          _request = _request.request;
-          _getHTTP(_options.store, _options.collection, _request, primaryKeyValue, transactionId, function () {
-            // do something at the end of the get
-            callback(store);
-          }, callback);
-        }, callback);
-      }, callback);
+    // required filters condition not fullfilled
+    if (!_request) {
+      options.callback('No url. Maybe the required filters are not set');
+      return next(store);
     }
 
-    _request = retryOptions.url || '/';
+    var _cacheValues = cache.get(store.name, md5(_request.request));
+    if (_cacheValues) {
+      return _returnCacheValues(_options.store, _options.collection, _request.request, _cacheValues, options, next);
+    }
 
-    _getHTTP(_options.store, _options.collection, _request, primaryKeyValue, transactionId, function () {
-      // do something at the end of the get
-      callback(store);
-    }, callback);
+    if (!offline.isOnline || _options.store.isLocal) {
+      return _returnLocalValues(_options.store, _options.collection, _request, options, next);
+    }
+
+    _getHTTP(_options.store, _options.collection, _request.request, primaryKeyValue, options, next);
   }
   catch (e) {
     logger.warn(['lunaris.get' + store], e);
@@ -248,26 +245,48 @@ function _get (store, primaryKeyValue, retryOptions, transactionId, callback) {
  * Get values
  * @param {String} store
  * @param {*} primaryKeyValue
- * @param {Object} retryOptions {
- *   url,
- * }
+ * @param {Object} options @optional
+ * @param {Function}
  */
-function get (store, primaryKeyValue, retryOptions) {
+function get (store, primaryKeyValue, options, callback) {
   if (!getRequestQueue[store]) {
     getRequestQueue[store] = [];
   }
 
+  if (typeof primaryKeyValue === 'function') {
+    callback        = primaryKeyValue;
+    primaryKeyValue = null;
+  }
+
+  if (typeof options === 'function') {
+    callback = options;
+    options  = null;
+  }
+
+  if (typeof primaryKeyValue === 'object') {
+    options         = primaryKeyValue;
+    primaryKeyValue = null;
+  }
+
+  if (!options) {
+    options = {};
+  }
+
+  options.callback = callback || function () {};
+
   if (transaction.isTransaction) {
+    options.transactionId = transaction.getCurrentTransactionId();
+
     return transaction.addAction({
-      id        : transaction.getCurrentTransactionId(),
+      id        : options.transactionId,
       store     : store.replace('@', ''),
       operation : OPERATIONS.LIST,
       handler   : _get,
-      arguments : [store, primaryKeyValue, retryOptions, transaction.getCurrentTransactionId()]
+      arguments : [store, primaryKeyValue, options]
     });
   }
 
-  getRequestQueue[store].push([store, primaryKeyValue, retryOptions]);
+  getRequestQueue[store].push([store, primaryKeyValue, options]);
 
   if (getRequestQueue[store].length === 1) {
     _processNextGetRequest(store);

@@ -5,6 +5,7 @@
     - `lunaris.invalidate` & `cache.invalidate` supports `@` notation for store key.
     - Remove `lunaris.retry`.
     - Remove form features.
+    - `lunaris.get` accepts callback : `lunaris.get(store, PK, callback)`
 
 ## 1.15.0
 *2020-01-06*

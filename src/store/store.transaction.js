@@ -153,60 +153,6 @@ function _processNextAction (iterator, transactionId, callback) {
 }
 
 /**
- * Rollback an action
- */
-/* function rollback () {
-  var _actionsToRollback = [];
-  for (var i = currentActionIndex - 1; i >= 0; i--) {
-    var _operation = OPERATIONS.UPDATE;
-    var _arguments = [
-      '@' + actions[i].store,
-      actions[i].payload
-    ];
-
-    if (actions[i].operation === OPERATIONS.LIST) {
-      continue;
-    }
-    else if (actions[i].operation === OPERATIONS.INSERT) {
-      _operation = OPERATIONS.DELETE;
-      if (Array.isArray(_arguments[1])) {
-        _arguments[1] = _arguments[1][0];
-        if (_arguments.length > 1) {
-          logger.warn('Rollback error in Begin/Commit, INSERT payload has mulitple item. However, DELETE only supports one item. First item has been used');
-        }
-      }
-    }
-    else if (actions[i].operation === OPERATIONS.DELETE) {
-      var _payload = utils.clone(_arguments[1]);
-      _operation = OPERATIONS.INSERT;
-      if (!Array.isArray(_payload)) {
-        _payload = [_payload];
-      }
-      for (var j = 0; j < _payload.length; j++) {
-        delete _payload[j]._id;
-        delete _payload[j]._version;
-      }
-      if (!Array.isArray(_arguments[1])) {
-        _payload = _payload[0];
-      }
-      _arguments[1] = _payload;
-    }
-
-    _actionsToRollback.push({
-      id        : currentAction.id,
-      store     : actions[i].store,
-      operation : _operation,
-      handler   : actions[i].rollback,
-      arguments : _arguments
-    });
-  }
-
-  actions            = _actionsToRollback;
-  currentActionIndex = -1;
-  _processNextAction();
-} */
-
-/**
  * Reduce stores that have sent filterUpdated or reset event to avoid
  * @param {Int} nbStores number of stores to reset
  * @param {Array} stores stores that have sent a reset or filterUpdated event
