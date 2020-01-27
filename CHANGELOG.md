@@ -5,6 +5,8 @@
     - `lunaris.invalidate` & `cache.invalidate` supports `@` notation for store key.
     - Remove `lunaris.retry`.
     - Remove form features.
+  - Fixes:
+    - Fix builder options.
 
 ## 1.15.0
 *2020-01-06*
