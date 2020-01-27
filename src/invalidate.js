@@ -103,6 +103,7 @@ module.exports = {
           continue;
         }
 
+        logger.info('[Invalidate] ' + stores[index] + ' -> @' + urlsGraph[url][i]);
         store.clear('@' + stores[index]);
         stores.splice(index, 1);
       }
