@@ -7,6 +7,8 @@
     - Remove form features.
   - Fixes:
     - Fix builder options.
+    - Fix urlsGraph generation by supporting filter.attributeUrl values.
+    - Fix lightUrl invalidations by initializing invalidations from the server lightUrls.
 
 ## 1.15.0
 *2020-01-06*
