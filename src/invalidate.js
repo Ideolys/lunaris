@@ -110,16 +110,12 @@ module.exports = {
     }
 
     for (var url in urlsGraph) {
-      if (!lightUrlInvalidations[url] && !clientLightUrlInvalidations[url]) {
-        searchAndRemove(url);
-        continue;
-      }
-
       if (!lightUrlInvalidations[url] && clientLightUrlInvalidations[url]) {
         continue;
       }
 
       if (lightUrlInvalidations[url] && !clientLightUrlInvalidations[url]) {
+        searchAndRemove(url);
         continue;
       }
 
