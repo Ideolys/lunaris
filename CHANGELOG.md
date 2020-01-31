@@ -1,6 +1,7 @@
 # Lunaris
 
-## 1.16.0
+## 1.15.1
+*2020-01-31*
   - Features:
     - `lunaris.invalidate` & `cache.invalidate` supports `@` notation for store key.
     - Remove `lunaris.retry`.
