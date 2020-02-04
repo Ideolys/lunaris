@@ -106,3 +106,10 @@ try {
 catch (e) {
   exports.isOfflineSync = [];
 }
+
+try {
+  exports.version = VERSION;
+}
+catch (e) {
+  exports.version = [];
+}
