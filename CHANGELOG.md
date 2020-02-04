@@ -1,5 +1,12 @@
 # Lunaris
 
+## 1.16.0
+- Features:
+  - Add builder options `injectedCode`. Which is a string injected before `new Vue()` in application mounting point.
+  - Add lunaris version in `lunaris.exports.version`.
+- Fixes:
+  - builder options `lang` is optional.
+
 ## 1.15.1
 *2020-01-31*
   - Features:
