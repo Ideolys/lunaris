@@ -9,29 +9,39 @@ const timsort            = require('timsort');
 const resultSetOperators = require('../src/store/dataQuery/queryResultSet').operators;
 
 const window = {};
-var lunaris  = {};
-eval(buildLunaris({
-  IS_PRODUCTION : false,
-  IS_BROWSER    : false
-}));
-
-lunaris._stores.db         = initStore('db');
-lunaris._stores.db.isLocal = true;
-
+var lunarisGlobal  = {};
 
 describe('collectionResultSet', () => {
+  before(done => {
+    buildLunaris({
+      IS_PRODUCTION : false,
+      IS_BROWSER    : false
+    }, (err, code) => {
+      if (err) {
+        console.log(err);
+      }
+
+      eval(code);
+      lunarisGlobal = lunaris;
+
+      lunarisGlobal._stores.db         = initStore('db');
+      lunarisGlobal._stores.db.isLocal = true;
+
+      done();
+    });
+  });
 
   beforeEach(() => {
-    lunaris._stores.db.data.clear();
+    lunarisGlobal._stores.db.data.clear();
   });
 
   it('should be defined', () => {
-    should(lunaris.collectionResultSet).be.a.Function();
+    should(lunarisGlobal.collectionResultSet).be.a.Function();
   });
 
   it('should throw an error if store does not exist : no @', () => {
     try {
-      lunaris.collectionResultSet('undefinedStore');
+      lunarisGlobal.collectionResultSet('undefinedStore');
     }
     catch (e) {
       should(e.message).eql('The store "undefinedStore" has not been defined');
@@ -40,7 +50,7 @@ describe('collectionResultSet', () => {
 
   it('should throw an error if store does not exist', () => {
     try {
-      lunaris.collectionResultSet('@undefinedStore');
+      lunarisGlobal.collectionResultSet('@undefinedStore');
     }
     catch (e) {
       should(e.message).eql('The store "undefinedStore" has not been defined');
@@ -49,7 +59,7 @@ describe('collectionResultSet', () => {
 
   it('should not throw an error if store exists', () => {
     try {
-      lunaris.collectionResultSet('@db');
+      lunarisGlobal.collectionResultSet('@db');
     }
     catch (e) {
       should(e).eql(undefined);
@@ -58,9 +68,9 @@ describe('collectionResultSet', () => {
 
   it('should throw an error if store is a store object', () => {
     try {
-      lunaris._stores.db2               = initStore('db2');
-      lunaris._stores.db2.isStoreObject = true;
-      lunaris.collectionResultSet('@db2');
+      lunarisGlobal._stores.db2               = initStore('db2');
+      lunarisGlobal._stores.db2.isStoreObject = true;
+      lunarisGlobal.collectionResultSet('@db2');
     }
     catch (e) {
       should(e.message).eql('Cannot initialize a CollectionResultSet on a store object');
@@ -68,7 +78,7 @@ describe('collectionResultSet', () => {
   });
 
   it('should have defined public properties', () => {
-    should(lunaris.collectionResultSet('@db')).keys(
+    should(lunarisGlobal.collectionResultSet('@db')).keys(
       'count',
       'data',
       'map',
@@ -86,17 +96,17 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').data();
+      let res = lunarisGlobal.collectionResultSet('@db').data();
 
       should(res).have.lengthOf(3);
       should(res).eql(items);
     });
 
     it('shouold be the end', () => {
-      let res = lunaris.collectionResultSet('@db').data();
+      let res = lunarisGlobal.collectionResultSet('@db').data();
       should(res.data).not.ok();
     });
 
@@ -104,10 +114,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').data();
+      let res = lunarisGlobal.collectionResultSet('@db').data();
 
       res[0].label = res[0].label.toUpperCase();
       should(res[0]).not.eql(items[0]);
@@ -117,10 +127,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').data({ freeze : true });
+      let res = lunarisGlobal.collectionResultSet('@db').data({ freeze : true });
 
       res.forEach(item => {
         should(Object.isFrozen(item)).eql(true);
@@ -135,10 +145,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort('label');
+      let res = lunarisGlobal.collectionResultSet('@db').sort('label');
       should(res.data).be.ok();
     });
 
@@ -150,10 +160,10 @@ describe('collectionResultSet', () => {
       ];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort(['label', 'category']).data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort(['label', 'category']).data();
 
       should(res).have.lengthOf(3);
       should(res[0].id).eql(3);
@@ -165,10 +175,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort('label').data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort('label').data();
 
       should(res).have.lengthOf(3);
       should(res[0].label).eql('a');
@@ -180,10 +190,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort('label ASC').data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort('label ASC').data();
 
       should(res).have.lengthOf(3);
       should(res[0].label).eql('a');
@@ -195,10 +205,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort('label DESC').data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort('label DESC').data();
 
       should(res).have.lengthOf(3);
       should(res[0].label).eql('c');
@@ -214,10 +224,10 @@ describe('collectionResultSet', () => {
       ];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort(['label', 'type']).data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort(['label', 'type']).data();
 
       should(res).have.lengthOf(3);
       should(res[0].id).eql(3);
@@ -233,10 +243,10 @@ describe('collectionResultSet', () => {
       ];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort(['label', 'type DESC']).data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort(['label', 'type DESC']).data();
 
       should(res).have.lengthOf(3);
       should(res[0].id).eql(3);
@@ -252,10 +262,10 @@ describe('collectionResultSet', () => {
       ];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort(['label DESC', 'type']).data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort(['label DESC', 'type']).data();
 
       should(res).have.lengthOf(3);
       should(res[0].id).eql(1);
@@ -271,10 +281,10 @@ describe('collectionResultSet', () => {
       ];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort(['label DESC', 'type DESC']).data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort(['label DESC', 'type DESC']).data();
 
       should(res).have.lengthOf(3);
       should(res[0].id).eql(2);
@@ -290,10 +300,10 @@ describe('collectionResultSet', () => {
       ];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort(['label', 'type.id']).data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort(['label', 'type.id']).data();
 
       should(res).have.lengthOf(3);
       should(res[0].id).eql(3);
@@ -309,10 +319,10 @@ describe('collectionResultSet', () => {
       ];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort(['label', 'category.id']).data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort(['label', 'category.id']).data();
 
       should(res).have.lengthOf(3);
       should(res[0].id).eql(3);
@@ -328,10 +338,10 @@ describe('collectionResultSet', () => {
       ];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').sort(['label', 'type.id']).data();
+      let res = lunarisGlobal.collectionResultSet('@db').sort(['label', 'type.id']).data();
 
       should(res).have.lengthOf(3);
       should(res[0].id).eql(3);
@@ -343,7 +353,7 @@ describe('collectionResultSet', () => {
   describe('count', () => {
 
     it('should count the number of items : no data', () => {
-      let res = lunaris.collectionResultSet('@db').count();
+      let res = lunarisGlobal.collectionResultSet('@db').count();
       should(res).eql(0);
     });
 
@@ -351,10 +361,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').count();
+      let res = lunarisGlobal.collectionResultSet('@db').count();
       should(res).eql(3);
     });
   });
@@ -365,10 +375,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').map(item => item.label);
+      let res = lunarisGlobal.collectionResultSet('@db').map(item => item.label);
 
       should(res.data).be.ok();
     });
@@ -377,10 +387,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').map(item => item.label).data();
+      let res = lunarisGlobal.collectionResultSet('@db').map(item => item.label).data();
 
       should(res).have.lengthOf(3);
       should(res).eql(['b', 'c', 'a']);
@@ -390,10 +400,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').map(item => {
+      let res = lunarisGlobal.collectionResultSet('@db').map(item => {
         item.label = item.label.toUpperCase();
         return item;
       }).data();
@@ -407,10 +417,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').map((item, i) => i).data();
+      let res = lunarisGlobal.collectionResultSet('@db').map((item, i) => i).data();
 
       should(res).have.lengthOf(3);
       should(res).eql([0, 1, 2]);
@@ -420,10 +430,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').map((item, i, newArray) => newArray.length).data();
+      let res = lunarisGlobal.collectionResultSet('@db').map((item, i, newArray) => newArray.length).data();
 
       should(res).have.lengthOf(3);
       should(res).eql([0, 1, 2]);
@@ -436,10 +446,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').reduce((accu, item) => accu + item.label);
+      let res = lunarisGlobal.collectionResultSet('@db').reduce((accu, item) => accu + item.label);
 
       should(res.data).be.not.ok();
     });
@@ -448,10 +458,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').reduce((accu, item) => accu + item.label);
+      let res = lunarisGlobal.collectionResultSet('@db').reduce((accu, item) => accu + item.label);
       should(res).eql('nullbca');
     });
 
@@ -459,10 +469,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').reduce((accu, item) => {
+      let res = lunarisGlobal.collectionResultSet('@db').reduce((accu, item) => {
         item.label = item.label.toUpperCase();
         return accu + item.label;
       });
@@ -475,10 +485,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').reduce((accu, item) => {
+      let res = lunarisGlobal.collectionResultSet('@db').reduce((accu, item) => {
         return accu + item.label;
       }, { initialValue : '' });
 
@@ -492,13 +502,13 @@ describe('collectionResultSet', () => {
       let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
       let mapFn    = item => item.amount;
       let reduceFn = (accu, value) => accu + value;
 
-      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
+      let res = lunarisGlobal.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
       should(res.data).be.not.ok();
     });
 
@@ -506,13 +516,13 @@ describe('collectionResultSet', () => {
       let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
       let mapFn    = item => item.amount;
       let reduceFn = (accu, value) => accu + value;
 
-      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
+      let res = lunarisGlobal.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
       should(res).eql(12);
     });
 
@@ -520,13 +530,13 @@ describe('collectionResultSet', () => {
       let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
       let mapFn    = (item, i) => i;
       let reduceFn = (accu, value) => accu + value;
 
-      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
+      let res = lunarisGlobal.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
       should(res).eql(3);
     });
 
@@ -534,13 +544,13 @@ describe('collectionResultSet', () => {
       let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
       let mapFn    = (item, i, newArray) => newArray.length;
       let reduceFn = (accu, value) => accu + value;
 
-      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
+      let res = lunarisGlobal.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
       should(res).eql(3);
     });
 
@@ -548,7 +558,7 @@ describe('collectionResultSet', () => {
       let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
       let mapFn    = item => {
@@ -557,7 +567,7 @@ describe('collectionResultSet', () => {
       };
       let reduceFn = (accu, item) => accu + item.amount;
 
-      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
+      let res = lunarisGlobal.collectionResultSet('@db').mapReduce(mapFn, reduceFn);
       should(res).eql(24);
       should(items[0].amount).not.eql(4);
     });
@@ -566,13 +576,13 @@ describe('collectionResultSet', () => {
       let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
       let mapFn    = item => item.amount;
       let reduceFn = (accu, value) => accu + value;
 
-      let res = lunaris.collectionResultSet('@db').mapReduce(mapFn, reduceFn, { initialValue : 20 });
+      let res = lunarisGlobal.collectionResultSet('@db').mapReduce(mapFn, reduceFn, { initialValue : 20 });
       should(res).eql(32);
     });
   });
@@ -583,16 +593,16 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').where(() => {});
+      let res = lunarisGlobal.collectionResultSet('@db').where(() => {});
       should(res.data).be.ok();
     });
 
     it('should throw an error if the given param is not a function', () => {
       try {
-        lunaris.collectionResultSet('@db').where();
+        lunarisGlobal.collectionResultSet('@db').where();
       }
       catch (e) {
         should(e.message).eql('fn is not a function');
@@ -603,10 +613,10 @@ describe('collectionResultSet', () => {
       let items = [{ amount : 2 }, { amount : 10 }, { amount : 20 }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').where(item => {
+      let res = lunarisGlobal.collectionResultSet('@db').where(item => {
         return item.amount > 10;
       }).data();
 
@@ -615,7 +625,7 @@ describe('collectionResultSet', () => {
     });
 
     it('should apply the where on no data', () => {
-      let res = lunaris.collectionResultSet('@db').where(item => {
+      let res = lunarisGlobal.collectionResultSet('@db').where(item => {
         return item.amount > 10;
       }).data();
 
@@ -630,10 +640,10 @@ describe('collectionResultSet', () => {
       let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
       items.forEach(item => {
-        lunaris._stores.db.data.add(item);
+        lunarisGlobal._stores.db.data.add(item);
       });
 
-      let res = lunaris.collectionResultSet('@db').find({ label : 'c' });
+      let res = lunarisGlobal.collectionResultSet('@db').find({ label : 'c' });
       should(res.data).be.ok();
     });
 
@@ -643,10 +653,10 @@ describe('collectionResultSet', () => {
         let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ label : 'c' }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ label : 'c' }).data();
         should(res).have.lengthOf(1);
         should(res[0].label).eql('c');
       });
@@ -655,10 +665,10 @@ describe('collectionResultSet', () => {
         let items = [{ label : 'b' }, { label : 'c' }, { label : 'a' }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ label : { '=' : 'c' }}).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ label : { '=' : 'c' }}).data();
         should(res).have.lengthOf(1);
         should(res[0].label).eql('c');
       });
@@ -667,10 +677,10 @@ describe('collectionResultSet', () => {
         let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ amount : { '>' : 2 } }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ amount : { '>' : 2 } }).data();
         should(res).have.lengthOf(2);
         should(res[0].amount).eql(4);
         should(res[1].amount).eql(6);
@@ -680,10 +690,10 @@ describe('collectionResultSet', () => {
         let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ amount : { '>=' : 2 } }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ amount : { '>=' : 2 } }).data();
         should(res).have.lengthOf(3);
       });
 
@@ -691,10 +701,10 @@ describe('collectionResultSet', () => {
         let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ amount : { '<=' : 6 } }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ amount : { '<=' : 6 } }).data();
         should(res).have.lengthOf(3);
       });
 
@@ -702,10 +712,10 @@ describe('collectionResultSet', () => {
         let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ amount : { '<' : 6 } }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ amount : { '<' : 6 } }).data();
         should(res).have.lengthOf(2);
         should(res[0].amount).eql(2);
         should(res[1].amount).eql(4);
@@ -715,10 +725,10 @@ describe('collectionResultSet', () => {
         let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ amount : { $in : [1,2,3,4] } }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ amount : { $in : [1,2,3,4] } }).data();
         should(res).have.lengthOf(2);
         should(res[0].amount).eql(2);
         should(res[1].amount).eql(4);
@@ -728,10 +738,10 @@ describe('collectionResultSet', () => {
         let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ amount : { $nin : [1,2,3,4] } }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ amount : { $nin : [1,2,3,4] } }).data();
         should(res).have.lengthOf(1);
         should(res[0].amount).eql(6);
       });
@@ -740,10 +750,10 @@ describe('collectionResultSet', () => {
         let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ amount : { '!=' : 2 } }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ amount : { '!=' : 2 } }).data();
         should(res).have.lengthOf(2);
         should(res[0].amount).eql(4);
         should(res[1].amount).eql(6);
@@ -753,10 +763,10 @@ describe('collectionResultSet', () => {
         let items = [{ amount : 2 }, { amount : 4 }, { amount : 6 }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           amount : {
             $where : value => value === 2
           }
@@ -769,17 +779,17 @@ describe('collectionResultSet', () => {
         let items = [{ label : 'purée' }, { label : 'puree' }, { label : 'chaude purée' }];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           label : {
             $text : 'purée'
           }
         }).data();
         should(res).have.lengthOf(3);
 
-        res = lunaris.collectionResultSet('@db').find({
+        res = lunarisGlobal.collectionResultSet('@db').find({
           label : {
             $text : 'chaud'
           }
@@ -799,10 +809,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ 'type.id' : 2 }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ 'type.id' : 2 }).data();
         should(res).have.lengthOf(1);
         should(res[0].label).eql('c');
       });
@@ -815,10 +825,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ 'type.id' : 2 }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ 'type.id' : 2 }).data();
         should(res).have.lengthOf(0);
       });
 
@@ -830,10 +840,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ 'type.id' : 2 }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ 'type.id' : 2 }).data();
         should(res).have.lengthOf(0);
       });
 
@@ -845,10 +855,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ 'type.category.id' : 2 }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ 'type.category.id' : 2 }).data();
         should(res).have.lengthOf(0);
       });
 
@@ -860,10 +870,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ 'type.category.id' : 2 }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ 'type.category.id' : 2 }).data();
         should(res).have.lengthOf(0);
       });
 
@@ -875,10 +885,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({ 'type.category.id' : 2 }).data();
+        let res = lunarisGlobal.collectionResultSet('@db').find({ 'type.category.id' : 2 }).data();
         should(res).have.lengthOf(1);
         should(res[0].label).eql('c');
       });
@@ -895,10 +905,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           'type.id' : {
             $in : [1, 3]
           },
@@ -918,10 +928,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           amount : {
             '>' : 2,
             '<' : 6
@@ -939,10 +949,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           'type.id' : 2,
           amount    : {
             '>' : 2
@@ -960,10 +970,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           $and : [
             {
               'type.id' : 2
@@ -987,10 +997,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           $and : [
             {
               'type.id' : 2,
@@ -1016,10 +1026,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           $or : [
             { amount : 2 },
             { amount : 6 },
@@ -1039,10 +1049,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           $or : [
             { amount : 2, type : 1 },
             { type : 2 },
@@ -1063,10 +1073,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           $or : [
             { amount : { '>' : 2 }},
             { amount : { '<' : 6 }}
@@ -1088,10 +1098,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           type : 1,
           $or  : [
             { amount : 2 },
@@ -1112,10 +1122,10 @@ describe('collectionResultSet', () => {
         ];
 
         items.forEach(item => {
-          lunaris._stores.db.data.add(item);
+          lunarisGlobal._stores.db.data.add(item);
         });
 
-        let res = lunaris.collectionResultSet('@db').find({
+        let res = lunarisGlobal.collectionResultSet('@db').find({
           type : 1,
           $or  : [
             { amount : 2 },
