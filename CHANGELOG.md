@@ -4,6 +4,9 @@
 - Features:
   - Add builder options `injectedCode`. Which is a string injected before `new Vue()` in application mounting point.
   - Add lunaris version in `lunaris.exports.version`.
+  - [Builder] Lunaris is built once.
+  - [Builder] Refacto error management.
+  - [Builder] Make sync functions async.
 - Fixes:
   - builder options `lang` is optional.
 
