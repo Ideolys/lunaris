@@ -13,7 +13,7 @@ var lunarisGlobal  = {};
 
 describe('collectionResultSet', () => {
   before(done => {
-    buildLunaris({
+    buildLunaris({}, {
       IS_PRODUCTION : false,
       IS_BROWSER    : false
     }, (err, code) => {

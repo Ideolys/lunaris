@@ -14,7 +14,7 @@ let dynamicView = null;
 describe('Dynamic view', () => {
 
   before(done => {
-    buildLunaris({
+    buildLunaris({}, {
       IS_PRODUCTION : false,
       IS_BROWSER    : false
     }, (err, code) => {

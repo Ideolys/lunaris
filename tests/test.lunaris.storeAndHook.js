@@ -31,7 +31,7 @@ describe('lunaris store', function () {
   this.retries(3);
 
   before(done => {
-    buildLunaris({
+    buildLunaris({}, {
       BASE_URL           : "'http://localhost:" + port + "'",
       IS_PRODUCTION      : false,
       STORE_DEPENDENCIES : JSON.stringify({

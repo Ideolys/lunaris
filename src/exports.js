@@ -55,13 +55,6 @@ catch (e) {
   exports.isBrowser = true;
 }
 
-try {
-  exports.compilationErrors = COMPILATION_ERRORS;
-}
-catch (e) {
-  exports.compilationErrors = [];
-}
-
 /**
  * Urls grpah
  * {
