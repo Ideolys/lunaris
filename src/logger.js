@@ -71,11 +71,4 @@ var logger  = {
   }
 };
 
-// Send builder errors in console
-if (exportsLunaris.compilationErrors.length) {
-  for (var i = 0; i < exportsLunaris.compilationErrors.length; i++) {
-    logger.warn.call(null, exportsLunaris.compilationErrors[i]);
-  }
-}
-
 module.exports = logger;

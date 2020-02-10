@@ -55,13 +55,6 @@ catch (e) {
   exports.isBrowser = true;
 }
 
-try {
-  exports.compilationErrors = COMPILATION_ERRORS;
-}
-catch (e) {
-  exports.compilationErrors = [];
-}
-
 /**
  * Urls grpah
  * {
@@ -105,4 +98,11 @@ try {
 }
 catch (e) {
   exports.isOfflineSync = [];
+}
+
+try {
+  exports.version = VERSION;
+}
+catch (e) {
+  exports.version = [];
 }

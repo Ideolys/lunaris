@@ -1,11 +1,26 @@
 # Lunaris
 
 ## 1.16.0
+- Features:
+  - Add builder options `injectedCode`. Which is a string injected before `new Vue()` in application mounting point.
+  - Add lunaris version in `lunaris.exports.version`.
+  - [Builder] Lunaris is built once.
+  - [Builder] Refacto error management.
+  - [Builder] Make sync functions async.
+  - `lunaris.get` accepts callback : `lunaris.get(store, PK, callback)`
+- Fixes:
+  - builder options `lang` is optional.
+
+## 1.15.1
+*2020-01-31*
   - Features:
     - `lunaris.invalidate` & `cache.invalidate` supports `@` notation for store key.
     - Remove `lunaris.retry`.
     - Remove form features.
-    - `lunaris.get` accepts callback : `lunaris.get(store, PK, callback)`
+  - Fixes:
+    - Fix builder options.
+    - Fix urlsGraph generation by supporting filter.attributeUrl values.
+    - Fix lightUrl invalidations by initializing invalidations from the server lightUrls.
 
 ## 1.15.0
 *2020-01-06*

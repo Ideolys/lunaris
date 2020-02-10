@@ -212,7 +212,7 @@ lunaris._vue = {
           continue;
         }
 
-        _this.$options.internalMagicHooks.push(['reset@' + _store, _resetMagic(_store)]);
+        _this.$options.internalMagicHooks.push(['reset@' + _store, _resetMagic(_store), true]);
       }
 
       for (k = 0; k < _this.$options.internalMagicHooks.length; k++) {

@@ -1356,24 +1356,14 @@ describe('local storage', () => {
       lunaris.get('@http');
     });
 
-    it('should not invalidate the cache at app loading when invalidation client does not exist', done => {
+    it('should invalidate the cache at app loading when invalidation client does not exist', done => {
       var _hook = () => {
         setTimeout(() => {
 
           lunaris._indexedDB.del('_invalidations', 'GET /http', () => {
             var _lunaris = lunarisInstance();
             setTimeout(() => {
-              should(_lunaris._cache._cache()).eql([
-                {
-                  hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
-                  values : [
-                    { id : 1, label : 'A' },
-                    { id : 2, label : 'B' },
-                    { id : 3, label : 'C' }
-                  ],
-                  stores : ['http']
-                }
-              ]);
+              should(_lunaris._cache._cache()).eql([]);
 
               lunaris.removeHook('get@http', _hook);
               done();
