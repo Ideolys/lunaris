@@ -17,6 +17,7 @@ var debug               = require('./debug.js');
 var lazyLoad            = require('./store/crud/_lazyLoad.js');
 var collectionResultSet = require('./store/dataQuery/store.collectionResultSet.js');
 var dynamicView         = require('./store/dataQuery/store.dynamicView.js');
+var devtools            = require('./devtools.js');
 
 utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
 
@@ -36,7 +37,8 @@ module.exports = {
   collectionResultSet : collectionResultSet,
   dynamicView         : dynamicView,
 
-  debug : debug,
+  debug    : debug,
+  devtools : devtools,
 
   utils  : utils,
   logger : logger,
