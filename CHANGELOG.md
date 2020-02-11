@@ -7,7 +7,8 @@
   - [Builder] Lunaris is built once.
   - [Builder] Refacto error management.
   - [Builder] Make sync functions async.
-  - `lunaris.get` accepts callback : `lunaris.get(store, PK, callback)`
+  - `lunaris.get` accepts callback: `lunaris.get(store, PK, callback)`
+  - `lunaris.delete` accepts callback: `lunaris.delete(store, value, callback)`
 - Fixes:
   - builder options `lang` is optional.
 
