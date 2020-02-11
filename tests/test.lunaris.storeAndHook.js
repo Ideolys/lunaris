@@ -2257,9 +2257,9 @@ describe('lunaris store', function () {
 
       it('should get the values : function signature (store, cb)', done => {
         var _store                = initStore('store1');
-        lunaris._stores['store1'] = _store;
+        lunarisGlobal._stores['store1'] = _store;
 
-        lunaris.get('@store1', (err, res) => {
+        lunarisGlobal.get('@store1', (err, res) => {
           should(err).not.ok();
           should(res).eql([
             { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [1] },
@@ -2272,9 +2272,9 @@ describe('lunaris store', function () {
 
       it('should get the values : function signature (store, null, cb)', done => {
         var _store                = initStore('store1');
-        lunaris._stores['store1'] = _store;
+        lunarisGlobal._stores['store1'] = _store;
 
-        lunaris.get('@store1', null, (err, res) => {
+        lunarisGlobal.get('@store1', null, (err, res) => {
           should(err).not.ok();
           should(res).eql([
             { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [1] },
@@ -2287,9 +2287,9 @@ describe('lunaris store', function () {
 
       it('should get the values : function signature (store, pk, options, cb)', done => {
         var _store                = initStore('store1');
-        lunaris._stores['store1'] = _store;
+        lunarisGlobal._stores['store1'] = _store;
 
-        lunaris.get('@store1', null, {}, (err, res) => {
+        lunarisGlobal.get('@store1', null, {}, (err, res) => {
           should(err).not.ok();
           should(res).eql([
             { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [1] },
@@ -2302,14 +2302,14 @@ describe('lunaris store', function () {
 
       it('should get local values', done => {
         var _store = initStore('store1');
-        lunaris._stores['store1']         = _store;
-        lunaris._stores['store1'].isLocal = true;
-        lunaris.insert('store1', [
+        lunarisGlobal._stores['store1']         = _store;
+        lunarisGlobal._stores['store1'].isLocal = true;
+        lunarisGlobal.insert('store1', [
           { id : 1, label : 'A'},
           { id : 2, label : 'B'}
         ]);
 
-        lunaris.get('@store1', (err, res) => {
+        lunarisGlobal.get('@store1', (err, res) => {
           should(err).not.ok();
           should(res).eql([
             { _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] },
@@ -2321,9 +2321,9 @@ describe('lunaris store', function () {
 
       it('should get the values from the cache', done => {
         var _store                = initStore('store1');
-        lunaris._stores['store1'] = _store;
+        lunarisGlobal._stores['store1'] = _store;
 
-        lunaris.get('@store1', (err, res) => {
+        lunarisGlobal.get('@store1', (err, res) => {
           should(err).not.ok();
           should(res).eql([
             { _rowId : 1, _id : 1, id : 20, label : 'B', _version : [1] },
@@ -2332,8 +2332,8 @@ describe('lunaris store', function () {
           ]);
 
 
-          lunaris.setPagination('@store1', 1);
-          lunaris.get('@store1', (err, res) => {
+          lunarisGlobal.setPagination('@store1', 1);
+          lunarisGlobal.get('@store1', (err, res) => {
             should(err).not.ok();
             should(res).eql([
               { _rowId : 4, _id : 4, id : 20, label : 'B', _version : [2] },
@@ -2347,9 +2347,9 @@ describe('lunaris store', function () {
 
       it('should http error', done => {
         var _store               = initStore('store');
-        lunaris._stores['store'] = _store;
+        lunarisGlobal._stores['store'] = _store;
 
-        lunaris.get('@store', err => {
+        lunarisGlobal.get('@store', err => {
           should(err).ok();
           should(err).eql({ error : 404, message : 'Not Found', errors : [] });
           done();
@@ -2358,9 +2358,9 @@ describe('lunaris store', function () {
 
       it('should return error', done => {
         var _store               = initStore('pagination', { id : ['int'] });
-        lunaris._stores['pagination'] = _store;
+        lunarisGlobal._stores['pagination'] = _store;
 
-        lunaris.get('@pagination', err => {
+        lunarisGlobal.get('@pagination', err => {
           should(err).eql('The store "pagination" is an object store. The GET method cannot return multiple elements!');
           done();
         });
@@ -2368,9 +2368,9 @@ describe('lunaris store', function () {
 
       it('should get the item identified by its id', done => {
         var _currentId = 1;
-        lunaris._stores['get'] = initStore('get');
+        lunarisGlobal._stores['get'] = initStore('get');
 
-        lunaris.get('@get', _currentId, (err, res) => {
+        lunarisGlobal.get('@get', _currentId, (err, res) => {
           should(err).not.ok();
           should(res).eql([{
             _rowId   : 1,
