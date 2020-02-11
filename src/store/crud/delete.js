@@ -103,29 +103,27 @@ function _deleteLocal (store, collection, value, isLocal, callback) {
  * Make a DELETE HTTP request
  * @param {Object} store
  * @param {Object} collection
- * @param {Boolean} isLocal
- * @param {Object} retryOptions
  * @param {Object} value
  * @param {Int} version
- * @param {Int} transactionId
+ * @param {Object} version
  * @param {Function} callback (err)
  */
-function _deleteHttp (store, collection, isLocal, retryOptions, value, version, transactionId, callback) {
-  if (store.isLocal || isLocal) {
-    return callback();
+function _deleteHttp (store, collection, value, version, options, callback) {
+  if (store.isLocal || options.isLocal) {
+    return callback(null, value);
   }
 
   var _request = '/';
-  if (!retryOptions) {
+  if (!options.retryOptions) {
     _request = url.create(store, 'DELETE', storeUtils.getPrimaryKeyValue(store, value));
     // required filters consition not fullfilled
     if (!_request) {
-      return callback();
+      return callback('No url. Maybe the required filters are not set');
     }
     _request = _request.request;
   }
   else {
-    _request = retryOptions.url;
+    _request = options.retryOptions.url;
   }
 
   if (!offline.isOnline) {
@@ -138,7 +136,7 @@ function _deleteHttp (store, collection, isLocal, retryOptions, value, version, 
       var _error = template.getError(err, store, 'DELETE', false);
       upsertCrud.setLunarisError(store.name, 'DELETE', _request, value, version, err, _error);
       logger.warn(['lunaris.delete@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, transactionId, callback);
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, options.transactionId, callback);
     }
 
     _deleteLocal(store, collection, data, false, function (err, data) {
@@ -150,7 +148,9 @@ function _deleteHttp (store, collection, isLocal, retryOptions, value, version, 
         value = data[1];
       }
 
-      crudUtils.afterAction(store, 'deleted', value, template.getSuccess(null, store, 'DELETE', false), callback);
+      crudUtils.afterAction(store, 'deleted', value, template.getSuccess(null, store, 'DELETE', false), function () {
+        callback(null, value);
+      });
     });
   });
 }
@@ -159,28 +159,40 @@ function _deleteHttp (store, collection, isLocal, retryOptions, value, version, 
  * Delete a value from a store
  * @param {String} store
  * @param {*} value
- * @param {Object} retryOptions {
- *   url,
- *   data,
- *   version
- * }
- * @param {Boolean} isLocal
- * @param {Integer} transactionId
+ * @param {Object} options
+ *  retryOptions { // for offline sync
+ *    url,
+ *    data,
+ *    version
+ *  },
+ *  isLocal : {Boolean}
  * @param {Function} callback
  */
-function deleteStore (store, value, retryOptions, isLocal, transactionId, callback) {
+function deleteStore (store, value, options, callback) {
+  if (typeof options === 'function') {
+    callback = options;
+  }
+
+  if (!options) {
+    options = {};
+  }
+
+  callback = callback || function () {};
+
   try {
-    if (retryOptions) {
-      value = retryOptions.data;
+    if (options.retryOptions) {
+      value = options.retryOptions.data;
     }
     var _options = crudUtils.beforeAction(store, value);
-    if (transaction.isTransaction && !transactionId) {
+    if (transaction.isTransaction && !options.transactionId) {
+      options.transactionId = transaction.getCurrentTransactionId();
+
       return transaction.addAction({
         id        : transaction.getCurrentTransactionId(),
         store     : _options.store.name,
         operation : OPERATIONS.DELETE,
         handler   : deleteStore,
-        arguments : [store, value, retryOptions, isLocal, transaction.getCurrentTransactionId()]
+        arguments : [store, value, options]
       });
     }
 
@@ -189,31 +201,37 @@ function deleteStore (store, value, retryOptions, isLocal, transactionId, callba
     }
 
     var _version;
-    if (!retryOptions) {
+    if (!options.retryOptions) {
       return _deleteLocal(_options.store, _options.collection, value, true, function (err, data) {
         if (err) {
+          callback(err);
           throw err;
         }
 
         _version = data[0];
         value    = data[1];
 
-        _deleteHttp(_options.store, _options.collection, isLocal, retryOptions, value, _version, transactionId, function () {
-          if (callback) {
-            callback();
+        _deleteHttp(_options.store, _options.collection, value, _version, options, function (err, data) {
+          if (err) {
+            callback(err);
+            throw err;
           }
+
+          callback(null, data);
         });
       });
 
     }
 
-    _version = retryOptions.version;
+    _version = options.retryOptions.version;
 
-
-    _deleteHttp(_options.store, _options.collection, isLocal, retryOptions, value, _version, transactionId, function () {
-      if (callback) {
-        callback();
+    _deleteHttp(_options.store, _options.collection, value, _version, options, function (err, data) {
+      if (err) {
+        callback(err);
+        throw err;
       }
+
+      callback(null, data);
     });
   }
   catch (e) {

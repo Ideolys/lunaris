@@ -1365,7 +1365,7 @@ describe('lunaris store', function () {
       lunarisGlobal.delete('@store1', _expectedValue);
     });
 
-    it('should delete the value and execute the hook deleted', done => {
+    it('should delete the value and not execute the hook deleted', done => {
       var _isDeleteHook                    = false;
       var _isDeletedHook                   = false;
       var _store                           = initStore('store1');
@@ -1406,6 +1406,107 @@ describe('lunaris store', function () {
       should(lastError.length).eql(2);
       should(lastError[0]).eql('[Lunaris error] lunaris.delete@store1');
       should(lastError[1]).eql(new Error('You cannot delete a value not in the store!'));
+    });
+
+    it('should delete the value and not execute the hook deleted : options.isLocal = true', done => {
+      var _isDeleteHook                    = false;
+      var _isDeletedHook                   = false;
+      var _store                           = initStore('store1');
+      var _expectedValue                   = { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1] };
+      lunarisGlobal._stores['store1']            = _store;
+      lunarisGlobal._stores['store1'].primaryKey = 'id';
+
+      lunarisGlobal.hook('delete@store1', () => {
+        _isDeleteHook = true;
+      });
+
+      lunarisGlobal.hook('deleted@store1', () => {
+        _isDeletedHook = true;
+      });
+
+      lunarisGlobal.insert('@store1', { id : 2, label : 'A' });
+      should(_store.data.get(1)).eql(_expectedValue);
+      lunarisGlobal.delete('@store1', _expectedValue, { isLocal : true });
+
+      setTimeout(() => {
+        should(_isDeleteHook).eql(true);
+        should(_isDeletedHook).eql(false);
+        done();
+      }, 200);
+    });
+
+    it('should delete the value: fn signature -> store, value, callback', done => {
+      var _store                           = initStore('store1');
+      var _expectedValue                   = { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] };
+      lunarisGlobal._stores['store1']            = _store;
+      lunarisGlobal._stores['store1'].primaryKey = 'id';
+      lunarisGlobal._stores['store1'].isLocal    = true;
+
+      lunarisGlobal.insert('@store1', { id : 2, label : 'A' });
+      lunarisGlobal.delete('@store1', _expectedValue, (err, res) => {
+        should(err).not.ok();
+        should(res).eql(_expectedValue);
+        done();
+      });
+    });
+
+    it('should delete the value: fn signature -> store, value, options, callback', done => {
+      var _isDeleteHook                    = false;
+      var _isDeletedHook                   = false;
+      var _store                           = initStore('store1');
+      var _expectedValue                   = { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] };
+      lunarisGlobal._stores['store1']            = _store;
+      lunarisGlobal._stores['store1'].primaryKey = 'id';
+
+      lunarisGlobal.hook('delete@store1', () => {
+        _isDeleteHook = true;
+      });
+
+      lunarisGlobal.hook('deleted@store1', () => {
+        _isDeletedHook = true;
+      });
+
+      lunarisGlobal.insert('@store1', { id : 2, label : 'A' });
+      lunarisGlobal.delete('@store1', _expectedValue, { isLocal : true }, (err, res) => {
+        should(err).not.ok();
+        should(res).eql(_expectedValue);
+
+        setTimeout(() => {
+          should(_isDeleteHook).eql(true);
+          should(_isDeletedHook).eql(false);
+          done();
+        }, 200);
+      });
+    });
+
+    it('should delete the value and execute the hooks: fn signature -> store, value, callback', done => {
+      var _isDeleteHook                    = false;
+      var _isDeletedHook                   = false;
+      var _store                           = initStore('store1');
+      var _expectedValue                   = { _rowId : 1, _id : 1, id : 2, label : 'A', _version : [1, 2] };
+      lunarisGlobal._stores['store1']            = _store;
+      lunarisGlobal._stores['store1'].primaryKey = 'id';
+
+      lunarisGlobal.hook('delete@store1', () => {
+        _isDeleteHook = true;
+      });
+
+      lunarisGlobal.hook('deleted@store1', () => {
+        _isDeletedHook = true;
+      });
+
+      lunarisGlobal.insert('@store1', { id : 2, label : 'A' });
+      lunarisGlobal.delete('@store1', _expectedValue, (err, res) => {
+        should(err).not.ok();
+        should(res).eql(_expectedValue);
+
+
+        setTimeout(() => {
+          should(_isDeleteHook).eql(true);
+          should(_isDeletedHook).eql(true);
+          done();
+        }, 200);
+      });
     });
   });
 
@@ -3439,7 +3540,7 @@ describe('lunaris store', function () {
       lunarisGlobal.get('@pagination2');
     });
 
-    it('should unvalidate the cache id if it is deleted', done => {
+    it('should invalidate the cache id if it is deleted', done => {
       var _nbPages                                            = 0;
       lunarisGlobal._stores['pagination2.param.site']               = initStore('pagination2.param.site');
       lunarisGlobal._stores['pagination2.param.site'].isStoreObject = true;
@@ -3465,7 +3566,7 @@ describe('lunaris store', function () {
             { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
           ]);
           lunarisGlobal.setPagination('@pagination2', 1, 50);
-          lunarisGlobal.delete('@pagination2', { _id : 3, id : 10, label : 'E'}, null, true);
+          lunarisGlobal.delete('@pagination2', { _id : 3, id : 10, label : 'E'}, { isLocal : true });
           lunarisGlobal.get('@pagination2');
           return;
         }
