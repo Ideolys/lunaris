@@ -9,6 +9,7 @@
   - [Builder] Make sync functions async.
   - `lunaris.get` accepts callback: `lunaris.get(store, PK, callback)`
   - `lunaris.delete` accepts callback: `lunaris.delete(store, value, callback)`
+  - `lunaris.upsert|inset|update` accepts callback: `lunaris.iupsert(store, value, callback)`
 - Fixes:
   - builder options `lang` is optional.
 

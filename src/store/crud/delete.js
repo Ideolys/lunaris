@@ -136,7 +136,9 @@ function _deleteHttp (store, collection, value, version, options, callback) {
       var _error = template.getError(err, store, 'DELETE', false);
       upsertCrud.setLunarisError(store.name, 'DELETE', _request, value, version, err, _error);
       logger.warn(['lunaris.delete@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, options.transactionId, callback);
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, options.transactionId, function () {
+        callback(err);
+      });
     }
 
     _deleteLocal(store, collection, data, false, function (err, data) {
@@ -171,6 +173,7 @@ function _deleteHttp (store, collection, value, version, options, callback) {
 function deleteStore (store, value, options, callback) {
   if (typeof options === 'function') {
     callback = options;
+    options  = {};
   }
 
   if (!options) {

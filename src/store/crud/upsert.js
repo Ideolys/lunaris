@@ -120,7 +120,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
 
   // required filters condition not fullfilled
   if (!request) {
-    return callback({});
+    return callback('No url. Maybe the required filters are not set');
   }
   request = request.request;
 
@@ -131,7 +131,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
   crudUtils.propagate(store, value, method, function () {
     crudUtils.afterAction(store, isUpdate ? 'update' : 'insert', value, null, function () {
       storeUtils.saveState(store, collection, function () {
-        callback({ version : version, value : _requestValue, request : request });
+        callback(null, { version : version, value : _requestValue, request : request });
       });
     });
   });
@@ -156,7 +156,7 @@ function _upsertHTTPEvents (store, collection, value, isUpdate, method, transact
             return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
           }
 
-          callback();
+          callback(null, value);
         });
       });
     });
@@ -171,20 +171,21 @@ function _upsertHTTPEvents (store, collection, value, isUpdate, method, transact
  * @param {Boolean} isPatch
  * @param {Object} store
  * @param {Object} collection
- * @param {Object} cache
  * @param {*} value
  * @param {Boolean} isMultipleItems
  * @param {Int} version
  * @param {Integer} transactionId
  * @param {Function} callback
  */
-function _upsertHTTP (method, request, isUpdate, store, collection, cache, value, isMultipleItems, version, transactionId, callback) {
+function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version, transactionId, callback) {
   http.request(method, request, value, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, method, false);
       setLunarisError(store.name, method, request, value, version, err, _error);
       logger.warn(['lunaris.' + (isUpdate ? 'update' : 'insert') + '@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : utils.cloneAndFreeze(value)}, transactionId, callback);
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : utils.cloneAndFreeze(value)}, transactionId, function () {
+        callback(err);
+      });
     }
 
     if (method === OPERATIONS.PATCH) {
@@ -195,7 +196,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, cache, value
     var _pks     = [];
     if (store.isStoreObject || !isMultipleItems) {
       if (store.isStoreObject && Array.isArray(data)) {
-        throw new Error('The store "' + store.name + '" is a store object. The ' + method + ' method tries to ' + (isUpdate ? 'update' : 'insert') + ' multiple elements!');
+        return callback('The store "' + store.name + '" is a store object. The ' + method + ' method tries to ' + (isUpdate ? 'update' : 'insert') + ' multiple elements!');
       }
       if (Array.isArray(data)) {
         data = data[0];
@@ -298,13 +299,11 @@ function _upsertLocal (store, value, isUpdate, isLocal, transactionId, callback)
  * @param {Array} pathParts
  * @param {Object} collection
  * @param {Array/Object} value
- * @param {Boolean} isLocal
  * @param {Boolean} isUpdate
- * @param {Object} retryOptions
- * @param {Integer} transactionId
+ * @param {Object} options
  * @param {Function} callback
  */
-function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryOptions, transactionId, callback) {
+function _upsert (store, collection, pathParts, value, isUpdate, options, callback) {
   if (!store.isInitialized) {
     return lazyLoad.load(store, [_upsert, arguments]);
   }
@@ -313,8 +312,8 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
   var _version;
 
   var _request = '/';
-  if (retryOptions) {
-    _request = retryOptions.url;
+  if (options.retryOptions) {
+    _request = options.retryOptions.url;
   }
 
   var _method  = OPERATIONS.UPDATE;
@@ -325,33 +324,33 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
     _method = OPERATIONS.PATCH;
   }
 
-  if (!retryOptions) {
-    return _upsertCollection(store, collection, value, _version, _isMultipleItems, isUpdate, pathParts, _request, _method, isLocal, function (_res) {
+  if (!options.retryOptions) {
+    return _upsertCollection(store, collection, value, _version, _isMultipleItems, isUpdate, pathParts, _request, _method, options.isLocal, function (err, _res) {
+      if (err) {
+        return callback(err);
+      }
+
       _version = _res.version;
       value    = _res.value;
       _request = _res.request;
 
-      if (!_request) {
-        return callback();
-      }
-
-      _upsertLocal(store, value, isUpdate, isLocal, transactionId, function () {
-        if (store.isLocal || isLocal || !offline.isOnline) {
-          return callback();
+      _upsertLocal(store, value, isUpdate, options.isLocal, options.transactionId, function () {
+        if (store.isLocal || options.isLocal || !offline.isOnline) {
+          return callback(null, value);
         }
 
-        _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version, transactionId, callback);
+        _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, options.transactionId, callback);
       });
     });
   }
 
-  _version = retryOptions.version;
+  _version = options.retryOptions.version;
 
   if (!offline.isOnline) {
-    return callback();
+    return callback(null, value);
   }
 
-  _upsertHTTP(_method, _request, isUpdate, store, collection, cache, value, _isMultipleItems, _version, transactionId, callback);
+  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, options.transactionId, callback);
 }
 
 
@@ -359,18 +358,28 @@ function _upsert (store, collection, pathParts, value, isLocal, isUpdate, retryO
  * Insert or Update a value in a store
  * @param {String} store
  * @param {*} value
- * @param {Boolean} isLocal insert or update
- * @param {Object} retryOptions {
- *  url,
- *  data,
- *  method,
- *   version
- * }
- * @param {Integer}  transactionId
+ * @param {Object} options
+ *  retryOptions { // for offline sync
+ *    url,
+ *    data,
+ *    version
+ *  },
+ *  isLocal : {Boolean}
  * @param {Function} callback
  */
-function upsert (store, value, isLocal, retryOptions, transactionId, callback) {
-  var _isUpdate   = false;
+function upsert (store, value, options, callback) {
+  if (typeof options === 'function') {
+    callback = options;
+    options  = {};
+  }
+
+  if (!options) {
+    options = {};
+  }
+
+  callback = callback || function () {};
+
+  var _isUpdate = false;
 
   var _storeParts = (store && typeof store === 'string') ? store.split(':') : [];
   if (_storeParts.length) {
@@ -382,49 +391,56 @@ function upsert (store, value, isLocal, retryOptions, transactionId, callback) {
 
   var _eventName = 'lunaris.' + (_isUpdate ? 'update' : 'insert') + store;
   try {
-    if (retryOptions) {
-      value = retryOptions.data;
+    if (options.retryOptions) {
+      value = options.retryOptions.data;
     }
-
 
     var _options = crudUtils.beforeAction(store, value);
     if ((Array.isArray(value) && (value[0]._id !== null && value[0]._id !== undefined)) || (value._id !== null && value._id !== undefined)) {
       _isUpdate = true;
     }
-    if (retryOptions && retryOptions.method === OPERATIONS.INSERT) {
+    if (options.retryOptions && options.retryOptions.method === OPERATIONS.INSERT) {
       _isUpdate = false;
     }
 
-    if (transaction.isTransaction && !transactionId) {
+    if (transaction.isTransaction && !options.transactionId) {
+      options.transactionId = transaction.getCurrentTransactionId()
+
       return transaction.addAction({
         id        : transaction.getCurrentTransactionId(),
         store     : _options.store.name,
         operation : _isUpdate ? OPERATIONS.UPDATE : OPERATIONS.INSERT,
         handler   : upsert,
-        arguments : [store, value, isLocal, retryOptions, transaction.getCurrentTransactionId()]
+        arguments : [store, value, options]
       });
     }
 
-    if (_options.store.validateFn && !_storeParts.length && !retryOptions) {
+    if (_options.store.validateFn && !_storeParts.length && !options.retryOptions) {
       return imports.validate(store, _options.value, _isUpdate, function (res) {
         if (!res) {
-          return;
+          return callback('Error when validating data');
         }
 
-        _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions, transactionId, function () {
+        _upsert(_options.store, _options.collection, _storeParts, _options.value, _isUpdate, options, function (err, res) {
           // do something when action end
-          if (callback) {
-            callback();
+          if (err) {
+            callback(err);
+            throw err;
           }
+
+          callback(null, res);
         });
       }, _eventName);
     }
 
-    _upsert(_options.store, _options.collection, _storeParts, _options.value, isLocal, _isUpdate, retryOptions, transactionId, function () {
+    _upsert(_options.store, _options.collection, _storeParts, _options.value, _isUpdate, options, function (err, res) {
       // do something when action end
-      if (callback) {
-        callback();
+      if (err) {
+        callback(err);
+        throw err;
       }
+
+      callback(null, res);
     });
   }
   catch (e) {

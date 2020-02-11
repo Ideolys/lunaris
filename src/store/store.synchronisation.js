@@ -151,10 +151,10 @@ function pushOfflineHttpTransactions (callback) {
 
     transaction.begin();
     if (_currentTransaction.method === OPERATIONS.INSERT || _currentTransaction.method === OPERATIONS.UPDATE) {
-      imports.upsert(_currentTransaction.store, _currentTransaction.data, false, _currentTransaction);
+      imports.upsert(_currentTransaction.store, _currentTransaction.data, { isLocal : false, retryOptions : _currentTransaction });
     }
     else if (_currentTransaction.method === OPERATIONS.DELETE) {
-      imports.deleteStore(_currentTransaction.store, _currentTransaction.data, _currentTransaction);
+      imports.deleteStore(_currentTransaction.store, _currentTransaction.data, { retryOptions : _currentTransaction });
     }
 
     transaction.commit(function (isError) {

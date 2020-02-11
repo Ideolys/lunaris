@@ -420,7 +420,7 @@ describe('lunaris store', function () {
       });
 
       lunarisGlobal.insert('@store1', { id : 1, label : 'A' });
-      lunarisGlobal.update('@store1', _expectedValue, true);
+      lunarisGlobal.update('@store1', _expectedValue, { isLocal : true });
 
       setTimeout(() => {
         should(_isUpdateHook).eql(true);
@@ -650,6 +650,87 @@ describe('lunaris store', function () {
 
       lunarisGlobal.insert('@store1', { id : 1, label : 'A' });
     });
+
+    describe('callback', () => {
+
+      it('should insert the value', () => {
+        var _store = initStore('store1');
+        lunarisGlobal._stores['store1'] = _store;
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' }, (err, res) => {
+          should(res[0]).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
+        });
+      });
+
+      it('should return the HTTP error', () => {
+        var _store = initStore('store2');
+        lunarisGlobal._stores['store2'] = _store;
+        lunarisGlobal.insert('@store2', { id : 1, label : 'A' }, (err, res) => {
+          should(err).ok();
+          should(res).not.ok();
+        });
+      });
+
+      it('should return valdiation error', done => {
+        var _store                                           = initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
+        lunarisGlobal._stores['store_insert_put']            = _store;
+        lunarisGlobal._stores['store_insert_put'].primaryKey = 'id';
+
+        lunarisGlobal.insert('@store_insert_put', { id : 1, label : 2 }, (err, data) => {
+          should(err).eql('Error when validating data');
+          should(data).not.ok();
+          done();
+        });
+      });
+
+      it('should insert the value and execute the hooks', done => {
+        var _nbExecutedHandlers                    = 0;
+        var _store                                 = initStore('store1');
+        lunarisGlobal._stores['store1']            = _store;
+        lunarisGlobal._stores['store1'].primaryKey = 'id';
+
+        lunarisGlobal.hook('insert@store1', () => {
+          _nbExecutedHandlers++;
+        });
+
+        lunarisGlobal.hook('inserted@store1', () => {
+          _nbExecutedHandlers++;
+        });
+
+        lunarisGlobal.insert('@store1', { id : 2, label : 'A' }, (err, res) => {
+          should(err).not.ok();
+          should(res).be.ok();
+
+          setTimeout(() => {
+            should(_nbExecutedHandlers).eql(2);
+            done();
+          }, 200);
+        });
+      });
+
+      it('should return an error if required filter is not set', done => {
+        var _store = initStore('store1');
+
+        lunarisGlobal._stores['required']               = initStore('required');
+        lunarisGlobal._stores['required'].isStoreObject = true;
+        lunarisGlobal._stores['store1']                = _store;
+        lunarisGlobal._stores['store1'].fakeAttributes = ['site'];
+        lunarisGlobal._stores['store1'].filters.push({
+          source          : '@required',
+          sourceAttribute : 'category',
+          localAttribute  : 'category',
+          operator        : ['='],
+          isRequired      : true
+        });
+
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' }, (err, res) => {
+          should(err).eql('No url. Maybe the required filters are not set');
+          should(res).not.be.ok();
+          done();
+        });
+      });
+
+    });
+
   });
 
   describe('multiple insert() / update()', () => {
@@ -961,6 +1042,22 @@ describe('lunaris store', function () {
       });
 
       lunarisGlobal.insert('@store_insert_put', [{ id : 1 }, { id : 2 }]);
+    });
+
+    it('should insert the values : callback', done => {
+      var _store = initStore('multiple');
+      lunarisGlobal._stores['multiple'] = _store;
+      lunarisGlobal.insert('@multiple', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ], (err, res) => {
+        should(err).not.ok();
+        should(res).eql([
+          { _rowId : 3, _id : 1, id : 2, label : 'A', _version : [2], post : true },
+          { _rowId : 4, _id : 2, id : 1, label : 'B', _version : [2], post : true }
+        ]);
+        done();
+      });
     });
   });
 
@@ -1506,6 +1603,20 @@ describe('lunaris store', function () {
           should(_isDeletedHook).eql(true);
           done();
         }, 200);
+      });
+    });
+
+    it('should delete the value and fail HTTP', done => {
+      var _store                                 = initStore('store2');
+      lunarisGlobal._stores['store2']            = _store;
+      lunarisGlobal._stores['store2'].primaryKey = 'id';
+      lunarisGlobal._stores['store2'].isLocal    = true;
+
+      lunarisGlobal.insert('@store2', { id : 2, label : 'A' });
+      lunarisGlobal.delete('@store2', { id : 2, label : 'A' }, (err, res) => {
+        should(err).ok();
+        should(err.message).eql('You cannot delete a value not in the store!');
+        done();
       });
     });
   });
@@ -3493,7 +3604,7 @@ describe('lunaris store', function () {
       lunarisGlobal.get('@pagination2');
     });
 
-    it('should unvalidate the cache if a value has been updated', done => {
+    it('should invalidate the cache if a value has been updated', done => {
       var _nbPages                                            = 0;
       lunarisGlobal._stores['pagination2.param.site']               = initStore('pagination2.param.site');
       lunarisGlobal._stores['pagination2.param.site'].isStoreObject = true;
@@ -3517,7 +3628,7 @@ describe('lunaris store', function () {
             { _rowId : 3, _id : 3, id : 10, label : 'E', _version : [2] }
           ]);
           lunarisGlobal.setPagination('@pagination2', 1, 50);
-          lunarisGlobal.update('@pagination2', { _id : 3, id : 10, label : 'E-2'}, true);
+          lunarisGlobal.update('@pagination2', { _id : 3, id : 10, label : 'E-2'}, { isLocal : true });
           lunarisGlobal.get('@pagination2');
           return;
         }
