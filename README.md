@@ -1,6 +1,6 @@
 # Lunaris
 
-Framework client poutr atteindre les étoiles
+Framework client pour atteindre les étoiles
 
 Fonctionnalités :
   - Schema
@@ -25,7 +25,7 @@ Extension pour Firefox et Chrome pour débugger les applications utilisant Lunar
 - Ajouter une issue [ici](https://git.ideolys.com/ideolys/projet-lunaris/issues)
 - Créer une branche
 - Ouvrir une MR vers la branche `master`
-- Tester: lancer les tests généraux `npm test` et les clients `npm run test-client`
+- Tester: lancer les tests généraux `npm test` et les tests clients `npm run test-client`
 
 ## Release
 
