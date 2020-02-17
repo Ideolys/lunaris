@@ -61,7 +61,7 @@ function getHandlerFn (store, path, id, isLocal, vnode) {
 
     lunaris.validate(store, _obj, function (isValid, err) {
       if (isValid) {
-        return lunaris.update(store, _obj, isLocal);
+        return lunaris.update(store, _obj, { isLocal : isLocal });
       }
 
       lunaris.logger.warn('v-lunaris', err);
