@@ -508,6 +508,23 @@ describe('store url', () => {
       });
     });
 
+    it('should create the url for one optional filter : <>', () => {
+      stores.optional.filters[0].operator = ['<>'];
+      store.upsert('@optional.filter.A', { label : 'cat' });
+      var _url = url.create(stores.optional, 'GET');
+      var _expectedUrl = '/optional?limit=50&offset=0&search=label' +
+        fixedEncodeURIComponent(':!=') +
+        fixedEncodeURIComponent('cat')
+      ;
+
+      should(_url.request).eql(_expectedUrl);
+      should(_url.cache).eql({
+        limit  : 50,
+        offset : 0,
+        0      : 'cat'
+      });
+    });
+
     it('should create the url for authorized optional filters', () => {
       stores.optionalMultiple.filters[0].httpMethods = ['POST'];
       store.upsert('@optional.filter.A', { label : 'cat' });
@@ -597,8 +614,6 @@ describe('store url', () => {
       encodeURIComponent(':') +
       encodeURIComponent('[B,C]')
     ;
-
-    console.log(decodeURIComponent(_url));
 
     should(_url).eql(_expectedUrl);
   });
