@@ -10,6 +10,7 @@
   - `lunaris.get` accepts callback: `lunaris.get(store, PK, callback)`
   - `lunaris.delete` accepts callback: `lunaris.delete(store, value, callback)`
   - `lunaris.upsert|insert|update` accepts callback: `lunaris.upsert(store, value, callback)`
+  - Add filter operator `<>`. It is equivalent to `!==` in JavaScript.
 - Fixes:
   - builder options `lang` is optional.
 

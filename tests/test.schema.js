@@ -4940,7 +4940,7 @@ describe('Schema', () => {
         }]);
       }
       catch (e) {
-        should(e).eql(new Error('in store.filters[0]: A filter must be one of the following [=,ILIKE,>,<,>=,<=]'));
+        should(e).eql(new Error('in store.filters[0]: A filter must be one of the following [=,ILIKE,>,<,>=,<=,<>]'));
       }
     });
 
@@ -5267,6 +5267,44 @@ describe('Schema', () => {
 
         should(_fns['0'].call(null, 1, { id : 1, label : 2 })).eql(false);
       });
+
+      it('should return true : <>', () => {
+        var _map = [{
+          id    : ['<<int>>'],
+          label : ['int']
+        }];
+        var _schema = schema.analyzeDescriptor(_map);
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
+          source          : '@source',
+          sourceAttribute : 'label',
+          localAttribute  : 'label',
+          operator        : '<>'
+        }]);
+
+        should(_fns).be.an.Object();
+        should(_fns['0']).be.a.Function();
+
+        should(_fns['0'].call(null, 1, { id : 1, label : 2 })).eql(true);
+      });
+
+      it('should return false : <>', () => {
+        var _map = [{
+          id    : ['<<int>>'],
+          label : ['int']
+        }];
+        var _schema = schema.analyzeDescriptor(_map);
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : true } }, _schema.compilation, [{
+          source          : '@source',
+          sourceAttribute : 'label',
+          localAttribute  : 'label',
+          operator        : '<>'
+        }]);
+
+        should(_fns).be.an.Object();
+        should(_fns['0']).be.a.Function();
+
+        should(_fns['0'].call(null, 2, { id : 1, label : 2 })).eql(false);
+      });
     });
 
     describe('store array', () => {
@@ -5459,6 +5497,44 @@ describe('Schema', () => {
         should(_fns['0']).be.a.Function();
 
         should(_fns['0'].call(null, [1], { id : 1, label : 2 })).eql(false);
+      });
+
+      it('should return true : <>', () => {
+        var _map = [{
+          id    : ['<<int>>'],
+          label : ['int']
+        }];
+        var _schema = schema.analyzeDescriptor(_map);
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
+          source          : '@source',
+          sourceAttribute : 'label',
+          localAttribute  : 'label',
+          operator        : '<>'
+        }]);
+
+        should(_fns).be.an.Object();
+        should(_fns['0']).be.a.Function();
+
+        should(_fns['0'].call(null, [1], { id : 1, label : 2 })).eql(true);
+      });
+
+      it('should return false : <>', () => {
+        var _map = [{
+          id    : ['<<int>>'],
+          label : ['int']
+        }];
+        var _schema = schema.analyzeDescriptor(_map);
+        var _fns    = schema.getFilterFns([], { source : { isStoreObject : false } }, _schema.compilation, [{
+          source          : '@source',
+          sourceAttribute : 'label',
+          localAttribute  : 'label',
+          operator        : '<>'
+        }]);
+
+        should(_fns).be.an.Object();
+        should(_fns['0']).be.a.Function();
+
+        should(_fns['0'].call(null, [1], { id : 1, label : 1 })).eql(false);
       });
     });
   });
