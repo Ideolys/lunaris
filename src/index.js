@@ -13,7 +13,6 @@ var transaction    	    = require('./store/store.transaction.js');
 var websocket           = require('./websocket.js');
 var localStorageDriver  = require('./localStorageDriver.js');
 var invalidate          = require('./invalidate.js');
-var debug               = require('./debug.js');
 var lazyLoad            = require('./store/crud/_lazyLoad.js');
 var collectionResultSet = require('./store/dataQuery/store.collectionResultSet.js');
 var dynamicView         = require('./store/dataQuery/store.dynamicView.js');
@@ -37,7 +36,6 @@ module.exports = {
   collectionResultSet : collectionResultSet,
   dynamicView         : dynamicView,
 
-  debug    : debug,
   devtools : devtools,
 
   utils  : utils,

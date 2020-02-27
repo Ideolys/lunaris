@@ -7,7 +7,6 @@ var logger             = require('../logger.js');
 var localStorageDriver = require('../localStorageDriver.js');
 var localStorage       = localStorageDriver.localStorage;
 var localDatabase      = localStorageDriver.indexedDB;
-var debug              = require('../debug.js');
 
 
 /**

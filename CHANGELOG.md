@@ -1,5 +1,11 @@
 # Lunaris
 
+## 1.17.0
+*next*
+- Features:
+  - Remove `lunaris.debug` features.
+- Fixes:
+
 ## 1.16.0
 - Features:
   - Add builder options `injectedCode`. Which is a string injected before `new Vue()` in application mounting point.

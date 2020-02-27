@@ -1,8 +1,6 @@
 var logger            = require('./logger.js');
 var lunarisExports    = require('./exports.js');
 var offlineVersionKey = 'lunaris:indexedDB_version';
-var debug             = require('./debug.js');
-var debugObj          = debug.debug(null, debug.NAMESPACES.INDEXEDDB);
 var LIMIT_ITEMS       = 10000;
 
 var database;
@@ -160,14 +158,7 @@ function _processQueue () {
     return _processQueue();
   }
 
-  var _debugOptions = [
-    'function -> ' + _currentItem[0].name,
-    'items -> '    + (_currentItem.length === 3 ? (Array.isArray(_currentItem[2]) ? _currentItem[2].length : 1) : 0)
-  ];
-
-  debugObj.time(_currentItem[1]);
   _args.push(function (err, data) {
-    debugObj.timeEnd(_currentItem[1], _debugOptions);
     if (_callback) {
       _callback(err, data);
     }

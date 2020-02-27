@@ -16,8 +16,6 @@ var indexedDB       = require('../../localStorageDriver.js').indexedDB;
 var lazyLoad        = require('./_lazyLoad.js');
 var getRequestQueue = {};
 var OPERATIONS      = utils.OPERATIONS;
-var debug           = require('../../debug.js');
-var debugObject     = debug.debug(null, debug.NAMESPACES.PERFORMANCE);
 
 
 /**
@@ -69,8 +67,6 @@ function _transformGetCache (collection, values) {
  */
 function _returnCacheValues (store, collection, request, cacheValues, options, nextGet) {
   var _values = [];
-
-  debug.log(store.name, debug.NAMESPACES.CACHE, 'Get ' + decodeURIComponent(request));
 
   if (typeof cacheValues === 'object') {
     storeUtils.saveState(store, collection);
@@ -374,16 +370,12 @@ function _load (store, options, transactionId, callback) {
           data = [data];
         }
 
-        debug.log(_options.store.name, debug.NAMESPACES.CRUD, 'load ' + data.length + ' objects');
-
         var _version = _options.collection.begin();
         for (var i = 0, len = data.length; i < len; i++) {
           _options.collection.add(data[i], _version);
         }
 
-        debugObject.time(_options.store.name);
         _options.collection.commit(_version);
-        debugObject.timeEnd(_options.store.name, ['commit_collection']);
 
         storeUtils.saveState(_options.store, _options.collection, function () {
           hook.pushToHandlers(_options.store, 'loaded', null, transactionId, function () {

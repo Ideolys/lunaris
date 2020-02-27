@@ -1,6 +1,5 @@
 var utils          = require('../../utils.js');
 var indexedDB      = require('../../localStorageDriver.js').indexedDB;
-var debug          = require('../../debug.js');
 var lunarisExports = require('../../exports.js');
 var storeUtils     = require('../store.utils.js');
 
@@ -81,7 +80,6 @@ function load (store, fnAndParams, isRetry) {
       store.data.setData(data);
       store.isInitialized = true;
 
-      debug.log(store.name, debug.NAMESPACES.COLLECTION, 'Initialized');
       _end(store, fnAndParams);
     });
   });

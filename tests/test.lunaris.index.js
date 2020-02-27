@@ -187,16 +187,6 @@ describe('lunaris index', () => {
     should(index.invalidations._invalidations).be.an.Object();
   });
 
-  it('debug should be defined', () => {
-    should(index.debug).be.ok();
-    should(index.debug).be.an.Object();
-    should(index.debug.isDebug).be.a.Boolean();
-    should(index.debug.config).be.an.Object();
-    should(index.debug.debug).be.a.Function();
-    should(index.debug.log).be.a.Function();
-    should(index.debug.NAMESPACES).be.an.Object();
-  });
-
   it('websocket should be defined', () => {
     should(index.websocket).be.ok();
     should(index.websocket).be.an.Object();
