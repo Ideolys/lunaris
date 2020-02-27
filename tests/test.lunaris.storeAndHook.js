@@ -3303,6 +3303,132 @@ describe('lunaris store', function () {
         done();
       }, 100);
     });
+
+    describe('callback', () => {
+      it('should throw an error if the store is not a string', done => {
+        lunarisGlobal.clear({}, err => {
+          should(err).eql(new Error('Must have a correct store value: @<store>'));
+          done();
+        });
+      });
+
+      it('should clear the store', done => {
+        var _store = initStore('store1');
+        lunarisGlobal._stores['store1'] = _store;
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' });
+        should(_store.data.get(1)).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
+        lunarisGlobal.clear('@store1', () => {
+          should(lunarisGlobal._stores['store1'].data._getAll()).be.an.Array().and.have.length(0);
+          done();
+        });
+      });
+
+      it('should clear the store and not trigger the hook reset', done => {
+        var _hasFiredHook = false;
+        var _store        = initStore('store1');
+        lunarisGlobal._stores['store1'] = _store;
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' });
+        should(_store.data.get(1)).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
+
+        lunarisGlobal.hook('reset@store1', () => {
+          _hasFiredHook = true;
+        });
+
+        lunarisGlobal.clear('@store1', { isSilent : true }, () => {
+          setTimeout(() => {
+            should(_hasFiredHook).eql(false);
+            done();
+          }, 200);
+        });
+      });
+
+      it('should clear multiple stores and send events', done => {
+        var _hooks = {};
+        lunarisGlobal._stores['store.filter.A'] = initStore('store.filter.A');
+        lunarisGlobal._stores['store.filter.B'] = initStore('store.filter.B');
+        lunarisGlobal._stores['store.C']        = initStore('store.C');
+
+        lunarisGlobal.hook('reset@store.filter.A', () => {
+          _hooks['store.filter.A'] = true;
+        });
+        lunarisGlobal.hook('reset@store.filter.B', () => {
+          _hooks['store.filter.B'] = true;
+        });
+        lunarisGlobal.hook('reset@store.C', () => {
+          _hooks['store.C'] = true;
+        });
+
+        lunarisGlobal.insert('@store.filter.A', {
+          label : 'A'
+        });
+        lunarisGlobal.insert('@store.filter.B', {
+          label : 'B'
+        });
+        lunarisGlobal.insert('@store.C', {
+          label : 'C'
+        });
+
+        lunarisGlobal.clear('@store.filter.*', () => {
+          setTimeout(() => {
+            should(_hooks).eql({
+              'store.filter.A' : true,
+              'store.filter.B' : true
+            });
+            should(lunarisGlobal._stores['store.filter.A'].data.getAll()).eql([]);
+            should(lunarisGlobal._stores['store.filter.B'].data.getAll()).eql([]);
+            should(lunarisGlobal._stores['store.C'].data.getAll()).eql([{
+              _id      : 1,
+              _rowId   : 1,
+              _version : [3],
+              label    : 'C'
+            }]);
+            done();
+          }, 100);
+        });
+      });
+
+      it('should clear multiple stores and not send events', done => {
+        var _hooks = {};
+        lunarisGlobal._stores['store.filter.A'] = initStore('store.filter.A');
+        lunarisGlobal._stores['store.filter.B'] = initStore('store.filter.B');
+        lunarisGlobal._stores['store.C']        = initStore('store.C');
+
+        lunarisGlobal.hook('reset@store.filter.A', () => {
+          _hooks['store.filter.A'] = true;
+        });
+        lunarisGlobal.hook('reset@store.filter.B', () => {
+          _hooks['store.filter.B'] = true;
+        });
+        lunarisGlobal.hook('reset@store.C', () => {
+          _hooks['store.C'] = true;
+        });
+
+        lunarisGlobal.insert('@store.filter.A', {
+          label : 'A'
+        });
+        lunarisGlobal.insert('@store.filter.B', {
+          label : 'B'
+        });
+        lunarisGlobal.insert('@store.C', {
+          label : 'C'
+        });
+
+        lunarisGlobal.clear('@store.filter.*', { isSilent : true }, () => {
+          setTimeout(() => {
+            should(_hooks).eql({});
+            should(lunarisGlobal._stores['store.filter.A'].data.getAll()).eql([]);
+            should(lunarisGlobal._stores['store.filter.B'].data.getAll()).eql([]);
+            should(lunarisGlobal._stores['store.C'].data.getAll()).eql([{
+              _id      : 1,
+              _rowId   : 1,
+              _version : [3],
+              label    : 'C'
+            }]);
+            done();
+          }, 100);
+        });
+      });
+    });
   });
 
   describe('rollback', () => {

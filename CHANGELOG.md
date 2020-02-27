@@ -4,6 +4,7 @@
 *next*
 - Features:
   - Remove `lunaris.debug` features.
+  - `lunaris.clear` accepts callback: `lunaris.clear(store, options, callback)` with `options = { isSilent : Boolean }`
 - Fixes:
 
 ## 1.16.0
