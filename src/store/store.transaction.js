@@ -34,6 +34,8 @@ function registerHookFn (fn) {
  * @return {Function} rollback
  */
 function begin () {
+  return logger.deprecated('lunaris.begin is deprecated!');
+
   if (isTransaction) {
     return;
   }
@@ -95,6 +97,8 @@ function _end (transactionId, callback) {
  * @param {Function} callback
  */
 function commit (callback) {
+  return logger.deprecated('lunaris.commit is deprecated!');
+
   if (!transactions[currentTransactionId]) {
     return;
   }
