@@ -106,8 +106,8 @@ function getStore (vnode) {
  * @return {Boolean}
  */
 function getIsLocal (vnode) {
-  if (vnode.data.attrs && vnode.data.attrs['is-local']) {
-    return Boolean(vnode.data.attrs['is-local']);
+  if ((vnode.data.attrs && vnode.data.attrs['is-local']) || (vnode.data.attrs && vnode.data.attrs['isLocal'])) {
+    return Boolean(vnode.data.attrs['is-local'] || vnode.data.attrs['isLocal']);
   }
 
   return false;
