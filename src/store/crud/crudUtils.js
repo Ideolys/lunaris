@@ -46,9 +46,9 @@ function afterAction (store, event, value, message, callback) {
     _value = utils.cloneAndFreeze(value, store.clone);
   }
 
-  hook.pushToHandlers(store, event, _value, null, function () {
+  hook.pushToHandlers(store, event, _value, function () {
     if (message) {
-      return hook.pushToHandlers(store, 'success', message, null, callback);
+      return hook.pushToHandlers(store, 'success', message, callback);
     }
 
     callback();
@@ -68,7 +68,7 @@ function pushCommitResToHandlers (store, hookKey, res, callback) {
       res = res[0];
     }
     res = utils.cloneAndFreeze(res, store.clone);
-    return hook.pushToHandlers(store, hookKey, res, null, callback);
+    return hook.pushToHandlers(store, hookKey, res, callback);
   }
 
   callback();

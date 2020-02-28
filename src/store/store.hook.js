@@ -1,8 +1,5 @@
 var logger         = require('../logger.js');
-var transaction    = require('./store.transaction.js');
 var lunarisExports = require('../exports.js');
-
-transaction.registerHookFn(pushToHandlers);
 
 /**
  * Queue
@@ -156,26 +153,16 @@ function removeHook (hook, handler) {
  * @param {Object} store
  * @param {String} hook
  * @param {*} payload
- * @param {Int} transactionId
  */
-function pushToHandlers (store, hook, payload, transactionId, callback) {
+function pushToHandlers (store, hook, payload, callback) {
   var _storeHooks = store.hooks[hook];
 
   if (!callback) {
     callback = function () {};
   }
 
-  if (transactionId && (hook === 'filterUpdated' || hook === 'reset')) {
-    transaction.addUniqueEvent(transactionId, store.name, hook);
-    return callback();
-  }
-
   if (!_storeHooks) {
     return callback();
-  }
-
-  if (transactionId && (hook === 'error' || hook === 'errorHttp')) {
-    transaction.addErrorEvent(transactionId);
   }
 
   queue(_storeHooks, payload, callback);

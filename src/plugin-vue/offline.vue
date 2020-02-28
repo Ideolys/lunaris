@@ -84,26 +84,28 @@
    * @param {Array} storesToLoad
    */
   function loadFilters (storesToLoad, callback) {
-    lunaris.begin();
-    for (var i = 0; i < storesToLoad.length; i++) {
-      if (!storesToLoad[i].filters) {
-        continue;
-      }
-
-      if (!Array.isArray(storesToLoad[i].filters)) {
-        continue;
-      }
-
-      for (var j = 0; j < storesToLoad[i].filters.length; j++) {
-        if (storesToLoad[i].filters[j][1] === false) {
-          lunaris.clear(storesToLoad[i].filters[j][0]);
-          continue;
+    lunaris.utils.queue(
+      storesToLoad,
+      (storesToLoad, item) => {
+        if (!storesToLoad.filters) {
+          return next();
         }
 
-        lunaris.upsert(storesToLoad[i].filters[j][0], storesToLoad[i].filters[j][1]);
-      }
-    }
-    lunaris.commit(callback);
+        if (!Array.isArray(storesToLoad.filters)) {
+          return next();
+        }
+
+        for (var j = 0; j < storesToLoad.filters.length; j++) {
+          if (storesToLoad.filters[j][1] === false) {
+            lunaris.clear(storesToLoad.filters[j][0]);
+            continue;
+          }
+
+          lunaris.upsert(storesToLoad.filters[j][0], storesToLoad.filters[j][1]);
+        }
+      },
+      callback
+    );
   }
 
   /**
@@ -273,16 +275,16 @@
         loadFilters(storesToLoad, function () {
           // Then load
           _that.storesToLoadTranslated = [];
-          lunaris.begin();
-          for (var i = 0; i < _that.nbStoresToLoad; i++) {
-            lunaris.load(storesToLoad[i].store, storesToLoad[i].options);
-            lunaris.hook('loaded' + storesToLoad[i].store, getHook(_that, storesToLoad[i].store));
-            _that.storesToLoadTranslated.push(lunaris._stores[storesToLoad[i].store.replace('@', '')].nameTranslated);
-          }
 
-          lunaris.commit(function () {
+          lunaris.utils.queue(_that.nbStoresToLoad, function (storesToLoad, next) {
+            lunaris.load(storesToLoad[i].store, storesToLoad[i].options, () => {
+              lunaris.hook('loaded' + storesToLoad[i].store, getHook(_that, storesToLoad[i].store));
+              _that.storesToLoadTranslated.push(lunaris._stores[storesToLoad[i].store.replace('@', '')].nameTranslated);
+              next();
+            });
+          }, function () {
             lunaris.offline.isSynchronizing = false;
-            _that.currentComponent = 'success';
+            _that.currentComponent          = 'success';
             _that.onEnd();
           });
         });

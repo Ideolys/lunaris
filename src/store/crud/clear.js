@@ -27,8 +27,8 @@ function _clearPropagate (store, collection, callback) {
 function _clearSendEvents (store, collection, isSilent, callback) {
   if (!isSilent) {
     return _clearPropagate(store, collection, function () {
-      hook.pushToHandlers(store, 'clear', null, null, function () {
-        hook.pushToHandlers(store, 'reset', null, null, callback);
+      hook.pushToHandlers(store, 'clear', null, function () {
+        hook.pushToHandlers(store, 'reset', null, callback);
       });
     });
   }

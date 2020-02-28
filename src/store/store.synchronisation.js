@@ -149,18 +149,10 @@ function pushOfflineHttpTransactions (callback) {
       return callback();
     }
 
-    transaction.begin();
-    if (_currentTransaction.method === OPERATIONS.INSERT || _currentTransaction.method === OPERATIONS.UPDATE) {
-      imports.upsert(_currentTransaction.store, _currentTransaction.data, { isLocal : false, retryOptions : _currentTransaction });
-    }
-    else if (_currentTransaction.method === OPERATIONS.DELETE) {
-      imports.deleteStore(_currentTransaction.store, _currentTransaction.data, { retryOptions : _currentTransaction });
-    }
-
-    transaction.commit(function (isError) {
+    function onEnd (error) {
       cache.invalidate(_currentTransaction.store);
       // We must hold the transaction in error and its dependent transactions
-      if (isError) {
+      if (error) {
         offlineTransactionsInError.push(_currentTransaction);
         if (_currentTransaction.method === OPERATIONS.INSERT) {
           _pushDependentTransactionsInError(storeUtils.getStore(_currentTransaction.store).storesToPropagateReferences);
@@ -175,7 +167,14 @@ function pushOfflineHttpTransactions (callback) {
       hook.pushToHandlers(lunarisExports._stores.lunarisOfflineTransactions, 'delete', _currentTransaction);
       _processNextOfflineTransaction();
       // indexedDB.del(OFFLINE_STORE, _currentTransaction._id, _processNextOfflineTransaction);
-    });
+    };
+
+    if (_currentTransaction.method === OPERATIONS.INSERT || _currentTransaction.method === OPERATIONS.UPDATE) {
+      imports.upsert(_currentTransaction.store, _currentTransaction.data, { isLocal : false, retryOptions : _currentTransaction }, onEnd);
+    }
+    else if (_currentTransaction.method === OPERATIONS.DELETE) {
+      imports.deleteStore(_currentTransaction.store, _currentTransaction.data, { retryOptions : _currentTransaction }, onEnd);
+    }
   }
 
   isPushingOfflineTransaction = true;

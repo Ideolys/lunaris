@@ -13,20 +13,25 @@ describe('local storage', () => {
   beforeEach(done => {
     lunaris._resetVersionNumber();
     lunaris._indexedDB.clear('_states', () => {
-      lunaris.begin();
-      lunaris.clear('@test');
-      lunaris.clear('@http');
-      lunaris.clear('@http.filter');
-      lunaris.clear('@lunarisOfflineTransactions');
-      lunaris.commit(() => {
-        lunaris._indexedDB.clear('_invalidations', () => {
-          lunaris._cache.clear();
-          lunaris.offline.isOnline      = true;
-          lunaris.offline.isOfflineMode = false;
-          // setTimeout(done, 200);
-          done();
-        });
-      });
+      lunaris.utils.queue(
+        [
+            '@test'
+          , '@http'
+          , '@http.filter'
+          , 'lunarisOfflineTransactions'
+        ],
+        (item, next) => {
+          lunaris.clear(item, next);
+        },
+        () => {
+          lunaris._indexedDB.clear('_invalidations', () => {
+            lunaris._cache.clear();
+            lunaris.offline.isOnline      = true;
+            lunaris.offline.isOfflineMode = false;
+            done();
+          });
+        }
+      );
     });
   });
 
@@ -506,9 +511,7 @@ describe('local storage', () => {
     it('should clear the store when offline mode and store isLocal', done => {
       var _hook = () => {
         lunaris.offline.isOfflineMode = true;
-        lunaris.begin();
-        lunaris.clear('@test');
-        lunaris.commit(() => {
+        lunaris.clear('@test', () => {;
           lunaris._indexedDB.get('_states', 'test', (err, data) => {
             if (err) {
               return done(err);
@@ -1164,32 +1167,6 @@ describe('local storage', () => {
       lunaris.update('@http:label', 'B');
     });
 
-    it('should set state when init lunaris', done => {
-      var _hook = () => {
-        setTimeout(() => {
-          var _lunaris = lunarisInstance();
-          setTimeout(() => {
-            should(_lunaris._cache._cache()).eql([
-              {
-                hash   : 'fe25fdfff5d2b9ec4d6d4a1231b9427c',
-                values : [
-                  { id : 1, label : 'A' },
-                  { id : 2, label : 'B' },
-                  { id : 3, label : 'C' }
-                ],
-                stores : ['http']
-              }
-            ]);
-
-            lunaris.removeHook('get@http', _hook);
-            done();
-          }, 800);
-        }, 200);
-      };
-      lunaris.hook('get@http', _hook);
-      lunaris.get('@http');
-    });
-
     it('should load a store', done => {
       var _hook = () => {
         lunaris._indexedDB.get('_states', 'http', (err, data) => {
@@ -1661,12 +1638,10 @@ describe('local storage', () => {
       lunaris.offline.isOnline = false;
       lunaris.hook('delete@http', _hookDelete);
 
-      lunaris.begin();
       lunaris.insert('@http', [
         { id : 1, label : 'A' },
         { id : 2, label : 'B' }
-      ]);
-      lunaris.commit(() => {
+      ], () => {
         lunaris.delete('@http', {
           _id : 1,
           id  : 1

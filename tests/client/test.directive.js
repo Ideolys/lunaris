@@ -12,14 +12,21 @@ describe('directive v-lunaris', () => {
   afterEach(done => {
     lastError = [];
     lastTip   = [];
-    lunaris.begin();
-    lunaris.clear('@directive');
-    lunaris.clear('@directiveCheckbox');
-    lunaris.clear('@directiveRadio');
-    lunaris.commit(() => {
-      lunaris._resetVersionNumber();
-      done();
-    });
+
+    lunaris.utils.queue(
+      [
+          '@directive'
+        , '@directiveCheckbox'
+        , 'directiveRadio'
+      ],
+      (item, next) => {
+        lunaris.clear(item, next);
+      },
+      () => {
+        lunaris._resetVersionNumber();
+        done();
+      }
+    );
   });
 
   it('should throw an error if the there is no value', () => {

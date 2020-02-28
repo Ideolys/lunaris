@@ -37,7 +37,6 @@ function _updateCollectionIndexId (collection, value) {
  * @param {Boolean} isMultipleItems
  * @param {Boolean} isUpdate
  * @param {Array} pathParts
- * @param {Int} transactionId
  * @param {String} request
  * @param {Boolean} isLocal
  * @param {Function} callback ({ version : Integer, value : Object/Array, request : String })
@@ -128,6 +127,7 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
     sync.setOfflineHttpTransaction(store.name, method, request, !isMultipleItems && !store.isStoreObject ? value[0] : value);
   }
 
+
   crudUtils.propagate(store, value, method, function () {
     crudUtils.afterAction(store, isUpdate ? 'update' : 'insert', value, null, function () {
       storeUtils.saveState(store, collection, function () {
@@ -144,16 +144,15 @@ function _upsertCollection (store, collection, value, version, isMultipleItems, 
  * @param {Object/Array} value
  * @param {Boolean} isUpdate
  * @param {String} method
- * @param {Interger} transactionId
  * @param {Function} callback
  */
-function _upsertHTTPEvents (store, collection, value, isUpdate, method, transactionId, callback) {
+function _upsertHTTPEvents (store, collection, value, isUpdate, method, callback) {
   crudUtils.propagate(store, value, utils.OPERATIONS.UPDATE, function () {
     crudUtils.afterAction(store, 'update', value, null, function () {
       crudUtils.afterAction(store,  isUpdate ? 'updated' : 'inserted', value, template.getSuccess(null, store, method, false), function () {
         storeUtils.saveState(store, collection, function () {
           if (store.isFilter) {
-            return hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
+            return hook.pushToHandlers(store, 'filterUpdated', null, callback);
           }
 
           callback(null, value);
@@ -174,16 +173,15 @@ function _upsertHTTPEvents (store, collection, value, isUpdate, method, transact
  * @param {*} value
  * @param {Boolean} isMultipleItems
  * @param {Int} version
- * @param {Integer} transactionId
  * @param {Function} callback
  */
-function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version, transactionId, callback) {
+function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version, callback) {
   http.request(method, request, value, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, method, false);
       setLunarisError(store.name, method, request, value, version, err, _error);
       logger.warn(['lunaris.' + (isUpdate ? 'update' : 'insert') + '@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : utils.cloneAndFreeze(value)}, transactionId, function () {
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : utils.cloneAndFreeze(value)}, function () {
         callback(err);
       });
     }
@@ -258,7 +256,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
           return callback();
         }
 
-        _upsertHTTPEvents(store, collection, value, isUpdate, method, transactionId, callback);
+        _upsertHTTPEvents(store, collection, value, isUpdate, method, callback);
       });
     }
 
@@ -266,7 +264,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
       return callback();
     }
 
-    _upsertHTTPEvents(store, collection, value, isUpdate, method, transactionId, callback);
+    _upsertHTTPEvents(store, collection, value, isUpdate, method, callback);
   });
 }
 
@@ -276,14 +274,13 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
  * @param {Array/Object} value
  * @param {Boolean} isUpdate
  * @param {Boolean} isLocal
- * @param {Integer} transactionId
  * @param {Function} callback
  */
-function _upsertLocal (store, value, isUpdate, isLocal, transactionId, callback) {
+function _upsertLocal (store, value, isUpdate, isLocal, callback) {
   if (store.isLocal || isLocal) {
     if (store.isFilter) {
       return crudUtils.propagate(store, value, isUpdate ? utils.OPERATIONS.UPDATE : utils.OPERATIONS.INSERT, function () {
-        hook.pushToHandlers(store, 'filterUpdated', null, transactionId, callback);
+        hook.pushToHandlers(store, 'filterUpdated', null, callback);
       });
     }
 
@@ -334,12 +331,12 @@ function _upsert (store, collection, pathParts, value, isUpdate, options, callba
       value    = _res.value;
       _request = _res.request;
 
-      _upsertLocal(store, value, isUpdate, options.isLocal, options.transactionId, function () {
+      _upsertLocal(store, value, isUpdate, options.isLocal, function () {
         if (store.isLocal || options.isLocal || !offline.isOnline) {
           return callback(null, value);
         }
 
-        _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, options.transactionId, callback);
+        _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, callback);
       });
     });
   }
@@ -350,7 +347,7 @@ function _upsert (store, collection, pathParts, value, isUpdate, options, callba
     return callback(null, value);
   }
 
-  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, options.transactionId, callback);
+  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, callback);
 }
 
 
@@ -401,18 +398,6 @@ function upsert (store, value, options, callback) {
     }
     if (options.retryOptions && options.retryOptions.method === OPERATIONS.INSERT) {
       _isUpdate = false;
-    }
-
-    if (transaction.isTransaction && !options.transactionId) {
-      options.transactionId = transaction.getCurrentTransactionId()
-
-      return transaction.addAction({
-        id        : transaction.getCurrentTransactionId(),
-        store     : _options.store.name,
-        operation : _isUpdate ? OPERATIONS.UPDATE : OPERATIONS.INSERT,
-        handler   : upsert,
-        arguments : [store, value, options]
-      });
     }
 
     if (_options.store.validateFn && !_storeParts.length && !options.retryOptions) {

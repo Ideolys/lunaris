@@ -91,10 +91,10 @@ lunaris._vue = {
   }),
 
   install : function (Vue) {
-    function debounce (func, store) {
+    function debounceResetMagic (func, store) {
       var wait    = arguments.length <= 1 || arguments[1] === undefined ? 100 : arguments[1];
       var timeout = void 0;
-      return function () {
+      return function resetMagic () {
         var _this = this;
 
         for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
@@ -137,13 +137,11 @@ lunaris._vue = {
      * @param {String} store
      */
     function _resetMagic (store) {
-      //return function resetMagic () {
-        return debounce(function resetMagic () {
-          if (lunaris._stores[store].isAutoRequest !== false) {
-            lunaris.get('@' + store);
-          }
-        }, 300);
-      //};
+      return debounceResetMagic(function resetMagic () {
+        if (lunaris._stores[store].isAutoRequest !== false) {
+          lunaris.get('@' + store);
+        }
+      }, 300);
     }
 
     /**

@@ -7,15 +7,24 @@ describe('Offline to online synchronisation', () => {
 
   beforeEach(done => {
     lunaris.offline.isOnline = true;
-    lunaris.begin();
-    lunaris.clear('@offlineArraySync');
-    lunaris.clear('@offlineObjectSync');
-    lunaris.clear('@offlineReferenceSync');
-    lunaris.clear('@offlineReference');
-    lunaris.clear('@offlineErrorSync');
-    lunaris.clear('@' + lunaris.utils.offlineStore);
-    lunaris.localStorage.clear('lunarisOfflineTransactions');
-    lunaris.commit(done);
+
+    lunaris.utils.queue(
+      [
+          '@offlineArraySync'
+        , '@offlineObjectSync'
+        , '@offlineReferenceSync'
+        , '@offlineReference'
+        , '@offlineErrorSync'
+        , '@' + lunaris.utils.offlineStore
+      ],
+      (item, next) => {
+        lunaris.clear(item, next);
+      },
+      () => {
+        lunaris.localStorage.clear('lunarisOfflineTransactions');
+        done();
+      }
+    );
   });
 
   it('should have added the transaction to the collection', done => {

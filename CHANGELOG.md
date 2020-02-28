@@ -5,6 +5,8 @@
 - Features:
   - Remove `lunaris.debug` features.
   - `lunaris.clear` accepts callback: `lunaris.clear(store, options, callback)` with `options = { isSilent : Boolean }`
+  - Remove transactions, i.e. `lunaris.begin` and `lunaris.commit`.
+  - Add a debounce function for `reset` hook when subscribing to stores in plugin.
 - Fixes:
 
 ## 1.16.0
