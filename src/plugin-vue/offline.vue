@@ -86,40 +86,25 @@
   function loadFilters (storesToLoad, callback) {
     lunaris.utils.queue(
       storesToLoad,
-      (storesToLoad, item) => {
-        if (!storesToLoad.filters) {
+      (storeToLoad, next) => {
+        if (!storeToLoad.filters) {
           return next();
         }
 
-        if (!Array.isArray(storesToLoad.filters)) {
+        if (!Array.isArray(storeToLoad.filters)) {
           return next();
         }
 
-        for (var j = 0; j < storesToLoad.filters.length; j++) {
-          if (storesToLoad.filters[j][1] === false) {
-            lunaris.clear(storesToLoad.filters[j][0]);
-            continue;
+        lunaris.utils.queue(storeToLoad.filters, function (filter, next) {
+          if (filter[1] === false) {
+            return lunaris.clear(filter[0], next);
           }
 
-          lunaris.upsert(storesToLoad.filters[j][0], storesToLoad.filters[j][1]);
-        }
+          lunaris.upsert(filter[0], filter[1], next);
+        }, next);
       },
       callback
     );
-  }
-
-  /**
-   * Get hook handler to count loaded events
-   * @param {Object} that = this = vm
-   * @param {String} store ex: '@store'
-   */
-  function getHook(that, store) {
-    var hook = function () {
-      that.nbStoresLoaded++;
-      lunaris.removeHook('loaded' + store, hook);
-    };
-
-    return hook;
   }
 
   module.exports = {
@@ -177,7 +162,7 @@
     },
 
     mounted : function () {
-      lunaris.invalidate('lunarisOfflineTransactions');
+      lunaris.invalidate('@lunarisOfflineTransactions');
       lunaris.setPagination('@lunarisOfflineTransactions', 0, 500);
       lunaris.get('@lunarisOfflineTransactions');
     },
@@ -276,10 +261,10 @@
           // Then load
           _that.storesToLoadTranslated = [];
 
-          lunaris.utils.queue(_that.nbStoresToLoad, function (storesToLoad, next) {
-            lunaris.load(storesToLoad[i].store, storesToLoad[i].options, () => {
-              lunaris.hook('loaded' + storesToLoad[i].store, getHook(_that, storesToLoad[i].store));
-              _that.storesToLoadTranslated.push(lunaris._stores[storesToLoad[i].store.replace('@', '')].nameTranslated);
+          lunaris.utils.queue(storesToLoad, function (storeToLoad, next) {
+            lunaris.load(storeToLoad.store, storeToLoad.options, () => {
+              _that.nbStoresLoaded++;
+              _that.storesToLoadTranslated.push(lunaris._stores[storeToLoad.store.replace('@', '')].nameTranslated);
               next();
             });
           }, function () {
