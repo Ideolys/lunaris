@@ -7,6 +7,7 @@
   - `lunaris.clear` accepts callback: `lunaris.clear(store, options, callback)` with `options = { isSilent : Boolean }`
   - Remove transactions, i.e. `lunaris.begin` and `lunaris.commit`.
   - Add a debounce function for `reset` hook when subscribing to stores in plugin.
+  - Separate lunaris compilation from app compilation. `lunaris.js` and `lunaris.min.js` are available in `dist` directory.
 - Fixes:
 
 ## 1.16.0
