@@ -72,7 +72,7 @@
     <div v-if="currentComponent === 'syncLoad'">
       <h3 class="title is-3 has-text-light" style="margin-top: 3rem">${Synchronizing data}</h3>
       <progress style="margin-bottom: .4rem" class="progress is-small" :value="nbStoresLoaded" :max="nbStoresToLoad"></progress>
-      <p>${Synchronizing} {{ storesToLoadTranslated[nbStoresLoaded] }}
+      <p>${Synchronizing} {{ storeLoading }}
       </p>
     </div>
   </div>
@@ -128,9 +128,9 @@
 
         isOfflineModeActivated : lunaris.offline.isOfflineMode,
 
-        nbStoresLoaded         : 0,
-        nbStoresToLoad         : 0,
-        storesToLoadTranslated : [],
+        nbStoresLoaded : 0,
+        nbStoresToLoad : 0,
+        storeLoading   : null,
 
         defaultWaitTime : 800
       }
@@ -264,7 +264,7 @@
           lunaris.utils.queue(storesToLoad, function (storeToLoad, next) {
             lunaris.load(storeToLoad.store, storeToLoad.options, () => {
               _that.nbStoresLoaded++;
-              _that.storesToLoadTranslated.push(lunaris._stores[storeToLoad.store.replace('@', '')].nameTranslated);
+              _that.storeLoading = lunaris._stores[storeToLoad.store.replace('@', '')].nameTranslated;
               next();
             });
           }, function () {
