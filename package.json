@@ -38,7 +38,7 @@
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v15.10.0"
   },
   "scripts": {
-    "build-lunaris": "node lib/builder-lunaris.js",
+    "build": "node lib/builder-lunaris.js",
     "test": "npm run build-lunaris && ./node_modules/.bin/mocha ./tests/test*.js -w",
     "test-client": "npm run build-lunaris && node tests/client/server.js"
   },
