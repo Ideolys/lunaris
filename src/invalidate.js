@@ -1,9 +1,9 @@
-var indexedDB = require('./localStorageDriver.js').indexedDB;
-var urlsGraph = require('./exports.js').urlsGraph;
-var cache     = require('./cache.js');
-var store     = require('./store/store.js');
-var logger    = require('./logger.js');
-var offline   = require('./offline.js');
+var indexedDB      = require('./localStorageDriver.js').indexedDB;
+var lunarisExports = require('./exports.js');
+var cache          = require('./cache.js');
+var store          = require('./store/store.js');
+var logger         = require('./logger.js');
+var offline        = require('./offline.js');
 
 var clientLightUrlInvalidations = {};
 var events                      = {};
@@ -55,7 +55,7 @@ module.exports = {
   invalidate : function invalidate (storeOrUrl) {
     // Invalidate url
     if (/^GET\s/.test(storeOrUrl)) {
-      if (!urlsGraph[storeOrUrl]) {
+      if (!lunarisExports.urlsGraph[storeOrUrl]) {
         return;
       }
 
@@ -69,9 +69,9 @@ module.exports = {
 
       addInvalidation(storeOrUrl);
 
-      for (var i = 0, len = urlsGraph[storeOrUrl].length; i < len; i++) {
-        logger.info('[Invalidate] ' + storeOrUrl + ' -> @' + urlsGraph[storeOrUrl][i]);
-        store.clear('@' + urlsGraph[storeOrUrl][i]);
+      for (var i = 0, len = lunarisExports.urlsGraph[storeOrUrl].length; i < len; i++) {
+        logger.info('[Invalidate] ' + storeOrUrl + ' -> @' + lunarisExports.urlsGraph[storeOrUrl][i]);
+        store.clear('@' + lunarisExports.urlsGraph[storeOrUrl][i]);
       }
 
       return;
@@ -89,7 +89,7 @@ module.exports = {
     var _invalidations        = [];
 
     function searchAndRemove (url) {
-      if (!urlsGraph[url]) {
+      if (!lunarisExports.urlsGraph[url]) {
         return;
       }
 
@@ -97,8 +97,8 @@ module.exports = {
       clientLightUrlInvalidations[url] = dateInvalidations;
       _invalidations.push({ url : url, date : dateInvalidations });
 
-      for (var i = 0, len = urlsGraph[url].length; i < len; i++) {
-        var index = stores.indexOf(urlsGraph[url][i]);
+      for (var i = 0, len = lunarisExports.urlsGraph[url].length; i < len; i++) {
+        var index = stores.indexOf(lunarisExports.urlsGraph[url][i]);
         if (index === -1) {
           continue;
         }
@@ -108,7 +108,7 @@ module.exports = {
       }
     }
 
-    for (var url in urlsGraph) {
+    for (var url in lunarisExports.urlsGraph) {
       if (!lightUrlInvalidations[url] && clientLightUrlInvalidations[url]) {
         continue;
       }

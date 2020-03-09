@@ -87,6 +87,6 @@ module.exports = {
   },
 
   OPERATIONS : utils.OPERATIONS,
-  constants  : lunarisExports.constants,
-  exports    : lunarisExports
+  exports    : lunarisExports,
+  get constants () { return lunarisExports.constants; }
 };

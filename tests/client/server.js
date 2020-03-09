@@ -210,7 +210,7 @@ let server = app.listen(serverPort, () => {
   constants.indexedDBNumber = 7;
 
   build({
-    baseUrl             : '"http://localhost:' + serverPort + '"',
+    baseUrl             : 'http://localhost:' + serverPort,
     clientFolder        : __dirname,
     storesFolder        : path.join(__dirname, 'stores'),
     isProduction        : false,

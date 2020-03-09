@@ -9,6 +9,8 @@ const bodyParser   = require('body-parser');
 const fetch        = require('node-fetch');
 const dayjs        = require('dayjs');
 const pako         = require('pako');
+const fs           = require('fs');
+const path         = require('path');
 
 const window = {};
 
@@ -31,28 +33,25 @@ describe('lunaris store', function () {
   this.retries(3);
 
   before(done => {
-    buildLunaris({}, {
-      BASE_URL           : "'http://localhost:" + port + "'",
-      IS_PRODUCTION      : false,
-      STORE_DEPENDENCIES : JSON.stringify({
+    eval(fs.readFileSync(path.join(__dirname, '..', 'dist', 'lunaris.js'), 'utf-8'));
+
+    lunaris.exports.setOptions({
+      baseUrl           : 'http://localhost:' + port,
+      isProduction      : false,
+      storeDependencies : JSON.stringify({
         transaction   : [],
         transaction_1 : [],
         transaction_A : ['transaction', 'transaction_1'],
         transaction_B : ['transaction'],
         pagination    : ['transaction_cache']
       }),
-      IS_BROWSER : false
-    }, (err, code) => {
-      if (err) {
-        console.log(err);
-      }
-
-      eval(code);
-      lunarisGlobal = lunaris;
-      lunarisGlobal._stores.lunarisErrors.data = collection.collection(null, false, null, null, null, 'lunarisErrors', null, lunarisGlobal.utils.clone);
-
-      _startServer(done);
+      isBrowser : false
     });
+
+    lunarisGlobal = lunaris;
+    lunarisGlobal._stores.lunarisErrors.data = collection.collection(null, false, null, null, null, 'lunarisErrors', null, lunarisGlobal.utils.clone);
+
+    _startServer(done);
   });
 
   beforeEach(() => {

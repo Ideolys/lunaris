@@ -1,20 +1,9 @@
 exports._stores = {};
-
 // exports.baseUrl is only designed for tests in order to perform HTTP requests
-try {
-  exports.baseUrl = BASE_URL;
-}
-catch (e) {
-  exports.baseUrl = '';
-}
+exports.baseUrl = '';
 
 // is production :  display or not error message in the console
-try {
-  exports.isProduction = IS_PRODUCTION;
-}
-catch (e) {
-  exports.isProduction = true;
-}
+exports.isProduction = true;
 
 /**
  * Store dependencies
@@ -26,35 +15,16 @@ catch (e) {
  *   store_dep_3 : []
  * }
  */
-try {
-  exports.storeDependencies = STORE_DEPENDENCIES;
-}
-catch (e) {
-  exports.storeDependencies = '';
-}
-
+exports.storeDependencies = '';
 /**
  * Lunaris external constants object
  * Injected at build time
  */
-try {
-  exports.constants = CONSTANTS;
-}
-catch (e) {
-  exports.constants = {};
-}
-
-
+exports.constants = {};
 /**
  * Set env browser
  */
-try {
-  exports.isBrowser = IS_BROWSER;
-}
-catch (e) {
-  exports.isBrowser = true;
-}
-
+exports.isBrowser = true;
 /**
  * Urls grpah
  * {
@@ -63,14 +33,7 @@ catch (e) {
  *   'GET /only          : ['store_3']
  * }
  */
-try {
-  exports.urlsGraph = URLS_GRAPH;
-}
-catch (e) {
-  exports.urlsGraph = {};
-}
-
-
+exports.urlsGraph = {};
 /**
  * cache grpah
  * {
@@ -79,30 +42,16 @@ catch (e) {
  *   'store_3' : []
  * }
  */
-try {
-  exports.cacheGraph = CACHE_GRAPH;
-}
-catch (e) {
-  exports.cacheGraph = {};
-}
+exports.cacheGraph          = {};
+exports.isOfflineStrategies = false;
+exports.isOfflineSync       = false;
+exports.version             = '';
 
-try {
-  exports.isOfflineStrategies = IS_OFFLINE_STRATEGIES;
-}
-catch (e) {
-  exports.isOfflineStrategies = [];
-}
-
-try {
-  exports.isOfflineSync = IS_OFFLINE_SYNC;
-}
-catch (e) {
-  exports.isOfflineSync = [];
-}
-
-try {
-  exports.version = VERSION;
-}
-catch (e) {
-  exports.version = [];
+/**
+ * Set options
+ */
+exports.setOptions = function (options) {
+  for (option in options) {
+    exports[option] = options[option];
+  }
 }

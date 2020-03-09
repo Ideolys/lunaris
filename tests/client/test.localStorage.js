@@ -1460,7 +1460,7 @@ describe('local storage', () => {
     });
   });
 
-  describe('lazy load', () => {
+  describe.only('lazy load', () => {
 
     it('should initialize the store : get', done => {
       let _lunaris;
@@ -1506,7 +1506,7 @@ describe('local storage', () => {
       ]);
     });
 
-    it('should initialize the store : upsert', done => {
+    it.only('should initialize the store : upsert', done => {
       let _lunaris;
       let _store = 'http';
 
