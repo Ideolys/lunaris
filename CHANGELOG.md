@@ -8,6 +8,7 @@
   - Remove transactions, i.e. `lunaris.begin` and `lunaris.commit`.
   - Add a debounce function for `reset` hook when subscribing to stores in plugin.
 - Fixes:
+  - Dynamic views were not destroyed when unmounting an application. If not destroy, dynamic views are defined with no hooks because we remove all hooks when unmounting an app. As a result, the dynamic view does not longer follow store updates.
 
 ## 1.16.0
 - Features:
