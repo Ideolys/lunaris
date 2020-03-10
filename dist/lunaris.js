@@ -1320,7 +1320,7 @@ var drivers = {
 
   localStorage : {
     get : function get (key) {
-      if (!lunarisExports.isBrowser || !lunarisExports.isOfflineStrategies) {
+      if (!lunarisExports.isBrowser || typeof localStorage === 'undefined') {
         return;
       }
       var _val = localStorage.getItem(key);
@@ -1331,14 +1331,14 @@ var drivers = {
     },
 
     set : function set (key, value) {
-      if (!lunarisExports.isBrowser || !lunarisExports.isOfflineStrategies) {
+      if (!lunarisExports.isBrowser || typeof localStorage === 'undefined') {
         return;
       }
       return localStorage.setItem(key, value != null ? JSON.stringify(value) : null);
     },
 
     clear : function clear (key) {
-      if (!lunarisExports.isBrowser || !lunarisExports.isOfflineStrategies) {
+      if (!lunarisExports.isBrowser || typeof localStorage === 'undefined') {
         return;
       }
       return localStorage.setItem(key, null);

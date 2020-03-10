@@ -23,8 +23,6 @@ describe('collectionResultSet', () => {
       isBrowser    : false
     });
 
-    console.log(lunaris.exports);
-
     lunarisGlobal = lunaris;
 
     lunarisGlobal._stores.db         = initStore('db');
