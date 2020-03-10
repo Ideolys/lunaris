@@ -6,17 +6,6 @@ exports.baseUrl = '';
 exports.isProduction = true;
 
 /**
- * Store dependencies
- * Filter to store
- * {
- *   store       : ['store_dep_1', 'store_dep_2']
- *   store_dep_1 : ['store_dep_3'],
- *   store_dep_2 : [],
- *   store_dep_3 : []
- * }
- */
-exports.storeDependencies = '';
-/**
  * Lunaris external constants object
  * Injected at build time
  */

@@ -36,16 +36,9 @@ describe('lunaris store', function () {
     eval(fs.readFileSync(path.join(__dirname, '..', 'dist', 'lunaris.js'), 'utf-8'));
 
     lunaris.exports.setOptions({
-      baseUrl           : 'http://localhost:' + port,
-      isProduction      : false,
-      storeDependencies : JSON.stringify({
-        transaction   : [],
-        transaction_1 : [],
-        transaction_A : ['transaction', 'transaction_1'],
-        transaction_B : ['transaction'],
-        pagination    : ['transaction_cache']
-      }),
-      isBrowser : false
+      baseUrl      : 'http://localhost:' + port,
+      isProduction : false,
+      isBrowser    : false
     });
 
     lunarisGlobal = lunaris;
