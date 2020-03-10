@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "dayjs": "1.7.5-ideolys",
+    "glob": "^7.1.6",
     "graphlib": "2.1.5",
     "pako": "1.0.6",
     "promise-polyfill": "8.1.0",
