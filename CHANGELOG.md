@@ -1,5 +1,17 @@
 # Lunaris
 
+## 1.17.0
+*next*
+- Features:
+  - Remove `lunaris.debug` features.
+  - `lunaris.clear` accepts callback: `lunaris.clear(store, options, callback)` with `options = { isSilent : Boolean }`
+  - Remove transactions, i.e. `lunaris.begin` and `lunaris.commit`.
+  - Add a debounce function for `reset` hook when subscribing to stores in plugin.
+  - Separate lunaris compilation from app compilation. `lunaris.js` and `lunaris.min.js` are available in `dist` directory.
+- Fixes:
+  - Dynamic views were not destroyed when unmounting an application. If not destroy, dynamic views are defined with no hooks because we remove all hooks when unmounting an app. As a result, the dynamic view does not longer follow store updates.
+  - Set correct websocket protocol according to current HTTP protocol.
+
 ## 1.16.0
 *2020-02-28*
 - Features:

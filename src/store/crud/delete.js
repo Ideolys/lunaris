@@ -1,19 +1,18 @@
-var logger      = require('../../logger.js');
-var cache       = require('../../cache.js');
-var utils       = require('../../utils.js');
-var storeUtils  = require('../store.utils.js');
-var offline     = require('../../offline.js');
-var transaction = require('../store.transaction.js');
-var hook        = require('../store.hook.js');
-var crudUtils   = require('./crudUtils.js');
-var http        = require('../../http.js');
-var url         = require('../store.url.js');
-var template    = require('../store.template.js');
-var sync        = require('../store.synchronisation.js');
-var upsertCrud  = require('./upsert.js');
-var lazyLoad    = require('./_lazyLoad.js');
-var queue       = utils.queue;
-var OPERATIONS  = utils.OPERATIONS;
+var logger     = require('../../logger.js');
+var cache      = require('../../cache.js');
+var utils      = require('../../utils.js');
+var storeUtils = require('../store.utils.js');
+var offline    = require('../../offline.js');
+var hook       = require('../store.hook.js');
+var crudUtils  = require('./crudUtils.js');
+var http       = require('../../http.js');
+var url        = require('../store.url.js');
+var template   = require('../store.template.js');
+var sync       = require('../store.synchronisation.js');
+var upsertCrud = require('./upsert.js');
+var lazyLoad   = require('./_lazyLoad.js');
+var queue      = utils.queue;
+var OPERATIONS = utils.OPERATIONS;
 
 sync.setImportFunction(deleteStore);
 
@@ -54,7 +53,7 @@ function _deleteValueInReferencedStores (store, collection, value, callback) {
     }
 
     var error = '${Cannot delete the value, it is still referenced in the store} ' + _store.nameTranslated;
-    hook.pushToHandlers(store, 'error', { error : error, data : null }, null, function () {
+    hook.pushToHandlers(store, 'error', { error : error, data : null }, function () {
       callback(true);
     });
   }, callback);
@@ -136,7 +135,7 @@ function _deleteHttp (store, collection, value, version, options, callback) {
       var _error = template.getError(err, store, 'DELETE', false);
       upsertCrud.setLunarisError(store.name, 'DELETE', _request, value, version, err, _error);
       logger.warn(['lunaris.delete@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, options.transactionId, function () {
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error, data : value }, function () {
         callback(err);
       });
     }
@@ -187,17 +186,6 @@ function deleteStore (store, value, options, callback) {
       value = options.retryOptions.data;
     }
     var _options = crudUtils.beforeAction(store, value);
-    if (transaction.isTransaction && !options.transactionId) {
-      options.transactionId = transaction.getCurrentTransactionId();
-
-      return transaction.addAction({
-        id        : transaction.getCurrentTransactionId(),
-        store     : _options.store.name,
-        operation : OPERATIONS.DELETE,
-        handler   : deleteStore,
-        arguments : [store, value, options]
-      });
-    }
 
     if (!_options.store.isInitialized) {
       return lazyLoad.load(_options.store, [deleteStore, arguments]);

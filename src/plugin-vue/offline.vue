@@ -72,7 +72,7 @@
     <div v-if="currentComponent === 'syncLoad'">
       <h3 class="title is-3 has-text-light" style="margin-top: 3rem">${Synchronizing data}</h3>
       <progress style="margin-bottom: .4rem" class="progress is-small" :value="nbStoresLoaded" :max="nbStoresToLoad"></progress>
-      <p>${Synchronizing} {{ storesToLoadTranslated[nbStoresLoaded] }}
+      <p>${Synchronizing} {{ storeLoading }}
       </p>
     </div>
   </div>
@@ -84,40 +84,27 @@
    * @param {Array} storesToLoad
    */
   function loadFilters (storesToLoad, callback) {
-    lunaris.begin();
-    for (var i = 0; i < storesToLoad.length; i++) {
-      if (!storesToLoad[i].filters) {
-        continue;
-      }
-
-      if (!Array.isArray(storesToLoad[i].filters)) {
-        continue;
-      }
-
-      for (var j = 0; j < storesToLoad[i].filters.length; j++) {
-        if (storesToLoad[i].filters[j][1] === false) {
-          lunaris.clear(storesToLoad[i].filters[j][0]);
-          continue;
+    lunaris.utils.queue(
+      storesToLoad,
+      (storeToLoad, next) => {
+        if (!storeToLoad.filters) {
+          return next();
         }
 
-        lunaris.upsert(storesToLoad[i].filters[j][0], storesToLoad[i].filters[j][1]);
-      }
-    }
-    lunaris.commit(callback);
-  }
+        if (!Array.isArray(storeToLoad.filters)) {
+          return next();
+        }
 
-  /**
-   * Get hook handler to count loaded events
-   * @param {Object} that = this = vm
-   * @param {String} store ex: '@store'
-   */
-  function getHook(that, store) {
-    var hook = function () {
-      that.nbStoresLoaded++;
-      lunaris.removeHook('loaded' + store, hook);
-    };
+        lunaris.utils.queue(storeToLoad.filters, function (filter, next) {
+          if (filter[1] === false) {
+            return lunaris.clear(filter[0], next);
+          }
 
-    return hook;
+          lunaris.upsert(filter[0], filter[1], next);
+        }, next);
+      },
+      callback
+    );
   }
 
   module.exports = {
@@ -141,9 +128,9 @@
 
         isOfflineModeActivated : lunaris.offline.isOfflineMode,
 
-        nbStoresLoaded         : 0,
-        nbStoresToLoad         : 0,
-        storesToLoadTranslated : [],
+        nbStoresLoaded : 0,
+        nbStoresToLoad : 0,
+        storeLoading   : null,
 
         defaultWaitTime : 800
       }
@@ -175,7 +162,7 @@
     },
 
     mounted : function () {
-      lunaris.invalidate('lunarisOfflineTransactions');
+      lunaris.invalidate('@lunarisOfflineTransactions');
       lunaris.setPagination('@lunarisOfflineTransactions', 0, 500);
       lunaris.get('@lunarisOfflineTransactions');
     },
@@ -273,16 +260,16 @@
         loadFilters(storesToLoad, function () {
           // Then load
           _that.storesToLoadTranslated = [];
-          lunaris.begin();
-          for (var i = 0; i < _that.nbStoresToLoad; i++) {
-            lunaris.load(storesToLoad[i].store, storesToLoad[i].options);
-            lunaris.hook('loaded' + storesToLoad[i].store, getHook(_that, storesToLoad[i].store));
-            _that.storesToLoadTranslated.push(lunaris._stores[storesToLoad[i].store.replace('@', '')].nameTranslated);
-          }
 
-          lunaris.commit(function () {
+          lunaris.utils.queue(storesToLoad, function (storeToLoad, next) {
+            lunaris.load(storeToLoad.store, storeToLoad.options, () => {
+              _that.nbStoresLoaded++;
+              _that.storeLoading = lunaris._stores[storeToLoad.store.replace('@', '')].nameTranslated;
+              next();
+            });
+          }, function () {
             lunaris.offline.isSynchronizing = false;
-            _that.currentComponent = 'success';
+            _that.currentComponent          = 'success';
             _that.onEnd();
           });
         });

@@ -260,7 +260,7 @@ describe('Store plugin', () => {
     });
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
-    lunaris.pushToHandlers(lunaris._stores.test, 'get', Object.freeze(_payload), true);
+    lunaris.pushToHandlers(lunaris._stores.test, 'get', Object.freeze(_payload));
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(_payload);
 
     vm.$destroy();
@@ -273,7 +273,7 @@ describe('Store plugin', () => {
     });
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
-    lunaris.pushToHandlers(lunaris._stores.test, 'get', Object.freeze(_payload), true);
+    lunaris.pushToHandlers(lunaris._stores.test, 'get', Object.freeze(_payload));
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(lunaris.utils.clone(_payload));
 
     const vm2 = new Vue({
@@ -306,7 +306,7 @@ describe('Store plugin', () => {
     });
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
-    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
+    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload));
     lunaris.pushToHandlers(lunaris._stores.test, 'insert', { _id : 3, id : 3, label : 'C' });
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(_payload.concat({ _id : 3, id : 3, label : 'C' }));
 
@@ -320,8 +320,8 @@ describe('Store plugin', () => {
     });
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
-    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
-    lunaris.pushToHandlers(lunaris._stores.test, 'insert', [{ _id : 3, id : 3, label : 'C' }, { _id : 4, id : 4, label : 'D' }], true);
+    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload));
+    lunaris.pushToHandlers(lunaris._stores.test, 'insert', [{ _id : 3, id : 3, label : 'C' }, { _id : 4, id : 4, label : 'D' }]);
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(_payload.concat([
       { _id : 3, id : 3, label : 'C' },
       { _id : 4, id : 4, label : 'D' }
@@ -337,7 +337,7 @@ describe('Store plugin', () => {
     });
 
     var _payload = { _id : 1, id : 1, label : 'A' };
-    lunaris.pushToHandlers(lunaris._stores.testObject, 'get'   , Object.freeze(_payload), true);
+    lunaris.pushToHandlers(lunaris._stores.testObject, 'get'   , Object.freeze(_payload));
     lunaris.pushToHandlers(lunaris._stores.testObject, 'insert', { _id : 2, id : 2, label : 'B' });
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql({ _id : 2, id : 2, label : 'B' });
 
@@ -351,7 +351,7 @@ describe('Store plugin', () => {
     });
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
-    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
+    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload));
     lunaris.pushToHandlers(lunaris._stores.test, 'update', { _id : 1, id : 1, label : 'A-1' });
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
       { _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B' }
@@ -367,8 +367,8 @@ describe('Store plugin', () => {
     });
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
-    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
-    lunaris.pushToHandlers(lunaris._stores.test, 'update', [{ _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B-1' }], true);
+    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload));
+    lunaris.pushToHandlers(lunaris._stores.test, 'update', [{ _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B-1' }]);
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(
       [{ _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B-1' }]
     );
@@ -383,7 +383,7 @@ describe('Store plugin', () => {
     });
 
     var _payload = { _id : 1, id : 1, label : 'A' };
-    lunaris.pushToHandlers(lunaris._stores.testObject, 'get'   , Object.freeze(_payload), true);
+    lunaris.pushToHandlers(lunaris._stores.testObject, 'get'   , Object.freeze(_payload));
     lunaris.pushToHandlers(lunaris._stores.testObject, 'update', { _id : 1, id : 1, label : 'A-1' });
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.testObject.state)).eql({ _id : 1, id : 1, label : 'A-1' });
 
@@ -410,7 +410,7 @@ describe('Store plugin', () => {
       stores : ['test'],
     });
 
-    lunaris.pushToHandlers(lunaris._stores.test, 'update', [{ _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B-1' }], true);
+    lunaris.pushToHandlers(lunaris._stores.test, 'update', [{ _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B-1' }]);
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql(
       [{ _id : 1, id : 1, label : 'A-1' }, { _id : 2, id : 2, label : 'B-1' }]
     );
@@ -425,8 +425,8 @@ describe('Store plugin', () => {
     });
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
-    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
-    lunaris.pushToHandlers(lunaris._stores.test, 'update', [{ _id : 1, id : 1, label : 'A-1' }, { _id : 3, id : 3, label : 'C' }], true);
+    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload));
+    lunaris.pushToHandlers(lunaris._stores.test, 'update', [{ _id : 1, id : 1, label : 'A-1' }, { _id : 3, id : 3, label : 'C' }]);
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
       { _id : 1, id : 1, label : 'A-1' },
       { _id : 2, id : 2, label : 'B' },
@@ -443,7 +443,7 @@ describe('Store plugin', () => {
     });
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
-    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
+    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload));
     lunaris.pushToHandlers(lunaris._stores.test, 'delete', { _id : 1, id : 1, label : 'A-1' });
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([
       { _id : 2, id : 2, label : 'B' }
@@ -473,7 +473,7 @@ describe('Store plugin', () => {
     });
 
     var _payload = [{ _id : 1, id : 1, label : 'A' }, { _id : 2, id : 2, label : 'B' }];
-    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload), true);
+    lunaris.pushToHandlers(lunaris._stores.test, 'get'   , Object.freeze(_payload));
     lunaris.pushToHandlers(lunaris._stores.test, 'reset');
     should(lunaris.utils.clone(lunaris._vue._vm.$data.$stores.test.state)).eql([]);
 

@@ -8,10 +8,12 @@
   },
   "dependencies": {
     "dayjs": "1.7.5-ideolys",
+    "glob": "^7.1.6",
     "graphlib": "2.1.5",
     "pako": "1.0.6",
     "promise-polyfill": "8.1.0",
     "serialize-javascript": "1.7.0",
+    "terser": "^4.6.6",
     "timsort": "0.3.0",
     "vue": "2.6.2",
     "vue-router": "3.0.1",
@@ -37,8 +39,9 @@
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v15.10.0"
   },
   "scripts": {
-    "test": "./node_modules/.bin/mocha ./tests/test*.js -w",
-    "test-client": "node tests/client/server.js"
+    "build": "node lib/builder-lunaris.js",
+    "test": "npm run build && ./node_modules/.bin/mocha ./tests/test*.js -w",
+    "test-client": "npm run build && node tests/client/server.js"
   },
   "repository": {
     "type": "git",

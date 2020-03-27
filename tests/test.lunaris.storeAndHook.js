@@ -9,6 +9,8 @@ const bodyParser   = require('body-parser');
 const fetch        = require('node-fetch');
 const dayjs        = require('dayjs');
 const pako         = require('pako');
+const fs           = require('fs');
+const path         = require('path');
 
 const window = {};
 
@@ -31,28 +33,18 @@ describe('lunaris store', function () {
   this.retries(3);
 
   before(done => {
-    buildLunaris({}, {
-      BASE_URL           : "'http://localhost:" + port + "'",
-      IS_PRODUCTION      : false,
-      STORE_DEPENDENCIES : JSON.stringify({
-        transaction   : [],
-        transaction_1 : [],
-        transaction_A : ['transaction', 'transaction_1'],
-        transaction_B : ['transaction'],
-        pagination    : ['transaction_cache']
-      }),
-      IS_BROWSER : false
-    }, (err, code) => {
-      if (err) {
-        console.log(err);
-      }
+    eval(fs.readFileSync(path.join(__dirname, '..', 'dist', 'lunaris.js'), 'utf-8'));
 
-      eval(code);
-      lunarisGlobal = lunaris;
-      lunarisGlobal._stores.lunarisErrors.data = collection.collection(null, false, null, null, null, 'lunarisErrors', null, lunarisGlobal.utils.clone);
-
-      _startServer(done);
+    lunaris.exports.setOptions({
+      baseUrl      : 'http://localhost:' + port,
+      isProduction : false,
+      isBrowser    : false
     });
+
+    lunarisGlobal = lunaris;
+    lunarisGlobal._stores.lunarisErrors.data = collection.collection(null, false, null, null, null, 'lunarisErrors', null, lunarisGlobal.utils.clone);
+
+    _startServer(done);
   });
 
   beforeEach(() => {
@@ -1408,10 +1400,9 @@ describe('lunaris store', function () {
         done(err);
       });
 
-      lunarisGlobal.begin();
-      lunarisGlobal.insert('@store1', { id : 2, label : 'A' });
-      lunarisGlobal.delete('@store1', _expectedValue);
-      lunarisGlobal.commit();
+      lunarisGlobal.insert('@store1', { id : 2, label : 'A' }, () => {
+        lunarisGlobal.delete('@store1', _expectedValue);
+      });
     });
 
     it('should delete the value and display the tip : no primary key', done => {
@@ -3303,6 +3294,132 @@ describe('lunaris store', function () {
         done();
       }, 100);
     });
+
+    describe('callback', () => {
+      it('should throw an error if the store is not a string', done => {
+        lunarisGlobal.clear({}, err => {
+          should(err).eql(new Error('Must have a correct store value: @<store>'));
+          done();
+        });
+      });
+
+      it('should clear the store', done => {
+        var _store = initStore('store1');
+        lunarisGlobal._stores['store1'] = _store;
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' });
+        should(_store.data.get(1)).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
+        lunarisGlobal.clear('@store1', () => {
+          should(lunarisGlobal._stores['store1'].data._getAll()).be.an.Array().and.have.length(0);
+          done();
+        });
+      });
+
+      it('should clear the store and not trigger the hook reset', done => {
+        var _hasFiredHook = false;
+        var _store        = initStore('store1');
+        lunarisGlobal._stores['store1'] = _store;
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' });
+        should(_store.data.get(1)).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
+
+        lunarisGlobal.hook('reset@store1', () => {
+          _hasFiredHook = true;
+        });
+
+        lunarisGlobal.clear('@store1', { isSilent : true }, () => {
+          setTimeout(() => {
+            should(_hasFiredHook).eql(false);
+            done();
+          }, 200);
+        });
+      });
+
+      it('should clear multiple stores and send events', done => {
+        var _hooks = {};
+        lunarisGlobal._stores['store.filter.A'] = initStore('store.filter.A');
+        lunarisGlobal._stores['store.filter.B'] = initStore('store.filter.B');
+        lunarisGlobal._stores['store.C']        = initStore('store.C');
+
+        lunarisGlobal.hook('reset@store.filter.A', () => {
+          _hooks['store.filter.A'] = true;
+        });
+        lunarisGlobal.hook('reset@store.filter.B', () => {
+          _hooks['store.filter.B'] = true;
+        });
+        lunarisGlobal.hook('reset@store.C', () => {
+          _hooks['store.C'] = true;
+        });
+
+        lunarisGlobal.insert('@store.filter.A', {
+          label : 'A'
+        });
+        lunarisGlobal.insert('@store.filter.B', {
+          label : 'B'
+        });
+        lunarisGlobal.insert('@store.C', {
+          label : 'C'
+        });
+
+        lunarisGlobal.clear('@store.filter.*', () => {
+          setTimeout(() => {
+            should(_hooks).eql({
+              'store.filter.A' : true,
+              'store.filter.B' : true
+            });
+            should(lunarisGlobal._stores['store.filter.A'].data.getAll()).eql([]);
+            should(lunarisGlobal._stores['store.filter.B'].data.getAll()).eql([]);
+            should(lunarisGlobal._stores['store.C'].data.getAll()).eql([{
+              _id      : 1,
+              _rowId   : 1,
+              _version : [3],
+              label    : 'C'
+            }]);
+            done();
+          }, 100);
+        });
+      });
+
+      it('should clear multiple stores and not send events', done => {
+        var _hooks = {};
+        lunarisGlobal._stores['store.filter.A'] = initStore('store.filter.A');
+        lunarisGlobal._stores['store.filter.B'] = initStore('store.filter.B');
+        lunarisGlobal._stores['store.C']        = initStore('store.C');
+
+        lunarisGlobal.hook('reset@store.filter.A', () => {
+          _hooks['store.filter.A'] = true;
+        });
+        lunarisGlobal.hook('reset@store.filter.B', () => {
+          _hooks['store.filter.B'] = true;
+        });
+        lunarisGlobal.hook('reset@store.C', () => {
+          _hooks['store.C'] = true;
+        });
+
+        lunarisGlobal.insert('@store.filter.A', {
+          label : 'A'
+        });
+        lunarisGlobal.insert('@store.filter.B', {
+          label : 'B'
+        });
+        lunarisGlobal.insert('@store.C', {
+          label : 'C'
+        });
+
+        lunarisGlobal.clear('@store.filter.*', { isSilent : true }, () => {
+          setTimeout(() => {
+            should(_hooks).eql({});
+            should(lunarisGlobal._stores['store.filter.A'].data.getAll()).eql([]);
+            should(lunarisGlobal._stores['store.filter.B'].data.getAll()).eql([]);
+            should(lunarisGlobal._stores['store.C'].data.getAll()).eql([{
+              _id      : 1,
+              _rowId   : 1,
+              _version : [3],
+              label    : 'C'
+            }]);
+            done();
+          }, 100);
+        });
+      });
+    });
   });
 
   describe('rollback', () => {
@@ -3868,448 +3985,6 @@ describe('lunaris store', function () {
       should(lunarisGlobal.createUrl('@store', 'DELETE', 1)).eql(
         '/store/1'
       );
-    });
-  });
-
-  describe('transaction', () => {
-
-    it('should fire the event "reset"', done => {
-      lunarisGlobal._stores['transaction_A']               = initStore('transaction_A');
-      lunarisGlobal._stores['transaction_A'].isLocal       = true;
-      lunarisGlobal._stores['transaction_A'].isFilter      = true;
-      lunarisGlobal._stores['transaction_A'].isStoreObject = true;
-
-      var _hasBeenCalledA = 0;
-      lunarisGlobal.hook('reset@transaction_A', () => {
-        _hasBeenCalledA++;
-      });
-
-      lunarisGlobal.begin();
-      lunarisGlobal.insert('@transaction_A', { id : 1 });
-      lunarisGlobal.commit(() => {
-        should(_hasBeenCalledA).eql(1);
-        done();
-      });
-    });
-
-    it('should fire the event "reset" once', done => {
-      lunarisGlobal._stores['transaction'] = initStore('transaction');
-      lunarisGlobal._stores['transaction'].filters[
-        {
-          source          : '@transaction_A',
-          sourceAttribute : 'label',
-          localAttribute  : 'label'
-        }, {
-          source          : '@transaction_B',
-          sourceAttribute : 'label',
-          localAttribute  : 'label'
-        }
-      ];
-      lunarisGlobal._stores['transaction_1'] = initStore('transaction_1');
-      lunarisGlobal._stores['transaction_1'].isStoreObject = true;
-
-      lunarisGlobal._stores['transaction_1'].filters[
-        {
-          source          : '@transaction_A',
-          sourceAttribute : 'label',
-          localAttribute  : 'label'
-        }
-      ];
-      lunarisGlobal._stores['transaction_A']               = initStore('transaction_A');
-      lunarisGlobal._stores['transaction_A'].isLocal       = true;
-      lunarisGlobal._stores['transaction_A'].isFilter      = true;
-      lunarisGlobal._stores['transaction_A'].isStoreObject = true;
-      lunarisGlobal._stores['transaction_B']               = initStore('transaction_B');
-      lunarisGlobal._stores['transaction_B'].isLocal       = true;
-      lunarisGlobal._stores['transaction_B'].isFilter      = true;
-      lunarisGlobal._stores['transaction_B'].isStoreObject = true;
-
-      var _hasBeenCalledA = 0;
-      var _hasBeenCalledB = 0;
-
-      lunarisGlobal.hook('reset@transaction_A', () => {
-        _hasBeenCalledA++;
-      });
-
-      lunarisGlobal.hook('reset@transaction_B', () => {
-        _hasBeenCalledB++;
-      });
-
-      lunarisGlobal.begin();
-      lunarisGlobal.insert('@transaction_A', { id : 1 });
-      lunarisGlobal.insert('@transaction_B', { id : 1 });
-      lunarisGlobal.commit(() => {
-        should(_hasBeenCalledA).eql(1);
-        should(_hasBeenCalledB).eql(0);
-        done();
-      });
-    });
-
-    it('should commit a store', done => {
-      var _store                  = initStore('multiple');
-      lunarisGlobal._stores['multiple'] = _store;
-
-      var _events = [];
-      lunarisGlobal.hook('insert@multiple', () => {
-        _events.push('insert@multiple');
-      });
-      lunarisGlobal.hook('inserted@multiple', () => {
-        _events.push('inserted@multiple');
-      });
-
-      lunarisGlobal.begin();
-      lunarisGlobal.insert('@multiple', [
-        { id : 1, label : 'A' },
-        { id : 2, label : 'B' }
-      ]);
-      lunarisGlobal.commit();
-
-      setTimeout(() => {
-        should(_events).eql([
-          'insert@multiple',
-          'inserted@multiple'
-        ]);
-        done();
-      }, 100);
-    });
-
-    it('should commit same store sequentially', done => {
-      lunarisGlobal._stores['store1']   = initStore('store1');
-
-      var _events = [];
-      lunarisGlobal.hook('insert@store1', () => {
-        _events.push('insert@store1');
-      });
-      lunarisGlobal.hook('inserted@store1', () => {
-        _events.push('inserted@store1');
-      });
-
-      lunarisGlobal.begin();
-      lunarisGlobal.insert('@store1', { id : 1, label : 'A' });
-      lunarisGlobal.insert('@store1', { id : 2, label : 'B' });
-
-      lunarisGlobal.commit(() => {
-        should(_events).eql([
-          'insert@store1',
-          'inserted@store1',
-          'insert@store1',
-          'inserted@store1',
-        ]);
-        done();
-      });
-    });
-
-    it('should commit multiple stores sequentially', done => {
-      lunarisGlobal._stores['multiple'] = initStore('multiple');
-      lunarisGlobal._stores['store1']   = initStore('store1');
-
-      var _events = [];
-      lunarisGlobal.hook('insert@multiple', () => {
-        _events.push('insert@multiple');
-      });
-      lunarisGlobal.hook('inserted@multiple', () => {
-        _events.push('inserted@multiple');
-      });
-      lunarisGlobal.hook('insert@store1', () => {
-        _events.push('insert@store1');
-      });
-      lunarisGlobal.hook('get@store1', () => {
-        _events.push('get@store1');
-      });
-      lunarisGlobal.hook('inserted@store1', () => {
-        _events.push('inserted@store1');
-      });
-
-      lunarisGlobal.begin();
-      lunarisGlobal.insert('@store1', [
-        { id : 1, label : 'A' },
-        { id : 2, label : 'B' }
-      ]);
-      lunarisGlobal.get('@store1');
-      lunarisGlobal.insert('@multiple', [
-        { id : 1, label : 'A' },
-        { id : 2, label : 'B' }
-      ]);
-      lunarisGlobal.commit(() => {
-        should(_events).eql([
-          'insert@store1',
-          'inserted@store1',
-          'get@store1',
-          'insert@multiple',
-          'inserted@multiple',
-        ]);
-        done();
-      });
-    });
-
-    it('should commit a store : GET with cache', done => {
-      var _store                    = initStore('pagination');
-      _store.isFilter               = true;
-      lunarisGlobal._stores['pagination'] = _store;
-
-      lunarisGlobal._stores['transaction_cache'] = initStore('transaction_cache');
-      lunarisGlobal._stores['transaction_cache'].filters[
-        {
-          source          : '@pagination',
-          sourceAttribute : 'label',
-          localAttribute  : 'label'
-        }
-      ];
-
-      var _events = [];
-      var _nbCalls = 0;
-      lunarisGlobal.hook('get@pagination', () => {
-        _nbCalls++;
-        _events.push('get@pagination');
-
-        if (_nbCalls === 1) {
-          lunarisGlobal.setPagination('@pagination');
-          lunarisGlobal.begin();
-          lunarisGlobal.get('@pagination');
-          lunarisGlobal.commit(() => {
-            should(_events).eql([
-              'get@pagination',
-              'get@pagination',
-              'reset@pagination'
-            ]);
-            done();
-          });
-        }
-      });
-
-      lunarisGlobal.hook('reset@pagination', () => {
-        _events.push('reset@pagination');
-      });
-
-      lunarisGlobal.get('@pagination');
-    });
-
-    it('should commit multiple stores sequentially : GET', done => {
-      lunarisGlobal._stores['pagination'] = initStore('pagination');
-      lunarisGlobal._stores['store1']   = initStore('store1');
-
-      var _events = [];
-      lunarisGlobal.hook('get@pagination', () => {
-        _events.push('get@pagination');
-      });
-      lunarisGlobal.hook('get@store1', () => {
-        _events.push('get@store1');
-      });
-
-      lunarisGlobal.begin();
-      lunarisGlobal.get('@store1');
-      lunarisGlobal.get('@pagination');
-      lunarisGlobal.commit(() => {
-        should(_events).eql([
-          'get@store1',
-          'get@pagination'
-        ]);
-        done();
-      });
-    });
-
-    it('should commit multiple stores sequentially : GET with a store filter', done => {
-      lunarisGlobal._stores['pagination']          = initStore('pagination');
-      lunarisGlobal._stores['pagination'].isFilter = true;
-      lunarisGlobal._stores['store1']              = initStore('store1');
-
-      var _events = [];
-      lunarisGlobal.hook('get@pagination', () => {
-        _events.push('get@pagination');
-      });
-      lunarisGlobal.hook('get@store1', () => {
-        _events.push('get@store1');
-      });
-
-      lunarisGlobal.begin();
-      lunarisGlobal.get('@store1');
-      lunarisGlobal.get('@pagination');
-      lunarisGlobal.commit(() => {
-        should(_events).eql([
-          'get@store1',
-          'get@pagination'
-        ]);
-        done();
-      });
-    });
-
-    it('should commit multiple filter stores sequentially and fire the event "filterUpdated" once', done => {
-      lunarisGlobal._stores['transaction'] = initStore('transaction');
-      lunarisGlobal._stores['transaction'].filters[
-        {
-          source          : '@transaction_A',
-          sourceAttribute : 'label',
-          localAttribute  : 'label'
-        }, {
-          source          : '@transaction_B',
-          sourceAttribute : 'label',
-          localAttribute  : 'label'
-        }
-      ];
-      lunarisGlobal._stores['transaction_1'] = initStore('transaction_1');
-      lunarisGlobal._stores['transaction_1'].isStoreObject = true;
-
-      lunarisGlobal._stores['transaction_1'].filters[
-        {
-          source          : '@transaction_A',
-          sourceAttribute : 'label',
-          localAttribute  : 'label'
-        }
-      ];
-      lunarisGlobal._stores['transaction_A']               = initStore('transaction_A');
-      lunarisGlobal._stores['transaction_A'].isFilter      = true;
-      lunarisGlobal._stores['transaction_A'].isStoreObject = true;
-      lunarisGlobal._stores['transaction_B']               = initStore('transaction_B');
-      lunarisGlobal._stores['transaction_B'].isFilter      = true;
-      lunarisGlobal._stores['transaction_B'].isStoreObject = true;
-
-      var _hasBeenCalledA = 0;
-      var _hasBeenCalledB = 0;
-
-      lunarisGlobal.hook('reset@transaction_A', () => {
-        _hasBeenCalledA++;
-      });
-
-      lunarisGlobal.hook('reset@transaction_B', () => {
-        _hasBeenCalledB++;
-      });
-
-      var _events = [];
-      lunarisGlobal.hook('insert@transaction_A', () => {
-        _events.push('insert@transaction_A');
-      });
-      lunarisGlobal.hook('inserted@transaction_A', () => {
-        _events.push('inserted@transaction_A');
-      });
-      lunarisGlobal.hook('insert@transaction_B', () => {
-        _events.push('insert@transaction_B');
-      });
-      lunarisGlobal.hook('inserted@transaction_B', () => {
-        _events.push('inserted@transaction_B');
-      });
-
-      lunarisGlobal.begin();
-      lunarisGlobal.insert('@transaction_A', { id : 1 });
-      lunarisGlobal.insert('@transaction_A', { id : 2 });
-      lunarisGlobal.insert('@transaction_B', { id : 1 });
-      lunarisGlobal.commit();
-
-      setTimeout(() => {
-        should(_hasBeenCalledA).eql(1);
-        should(_hasBeenCalledB).eql(0);
-        should(_events).eql([
-          'insert@transaction_A',
-          'inserted@transaction_A',
-          'insert@transaction_A',
-          'inserted@transaction_A',
-          'insert@transaction_B',
-          'inserted@transaction_B'
-        ]);
-        done();
-      }, 100);
-    });
-
-    it('should commit multiple stores sequentially : clear', done => {
-      lunarisGlobal._stores['store1'] = initStore('store1');
-
-      var _events = [];
-      lunarisGlobal.hook('reset@store1', (data, doneHook) => {
-        _events.push('reset@store1');
-        lunarisGlobal.begin();
-        lunarisGlobal.get('@store1');
-        lunarisGlobal.commit(doneHook);
-      });
-      lunarisGlobal.hook('get@store1', () => {
-        _events.push('get@store1');
-      });
-
-      lunarisGlobal.begin();
-      lunarisGlobal.clear('@store1');
-      lunarisGlobal.commit(() => {
-        should(_events).eql([
-          'reset@store1',
-          'get@store1'
-        ]);
-        done();
-      });
-    });
-
-    it('should commit multiple stores sequentially : clear multiple', done => {
-      lunarisGlobal._stores['store1'] = initStore('store1');
-      lunarisGlobal._stores['store2'] = initStore('store2');
-      lunarisGlobal._stores['store2'].isLocal = true;
-
-      var _events = [];
-      lunarisGlobal.hook('reset@store1', (data, doneHook) => {
-        _events.push('reset@store1');
-        doneHook();
-      });
-      lunarisGlobal.hook('reset@store2', () => {
-        _events.push('reset@store2');
-      });
-
-      lunarisGlobal.begin();
-      lunarisGlobal.clear('@store*');
-      lunarisGlobal.commit(() => {
-        should(_events).eql([
-          'reset@store1',
-          'reset@store2'
-        ]);
-        done();
-      });
-    });
-
-    it('should commit a load', done => {
-      lunarisGlobal.offline.isOfflineMode = true;
-      lunarisGlobal._stores['load'] = initStore('load');
-
-      var _hasCalledEvent = false;
-      const hook = () => {
-        _hasCalledEvent = true;
-        lunarisGlobal.removeHook('loaded@load', hook);
-      };
-
-      lunarisGlobal.hook('loaded@load', hook);
-
-      lunarisGlobal.begin();
-      lunarisGlobal.load('@load');
-      lunarisGlobal.commit(() => {
-        should(_hasCalledEvent).eql(true);
-        lunarisGlobal.offline.isOfflineMode = false;
-        done();
-      });
-    });
-
-    it('should commit multiple loads', done => {
-      lunarisGlobal.offline.isOfflineMode = true;
-      lunarisGlobal._stores['load']       = initStore('load');
-      lunarisGlobal._stores['load_2']     = initStore('load_2');
-      lunarisGlobal._stores['load_2'].url = 'load';
-
-      var _events = [];
-      const hook = () => {
-        _events.push('loaded@load');
-        lunarisGlobal.removeHook('loaded@load', hook);
-      };
-      const hook_2 = () => {
-        _events.push('loaded@load_2');
-        lunarisGlobal.removeHook('loaded@load_2', hook);
-      };
-
-      lunarisGlobal.hook('loaded@load', hook);
-      lunarisGlobal.hook('loaded@load_2', hook_2);
-
-      lunarisGlobal.begin();
-      lunarisGlobal.load('@load');
-      lunarisGlobal.load('@load_2');
-      lunarisGlobal.commit(() => {
-        should(_events).eql([
-          'loaded@load',
-          'loaded@load_2'
-        ]);
-        lunarisGlobal.offline.isOfflineMode = false;
-        done();
-      });
     });
   });
 

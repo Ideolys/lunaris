@@ -1,22 +1,28 @@
 describe('builder', () => {
 
   beforeEach(done => {
-    lunaris.begin();
-    lunaris.clear('@child');
-    lunaris.clear('@childAggregate');
-    lunaris.clear('@childAggregateSum');
-    lunaris.clear('@computed');
-    lunaris.clear('@filter.parent');
-    lunaris.clear('@filter.child');
-    lunaris.clear('@filter.double');
-    lunaris.clear('@double');
-    lunaris.clear('@parent');
-    lunaris.clear('@http');
-    lunaris.clear('@reference');
-    lunaris.commit(() => {
-      lunaris._resetVersionNumber();
-      done();
-    });
+    lunaris.utils.queue(
+      [
+          '@child'
+        , '@childAggregate'
+        , '@childAggregateSum'
+        , '@computed'
+        , '@filter.parent'
+        , '@filter.child'
+        , '@filter.double'
+        , '@double'
+        , '@parent'
+        , '@http'
+        , '@reference'
+      ],
+      (item, next) => {
+        lunaris.clear(item, next);
+      },
+      () => {
+        lunaris._resetVersionNumber();
+        done();
+      }
+    );
   });
 
   it('should have defined constants', () => {

@@ -1,9 +1,8 @@
-var lunarisExports  = require('./exports.js');
 var isOnline        = true;  // detect if browser is online or offline
 var isOfflineMode   = false; // is offline mode enabled ? invalidations are recived but not propagated
 var isSynchronizing = false; // is synchronizing ?
 
-if (lunarisExports.isBrowser) {
+if (typeof navigator !== 'undefined') {
   isOnline = navigator.onLine !== undefined ? navigator.onLine : true;
 
   window.addEventListener('online', function () {

@@ -7,28 +7,28 @@ const dayjs              = require('dayjs');
 const pako               = require('pako');
 const timsort            = require('timsort');
 const resultSetOperators = require('../src/store/dataQuery/queryResultSet').operators;
+const fs                 = require('fs');
+const path               = require('path');
 
 const window = {};
 var lunarisGlobal  = {};
 
 describe('collectionResultSet', () => {
+
   before(done => {
-    buildLunaris({}, {
-      IS_PRODUCTION : false,
-      IS_BROWSER    : false
-    }, (err, code) => {
-      if (err) {
-        console.log(err);
-      }
+    eval(fs.readFileSync(path.join(__dirname, '..', 'dist', 'lunaris.js'), 'utf-8'));
 
-      eval(code);
-      lunarisGlobal = lunaris;
-
-      lunarisGlobal._stores.db         = initStore('db');
-      lunarisGlobal._stores.db.isLocal = true;
-
-      done();
+    lunaris.exports.setOptions({
+      isProduction : false,
+      isBrowser    : false
     });
+
+    lunarisGlobal = lunaris;
+
+    lunarisGlobal._stores.db         = initStore('db');
+    lunarisGlobal._stores.db.isLocal = true;
+
+    done();
   });
 
   beforeEach(() => {

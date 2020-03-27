@@ -8,7 +8,6 @@ var utils           = require('../../utils.js');
 var storeUtils      = require('../store.utils.js');
 var crudUtils       = require('./crudUtils.js');
 var offline         = require('../../offline.js');
-var transaction     = require('../store.transaction.js');
 var hook            = require('../store.hook.js');
 var template        = require('../store.template.js');
 var upsertCRUD      = require('./upsert.js');
@@ -16,8 +15,6 @@ var indexedDB       = require('../../localStorageDriver.js').indexedDB;
 var lazyLoad        = require('./_lazyLoad.js');
 var getRequestQueue = {};
 var OPERATIONS      = utils.OPERATIONS;
-var debug           = require('../../debug.js');
-var debugObject     = debug.debug(null, debug.NAMESPACES.PERFORMANCE);
 
 
 /**
@@ -70,8 +67,6 @@ function _transformGetCache (collection, values) {
 function _returnCacheValues (store, collection, request, cacheValues, options, nextGet) {
   var _values = [];
 
-  debug.log(store.name, debug.NAMESPACES.CACHE, 'Get ' + decodeURIComponent(request));
-
   if (typeof cacheValues === 'object') {
     storeUtils.saveState(store, collection);
     _values = _transformGetCache(collection, store.clone(cacheValues));
@@ -79,7 +74,7 @@ function _returnCacheValues (store, collection, request, cacheValues, options, n
 
   return crudUtils.afterAction(store, 'get', _values, null, function () {
     if (store.isFilter) {
-      return hook.pushToHandlers(store, 'filterUpdated', null, options.transactionId, function () {
+      return hook.pushToHandlers(store, 'filterUpdated', null, function () {
 
         options.callback(null, _values);
         nextGet('@' + store.name);
@@ -108,7 +103,7 @@ function _returnLocalValues (store, collection, request, options, nextGet) {
 
   crudUtils.afterAction(store, 'get', _res, null, function () {
     if (store.isFilter && ((store.isStoreObject && _res) || (!store.isStoreObject && _res.length))) {
-      return hook.pushToHandlers(store, 'filterUpdated', null, options.transactionId, function () {
+      return hook.pushToHandlers(store, 'filterUpdated', null, function () {
         storeUtils.saveState(store, collection, function () {
           options.callback(null, _res);
           nextGet('@' + store.name);
@@ -138,7 +133,7 @@ function _getHTTP (store, collection, request, primaryKeyValue, options, nextGet
       var _error = template.getError(err, store, 'GET', true);
       upsertCRUD.setLunarisError(store.name, 'GET', request, null, null, err, _error);
       logger.warn(['lunaris.get@' + store.name], err);
-      return hook.pushToHandlers(store, 'errorHttp', { error : _error }, options.transactionId, function () {
+      return hook.pushToHandlers(store, 'errorHttp', { error : _error }, function () {
         options.callback(err);
         nextGet('@' + store.name);
       });
@@ -177,7 +172,7 @@ function _getHTTP (store, collection, request, primaryKeyValue, options, nextGet
     crudUtils.propagate(store, data, utils.OPERATIONS.INSERT, function () {
       crudUtils.afterAction(store, 'get', data, null, function () {
         if (store.isFilter) {
-          return hook.pushToHandlers(store, 'filterUpdated', null, options.transactionId, function () {
+          return hook.pushToHandlers(store, 'filterUpdated', null, function () {
             storeUtils.saveState(store, collection, function () {
               options.callback(null, data);
               nextGet('@' + store.name);
@@ -199,7 +194,6 @@ function _getHTTP (store, collection, request, primaryKeyValue, options, nextGet
  * @param {String} store
  * @param {*} primaryKeyValue
  * @param {Object} options {
- *   transactionId
  *   callback
  * }
  * @param {Function} next _processNextGetRequest(store)
@@ -274,18 +268,6 @@ function get (store, primaryKeyValue, options, callback) {
 
   options.callback = callback || function () {};
 
-  if (transaction.isTransaction) {
-    options.transactionId = transaction.getCurrentTransactionId();
-
-    return transaction.addAction({
-      id        : options.transactionId,
-      store     : store.replace('@', ''),
-      operation : OPERATIONS.LIST,
-      handler   : _get,
-      arguments : [store, primaryKeyValue, options]
-    });
-  }
-
   getRequestQueue[store].push([store, primaryKeyValue, options]);
 
   if (getRequestQueue[store].length === 1) {
@@ -293,37 +275,27 @@ function get (store, primaryKeyValue, options, callback) {
   }
 }
 
-/**
- * LOAD : load all data from an API
- */
-
-/**
- * Load all data from a store
- * @param {String} store ex: '@store'
- * @param {Object} options
- */
-function load (store, options) {
-  if (transaction.isTransaction) {
-    return transaction.addAction({
-      id        : transaction.getCurrentTransactionId(),
-      store     : store.replace('@', ''),
-      operation : OPERATIONS.LIST,
-      handler   : _load,
-      arguments : [store, options, transaction.getCurrentTransactionId()]
-    });
-  }
-
-  _load(store, options);
-}
 
 /**
  * Load all data from a store
  * @param {String} store ex: '@store'
  * @param {Object} options { limit : Int }
- * @param {Int} transactionId internal use for transaction
  * @param {Function} callback internal use for transaction
  */
-function _load (store, options, transactionId, callback) {
+function load (store, options, callback) {
+  if (typeof options === 'function') {
+    callback = options;
+    options  = null;
+  }
+
+  if (!callback) {
+    callback = function () {};
+  }
+
+  if (!options) {
+    options = {};
+  }
+
   try {
     if (!offline.isRealOnline) {
       throw new Error('You are offline!');
@@ -363,7 +335,7 @@ function _load (store, options, transactionId, callback) {
           var _error = template.getError(err, _options.store, 'GET', true);
           upsertCRUD.setLunarisError(_options.store.name, 'GET', _request, null, null, err, _error);
           logger.warn(['lunaris.load@' + _options.store.name], err);
-          return hook.pushToHandlers(_options.store, 'errorHttp', { error : _error }, transactionId, function () {
+          return hook.pushToHandlers(_options.store, 'errorHttp', { error : _error }, function () {
             if (callback) {
               callback();
             }
@@ -374,19 +346,15 @@ function _load (store, options, transactionId, callback) {
           data = [data];
         }
 
-        debug.log(_options.store.name, debug.NAMESPACES.CRUD, 'load ' + data.length + ' objects');
-
         var _version = _options.collection.begin();
         for (var i = 0, len = data.length; i < len; i++) {
           _options.collection.add(data[i], _version);
         }
 
-        debugObject.time(_options.store.name);
         _options.collection.commit(_version);
-        debugObject.timeEnd(_options.store.name, ['commit_collection']);
 
         storeUtils.saveState(_options.store, _options.collection, function () {
-          hook.pushToHandlers(_options.store, 'loaded', null, transactionId, function () {
+          hook.pushToHandlers(_options.store, 'loaded', null, function () {
             if (callback) {
               callback();
             }
