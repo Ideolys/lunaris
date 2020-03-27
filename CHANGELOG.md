@@ -1,7 +1,7 @@
 # Lunaris
 
 ## 1.17.0
-*next*
+*2020-03-27*
 - Features:
   - Remove `lunaris.debug` features.
   - `lunaris.clear` accepts callback: `lunaris.clear(store, options, callback)` with `options = { isSilent : Boolean }`
