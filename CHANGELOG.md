@@ -1,5 +1,11 @@
 # Lunaris
 
+## 1.18.0
+**
+- Features:
+- Fixes:
+  - Fix <> operator for url generation.
+
 ## 1.17.0
 *2020-03-27*
 - Features:
