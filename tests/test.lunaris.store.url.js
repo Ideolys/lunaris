@@ -588,17 +588,6 @@ describe('store url', () => {
     should(_url.request).eql(_expectedUrl);
   });
 
-  it('should throw an error if operator is different from ILIKE', () => {
-    try {
-      stores.array.filters[0].operator = ['>'];
-      store.upsert('@optional.filter.B', [{ label : 'cat' }, { label : 'dog' }]);
-      url.create(stores.array, 'GET');
-    }
-    catch (e) {
-      should(e).eql(new Error('Array filter must declare ILIKE operator or nothing!'));
-    }
-  });
-
   it('should create the GET request', () => {
     var _url         = url.createForOffline(testUtils.initStore('store'), {
       constructedRequiredOptions : '/A/a',
@@ -694,5 +683,29 @@ describe('store url', () => {
       0      : 'dog',
       1      : 'cat'
     });
+  });
+
+  it('should create url with array filter and <>', () => {
+    stores.array.filters[0].operator = ['<>'];
+    store.upsert('@optional.filter.B', [{ label : 'cat' }, { label : 'dog' }]);
+    var _url         = url.create(stores.array, 'GET');
+    var _expectedUrl = '/array?limit=50&offset=0&search=label' +
+      encodeURIComponent(':') + fixedEncodeURIComponent('!') +
+      encodeURIComponent('[cat,dog]')
+    ;
+
+    should(_url.request).eql(_expectedUrl);
+  });
+
+  it('should create url with array filter and =', () => {
+    stores.array.filters[0].operator = ['='];
+    store.upsert('@optional.filter.B', [{ label : 'cat' }, { label : 'dog' }]);
+    var _url         = url.create(stores.array, 'GET');
+    var _expectedUrl = '/array?limit=50&offset=0&search=label' +
+      encodeURIComponent(':') +
+      encodeURIComponent('[cat,dog]')
+    ;
+
+    should(_url.request).eql(_expectedUrl);
   });
 });

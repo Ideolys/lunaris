@@ -3352,7 +3352,14 @@ function _getSearchOption (filterValues) {
     var _value = filterValues[j][2];
     if (Array.isArray(_value)) {
       _value    = '[' + _value.join(',') + ']';
-      _operator = utils.OPERATORS.ILIKE;
+
+      if (_operator === utils.OPERATORS['=']) {
+        _operator = utils.OPERATORS.ILIKE;
+      }
+      if (_operator === utils.OPERATORS['<>']) {
+        _operator = ':!';
+      }
+
     }
     var _attribute = filterValues[j][0] || filterValues[j][1];
     _search       += (_attribute) + fixedEncodeURIComponent(_operator) + fixedEncodeURIComponent(_value) + fixedEncodeURIComponent('+');
