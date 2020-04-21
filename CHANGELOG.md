@@ -6,6 +6,7 @@
 - Fixes:
   - Fix `<>` operator for url generation.
   - Fix: when building components, errors were not catch.
+  - Fix: builder did not set `urlsGraph` and `cacheGraph`.
 
 ## 1.17.0
 *2020-03-27*
