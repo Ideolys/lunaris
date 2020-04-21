@@ -1,8 +1,7 @@
 # Lunaris
 
-## 1.18.0
-**
-- Features:
+## 1.17.1
+*2020-04-21*
 - Fixes:
   - Fix `<>` operator for url generation.
   - Fix: when building components, errors were not catch.
