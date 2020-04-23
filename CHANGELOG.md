@@ -1,5 +1,11 @@
 # Lunaris
 
+## 1.18.0
+**
+- Features:
+  - Reduce the size of compilated stores.
+- Fixes:
+
 ## 1.17.1
 *2020-04-21*
 - Fixes:

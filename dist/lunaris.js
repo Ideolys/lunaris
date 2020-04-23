@@ -5901,11 +5901,11 @@ function rollback (store, version) {
 function getDefaultValue (store) {
   try {
     var _options = crudUtils.beforeAction(store, null, true);
-    if (!_options.store.meta) {
+    if (!_options.store.defaultValue) {
       return emptyObject;
     }
 
-    return utils.clone(_options.store.meta.defaultValue);
+    return utils.clone(_options.store.defaultValue);
   }
   catch (e) {
     logger.warn(['lunaris.getDefaultValue' + store], e);
@@ -5944,7 +5944,7 @@ function validate (store, value, isUpdate, callback, eventName) {
       }
 
       var _isValidatingPK = offline.isOnline ? _isUpdate : false; // No primary validation
-      return _store.validateFn(_valueToValidate, _store.meta.onValidate, _isValidatingPK, function (err) {
+      return _store.validateFn(_valueToValidate, _store.onValidate, _isValidatingPK, function (err) {
         if (err.length) {
           for (var i = 0; i < err.length; i++) {
             logger.warn(['lunaris.' + (_isUpdate ? 'update' : 'insert') + store + ' Error when validating data'], err[i]);
