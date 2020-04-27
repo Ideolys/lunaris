@@ -212,7 +212,7 @@ let server = app.listen(serverPort, () => {
   build({
     baseUrl             : 'http://localhost:' + serverPort,
     clientFolder        : __dirname,
-    storesFolder        : path.join(__dirname, 'stores'),
+    storesFolder        : path.join(__dirname, 'stores', '**', '*.js'),
     isProduction        : false,
     constants           : constants,
     indexedDBNumber     : constants.indexedDBNumber,

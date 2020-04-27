@@ -78,7 +78,7 @@ function connect (host) {
       }
     }
     catch (e) {
-      logger.warn('[Websocket] Cannot parse message incomming message', e);
+      logger.warn('[Websocket] Cannot parse incomming message', e);
     }
   };
 }

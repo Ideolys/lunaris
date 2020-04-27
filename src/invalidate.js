@@ -53,6 +53,10 @@ module.exports = {
    * @param {String} storeOrUrl
    */
   invalidate : function invalidate (storeOrUrl) {
+    if (storeOrUrl == null || typeof storeOrUrl !== 'string') {
+      return;
+    }
+
     // Invalidate url
     if (/^GET\s/.test(storeOrUrl)) {
       if (!lunarisExports.urlsGraph[storeOrUrl]) {

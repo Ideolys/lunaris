@@ -6089,7 +6089,7 @@ function connect (host) {
       }
     }
     catch (e) {
-      logger.warn('[Websocket] Cannot parse message incomming message', e);
+      logger.warn('[Websocket] Cannot parse incomming message', e);
     }
   };
 }
@@ -6229,6 +6229,10 @@ exports = {
    * @param {String} storeOrUrl
    */
   invalidate : function invalidate (storeOrUrl) {
+    if (storeOrUrl == null || typeof storeOrUrl !== 'string') {
+      return;
+    }
+
     // Invalidate url
     if (/^GET\s/.test(storeOrUrl)) {
       if (!lunarisExports.urlsGraph[storeOrUrl]) {

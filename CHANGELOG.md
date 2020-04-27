@@ -5,6 +5,7 @@
 - Features:
   - Reduce the size of compilated stores.
 - Fixes:
+  - Lunaris crashed when using `lunaris.invalidate` with no parameters.
 
 ## 1.17.1
 *2020-04-21*

@@ -1208,6 +1208,37 @@ describe('local storage', () => {
       });
     });
 
+    it('should not crash if parameter is undefined', () => {
+      let error = null;
+      try {
+        lunaris.invalidate();
+      }
+      catch (e) {
+        error = e;
+      }
+      should(error).eql(null);
+    });
+    it('should not crash if parameter is null', () => {
+      let error = null;
+      try {
+        lunaris.invalidate();
+      }
+      catch (e) {
+        error = e;
+      }
+      should(error).eql(null);
+    });
+    it('should not crash if parameter is not a string', () => {
+      let error = null;
+      try {
+        lunaris.invalidate(true);
+      }
+      catch (e) {
+        error = e;
+      }
+      should(error).eql(null);
+    });
+
     it('should invalidate a store from the server', done => {
       var _insertedHook = () => {
         lunaris._indexedDB.getAll('http', (err, data) => {
