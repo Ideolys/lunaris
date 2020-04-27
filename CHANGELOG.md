@@ -6,6 +6,7 @@
   - Reduce the size of compilated stores.
 - Fixes:
   - Lunaris crashed when using `lunaris.invalidate` with no parameters.
+  - Builder did not correctly set some constructed functions.
 
 ## 1.17.1
 *2020-04-21*
