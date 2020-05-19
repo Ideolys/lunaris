@@ -32,6 +32,7 @@ module.exports = {
   _indexedDB          : localStorageDriver.indexedDB,
   _removeAllHooks     : hook.removeAllHooks,
   _initStore          : lazyLoad.load,
+  _register           : lazyLoad.register,
 
   collectionResultSet : collectionResultSet,
   dynamicView         : dynamicView,

@@ -3930,6 +3930,33 @@ exports = {
 var indexedDB      = imports[1].indexedDB;
 var lunarisExports = imports[2];
 var storeUtils     = imports[3];
+var hooks          = imports[4];
+
+/**
+ * Register hooks for a store
+ * @param {Object} store
+ */
+function registerStore (store) {
+  // Register hooks
+  var _watchedStores = [];
+  for (i = 0; i < store.filters.length; i++) {
+    var _handler = function (item) {
+      store.paginationCurrentPage = 1;
+      store.paginationOffset      = 0;
+      hooks.pushToHandlers(store, 'reset');
+    };
+
+    var _filter = store.filters[i].source;
+    if (_watchedStores.indexOf(_filter) === -1) {
+      hooks.hook('filterUpdated' + _filter, _handler, false, true);
+      hooks.hook('reset'         + _filter, _handler, false, true);
+
+      _watchedStores.push(_filter);
+      _filter = _filter.replace('@', '');
+      lunarisExports._stores[_filter].isFilter = true;
+    }
+  }
+}
 
 function _loadDependentStores (store, callback)  {
   var _dependentStores = [];
@@ -4014,10 +4041,11 @@ function load (store, fnAndParams, isRetry) {
 }
 
 exports['load'] = load;
+exports['register'] = registerStore;
 
         
         return exports;
-      })([_utils_js,_localStorageDriver_js,_exports_js,_store_store_utils_js], {});
+      })([_utils_js,_localStorageDriver_js,_exports_js,_store_store_utils_js,_store_store_hook_js], {});
     
       var _store_crud_upsert_js = (function(imports, exports) {
         var logger      = imports[0];
@@ -7123,6 +7151,7 @@ exports = {
   _indexedDB          : localStorageDriver.indexedDB,
   _removeAllHooks     : hook.removeAllHooks,
   _initStore          : lazyLoad.load,
+  _register           : lazyLoad.register,
 
   collectionResultSet : collectionResultSet,
   dynamicView         : dynamicView,
