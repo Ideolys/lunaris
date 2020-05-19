@@ -17,7 +17,7 @@ describe('Profiler', () => {
         var _something = require('./test.js');
       `;
       var _res = profiler('file-1', _code);
-      should(/imports\[0\]/.test(_res.code)).eql(true);
+      should(/lu_i\[0\]/.test(_res.code)).eql(true);
       should(_res.imports[0]).eql('test.js');
     });
 
@@ -29,9 +29,9 @@ describe('Profiler', () => {
       `;
 
       var _res = profiler('file-1', _code);
-      should(/imports\[0\]/.test(_res.code)).eql(true);
-      should(/imports\[1\]/.test(_res.code)).eql(true);
-      should(/imports\[2\]/.test(_res.code)).eql(true);
+      should(/lu_i\[0\]/.test(_res.code)).eql(true);
+      should(/lu_i\[1\]/.test(_res.code)).eql(true);
+      should(/lu_i\[2\]/.test(_res.code)).eql(true);
       should(_res.imports[0]).eql('test.js');
       should(_res.imports[1]).eql('test1.js');
       should(_res.imports[2]).eql('test2.js');
@@ -49,7 +49,7 @@ describe('Profiler', () => {
       `;
 
       var _res = profiler('file-1', _code);
-      should(/exports\['default'\]/.test(_res.code)).eql(true);
+      should(/lu_e\['default'\]/.test(_res.code)).eql(true);
       should(_res.exports['default']).eql('exports.default');
     });
 
@@ -59,7 +59,7 @@ describe('Profiler', () => {
       `;
 
       var _res = profiler('file-1', _code);
-      should(/exports\['test'\]/.test(_res.code)).eql(true);
+      should(/lu_e\['test'\]/.test(_res.code)).eql(true);
       should(_res.exports['test']).eql('exports.test');
     });
 
@@ -72,8 +72,8 @@ describe('Profiler', () => {
       `;
 
       var _res = profiler('file-1', _code);
-      should(/exports\['default'\]/.test(_res.code)).eql(true);
-      should(/exports\['test'\]/.test(_res.code)).eql(true);
+      should(/lu_e\['default'\]/.test(_res.code)).eql(true);
+      should(/lu_e\['test'\]/.test(_res.code)).eql(true);
       should(_res.exports['default']).eql('exports.default');
       should(_res.exports['test']).eql('exports.test');
     });
@@ -89,9 +89,9 @@ describe('Profiler', () => {
 
       var _res = profiler('file-1', _code);
 
-      should(/exports\['default'\]/.test(_res.code)).eql(true);
-      should(/exports\['test'\]/.test(_res.code)).eql(true);
-      should(/exports/.test(_res.code)).eql(true);
+      should(/lu_e\['default'\]/.test(_res.code)).eql(true);
+      should(/lu_e\['test'\]/.test(_res.code)).eql(true);
+      should(/lu_e\s=/.test(_res.code)).eql(true);
       should(_res.exports).eql('module.exports');
     });
 
@@ -109,14 +109,14 @@ describe('Profiler', () => {
     `;
 
     var _res = profiler('file-1', _code);
-    should(/exports\['default'\]/.test(_res.code)).eql(true);
-    should(/exports\['test'\]/.test(_res.code)).eql(true);
+    should(/lu_e\['default'\]/.test(_res.code)).eql(true);
+    should(/lu_e\['test'\]/.test(_res.code)).eql(true);
     should(_res.exports['default']).eql('exports.default');
     should(_res.exports['test']).eql('exports.test');
 
-    should(/imports\[0\]/.test(_res.code)).eql(true);
-    should(/imports\[1\]/.test(_res.code)).eql(true);
-    should(/imports\[2\]/.test(_res.code)).eql(true);
+    should(/lu_i\[0\]/.test(_res.code)).eql(true);
+    should(/lu_i\[1\]/.test(_res.code)).eql(true);
+    should(/lu_i\[2\]/.test(_res.code)).eql(true);
     should(_res.imports[0]).eql('test.js');
     should(_res.imports[1]).eql('test1.js');
     should(_res.imports[2]).eql('test2.js');
