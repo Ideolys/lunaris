@@ -6117,6 +6117,11 @@ exports = {
    * @param {*} data
    */
   send : function (channel, data) {
+    // Only open websocket can send data
+    if (ws.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
     _send(channel, data);
   },
 

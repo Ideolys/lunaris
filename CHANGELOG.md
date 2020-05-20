@@ -8,6 +8,7 @@
   - Lunaris crashed when using `lunaris.invalidate` with no parameters.
   - Builder did not correctly set some constructed functions.
   - Builder: javaScript dependencies could have been inserted multiple times.
+  - Do not try to send data with a websocket not opened.
 
 ## 1.17.1
 *2020-04-21*
