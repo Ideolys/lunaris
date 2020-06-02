@@ -1,4 +1,10 @@
-# Lunaris
+# Lunaris*
+
+## 1.19.0
+**2020-xx-xx**
+- Features:
+  - Reduce compilation size.
+- Fixes:
 
 ## 1.18.0
 *2020-05-29*
