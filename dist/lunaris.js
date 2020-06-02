@@ -6145,6 +6145,11 @@ lu_e = {
    * @param {*} data
    */
   send : function (channel, data) {
+    // Only open websocket can send data
+    if (ws.readyState !== WebSocket.OPEN) {
+      return;
+    }
+
     _send(channel, data);
   },
 
@@ -7196,9 +7201,8 @@ lu_e = {
     * Get invalidations and compute
     */
     getAndCompute  : function () {
+      lunaris.websocket.unsubscribe('invalidations');
       websocket.subscribe('invalidations', function (serverInvalidations) {
-        // remove handler when receiving data
-        lunaris.websocket.unsubscribe('invalidations');
         invalidate.computeInvalidations(serverInvalidations.data, Object.keys(lunarisExports._stores));
       });
 

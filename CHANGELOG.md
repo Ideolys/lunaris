@@ -1,13 +1,15 @@
 # Lunaris
 
 ## 1.18.0
-**
+*2020-05-29*
 - Features:
   - Reduce the size of compilated stores.
 - Fixes:
   - Lunaris crashed when using `lunaris.invalidate` with no parameters.
   - Builder did not correctly set some constructed functions.
   - Builder: javaScript dependencies could have been inserted multiple times.
+  - Do not try to send data with a websocket not opened.
+  - Remove invalidations handler before making invalidations request.
 
 ## 1.17.1
 *2020-04-21*
