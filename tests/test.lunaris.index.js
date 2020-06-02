@@ -195,4 +195,9 @@ describe('lunaris index', () => {
     should(index.websocket.send).be.a.Function();
     should(index.websocket.stop).be.a.Function();
   });
+
+  it('_register should be defined', () => {
+    should(index._register).be.ok();
+    should(index._register).be.a.Function();
+  });
 });

@@ -2,23 +2,23 @@
         /* Lunaris */
         (function (global) {
           
-      var _exports_js = (function(imports, exports) {
-        exports['_stores'] = {};
-// exports['baseUrl'] is only designed for tests in order to perform HTTP requests
-exports['baseUrl'] = '';
+      var _exports_js = (function(lu_i, lu_e) {
+        lu_e['_stores'] = {};
+// lu_e['baseUrl'] is only designed for tests in order to perform HTTP requests
+lu_e['baseUrl'] = '';
 
 // is production :  display or not error message in the console
-exports['isProduction'] = true;
+lu_e['isProduction'] = true;
 
 /**
  * Lunaris external constants object
  * Injected at build time
  */
-exports['constants'] = {};
+lu_e['constants'] = {};
 /**
  * Set env browser
  */
-exports['isBrowser'] = true;
+lu_e['isBrowser'] = true;
 /**
  * Urls grpah
  * {
@@ -27,7 +27,7 @@ exports['isBrowser'] = true;
  *   'GET /only          : ['store_3']
  * }
  */
-exports['urlsGraph'] = {};
+lu_e['urlsGraph'] = {};
 /**
  * cache grpah
  * {
@@ -36,26 +36,26 @@ exports['urlsGraph'] = {};
  *   'store_3' : []
  * }
  */
-exports['cacheGraph'] = {};
-exports['isOfflineStrategies'] = false;
-exports['isOfflineSync'] = false;
-exports['version'] = '';
+lu_e['cacheGraph'] = {};
+lu_e['isOfflineStrategies'] = false;
+lu_e['isOfflineSync'] = false;
+lu_e['version'] = '';
 
 /**
  * Set options
  */
-exports['setOptions'] = function (options) {
+lu_e['setOptions'] = function (options) {
   for (option in options) {
-    exports[option] = options[option];
+    lu_e[option] = options[option]; // lu_e = exports
   }
 }
 
         
-        return exports;
+        return lu_e;
       })([], {});
     
-      var _logger_js = (function(imports, exports) {
-        var exportsLunaris = imports[0];
+      var _logger_js = (function(lu_i, lu_e) {
+        var exportsLunaris = lu_i[0];
 
 var baseMessageError      = '[Lunaris error] ';
 var baseMessageTip        = '[Lunaris tip] ';
@@ -128,15 +128,15 @@ var logger  = {
   }
 };
 
-exports = logger;
+lu_e = logger;
 
         
-        return exports;
+        return lu_e;
       })([_exports_js], {});
     
-      var _store_store_hook_js = (function(imports, exports) {
-        var logger         = imports[0];
-var lunarisExports = imports[1];
+      var _store_store_hook_js = (function(lu_i, lu_e) {
+        var logger         = lu_i[0];
+var lunarisExports = lu_i[1];
 
 /**
  * Queue
@@ -199,7 +199,7 @@ function registerHook (hook, handler, isUnique, isInternalHook) {
   try {
     _isFunction(handler);
     var _hook          = _extractHookAndStore(hook);
-    var lunarisExports = imports[2];
+    var lunarisExports = lu_i[2];
     var _store         = lunarisExports._stores[_hook.store];
     if (!_store) {
       throw new Error('Cannot register hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
@@ -260,7 +260,7 @@ function removeHook (hook, handler) {
   try {
     _isFunction(handler);
     var _hook          = _extractHookAndStore(hook);
-    var lunarisExports = imports[3];
+    var lunarisExports = lu_i[3];
     var _store         = lunarisExports._stores[_hook.store];
     if (!_store) {
       throw new Error('Cannot remove hook "' + hook + '", store "' + _hook.store + '" has not been defined!');
@@ -330,17 +330,17 @@ function removeAllHooks () {
   }
 }
 
-exports['hook'] = registerHook;
-exports['removeHook'] = removeHook;
-exports['pushToHandlers'] = pushToHandlers;
-exports['removeAllHooks'] = removeAllHooks;
+lu_e['hook'] = registerHook;
+lu_e['removeHook'] = removeHook;
+lu_e['pushToHandlers'] = pushToHandlers;
+lu_e['removeAllHooks'] = removeAllHooks;
 
         
-        return exports;
+        return lu_e;
       })([_logger_js,_exports_js,_exports_js,_exports_js], {});
     
-      var _utils_js = (function(imports, exports) {
-        var isBrowser = imports[0].isBrowser;
+      var _utils_js = (function(lu_i, lu_e) {
+        var isBrowser = lu_i[0].isBrowser;
 
 /**
  * Clone a value
@@ -401,7 +401,7 @@ function freeze (value) {
   return Object.freeze(value);
 }
 
-exports['cloneAndFreeze'] = function cloneAndFreeze (value, cloneFn) {
+lu_e['cloneAndFreeze'] = function cloneAndFreeze (value, cloneFn) {
   var _value = (cloneFn || clone)(value);
   if (!Array.isArray(_value)) {
     return freeze(_value);
@@ -413,7 +413,7 @@ exports['cloneAndFreeze'] = function cloneAndFreeze (value, cloneFn) {
   return _value;
 };
 
-exports['keepTheReferenceAndChangeTheAttributes'] = function (obj1, obj2) {
+lu_e['keepTheReferenceAndChangeTheAttributes'] = function (obj1, obj2) {
   var _keys = Object.keys(obj1);
   for (var i = 0; i < _keys.length; i++) {
     delete obj1[_keys[i]];
@@ -424,12 +424,12 @@ exports['keepTheReferenceAndChangeTheAttributes'] = function (obj1, obj2) {
   }
 };
 
-exports['clone'] = clone;
-exports['freeze'] = freeze;
+lu_e['clone'] = clone;
+lu_e['freeze'] = freeze;
 
-exports['offlineStore'] = 'lunarisOfflineTransactions';
+lu_e['offlineStore'] = 'lunarisOfflineTransactions';
 
-exports['OPERATIONS'] = {
+lu_e['OPERATIONS'] = {
   DELETE : 'DELETE',
   INSERT : 'POST',
   UPDATE : 'PUT',
@@ -438,7 +438,7 @@ exports['OPERATIONS'] = {
   RESET  : 'RESET'
 };
 
-exports['OPERATORS'] = {
+lu_e['OPERATORS'] = {
   '='   : ':=',
   ILIKE : ':',
   '>'   : ':>',
@@ -453,7 +453,7 @@ exports['OPERATORS'] = {
  * @param {Object} parent
  * @param {Object} child
  */
-exports['merge'] = function merge (parent, child) {
+lu_e['merge'] = function merge (parent, child) {
   if (!child) {
     return parent;
   }
@@ -513,7 +513,7 @@ function levenshtein (str1, str2) {
  * @param {String} str1
  * @param {String} str2
  */
-exports['distance'] = function distance (str1, str2) {
+lu_e['distance'] = function distance (str1, str2) {
   if (str1 === null || str2 === null) {
     return 0;
   }
@@ -529,7 +529,7 @@ exports['distance'] = function distance (str1, str2) {
 };
 
 // Code form LokiJS,& Mindex
-exports['index'] = {
+lu_e['index'] = {
   /**
    * Sort
    * @param {*} a
@@ -754,7 +754,7 @@ for (var i = 0; i < defaultDiacriticsRemovalMap.length; i++) {
  * @param {String}
  * @returns {String}
  */
-exports['unaccent'] = function removeDiacritics (str) {
+lu_e['unaccent'] = function removeDiacritics (str) {
   return str.replace(/[^u0000-u007E]/g, function (a) {
     return diacriticsMap[a] || a;
   });
@@ -766,7 +766,7 @@ exports['unaccent'] = function removeDiacritics (str) {
  * @param {Function} handler function to handle item in items -> handler(item, next {Function})
  * @param {Function} done    function called when every items have been processed
  */
-exports['queue'] = function queue (items, handler, done) {
+lu_e['queue'] = function queue (items, handler, done) {
   var iterator = -1;
 
   function next () {
@@ -786,7 +786,7 @@ exports['queue'] = function queue (items, handler, done) {
 /**
  * Get process time in ms
  */
-exports['getProcessTime'] = function getProcessTime (before) {
+lu_e['getProcessTime'] = function getProcessTime (before) {
   if (!isBrowser) {
     return 0;
   }
@@ -801,7 +801,7 @@ exports['getProcessTime'] = function getProcessTime (before) {
 /**
  * Delete rows when version.length === 2
  */
-exports['deleteRows'] = function deleteRows (data) {
+lu_e['deleteRows'] = function deleteRows (data) {
   var _length = data.length;
   for (var i = _length - 1; i >= 0; i--) {
     if (data[i]._version.length === 1) {
@@ -813,12 +813,12 @@ exports['deleteRows'] = function deleteRows (data) {
 };
 
         
-        return exports;
+        return lu_e;
       })([_exports_js], {});
     
-      var _localStorageDriver_js = (function(imports, exports) {
-        var logger            = imports[0];
-var lunarisExports    = imports[1];
+      var _localStorageDriver_js = (function(lu_i, lu_e) {
+        var logger            = lu_i[0];
+var lunarisExports    = lu_i[1];
 var offlineVersionKey = 'lunaris:indexedDB_version';
 var LIMIT_ITEMS       = 10000;
 
@@ -1335,17 +1335,17 @@ var drivers = {
   }
 };
 
-exports = drivers;
+lu_e = drivers;
 
         
-        return exports;
+        return lu_e;
       })([_logger_js,_exports_js], {});
     
-      var _store_store_utils_js = (function(imports, exports) {
-        var lunarisExports     = imports[0];
-var logger             = imports[1];
-var utils              = imports[2];
-var localStorageDriver = imports[3];
+      var _store_store_utils_js = (function(lu_i, lu_e) {
+        var lunarisExports     = lu_i[0];
+var logger             = lu_i[1];
+var utils              = lu_i[2];
+var localStorageDriver = lu_i[3];
 var database           = localStorageDriver.indexedDB;
 
 /**
@@ -1358,7 +1358,7 @@ function getStore (storeName) {
     storeName = storeName.split('@');
     storeName = storeName[storeName.length - 1];
   }
-  var lunarisExports = imports[4];
+  var lunarisExports = lu_i[4];
   var _store         = lunarisExports._stores[storeName];
   if (!_store) {
     throw new Error('The store "' + storeName + '" has not been defined');
@@ -1591,25 +1591,25 @@ function getCache (store) {
   return store.cache;
 }
 
-exports['getStore'] = getStore;
-exports['getCollection'] = getCollection;
-exports['getCache'] = getCache;
-exports['getPrimaryKeyValue'] = getPrimaryKeyValue;
-exports['setPrimaryKeyValue'] = setPrimaryKeyValue;
-exports['checkArgs'] = checkArgs;
-exports['getTranslatedStoreName'] = getTranslatedStoreName;
-exports['getPathValue'] = getPathValue;
-exports['setPathValue'] = setPathValue;
-exports['setObjectPathValues'] = setObjectPathValues;
-exports['getJSONPatchPath'] = getJSONPatchPath;
-exports['saveState'] = saveState;
+lu_e['getStore'] = getStore;
+lu_e['getCollection'] = getCollection;
+lu_e['getCache'] = getCache;
+lu_e['getPrimaryKeyValue'] = getPrimaryKeyValue;
+lu_e['setPrimaryKeyValue'] = setPrimaryKeyValue;
+lu_e['checkArgs'] = checkArgs;
+lu_e['getTranslatedStoreName'] = getTranslatedStoreName;
+lu_e['getPathValue'] = getPathValue;
+lu_e['setPathValue'] = setPathValue;
+lu_e['setObjectPathValues'] = setObjectPathValues;
+lu_e['getJSONPatchPath'] = getJSONPatchPath;
+lu_e['saveState'] = saveState;
 
         
-        return exports;
+        return lu_e;
       })([_exports_js,_logger_js,_utils_js,_localStorageDriver_js,_exports_js], {});
     
-      var _store_store_aggregate_js = (function(imports, exports) {
-        var utils = imports[0];
+      var _store_store_aggregate_js = (function(lu_i, lu_e) {
+        var utils = lu_i[0];
 var index = utils.index;
 
 var sum = {
@@ -1831,20 +1831,20 @@ var aggregates = {
   countBoolTrueAgg : countBoolTrue
 };
 
-exports['aggregates'] = aggregates;
+lu_e['aggregates'] = aggregates;
 
         
-        return exports;
+        return lu_e;
       })([_utils_js], {});
     
-      var _store_store_collection_js = (function(imports, exports) {
-        var utils              = imports[0];
+      var _store_store_collection_js = (function(lu_i, lu_e) {
+        var utils              = lu_i[0];
 var index              = utils.index;
 var OPERATIONS         = utils.OPERATIONS;
-var aggregates         = imports[1].aggregates;
-var lunarisExports     = imports[2];
-var logger             = imports[3];
-var localStorageDriver = imports[4];
+var aggregates         = lu_i[1].aggregates;
+var lunarisExports     = lu_i[2];
+var logger             = lu_i[3];
+var localStorageDriver = lu_i[4];
 var localStorage       = localStorageDriver.localStorage;
 var localDatabase      = localStorageDriver.indexedDB;
 
@@ -2699,14 +2699,14 @@ function resetVersionNumber () {
   localStorage.set('lunaris:versionNumber', 1);
 }
 
-exports['collection'] = collection;
-exports['resetVersionNumber'] = resetVersionNumber;
+lu_e['collection'] = collection;
+lu_e['resetVersionNumber'] = resetVersionNumber;
 
         
-        return exports;
+        return lu_e;
       })([_utils_js,_store_store_aggregate_js,_exports_js,_logger_js,_localStorageDriver_js], {});
     
-      var _offline_js = (function(imports, exports) {
+      var _offline_js = (function(lu_i, lu_e) {
         var isOnline        = true;  // detect if browser is online or offline
 var isOfflineMode   = false; // is offline mode enabled ? invalidations are recived but not propagated
 var isSynchronizing = false; // is synchronizing ?
@@ -2722,7 +2722,7 @@ if (typeof navigator !== 'undefined') {
   });
 }
 
-exports = {
+lu_e = {
   /**
    * If isOfflineMode is true, offline = false even if we are really online
    */
@@ -2754,13 +2754,13 @@ exports = {
 };
 
         
-        return exports;
+        return lu_e;
       })([], {});
     
-      var _store_crud_crudUtils_js = (function(imports, exports) {
-        var storeUtils = imports[0];
-var hook       = imports[1];
-var utils      = imports[2];
+      var _store_crud_crudUtils_js = (function(lu_i, lu_e) {
+        var storeUtils = lu_i[0];
+var hook       = lu_i[1];
+var utils      = lu_i[2];
 var queue      = utils.queue;
 
 /**
@@ -2881,17 +2881,17 @@ function propagateReferences (store, primaryKeys, callback) {
   }, callback);
 }
 
-exports['beforeAction'] = beforeAction;
-exports['afterAction'] = afterAction;
-exports['pushCommitResToHandlers'] = pushCommitResToHandlers;
-exports['propagate'] = propagate;
-exports['propagateReferences'] = propagateReferences;
+lu_e['beforeAction'] = beforeAction;
+lu_e['afterAction'] = afterAction;
+lu_e['pushCommitResToHandlers'] = pushCommitResToHandlers;
+lu_e['propagate'] = propagate;
+lu_e['propagateReferences'] = propagateReferences;
 
         
-        return exports;
+        return lu_e;
       })([_store_store_utils_js,_store_store_hook_js,_utils_js], {});
     
-      var _cache_js = (function(imports, exports) {
+      var _cache_js = (function(lu_i, lu_e) {
         /**
  * The cache architecture is :
  * [
@@ -2904,11 +2904,11 @@ exports['propagateReferences'] = propagateReferences;
  * ]
  */
 
-var logger             = imports[0];
-var localStorageDriver = imports[1];
+var logger             = lu_i[0];
+var localStorageDriver = lu_i[1];
 var database           = localStorageDriver.indexedDB;
-var cacheGraph         = imports[2].cacheGraph;
-var offline            = imports[3];
+var cacheGraph         = lu_i[2].cacheGraph;
+var offline            = lu_i[3];
 
 // https://stackoverflow.com/questions/7837456/how-to-compare-arrays-in-javascript/14853974
 Array.prototype.equals = function (array) {
@@ -2990,7 +2990,7 @@ function _internalInvalidate (store) {
  * Cache object
  * @return {Object}
  */
-exports = {
+lu_e = {
 
   /**
    * Init cache values from browser db
@@ -3069,12 +3069,12 @@ exports = {
 };
 
         
-        return exports;
+        return lu_e;
       })([_logger_js,_localStorageDriver_js,_exports_js,_offline_js], {});
     
-      var _store_store_transaction_js = (function(imports, exports) {
-        var exportsLunaris = imports[0];
-var logger         = imports[1];
+      var _store_store_transaction_js = (function(lu_i, lu_e) {
+        var exportsLunaris = lu_i[0];
+var logger         = lu_i[1];
 
 /**
  * Begin a store transaction
@@ -3092,18 +3092,18 @@ function commit (callback) {
   return logger.deprecated('lunaris.commit has been removed!');
 }
 
-exports = {
+lu_e = {
   begin  : begin,
   commit : commit
 };
 
         
-        return exports;
+        return lu_e;
       })([_exports_js,_logger_js], {});
     
-      var _http_js = (function(imports, exports) {
-        var lunarisExports = imports[0];
-var utils          = imports[1];
+      var _http_js = (function(lu_i, lu_e) {
+        var lunarisExports = lu_i[0];
+var utils          = lu_i[1];
 
 var baseOptions = {
   onComplete : null
@@ -3180,19 +3180,19 @@ function request (method, request, body, callback, options) {
   });
 }
 
-exports['request'] = request;
-exports['setup'] = setup;
+lu_e['request'] = request;
+lu_e['setup'] = setup;
 
         
-        return exports;
+        return lu_e;
       })([_exports_js,_utils_js], {});
     
-      var _store_store_url_js = (function(imports, exports) {
-        var storeUtils     = imports[0];
-var utils          = imports[1];
-var logger         = imports[2];
-var exportsLunaris = imports[3];
-var offline        = imports[4];
+      var _store_store_url_js = (function(lu_i, lu_e) {
+        var storeUtils     = lu_i[0];
+var utils          = lu_i[1];
+var logger         = lu_i[2];
+var exportsLunaris = lu_i[3];
+var offline        = lu_i[4];
 
 // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent
 function fixedEncodeURIComponent (str) {
@@ -3504,14 +3504,14 @@ function generateRequest (store, urlObj) {
   return _request;
 }
 
-exports['create'] = createUrl;
-exports['createForOffline'] = generateRequest;
+lu_e['create'] = createUrl;
+lu_e['createForOffline'] = generateRequest;
 
         
-        return exports;
+        return lu_e;
       })([_store_store_utils_js,_utils_js,_logger_js,_exports_js,_offline_js], {});
     
-      var _store_store_template_js = (function(imports, exports) {
+      var _store_store_template_js = (function(lu_i, lu_e) {
         /**
  * Replace words in given template
  * @param {Object} store
@@ -3589,23 +3589,23 @@ function getSuccess (message, store, method, isPlural) {
   return _replaceTemplateWords(store, _methods[method], _methodsFemale[method], store.successTemplate, isPlural);
 }
 
-exports['getSuccess'] = getSuccess;
-exports['getError'] = getError;
+lu_e['getSuccess'] = getSuccess;
+lu_e['getError'] = getError;
 
         
-        return exports;
+        return lu_e;
       })([], {});
     
-      var _store_store_synchronisation_js = (function(imports, exports) {
-        var lunarisExports              = imports[0];
-var hook                        = imports[1];
-var utils                       = imports[2];
-var storeUtils                  = imports[3];
-var collection                  = imports[4];
-var transaction                 = imports[5];
-var cache                       = imports[6];
-var indexedDB                   = imports[7].indexedDB;
-var localStorage                = imports[8].localStorage;
+      var _store_store_synchronisation_js = (function(lu_i, lu_e) {
+        var lunarisExports              = lu_i[0];
+var hook                        = lu_i[1];
+var utils                       = lu_i[2];
+var storeUtils                  = lu_i[3];
+var collection                  = lu_i[4];
+var transaction                 = lu_i[5];
+var cache                       = lu_i[6];
+var indexedDB                   = lu_i[7].indexedDB;
+var localStorage                = lu_i[8].localStorage;
 var OPERATIONS                  = utils.OPERATIONS;
 var offlineTransactions         = [];
 var offlineTransactionsInError  = [];
@@ -3906,7 +3906,7 @@ function getLastSyncDate () {
 }
 
 
-exports = {
+lu_e = {
   get isPushingOfflineTransaction () {
     return isPushingOfflineTransaction;
   },
@@ -3922,14 +3922,41 @@ exports = {
 };
 
         
-        return exports;
+        return lu_e;
       })([_exports_js,_store_store_hook_js,_utils_js,_store_store_utils_js,_store_store_collection_js,_store_store_transaction_js,_cache_js,_localStorageDriver_js,_localStorageDriver_js], {});
     
-      var _store_crud__lazyLoad_js = (function(imports, exports) {
-        var utils          = imports[0];
-var indexedDB      = imports[1].indexedDB;
-var lunarisExports = imports[2];
-var storeUtils     = imports[3];
+      var _store_crud__lazyLoad_js = (function(lu_i, lu_e) {
+        var utils          = lu_i[0];
+var indexedDB      = lu_i[1].indexedDB;
+var lunarisExports = lu_i[2];
+var storeUtils     = lu_i[3];
+var hooks          = lu_i[4];
+
+/**
+ * Register hooks for a store
+ * @param {Object} store
+ */
+function registerStore (store) {
+  // Register hooks
+  var _watchedStores = [];
+  for (i = 0; i < store.filters.length; i++) {
+    var _handler = function (item) {
+      store.paginationCurrentPage = 1;
+      store.paginationOffset      = 0;
+      hooks.pushToHandlers(store, 'reset');
+    };
+
+    var _filter = store.filters[i].source;
+    if (_watchedStores.indexOf(_filter) === -1) {
+      hooks.hook('filterUpdated' + _filter, _handler, false, true);
+      hooks.hook('reset'         + _filter, _handler, false, true);
+
+      _watchedStores.push(_filter);
+      _filter = _filter.replace('@', '');
+      lunarisExports._stores[_filter].isFilter = true;
+    }
+  }
+}
 
 function _loadDependentStores (store, callback)  {
   var _dependentStores = [];
@@ -4013,26 +4040,27 @@ function load (store, fnAndParams, isRetry) {
   });
 }
 
-exports['load'] = load;
+lu_e['load'] = load;
+lu_e['register'] = registerStore;
 
         
-        return exports;
-      })([_utils_js,_localStorageDriver_js,_exports_js,_store_store_utils_js], {});
+        return lu_e;
+      })([_utils_js,_localStorageDriver_js,_exports_js,_store_store_utils_js,_store_store_hook_js], {});
     
-      var _store_crud_upsert_js = (function(imports, exports) {
-        var logger      = imports[0];
-var cache       = imports[1];
-var utils       = imports[2];
-var storeUtils  = imports[3];
-var offline     = imports[4];
-var transaction = imports[5];
-var hook        = imports[6];
-var crudUtils   = imports[7];
-var http        = imports[8];
-var url         = imports[9];
-var template    = imports[10];
-var sync        = imports[11];
-var lazyLoad    = imports[12];
+      var _store_crud_upsert_js = (function(lu_i, lu_e) {
+        var logger      = lu_i[0];
+var cache       = lu_i[1];
+var utils       = lu_i[2];
+var storeUtils  = lu_i[3];
+var offline     = lu_i[4];
+var transaction = lu_i[5];
+var hook        = lu_i[6];
+var crudUtils   = lu_i[7];
+var http        = lu_i[8];
+var url         = lu_i[9];
+var template    = lu_i[10];
+var sync        = lu_i[11];
+var lazyLoad    = lu_i[12];
 var OPERATIONS  = utils.OPERATIONS;
 
 var imports = {};
@@ -4478,17 +4506,17 @@ function setLunarisError (storeName, method, request, value, version, err, error
   });
 }
 
-exports['upsert'] = upsert;
-exports['setLunarisError'] = setLunarisError;
-exports['setImportFunction'] = function setImportFunction (fn) {
+lu_e['upsert'] = upsert;
+lu_e['setLunarisError'] = setLunarisError;
+lu_e['setImportFunction'] = function setImportFunction (fn) {
   imports[fn.name] = fn;
 };
 
         
-        return exports;
+        return lu_e;
       })([_logger_js,_cache_js,_utils_js,_store_store_utils_js,_offline_js,_store_store_transaction_js,_store_store_hook_js,_store_crud_crudUtils_js,_http_js,_store_store_url_js,_store_store_template_js,_store_store_synchronisation_js,_store_crud__lazyLoad_js], {});
     
-      var _md5_js = (function(imports, exports) {
+      var _md5_js = (function(lu_i, lu_e) {
         /*
  * A JavaScript implementation of the RSA Data Security, Inc. MD5 Message
  * Digest Algorithm, as defined in RFC 1321.
@@ -4852,18 +4880,18 @@ function bit_rol(num, cnt)
   return (num << cnt) | (num >>> (32 - cnt));
 }
 
-exports = md5;
+lu_e = md5;
 
         
-        return exports;
+        return lu_e;
       })([], {});
     
-      var _store_store_offline_js = (function(imports, exports) {
-        var utils     = imports[0];
+      var _store_store_offline_js = (function(lu_i, lu_e) {
+        var utils     = lu_i[0];
 var OPERATORS = utils.OPERATORS;
-var cache     = imports[1];
-var md5       = imports[2];
-var url       = imports[3];
+var cache     = lu_i[1];
+var md5       = lu_i[2];
+var url       = lu_i[3];
 
 /**
  * Delete fields
@@ -5037,29 +5065,29 @@ function filter (store, collection, filterValues) {
   return _preloadCache(store, filterValues, _data);
 }
 
-exports['filter'] = filter;
-exports['ilike'] = ilike;
+lu_e['filter'] = filter;
+lu_e['ilike'] = ilike;
 
         
-        return exports;
+        return lu_e;
       })([_utils_js,_cache_js,_md5_js,_store_store_url_js], {});
     
-      var _store_crud_get_js = (function(imports, exports) {
-        var storeOffline    = imports[0];
-var md5             = imports[1];
-var http            = imports[2];
-var logger          = imports[3];
-var cache           = imports[4];
-var url             = imports[5];
-var utils           = imports[6];
-var storeUtils      = imports[7];
-var crudUtils       = imports[8];
-var offline         = imports[9];
-var hook            = imports[10];
-var template        = imports[11];
-var upsertCRUD      = imports[12];
-var indexedDB       = imports[13].indexedDB;
-var lazyLoad        = imports[14];
+      var _store_crud_get_js = (function(lu_i, lu_e) {
+        var storeOffline    = lu_i[0];
+var md5             = lu_i[1];
+var http            = lu_i[2];
+var logger          = lu_i[3];
+var cache           = lu_i[4];
+var url             = lu_i[5];
+var utils           = lu_i[6];
+var storeUtils      = lu_i[7];
+var crudUtils       = lu_i[8];
+var offline         = lu_i[9];
+var hook            = lu_i[10];
+var template        = lu_i[11];
+var upsertCRUD      = lu_i[12];
+var indexedDB       = lu_i[13].indexedDB;
+var lazyLoad        = lu_i[14];
 var getRequestQueue = {};
 var OPERATIONS      = utils.OPERATIONS;
 
@@ -5418,24 +5446,24 @@ function load (store, options, callback) {
   }
 }
 
-exports['get'] = get;
-exports['load'] = load;
+lu_e['get'] = get;
+lu_e['load'] = load;
 
         
-        return exports;
+        return lu_e;
       })([_store_store_offline_js,_md5_js,_http_js,_logger_js,_cache_js,_store_store_url_js,_utils_js,_store_store_utils_js,_store_crud_crudUtils_js,_offline_js,_store_store_hook_js,_store_store_template_js,_store_crud_upsert_js,_localStorageDriver_js,_store_crud__lazyLoad_js], {});
     
-      var _store_crud_clear_js = (function(imports, exports) {
-        var logger         = imports[0];
-var cache          = imports[1];
-var utils          = imports[2];
-var storeUtils     = imports[3];
-var crudUtils      = imports[4];
-var offline        = imports[5];
-var hook           = imports[6];
-var lunarisExports = imports[7];
-var sync           = imports[8];
-var indexedDB      = imports[9].indexedDB;
+      var _store_crud_clear_js = (function(lu_i, lu_e) {
+        var logger         = lu_i[0];
+var cache          = lu_i[1];
+var utils          = lu_i[2];
+var storeUtils     = lu_i[3];
+var crudUtils      = lu_i[4];
+var offline        = lu_i[5];
+var hook           = lu_i[6];
+var lunarisExports = lu_i[7];
+var sync           = lu_i[8];
+var indexedDB      = lu_i[9].indexedDB;
 var OPERATIONS     = utils.OPERATIONS;
 
 sync.setImportFunction(_clear);
@@ -5546,26 +5574,26 @@ function clear (store, options, callback) {
   });
 }
 
-exports['clear'] = clear;
+lu_e['clear'] = clear;
 
         
-        return exports;
+        return lu_e;
       })([_logger_js,_cache_js,_utils_js,_store_store_utils_js,_store_crud_crudUtils_js,_offline_js,_store_store_hook_js,_exports_js,_store_store_synchronisation_js,_localStorageDriver_js], {});
     
-      var _store_crud_delete_js = (function(imports, exports) {
-        var logger     = imports[0];
-var cache      = imports[1];
-var utils      = imports[2];
-var storeUtils = imports[3];
-var offline    = imports[4];
-var hook       = imports[5];
-var crudUtils  = imports[6];
-var http       = imports[7];
-var url        = imports[8];
-var template   = imports[9];
-var sync       = imports[10];
-var upsertCrud = imports[11];
-var lazyLoad   = imports[12];
+      var _store_crud_delete_js = (function(lu_i, lu_e) {
+        var logger     = lu_i[0];
+var cache      = lu_i[1];
+var utils      = lu_i[2];
+var storeUtils = lu_i[3];
+var offline    = lu_i[4];
+var hook       = lu_i[5];
+var crudUtils  = lu_i[6];
+var http       = lu_i[7];
+var url        = lu_i[8];
+var template   = lu_i[9];
+var sync       = lu_i[10];
+var upsertCrud = lu_i[11];
+var lazyLoad   = lu_i[12];
 var queue      = utils.queue;
 var OPERATIONS = utils.OPERATIONS;
 
@@ -5785,26 +5813,26 @@ function deleteStore (store, value, options, callback) {
   }
 }
 
-exports['delete'] = deleteStore;
+lu_e['delete'] = deleteStore;
 
         
-        return exports;
+        return lu_e;
       })([_logger_js,_cache_js,_utils_js,_store_store_utils_js,_offline_js,_store_store_hook_js,_store_crud_crudUtils_js,_http_js,_store_store_url_js,_store_store_template_js,_store_store_synchronisation_js,_store_crud_upsert_js,_store_crud__lazyLoad_js], {});
     
-      var _store_store_js = (function(imports, exports) {
-        var lunarisExports              = imports[0];
-var utils                       = imports[1];
-var storeUtils                  = imports[2];
-var logger                      = imports[3];
-var collection                  = imports[4];
-var offline                     = imports[5];
-var crudUtils                   = imports[6];
-var upsertCRUD                  = imports[7];
-var getCRUD                     = imports[8];
-var clearCrud                   = imports[9];
-var deleteCrud                  = imports[10];
-var storeUrl                    = imports[11];
-var indexedDB                   = imports[12].indexedDB;
+      var _store_store_js = (function(lu_i, lu_e) {
+        var lunarisExports              = lu_i[0];
+var utils                       = lu_i[1];
+var storeUtils                  = lu_i[2];
+var logger                      = lu_i[3];
+var collection                  = lu_i[4];
+var offline                     = lu_i[5];
+var crudUtils                   = lu_i[6];
+var upsertCRUD                  = lu_i[7];
+var getCRUD                     = lu_i[8];
+var clearCrud                   = lu_i[9];
+var deleteCrud                  = lu_i[10];
+var storeUrl                    = lu_i[11];
+var indexedDB                   = lu_i[12].indexedDB;
 var emptyObject                 = {};
 
 lunarisExports._stores.lunarisErrors = {
@@ -5990,28 +6018,28 @@ function createUrl (store, method, primaryKey) {
   }
 }
 
-exports['get'] = getCRUD.get;
-exports['load'] = getCRUD.load;
-exports['getOne'] = getOne;
-exports['insert'] = upsertCRUD.upsert;
-exports['update'] = upsertCRUD.upsert;
-exports['upsert'] = upsertCRUD.upsert;
-exports['delete'] = deleteCrud.delete;
-exports['clear'] = clearCrud.clear;
-exports['rollback'] = rollback;
-exports['getDefaultValue'] = getDefaultValue;
-exports['validate'] = validate;
-exports['setPagination'] = setPagination;
-exports['createUrl'] = createUrl;
+lu_e['get'] = getCRUD.get;
+lu_e['load'] = getCRUD.load;
+lu_e['getOne'] = getOne;
+lu_e['insert'] = upsertCRUD.upsert;
+lu_e['update'] = upsertCRUD.upsert;
+lu_e['upsert'] = upsertCRUD.upsert;
+lu_e['delete'] = deleteCrud.delete;
+lu_e['clear'] = clearCrud.clear;
+lu_e['rollback'] = rollback;
+lu_e['getDefaultValue'] = getDefaultValue;
+lu_e['validate'] = validate;
+lu_e['setPagination'] = setPagination;
+lu_e['createUrl'] = createUrl;
 
         
-        return exports;
+        return lu_e;
       })([_exports_js,_utils_js,_store_store_utils_js,_logger_js,_store_store_collection_js,_offline_js,_store_crud_crudUtils_js,_store_crud_upsert_js,_store_crud_get_js,_store_crud_clear_js,_store_crud_delete_js,_store_store_url_js,_localStorageDriver_js], {});
     
-      var _websocket_js = (function(imports, exports) {
-        var logger         = imports[0];
-var lunarisExports = imports[1];
-var offline        = imports[2];
+      var _websocket_js = (function(lu_i, lu_e) {
+        var logger         = lu_i[0];
+var lunarisExports = lu_i[1];
+var offline        = lu_i[2];
 
 var ws                      = null;
 var lastInterval            = 200;
@@ -6107,7 +6135,7 @@ function _send (channel, data) {
   }));
 }
 
-exports = {
+lu_e = {
   _handlers : handlers,
   connect   : connect,
 
@@ -6175,16 +6203,16 @@ exports = {
 };
 
         
-        return exports;
+        return lu_e;
       })([_logger_js,_exports_js,_offline_js], {});
     
-      var _invalidate_js = (function(imports, exports) {
-        var indexedDB      = imports[0].indexedDB;
-var lunarisExports = imports[1];
-var cache          = imports[2];
-var store          = imports[3];
-var logger         = imports[4];
-var offline        = imports[5];
+      var _invalidate_js = (function(lu_i, lu_e) {
+        var indexedDB      = lu_i[0].indexedDB;
+var lunarisExports = lu_i[1];
+var cache          = lu_i[2];
+var store          = lu_i[3];
+var logger         = lu_i[4];
+var offline        = lu_i[5];
 
 var clientLightUrlInvalidations = {};
 var events                      = {};
@@ -6206,7 +6234,7 @@ function addInvalidation (url) {
  * Invalidate a store from the cache or an URL
  * @param {String} storeOrUrl ex: 'store1' or 'GET /all/#'
  */
-exports = {
+lu_e = {
 
   invalidations : clientLightUrlInvalidations,
 
@@ -6331,12 +6359,12 @@ exports = {
 };
 
         
-        return exports;
+        return lu_e;
       })([_localStorageDriver_js,_exports_js,_cache_js,_store_store_js,_logger_js,_offline_js], {});
     
-      var _store_dataQuery_queryResultSet_js = (function(imports, exports) {
-        var ilike = imports[0].ilike;
-var utils = imports[1];
+      var _store_dataQuery_queryResultSet_js = (function(lu_i, lu_e) {
+        var ilike = lu_i[0].ilike;
+var utils = lu_i[1];
 
 /**
  * Generate sort copare function
@@ -6792,18 +6820,18 @@ function Query (data, options) {
   return _query;
 }
 
-exports = Query;
-exports['operators'] = queryOpertors; // for tests
+lu_e = Query;
+lu_e['operators'] = queryOpertors; // for tests
 
         
-        return exports;
+        return lu_e;
       })([_store_store_offline_js,_utils_js], {});
     
-      var _store_dataQuery_store_collectionResultSet_js = (function(imports, exports) {
-        var utils      = imports[0];
-var storeUtils = imports[1];
+      var _store_dataQuery_store_collectionResultSet_js = (function(lu_i, lu_e) {
+        var utils      = lu_i[0];
+var storeUtils = lu_i[1];
 
-var queryResultSet = imports[2];
+var queryResultSet = lu_i[2];
 
 /**
  * View
@@ -6824,17 +6852,17 @@ function CollectionResultSet (store) {
   return _resultSet;
 }
 
-exports = CollectionResultSet;
+lu_e = CollectionResultSet;
 
         
-        return exports;
+        return lu_e;
       })([_utils_js,_store_store_utils_js,_store_dataQuery_queryResultSet_js], {});
     
-      var _store_dataQuery_store_dynamicView_js = (function(imports, exports) {
-        var storeUtils          = imports[0];
-var hooks               = imports[1];
-var collectionResultSet = imports[2];
-var queryResultSet      = imports[3];
+      var _store_dataQuery_store_dynamicView_js = (function(lu_i, lu_e) {
+        var storeUtils          = lu_i[0];
+var hooks               = lu_i[1];
+var collectionResultSet = lu_i[2];
+var queryResultSet      = lu_i[3];
 
 /**
  * DynamicView that auto-update on store changes
@@ -7067,13 +7095,13 @@ function dynamicView (store, options) {
   return _dynamicView;
 }
 
-exports = dynamicView;
+lu_e = dynamicView;
 
         
-        return exports;
+        return lu_e;
       })([_store_store_utils_js,_store_store_hook_js,_store_dataQuery_store_collectionResultSet_js,_store_dataQuery_queryResultSet_js], {});
     
-      var _devtools_js = (function(imports, exports) {
+      var _devtools_js = (function(lu_i, lu_e) {
         /**
  * Send data to devtools
  * @param {*} data
@@ -7085,34 +7113,34 @@ function send (data) {
   window.dispatchEvent(event);
 }
 
-exports = {
+lu_e = {
   send : send
 };
 
         
-        return exports;
+        return lu_e;
       })([], {});
     
-      var _index_js = (function(imports, exports) {
-        var hook                = imports[0];
-var store               = imports[1];
-var storeSynchro        = imports[2];
-var storeUtils          = imports[3];
-var lunarisExports      = imports[4];
-var collection          = imports[5];
-var utils               = imports[6];
-var logger              = imports[7];
-var http                = imports[8];
-var offline             = imports[9];
-var cache               = imports[10];
-var transaction    	    = imports[11];
-var websocket           = imports[12];
-var localStorageDriver  = imports[13];
-var invalidate          = imports[14];
-var lazyLoad            = imports[15];
-var collectionResultSet = imports[16];
-var dynamicView         = imports[17];
-var devtools            = imports[18];
+      var _index_js = (function(lu_i, lu_e) {
+        var hook                = lu_i[0];
+var store               = lu_i[1];
+var storeSynchro        = lu_i[2];
+var storeUtils          = lu_i[3];
+var lunarisExports      = lu_i[4];
+var collection          = lu_i[5];
+var utils               = lu_i[6];
+var logger              = lu_i[7];
+var http                = lu_i[8];
+var offline             = lu_i[9];
+var cache               = lu_i[10];
+var transaction    	    = lu_i[11];
+var websocket           = lu_i[12];
+var localStorageDriver  = lu_i[13];
+var invalidate          = lu_i[14];
+var lazyLoad            = lu_i[15];
+var collectionResultSet = lu_i[16];
+var dynamicView         = lu_i[17];
+var devtools            = lu_i[18];
 
 utils.getTranslatedStoreName = storeUtils.getTranslatedStoreName;
 
@@ -7120,7 +7148,7 @@ offline.pushOfflineHttpTransactions = storeSynchro.pushOfflineHttpTransactions,
 offline.getLastSyncDate             = storeSynchro.getLastSyncDate,
 offline.load                        = store.load;
 
-exports = {
+lu_e = {
   _stores             : lunarisExports._stores,
   _collection         : collection.collection,
   _cache              : cache,
@@ -7128,6 +7156,7 @@ exports = {
   _indexedDB          : localStorageDriver.indexedDB,
   _removeAllHooks     : hook.removeAllHooks,
   _initStore          : lazyLoad.load,
+  _register           : lazyLoad.register,
 
   collectionResultSet : collectionResultSet,
   dynamicView         : dynamicView,
@@ -7187,7 +7216,7 @@ exports = {
 };
 
         
-        return exports;
+        return lu_e;
       })([_store_store_hook_js,_store_store_js,_store_store_synchronisation_js,_store_store_utils_js,_exports_js,_store_store_collection_js,_utils_js,_logger_js,_http_js,_offline_js,_cache_js,_store_store_transaction_js,_websocket_js,_localStorageDriver_js,_invalidate_js,_store_crud__lazyLoad_js,_store_dataQuery_store_collectionResultSet_js,_store_dataQuery_store_dynamicView_js,_devtools_js], {});
     
           global.lunaris = _index_js;

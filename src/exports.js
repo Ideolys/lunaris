@@ -41,6 +41,6 @@ exports.version             = '';
  */
 exports.setOptions = function (options) {
   for (option in options) {
-    exports[option] = options[option];
+    lu_e[option] = options[option]; // lu_e = exports
   }
 }

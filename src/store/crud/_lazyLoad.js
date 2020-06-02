@@ -2,6 +2,33 @@ var utils          = require('../../utils.js');
 var indexedDB      = require('../../localStorageDriver.js').indexedDB;
 var lunarisExports = require('../../exports.js');
 var storeUtils     = require('../store.utils.js');
+var hooks          = require('../store.hook.js');
+
+/**
+ * Register hooks for a store
+ * @param {Object} store
+ */
+function registerStore (store) {
+  // Register hooks
+  var _watchedStores = [];
+  for (i = 0; i < store.filters.length; i++) {
+    var _handler = function (item) {
+      store.paginationCurrentPage = 1;
+      store.paginationOffset      = 0;
+      hooks.pushToHandlers(store, 'reset');
+    };
+
+    var _filter = store.filters[i].source;
+    if (_watchedStores.indexOf(_filter) === -1) {
+      hooks.hook('filterUpdated' + _filter, _handler, false, true);
+      hooks.hook('reset'         + _filter, _handler, false, true);
+
+      _watchedStores.push(_filter);
+      _filter = _filter.replace('@', '');
+      lunarisExports._stores[_filter].isFilter = true;
+    }
+  }
+}
 
 function _loadDependentStores (store, callback)  {
   var _dependentStores = [];
@@ -85,4 +112,5 @@ function load (store, fnAndParams, isRetry) {
   });
 }
 
-exports.load = load;
+exports.load     = load;
+exports.register = registerStore;
