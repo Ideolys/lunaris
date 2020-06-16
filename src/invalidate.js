@@ -4,6 +4,7 @@ var cache          = require('./cache.js');
 var store          = require('./store/store.js');
 var logger         = require('./logger.js');
 var offline        = require('./offline.js');
+var storeUtils     = require('./store/store.utils.js');
 
 var clientLightUrlInvalidations = {};
 var events                      = {};
@@ -74,8 +75,15 @@ module.exports = {
       addInvalidation(storeOrUrl);
 
       for (var i = 0, len = lunarisExports.urlsGraph[storeOrUrl].length; i < len; i++) {
-        logger.info('[Invalidate] ' + storeOrUrl + ' -> @' + lunarisExports.urlsGraph[storeOrUrl][i]);
-        store.clear('@' + lunarisExports.urlsGraph[storeOrUrl][i]);
+        var _store = lunarisExports.urlsGraph[storeOrUrl][i];
+        logger.info('[Invalidate] ' + storeOrUrl + ' -> @' + _store);
+
+        var _storeInstance = storeUtils.getStore(_store);
+        if (_storeInstance && _storeInstance.isInvalidable === false) {
+          continue;
+        }
+
+        store.clear('@' + _store);
       }
 
       return;

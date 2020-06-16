@@ -1448,6 +1448,71 @@ describe('local storage', () => {
       lunaris.insert('@http', { id : 1, label : 'A' });
     });
 
+    it('should not invalidate a store from the server when the store is not invalidable', done => {
+      lunaris._stores.http.isInvalidable = false;
+      var _insertedHook = () => {
+        lunaris._indexedDB.getAll('http', (err, data) => {
+          if (err) {
+            done(err);
+          }
+
+          should(data).be.an.Array().and.have.lengthOf(2);
+          should(data[0]).eql({
+            id       : 1,
+            label    : 'A',
+            _rowId   : 1,
+            _id      : 1,
+            _version : [1, 2]
+          });
+          should(data[1]).eql({
+            id       : 1,
+            label    : 'A',
+            post     : true,
+            _rowId   : 2,
+            _id      : 1,
+            _version : [2]
+          });
+
+          lunaris.offline.isOfflineMode = true;
+          lunaris.websocket.send('INVALIDATE', 'GET /http', true);
+
+          setTimeout(() => {
+            lunaris._indexedDB.getAll('http', (err, data) => {
+              if (err) {
+                done(err);
+              }
+
+              should(data).be.an.Array().and.have.lengthOf(2);
+
+              lunaris._indexedDB.get('_states', 'http', (err, data) => {
+                if (err) {
+                  return done(err);
+                }
+
+                should(data).be.an.Object();
+                should(data).eql({
+                  store          : 'http',
+                  massOperations : {},
+                  collection     : {
+                    currentId    : 2,
+                    currentRowId : 3
+                  }
+                });
+
+                lunaris.removeHook('inserted@http', _insertedHook);
+                lunaris.offline.isOfflineMode      = false;
+                lunaris._stores.http.isInvalidable = true;
+                done();
+              });
+            });
+          }, 100);
+        });
+      };
+
+      lunaris.hook('inserted@http', _insertedHook);
+      lunaris.insert('@http', { id : 1, label : 'A' });
+    });
+
     it('should send a custom event when invalidating', done => {
       var _insertedHook = () => {
         lunaris._indexedDB.getAll('http', (err, data) => {

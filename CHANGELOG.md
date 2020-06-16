@@ -1,4 +1,10 @@
-# Lunaris
+# Lunaris*
+
+## 1.19.0
+**2020-xx-xx**
+- Features:
+  - Add a new attribute for store object, `isInvalidable`. It controls the ability of a store to be invalidated from the server. Default `true`.
+- Fixes:
 
 ## 1.18.0
 *2020-05-29*
