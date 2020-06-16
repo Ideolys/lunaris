@@ -6213,6 +6213,7 @@ var cache          = imports[2];
 var store          = imports[3];
 var logger         = imports[4];
 var offline        = imports[5];
+var storeUtils     = imports[6];
 
 var clientLightUrlInvalidations = {};
 var events                      = {};
@@ -6283,8 +6284,15 @@ exports = {
       addInvalidation(storeOrUrl);
 
       for (var i = 0, len = lunarisExports.urlsGraph[storeOrUrl].length; i < len; i++) {
-        logger.info('[Invalidate] ' + storeOrUrl + ' -> @' + lunarisExports.urlsGraph[storeOrUrl][i]);
-        store.clear('@' + lunarisExports.urlsGraph[storeOrUrl][i]);
+        var _store = lunarisExports.urlsGraph[storeOrUrl][i];
+        logger.info('[Invalidate] ' + storeOrUrl + ' -> @' + _store);
+
+        var _storeInstance = storeUtils.getStore(_store);
+        if (_storeInstance && _storeInstance.isInvalidable === false) {
+          continue;
+        }
+
+        store.clear('@' + _store);
       }
 
       return;
@@ -6360,7 +6368,7 @@ exports = {
 
         
         return exports;
-      })([_localStorageDriver_js,_exports_js,_cache_js,_store_store_js,_logger_js,_offline_js], {});
+      })([_localStorageDriver_js,_exports_js,_cache_js,_store_store_js,_logger_js,_offline_js,_store_store_utils_js], {});
     
       var _store_dataQuery_queryResultSet_js = (function(imports, exports) {
         var ilike = imports[0].ilike;
