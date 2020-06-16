@@ -4,8 +4,12 @@
 **2020-xx-xx**
 - Features:
   - Reduce compilation size.
-  - Add a new attribute for store object, `isInvalidable`. It controls the ability of a store to be invalidated from the server. Default `true`.
 - Fixes:
+
+## 1.18.1
+**2020-06-16**
+- Features:
+  - Add a new attribute for store object, `isInvalidable`. It controls the ability of a store to be invalidated from the server. Default `true`.
 
 ## 1.18.0
 *2020-05-29*
