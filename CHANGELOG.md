@@ -5,6 +5,7 @@
 - Features:
   - Reduce compilation size.
 - Fixes:
+  - Fix dayjs locale import.
 
 ## 1.18.1
 **2020-06-16**
