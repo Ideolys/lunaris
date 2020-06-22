@@ -4,6 +4,7 @@
 **2020-xx-xx**
 - Features:
   - Reduce compilation size.
+  - Bump Vue to v2.6.11.
 - Fixes:
   - Fix dayjs locale import.
 

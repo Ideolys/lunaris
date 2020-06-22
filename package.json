@@ -15,9 +15,9 @@
     "serialize-javascript": "1.7.0",
     "terser": "^4.6.6",
     "timsort": "0.3.0",
-    "vue": "2.6.2",
+    "vue": "^2.6.11",
     "vue-router": "3.0.1",
-    "vue-template-compiler": "2.6.2",
+    "vue-template-compiler": "^2.6.11",
     "vue-template-es2015-compiler": "1.6.0",
     "whatwg-fetch": "2.0.4"
   },
