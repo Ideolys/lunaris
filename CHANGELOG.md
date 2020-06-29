@@ -1,7 +1,7 @@
 # Lunaris*
 
 ## 1.19.0
-**2020-xx-xx**
+**2020-06-29**
 - Features:
   - Reduce compilation size.
   - Bump Vue to v2.6.11.
