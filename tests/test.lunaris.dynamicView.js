@@ -13,7 +13,7 @@ const window    = {};
 var lunarisGlobal = {};
 let dynamicView = null;
 
-describe('Dynamic view', () => {
+describe.only('Dynamic view', () => {
 
   before(done => {
     eval(fs.readFileSync(path.join(__dirname, '..', 'dist', 'lunaris.js'), 'utf-8'));
@@ -467,6 +467,24 @@ describe('Dynamic view', () => {
       res = dynamicView.data();
       should(res).have.length(2);
       should(res[0]._id).eql(2);
+      should(res[0]._id).eql(2);
+    });
+
+    it('should apply criteria after reset', () => {
+      dynamicView = lunarisGlobal.dynamicView('@db');
+      dynamicView.applyWhereCriteria(item => item.type > 1);
+
+      lunarisGlobal._stores.db.data.add({ id : 1, type : 1 });
+      lunarisGlobal._stores.db.data.add({ id : 2, type : 2 });
+
+      let res = dynamicView.data();
+      should(res).have.length(1);
+      should(res[0]._id).eql(2);
+
+      lunarisGlobal.pushToHandlers(lunarisGlobal._stores.db, 'reset');
+
+      res = dynamicView.data();
+      should(res).have.length(1);
       should(res[0]._id).eql(2);
     });
 

@@ -6983,7 +6983,6 @@ function dynamicView (store, options) {
   function reset () {
     _data.splice(0);
     _dynamicView.idIdx   = {};
-    _pipeline            = [];
     _hasBeenMaterialized = false;
   }
 

@@ -4,10 +4,12 @@
 **2020-xx-xx**
 - Features:
 - Fixes:
-  - `lunaris.dynamicView` was not always defining the same instance for the internal data object.
-  - `lunaris.dynamicView.materialize` was not returning the dynamic object for chaining purpose.
-  - `lunaris.dynamicView` was not setting correctly the internal cache for ids. As a result, the view had duplicated values.
-  - `lunaris.dynamivView` was not removing filtered values on update when using criterias.
+  - `lunaris.dynamicView`:
+    - was not always defining the same instance for the internal data object.
+    - `materialize()` was not returning the dynamic object for chaining purpose.
+    - was not setting correctly the internal cache for ids. As a result, the view had duplicated values.
+    - was not removing filtered values on update when using criterias.
+    - was reseting the pipeline after reset event.
 
 ## 1.19.0
 **2020-06-29**
