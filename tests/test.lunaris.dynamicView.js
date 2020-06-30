@@ -408,6 +408,49 @@ describe('Dynamic view', () => {
       should(res[1]._id).eql(1);
     });
 
+    it('should apply criterias for updates and remove false value', () => {
+      lunarisGlobal._stores.db.data.add({ type : 2 });
+      lunarisGlobal._stores.db.data.add({ type : 2 });
+      lunarisGlobal._stores.db.data.add({ type : 2 });
+
+      dynamicView = lunarisGlobal.dynamicView('@db');
+      dynamicView.applyWhereCriteria(item => item.type > 1);
+
+      let res = dynamicView.data();
+      should(res).have.length(3);
+      should(res[0]._id).eql(1);
+      should(res[1]._id).eql(2);
+      should(res[2]._id).eql(3);
+
+      lunarisGlobal.pushToHandlers(lunarisGlobal._stores.db, 'update', { _id : 2, type : 1 });
+      lunarisGlobal.pushToHandlers(lunarisGlobal._stores.db, 'update', { _id : 3, type : 3 });
+
+      should(res).have.length(2);
+      should(res[0]._id).eql(1);
+      should(res[1]._id).eql(3);
+    });
+
+    it('should apply criterias for updates and remove false values', () => {
+      lunarisGlobal._stores.db.data.add({ type : 2 });
+      lunarisGlobal._stores.db.data.add({ type : 2 });
+      lunarisGlobal._stores.db.data.add({ type : 2 });
+
+      dynamicView = lunarisGlobal.dynamicView('@db');
+      dynamicView.applyWhereCriteria(item => item.type > 1);
+
+      let res = dynamicView.data();
+      should(res).have.length(3);
+      should(res[0]._id).eql(1);
+      should(res[1]._id).eql(2);
+      should(res[2]._id).eql(3);
+
+      lunarisGlobal.pushToHandlers(lunarisGlobal._stores.db, 'update', [{ _id : 2, type : 1 }, { _id : 3, type : 3 }]);
+
+      should(res).have.length(2);
+      should(res[0]._id).eql(1);
+      should(res[1]._id).eql(3);
+    });
+
     it('should apply criterias for updates', () => {
       dynamicView = lunarisGlobal.dynamicView('@db');
       dynamicView.applyWhereCriteria(item => item.type > 1);

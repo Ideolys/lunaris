@@ -40,6 +40,28 @@ function dynamicView (store, options) {
     }
 
     var _itemsFiltered = _runPipeline(items);
+    var _diff          = [];
+
+    if (_pipeline.length) {
+      for (var i = 0; i < items.length; i++) {
+        var _hasBeenFound = false;
+
+        for (var j = 0; j < _itemsFiltered.length; j++) {
+          if (items[i]._id === _itemsFiltered[j]._id) {
+            _hasBeenFound = true;
+            break;
+          }
+        }
+
+        if (!_hasBeenFound) {
+          _diff.push(items[i]);
+        }
+      }
+
+      if (_diff.length) {
+        remove(_diff);
+      }
+    }
 
     var _index = _dynamicView.idIdx;
     for (var i = 0, len = _itemsFiltered.length; i < len; i++) {
