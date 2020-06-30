@@ -1,5 +1,13 @@
 # Lunaris*
 
+## 1.20.0
+**2020-xx-xx**
+- Features:
+- Fixes:
+  - `lunaris.dynamicView` was not always defining the same instance for the internal data object.
+  - `lunaris.dynamicView.materialize` was not returning the dynamic object for chaining purpose.
+  - `lunaris.dynamicView` was not setting correctly the internal cache for ids. As a result, the view had duplicated values.
+
 ## 1.19.0
 **2020-06-29**
 - Features:

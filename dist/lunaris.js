@@ -6995,8 +6995,15 @@ function dynamicView (store, options) {
       _resultSet[_criteria.type].call(null, _criteria.args);
     }
 
-    _data                = _resultSet.data();
+    _dynamicView.idIdx   = {};
+    let materializedData = _resultSet.data();
+    for (var i = 0, len = materializedData.length; i < len; i++) {
+      _data.splice(i, 1, materializedData[i]);
+      _dynamicView.idIdx[materializedData[i]._id] = i;
+    }
+
     _hasBeenMaterialized = true;
+    return _dynamicView;
   };
 
   /**

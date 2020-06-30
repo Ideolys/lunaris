@@ -384,7 +384,28 @@ describe('Dynamic view', () => {
       res = dynamicView.data();
       should(res).have.length(2);
       should(res[0]._id).eql(2);
+      should(res[1]._id).eql(1);
+    });
+
+    it('should apply criterias for updates : shouldNotInitialize = false', () => {
+      lunarisGlobal._stores.db.data.add({ type : 1 });
+      lunarisGlobal._stores.db.data.add({ type : 2 });
+
+      dynamicView = lunarisGlobal.dynamicView('@db');
+      dynamicView.applyWhereCriteria(item => item.type > 1);
+
+      let res = dynamicView.data();
+      should(res).have.length(1);
       should(res[0]._id).eql(2);
+
+      lunarisGlobal.pushToHandlers(lunarisGlobal._stores.db, 'update', { _id : 1, type : 2 });
+      lunarisGlobal.pushToHandlers(lunarisGlobal._stores.db, 'update', { _id : 2, type : 3 });
+
+      res = dynamicView.data();
+
+      should(res).have.length(2);
+      should(res[0]._id).eql(2);
+      should(res[1]._id).eql(1);
     });
 
     it('should apply criterias for updates', () => {
