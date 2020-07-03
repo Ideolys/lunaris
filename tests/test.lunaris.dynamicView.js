@@ -13,7 +13,7 @@ const window    = {};
 var lunarisGlobal = {};
 let dynamicView = null;
 
-describe.only('Dynamic view', () => {
+describe('Dynamic view', () => {
 
   before(done => {
     eval(fs.readFileSync(path.join(__dirname, '..', 'dist', 'lunaris.js'), 'utf-8'));

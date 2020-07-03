@@ -2456,6 +2456,39 @@ describe('lunaris store', function () {
       lunarisGlobal.get('@methods');
     });
 
+    it('should get the value for store object and update the current vlaue of the store instaead of inserting the new value', done => {
+      let _store                         = initStore('getObject', { id : ['int'] });
+      lunarisGlobal._stores['getObject'] = _store;
+
+      let res1 = {
+        _id      : 1,
+        _rowId   : 1,
+        _version : [1],
+        id       : 0
+      };
+
+      let res2 = {
+        _id      : 1,
+        _rowId   : 2,
+        _version : [2],
+        id       : 1
+      };
+
+      lunarisGlobal.get('@getObject', 0, (err, res) => {
+        should(err).not.ok();
+        should(res).eql(res1);
+
+        lunarisGlobal.get('@getObject', 1, (err, res) => {
+          should(err).not.ok();
+          should(res).eql(res2);
+
+          should(_store.data.getAll()).not.eql(res1);
+          should(_store.data.getAll()).eql(res2);
+          done();
+        });
+      });
+    });
+
     describe('callback', () => {
 
       it('should get the values : function signature (store, cb)', done => {
@@ -5200,6 +5233,15 @@ function _startServer (callback) {
     }
 
     return res.json({ success : true, error : null, message : null, data : [{ id : 3 }, { id : 4 }] });
+  });
+
+  server.get('/getObject/:id', (req, res) => {
+    if (req.params.id === '0') {
+      return res.json({ success : true, error : null, message : null, data : { id : 0 } });
+    }
+    if (req.params.id === '1') {
+      return res.json({ success : true, error : null, message : null, data : { id : 1 } });
+    }
   });
 
   var _postPutDelHandler = (req, res) => {

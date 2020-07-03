@@ -162,6 +162,13 @@ function _getHTTP (store, collection, request, primaryKeyValue, options, nextGet
       }
     }
     else {
+      if (store.isStoreObject) {
+        // we always should update the same value for object store
+        var _value = collection.getAll();
+        var _id    = _value ? _value._id : null;
+        data._id   = _id;
+      }
+
       cache.add(store.name, md5(request), store.clone(data));
       collection.upsert(data, _version);
     }
