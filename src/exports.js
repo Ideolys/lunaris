@@ -33,7 +33,6 @@ exports.urlsGraph = {};
  */
 exports.cacheGraph          = {};
 exports.isOfflineStrategies = false;
-exports.isOfflineSync       = false;
 exports.version             = '';
 
 /**

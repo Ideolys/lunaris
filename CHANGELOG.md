@@ -3,6 +3,7 @@
 ## 1.20.0
 **2020-xx-xx**
 - Features:
+  - Remove useless configuration parameter `isOfflineSync`.
 - Fixes:
   - `lunaris.dynamicView`:
     + was not always defining the same instance for the internal data object.
