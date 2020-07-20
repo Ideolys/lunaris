@@ -674,6 +674,23 @@ describe('lunaris store', function () {
         });
       });
 
+      it('should return valdiation error on update', done => {
+        var _store                                           = initStore('store_insert_put', [{ id : ['<<int>>'], label : ['string'] }]);
+        lunarisGlobal._stores['store_insert_put']            = _store;
+        lunarisGlobal._stores['store_insert_put'].primaryKey = 'id';
+
+        lunarisGlobal.insert('@store_insert_put', { id : 1, label : 'a' }, (err, data) => {
+          should(err).not.ok();
+          data[0].label = 2;
+
+          lunarisGlobal.update('@store_insert_put', data[0], null, (err, data) => {
+            should(err).eql('Error when validating data');
+            should(data).not.ok();
+            done();
+          });
+        });
+      });
+
       it('should insert the value and execute the hooks', done => {
         var _nbExecutedHandlers                    = 0;
         var _store                                 = initStore('store1');
