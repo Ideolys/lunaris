@@ -1,7 +1,7 @@
 # Lunaris*
 
 ## 1.20.0
-**2020-xx-xx**
+**2020-07-20**
 - Features:
   - Remove useless configuration parameter `isOfflineSync`.
 - Fixes:
