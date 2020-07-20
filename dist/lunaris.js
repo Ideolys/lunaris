@@ -3171,7 +3171,7 @@ function request (method, request, body, callback, options) {
     return response.json();
   }).then(function (json) {
     if (json.success === false) {
-      return callback({ error : json.error, message : json.message, errors : json.errors });
+      return Promise.reject({ error : json.error, message : json.message, errors : json.errors });
     }
     callback(null, json.data);
   }).catch(function (err) {

@@ -691,6 +691,17 @@ describe('lunaris store', function () {
         });
       });
 
+      it('should return error from server', done => {
+        var _store                                           = initStore('store_insert_error', [{ id : ['<<int>>'], label : ['string'] }]);
+        lunarisGlobal._stores['store_insert_put']            = _store;
+        lunarisGlobal._stores['store_insert_put'].primaryKey = 'id';
+
+        lunarisGlobal.insert('@store_insert_put', [{ label : 'a' }], (err, data) => {
+          should(err).be.ok();
+          done();
+        });
+      });
+
       it('should insert the value and execute the hooks', done => {
         var _nbExecutedHandlers                    = 0;
         var _store                                 = initStore('store1');
@@ -5295,6 +5306,10 @@ function _startServer (callback) {
   server.delete('/store1/:id'          , _postPutDelHandler);
   server.post('/store1/site/:idSite'   , _postPutDelHandler);
   server.put('/store1/:id/site/:idSite', _postPutDelHandler);
+
+  server.post('/store_insert_error', (req, res) => {
+    res.json({ success : false, error : null, errors : [] });
+  });
 
   server.post('/multiple', (req, res) => {
     req.body.reverse();

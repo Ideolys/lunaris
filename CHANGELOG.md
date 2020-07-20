@@ -1,4 +1,10 @@
-# Lunaris*
+# Lunaris
+
+## 1.20.1
+**2020-xx-xx**
+- Features:
+- Fixes:
+  - `lunaris.http.request` was not correctly rejecting Promise.
 
 ## 1.20.0
 **2020-07-20**
