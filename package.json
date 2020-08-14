@@ -7,7 +7,7 @@
     "lib": "lib"
   },
   "dependencies": {
-    "dayjs": "1.7.5-ideolys",
+    "dayjs": "^1.8.33",
     "glob": "^7.1.6",
     "graphlib": "2.1.5",
     "pako": "1.0.6",
