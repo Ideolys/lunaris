@@ -1,7 +1,7 @@
 # Lunaris
 
 ## 1.20.2
-**2020-XX-XX**
+**2020-08-21**
 - Features:
   + Set dayjs version to 1.8.33.
 
