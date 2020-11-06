@@ -5,6 +5,20 @@ var baseOptions = {
   onComplete : null
 };
 
+/**
+ * Is JSON resuest ?
+ * @param {Object} headers
+ * @returns {Boolean}
+ */
+function _isJSON (headers) {
+  const contentType = headers.get('content-type');
+  if(contentType && contentType.indexOf('application/json') !== -1) {
+    return true;
+  }
+
+  return false;
+}
+
 function setup (options) {
   baseOptions = utils.merge(baseOptions, options);
 }
@@ -47,7 +61,9 @@ function request (method, request, body, callback, options) {
     headers     : _headers,
     body        : _body
   }).then(function (response) {
-    if (response.status !== 200) {
+    const isJSON = _isJSON(response.headers);
+
+    if (response.status !== 200 && !isJSON) {
       return Promise.reject({ error : response.status, message : response.statusText, errors : [] });
     }
 
@@ -65,12 +81,18 @@ function request (method, request, body, callback, options) {
       baseOptions.onComplete(response);
     }
 
-    return response.json();
-  }).then(function (json) {
-    if (json.success === false) {
-      return Promise.reject({ error : json.error, message : json.message, errors : json.errors });
-    }
-    callback(null, json.data);
+    return response.json().then(json => {
+      if (json.success === false) {
+        return callback({ error : json.error, message : json.message, errors : json.errors });
+      }
+
+      callback(null, json.data);
+    })
+    .catch((err) => {
+      if (response.status !== 200) {
+        return Promise.reject({ error : response.status, message : response.statusText, errors : [] });
+      }
+    });
   }).catch(function (err) {
     callback(err);
   });

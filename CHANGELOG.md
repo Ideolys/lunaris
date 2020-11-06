@@ -1,5 +1,10 @@
 # Lunaris
 
+## 1.20.3
+**2020-11-06**
+- Features:
+  + Add support for json based errors for HTTP even if statusCode is different from 200.
+
 ## 1.20.2
 **2020-08-21**
 - Features:
