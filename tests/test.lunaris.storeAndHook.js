@@ -2078,6 +2078,7 @@ describe('lunaris store', function () {
       var _nbPages                                            = 0;
       lunarisGlobal._stores['pagination2.param.site']               = initStore('pagination2.param.site', {});
       lunarisGlobal._stores['pagination2.param.site'].isStoreObject = true;
+      lunarisGlobal._stores['pagination2.param.site'].isLocal       = true;
       lunarisGlobal._stores['pagination2.param.site'].data.add({
         site : 1
       });
