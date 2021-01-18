@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.20.4
+*2021-01-18*
+  - Add dayjs' plugin `customFormat`.
+
 ## 1.20.3
 **2020-11-06**
 - Features:
