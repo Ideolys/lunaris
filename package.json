@@ -1,6 +1,6 @@
 {
   "name": "lunaris",
-  "version": "1.20.3",
+  "version": "1.20.4",
   "description": "« Il faut toujours viser la lune, car même en cas d’échec, on atterrit dans les étoiles » -- Oscar WILDE",
   "main": "index.js",
   "directories": {
