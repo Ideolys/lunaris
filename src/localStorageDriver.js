@@ -4,20 +4,6 @@ var offlineVersionKey = 'lunaris:indexedDB_version';
 var LIMIT_ITEMS       = 10000;
 
 var database;
-function _isDatabaseExists (dbname, callback) {
-  var _request = window.indexedDB.open(dbname);
-  var _existed = true;
-  _request.onsuccess = function () {
-    _request.result.close();
-    if (!_existed) {
-      window.indexedDB.deleteDatabase(dbname);
-    }
-    callback(_existed);
-  };
-  _request.onupgradeneeded = function () {
-    _existed = false;
-  };
-}
 
 /**
  * Init database
@@ -36,64 +22,50 @@ function initIndexedDB (versionNumber, stores, callback) {
   window.IDBTransaction = window.IDBTransaction || window.webkitIDBTransaction || window.msIDBTransaction || { READ_WRITE : 'readwrite' };
   window.IDBKeyRange    = window.IDBKeyRange    || window.webkitIDBKeyRange    || window.msIDBKeyRange;
 
-  _isDatabaseExists('lunaris', function (isExisted) {
-    var _request;
-    if (isExisted) {
-      var _lastVersionNumber = drivers.localStorage.get(offlineVersionKey);
-
-      if (versionNumber < _lastVersionNumber) {
-        versionNumber = _lastVersionNumber;
-      }
-
-      _request = window.indexedDB.open('lunaris', versionNumber);
+  var _request;
+  _request = window.indexedDB.open('lunaris', versionNumber);
+  _request.onerror = function (e) {
+    logger.warn('Error when requesting indexedDB', e.target.error);
+    if (callback) {
+      callback(true);
     }
-    else {
-      _request = window.indexedDB.open('lunaris');
+  };
+
+  _request.onsuccess = function (e) {
+    database = e.target.result;
+    if (callback) {
+      callback(null, database);
     }
 
-    _request.onerror = function (e) {
-      logger.warn('Error when requesting indexedDB', e.target.error);
-      if (callback) {
-        callback(true);
-      }
+    database.onerror = function (e) {
+      logger.warn('[IndexedDB]', e.target.errorCode);
     };
+  };
 
-    _request.onsuccess = function (e) {
-      database = e.target.result;
-      if (callback) {
-        callback(null, database);
+  _request.onupgradeneeded = function (e) {
+    drivers.localStorage.set(offlineVersionKey, versionNumber);
+
+    var _db = e.target.result;
+
+    for (var i = 0; i < stores.length; i++) {
+      var _key = stores[i];
+      if (!_db.objectStoreNames.contains(_key)) {
+        _db.createObjectStore(_key, { keyPath : '_rowId' });
       }
+    }
 
-      database.onerror = function (e) {
-        logger.warn('[IndexedDB]', e.target.errorCode);
-      };
-    };
+    if (!_db.objectStoreNames.contains('_states')) {
+      _db.createObjectStore('_states', { keyPath : 'store' });
+    }
 
-    _request.onupgradeneeded = function (e) {
-      drivers.localStorage.set(offlineVersionKey, versionNumber);
+    if (!_db.objectStoreNames.contains('_invalidations')) {
+      _db.createObjectStore('_invalidations', { keyPath : 'url' });
+    }
 
-      var _db = e.target.result;
-
-      for (var i = 0; i < stores.length; i++) {
-        var _key = stores[i];
-        if (!_db.objectStoreNames.contains(_key)) {
-          _db.createObjectStore(_key, { keyPath : '_rowId' });
-        }
-      }
-
-      if (!_db.objectStoreNames.contains('_states')) {
-        _db.createObjectStore('_states', { keyPath : 'store' });
-      }
-
-      if (!_db.objectStoreNames.contains('_invalidations')) {
-        _db.createObjectStore('_invalidations', { keyPath : 'url' });
-      }
-
-      if (!_db.objectStoreNames.contains('cache')) {
-        _db.createObjectStore('cache', { keyPath : 'hash' });
-      }
-    };
-  });
+    if (!_db.objectStoreNames.contains('cache')) {
+      _db.createObjectStore('cache', { keyPath : 'hash' });
+    }
+  };
 }
 
 var _queue      = [];

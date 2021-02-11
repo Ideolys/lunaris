@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.20.5
+*2021-02-11*
+  - Fix IndexedDB initialization.
+
 ## 1.20.4
 *2021-01-18*
   - Add dayjs' plugin `customFormat`.
