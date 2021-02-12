@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.x.x
+*2021-xx-xx*
+- Add option `isPagination` for method `lunaris.get`.
+
 ## 1.20.5
 *2021-02-11*
   - Fix IndexedDB initialization.
