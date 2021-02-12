@@ -1949,6 +1949,17 @@ describe('lunaris store', function () {
       lunarisGlobal.get('@pagination');
     });
 
+    it('should get the values without pagination', done => {
+      var _store                             = initStore('no-pagination');
+      lunarisGlobal._stores['no-pagination'] = _store;
+
+      lunaris.get('get@no-pagination', { isPagination : false }, (err, items) => {
+        should(err).not.be.ok();
+        should(items.length).eql(6);
+        done();
+      });
+    });
+
     it('should get the values without duplicating values', done => {
       var _nbPages                  = 0;
       var _store                    = initStore('pagination_duplicate');
@@ -5185,6 +5196,21 @@ function _startServer (callback) {
     }
 
     res.json({ success : false, error : 'Error', message : null, data : []});
+  });
+
+  server.get('/no-pagination', (req, res) => {
+    if (req.query.limit || req.query.offset) {
+      res.json({ success : false, error : 'Error', message : null, data : []});
+    }
+
+    return res.json({ success : true, error : null, message : null, data : [
+      { id : 20, label : 'B' },
+      { id : 30, label : 'D' },
+      { id : 10, label : 'E' },
+      { id : 40, label : 'A' },
+      { id : 50, label : 'C' },
+      { id : 60, label : 'F' }
+    ]});
   });
 
   server.get('/pagination_duplicate', (req, res) => {

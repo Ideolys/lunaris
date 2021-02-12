@@ -215,9 +215,12 @@ function _get (store, primaryKeyValue, options, next) {
 
     var _request = '/';
 
-    _request = url.create(_options.store, 'GET', primaryKeyValue);
-    _options.store.paginationOffset = _options.store.paginationLimit * _options.store.paginationCurrentPage;
-    _options.store.paginationCurrentPage++;
+    _request = url.create(_options.store, 'GET', primaryKeyValue, options.isPagination);
+
+    if (options.isPagination !== false) {
+      _options.store.paginationOffset = _options.store.paginationLimit * _options.store.paginationCurrentPage;
+      _options.store.paginationCurrentPage++;
+    }
 
     // required filters condition not fullfilled
     if (!_request) {
@@ -241,12 +244,13 @@ function _get (store, primaryKeyValue, options, next) {
   }
 }
 
-
 /**
  * Get values
- * @param {String} store
+ * @param {String} store A valid store key
  * @param {*} primaryKeyValue
- * @param {Object} options @optional
+ * @param {Object} options Options for method
+ * @param {Boolean} options.isPagination Add pagination for the request @default true
+ * @param {Function} callback
  * @param {Function}
  */
 function get (store, primaryKeyValue, options, callback) {
