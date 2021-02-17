@@ -5283,9 +5283,18 @@ function _get (store, primaryKeyValue, options, next) {
 
     var _request = '/';
 
-    _request = url.create(_options.store, 'GET', primaryKeyValue, options.isPagination);
+    let isPaginated = true;
+    if (_options.store.isPaginated === false) {
+      isPaginated = false;
+    }
 
-    if (options.isPagination !== false) {
+    if (options.isPaginated != null) {
+      isPaginated = options.isPaginated;
+    }
+
+    _request = url.create(_options.store, 'GET', primaryKeyValue, isPaginated);
+
+    if (isPaginated) {
       _options.store.paginationOffset = _options.store.paginationLimit * _options.store.paginationCurrentPage;
       _options.store.paginationCurrentPage++;
     }

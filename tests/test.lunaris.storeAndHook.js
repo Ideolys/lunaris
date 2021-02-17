@@ -1953,9 +1953,34 @@ describe('lunaris store', function () {
       var _store                             = initStore('no-pagination');
       lunarisGlobal._stores['no-pagination'] = _store;
 
-      lunaris.get('get@no-pagination', { isPagination : false }, (err, items) => {
+      lunaris.get('get@no-pagination', { isPaginated : false }, (err, items) => {
         should(err).not.be.ok();
         should(items.length).eql(6);
+        done();
+      });
+    });
+
+    it('should get the values without pagination : store.isPaginated = false', done => {
+      var _store                             = initStore('no-pagination');
+      _store.isPaginated                     = false;
+      lunarisGlobal._stores['no-pagination'] = _store;
+
+      lunaris.get('get@no-pagination', (err, items) => {
+        should(err).not.be.ok();
+        should(items.length).eql(6);
+        done();
+      });
+    });
+
+    it('should get the values with pagination : store.isPaginated = false', done => {
+      var _store                             = initStore('pagination');
+      _store.isPaginated                     = false;
+      lunarisGlobal._stores['pagination'] = _store;
+
+      lunaris.get('get@pagination', { isPaginated : true }, (err, items) => {
+        console.log(err, items);
+        should(err).not.be.ok();
+        should(items.length).eql(3);
         done();
       });
     });

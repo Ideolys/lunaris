@@ -2,6 +2,8 @@
 
 ## 1.xx.x
 *2021-xx-xx*
+  - Add `isPAginated` for store.
+  - Replace `isPagination` by `isPaginated` for method `lunaris.get`.
 
 ## 1.20.6
 *2021-02-17*
