@@ -1,8 +1,9 @@
 # Lunaris
 
-## 1.x.x
-*2021-xx-xx*
+## 1.20.6
+*2021-02-17*
 - Add option `isPagination` for method `lunaris.get`.
+- Add plugin `isLeapYear` for `dayjs`.
 
 ## 1.20.5
 *2021-02-11*
