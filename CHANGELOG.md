@@ -1,5 +1,8 @@
 # Lunaris
 
+## 1.xx.x
+*2021-xx-xx*
+
 ## 1.20.6
 *2021-02-17*
 - Add option `isPagination` for method `lunaris.get`.
