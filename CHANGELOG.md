@@ -1,7 +1,7 @@
 # Lunaris
 
-## 1.xx.x
-*2021-xx-xx*
+## 1.21.0
+*2021-03-01*
   - Add `isPAginated` for store.
   - Replace `isPagination` by `isPaginated` for method `lunaris.get`.
 
