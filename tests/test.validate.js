@@ -1,5 +1,6 @@
 var validate = require('../lib/_builder/store/validate');
 var schema   = require('../lib/_builder/store/schema');
+const should = require('should');
 
 describe('Validate', () => {
 
@@ -1525,6 +1526,29 @@ describe('Validate', () => {
               }
             });
           }
+        });
+
+        it('should work in asynchrone when the user provide a custom validate function in the descriptor and is using objet\'s scope in function', function (done) {
+          var specialValidator = function (callback) {
+            if (this.value !== 3 && this.object.anotherAttribute !== 3) {
+              callback('error');
+            }
+            else {
+              callback();
+            }
+          };
+
+          var _objectDescriptor   = { id : ['int', 'onValidate', specialValidator] };
+          var _analyzedDescriptor = schema.analyzeDescriptor(_objectDescriptor);
+          var _validateFunction   = validate.buildValidateFunction(_analyzedDescriptor.compilation);
+
+          _validateFunction({id : 2, anotherAttribute : 1 }, _analyzedDescriptor.onValidate, true, function (resFirst) {
+            should(resFirst.length).eql(1);
+            _validateFunction({id : 3, anotherAttribute : 3 }, _analyzedDescriptor.onValidate, true, function (resSecond) {
+              should(resSecond.length).eql(0);
+              done();
+            });
+          });
         });
       }); /* End of descript test */
     });
