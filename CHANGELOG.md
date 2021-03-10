@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.xx.x
+*2021-xx-xx*
+  - In validation functions, the object to validate is given to the function via `this.object`.
+
 ## 1.21.0
 *2021-03-01*
   - Add `isPAginated` for store.
