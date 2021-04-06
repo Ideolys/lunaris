@@ -1,8 +1,9 @@
 # Lunaris
 
-## 1.xx.x
-*2021-xx-xx*
+## 1.21.1
+*2021-04-06*
   - In validation functions, the object to validate is given to the function via `this.object`.
+  - Add plugin `utc` to `dayjs`.
 
 ## 1.21.0
 *2021-03-01*
