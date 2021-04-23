@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.21.2
+*2021-05-23*
+ - `lunaris.delete`' result is merged with local value and returned in the callback.
+
 ## 1.21.1
 *2021-04-06*
   - In validation functions, the object to validate is given to the function via `this.object`.

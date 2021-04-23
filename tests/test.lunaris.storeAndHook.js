@@ -1614,8 +1614,9 @@ describe('lunaris store', function () {
       lunarisGlobal.insert('@store1', { id : 2, label : 'A' });
       lunarisGlobal.delete('@store1', _expectedValue, (err, res) => {
         should(err).not.ok();
-        should(res).eql(_expectedValue);
 
+        // API res has been merged with collection's value
+        should(res).eql({ _rowId : 1, _id : 1, id : '2', label : 'A', _version : [1, 2] });
 
         setTimeout(() => {
           should(_isDeleteHook).eql(true);
@@ -1978,7 +1979,6 @@ describe('lunaris store', function () {
       lunarisGlobal._stores['pagination'] = _store;
 
       lunaris.get('get@pagination', { isPaginated : true }, (err, items) => {
-        console.log(err, items);
         should(err).not.be.ok();
         should(items.length).eql(3);
         done();

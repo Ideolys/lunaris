@@ -140,17 +140,17 @@ function _deleteHttp (store, collection, value, version, options, callback) {
       });
     }
 
-    _deleteLocal(store, collection, data, false, function (err, data) {
+    _deleteLocal(store, collection, data, false, function (err, dataCollection) {
       if (err) {
         return callback(err);
       }
 
-      if (data[1]) {
-        value = data[1];
+      if (dataCollection[1]) {
+        value = dataCollection[1];
       }
 
       crudUtils.afterAction(store, 'deleted', value, template.getSuccess(null, store, 'DELETE', false), function () {
-        callback(null, value);
+        callback(null, utils.merge(value, data));
       });
     });
   });
