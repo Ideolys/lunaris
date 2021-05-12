@@ -1,5 +1,9 @@
 # Lunaris
 
+## X.XX.X
+*2021-xx-xx*
+  - In `getRoutes` method, allow single quote in route's description.
+
 ## 1.21.2
 *2021-05-23*
  - `lunaris.delete`' result is merged with local value and returned in the callback.
