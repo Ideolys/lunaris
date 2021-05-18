@@ -1,12 +1,12 @@
 # Lunaris
 
-## X.XX.X
-*2021-xx-xx*
+## 1.22.0
+*2021-05-18*
   - In `getRoutes` method, allow single quote in route's description.
   - Add option `mergeStrategy` for `lunaris.upsert`.
 
 ## 1.21.2
-*2021-05-23*
+*2021-04-23*
  - `lunaris.delete`' result is merged with local value and returned in the callback.
 
 ## 1.21.1
