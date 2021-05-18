@@ -1170,22 +1170,23 @@ describe('lunaris store', function () {
     });
 
     it('should merge only-server', done => {
-      const _store = initStore('multiple');
-      lunarisGlobal._stores['multiple'] = _store;
-      lunarisGlobal.insert('@multiple', [
+      const _store = initStore('multiple-only-server');
+      lunarisGlobal._stores['multiple-only-server'] = _store;
+      lunarisGlobal.insert('@multiple-only-server', [
         { id : 1, label : 'A' },
         { id : 2, label : 'B' }
       ], { mergeStrategy : 'only-server' }, (err, res) => {
         should(err).not.ok();
+        console.log(res);
         should(res).eql([
-          { _rowId : 3, _id : 1, id : 2, label : 'A', _version : [2], post : true },
-          { _rowId : 4, _id : 2, id : 1, label : 'B', _version : [2], post : true }
+          { _rowId : 3, _id : 1, id : 1, _version : [2] },
+          { _rowId : 4, _id : 2, id : 2, _version : [2] }
         ]);
         done();
       });
     });
 
-    it('should merge only-server', done => {
+    it('should merge only-local', done => {
       const _store = initStore('multiple');
       lunarisGlobal._stores['multiple'] = _store;
       lunarisGlobal.insert('@multiple', [
@@ -5490,6 +5491,12 @@ function _startServer (callback) {
       req.body[i].id   = i + 1;
       req.body[i].post = true;
       delete req.body[i]._version;
+    }
+    res.json({ success : true, error : null, message : null, data : req.body });
+  });
+  server.post('/multiple-only-server', (req, res) => {
+    for (var i = 0; i < req.body.length; i++) {
+      req.body[i] = { id : i + 1, _id : req.body[i]._id };
     }
     res.json({ success : true, error : null, message : null, data : req.body });
   });
