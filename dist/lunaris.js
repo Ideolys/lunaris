@@ -3043,35 +3043,6 @@ exports = {
         return exports;
       })([_logger_js,_localStorageDriver_js,_exports_js,_offline_js], {});
     
-      var _store_store_transaction_js = (function(imports, exports) {
-        var exportsLunaris = imports[0];
-var logger         = imports[1];
-
-/**
- * Begin a store transaction
- * @return {Function} rollback
- */
-function begin () {
-  return logger.deprecated('lunaris.begin has been removed!');
-}
-
-/**
- * Commit a transaction
- * @param {Function} callback
- */
-function commit (callback) {
-  return logger.deprecated('lunaris.commit has been removed!');
-}
-
-exports = {
-  begin  : begin,
-  commit : commit
-};
-
-        
-        return exports;
-      })([_exports_js,_logger_js], {});
-    
       var _http_js = (function(imports, exports) {
         var lunarisExports = imports[0];
 var utils          = imports[1];
@@ -3589,6 +3560,35 @@ exports['getError'] = getError;
         return exports;
       })([], {});
     
+      var _store_store_transaction_js = (function(imports, exports) {
+        var exportsLunaris = imports[0];
+var logger         = imports[1];
+
+/**
+ * Begin a store transaction
+ * @return {Function} rollback
+ */
+function begin () {
+  return logger.deprecated('lunaris.begin has been removed!');
+}
+
+/**
+ * Commit a transaction
+ * @param {Function} callback
+ */
+function commit (callback) {
+  return logger.deprecated('lunaris.commit has been removed!');
+}
+
+exports = {
+  begin  : begin,
+  commit : commit
+};
+
+        
+        return exports;
+      })([_exports_js,_logger_js], {});
+    
       var _store_store_synchronisation_js = (function(imports, exports) {
         var lunarisExports              = imports[0];
 var hook                        = imports[1];
@@ -4046,15 +4046,20 @@ var cache       = imports[1];
 var utils       = imports[2];
 var storeUtils  = imports[3];
 var offline     = imports[4];
-var transaction = imports[5];
-var hook        = imports[6];
-var crudUtils   = imports[7];
-var http        = imports[8];
-var url         = imports[9];
-var template    = imports[10];
-var sync        = imports[11];
-var lazyLoad    = imports[12];
+var hook        = imports[5];
+var crudUtils   = imports[6];
+var http        = imports[7];
+var url         = imports[8];
+var template    = imports[9];
+var sync        = imports[10];
+var lazyLoad    = imports[11];
 var OPERATIONS  = utils.OPERATIONS;
+
+const MERGE_STRATEGIES = {
+  MERGE       : 'merge',
+  ONLY_LOCAL  : 'only-local',
+  ONLY_SERVER : 'only-server'
+};
 
 var imports = {};
 
@@ -4206,6 +4211,34 @@ function _upsertHTTPEvents (store, collection, value, isUpdate, method, callback
 }
 
 /**
+ * Merge value depending of strategiy value
+ *  - merge       : merge collection value with serveur value
+ *  - only-local  : keep only collection value
+ *  - only-server : keep only server value
+ * @param {Object} collectionValue
+ * @param {Object} serverValue
+ * @param {Function} cloneFn
+ * @param {String} strategy values among merge, only-local, only-server
+ * @returns
+ */
+function _mergeValue (collectionValue, serverValue, cloneFn, strategy = MERGE_STRATEGIES.MERGE) {
+  if (strategy === MERGE_STRATEGIES.MERGE) {
+    return utils.merge(
+      cloneFn ? cloneFn(collectionValue) : collectionValue,
+      serverValue
+    );
+  }
+  else if (strategy === MERGE_STRATEGIES.ONLY_SERVER) {
+    serverValue._id      = collectionValue._id;
+    serverValue._rowId   = collectionValue._rowId;
+    serverValue._version = collectionValue._version;
+    return serverValue;
+  }
+
+  return cloneFn ? (collectionValue) : collectionValue;
+}
+
+/**
  * Make HTTP request for upsert
  * @param {String} method  GET, POST, ...
  * @param {String} request url
@@ -4216,9 +4249,10 @@ function _upsertHTTPEvents (store, collection, value, isUpdate, method, callback
  * @param {*} value
  * @param {Boolean} isMultipleItems
  * @param {Int} version
+ * @param {Object} options
  * @param {Function} callback
  */
-function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version, callback) {
+function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version, options, callback) {
   http.request(method, request, value, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, method, false);
@@ -4243,7 +4277,8 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
         data = data[0];
       }
 
-      value        = utils.merge(value, data);
+      value = _mergeValue(value, data, null, options.mergeStrategy);
+
       var _version = collection.begin();
       collection.upsert(value, _version);
 
@@ -4266,7 +4301,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
         if (_isMultiple) {
           for (var j = 0; j < data.length; j++) {
             if (value[i]._id === data[j]._id) {
-              value[i] = utils.merge(store.clone(value[i]), data[j]);
+              value[i] = _mergeValue(value[i], data[j], store.clone, options.mergeStrategy);
 
               collection.upsert(value[i], _version);
 
@@ -4278,7 +4313,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
           }
         }
         else {
-          value[i] = utils.merge(value[i], data);
+          value[i] = _mergeValue(value[i], data, null, options.mergeStrategy);
           collection.upsert(value[i], _version);
 
           if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
@@ -4379,7 +4414,7 @@ function _upsert (store, collection, pathParts, value, isUpdate, options, callba
           return callback(null, value);
         }
 
-        _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, callback);
+        _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, options, callback);
       });
     });
   }
@@ -4390,7 +4425,7 @@ function _upsert (store, collection, pathParts, value, isUpdate, options, callba
     return callback(null, value);
   }
 
-  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, callback);
+  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, options, callback);
 }
 
 
@@ -4405,6 +4440,7 @@ function _upsert (store, collection, pathParts, value, isUpdate, options, callba
  *    version
  *  },
  *  isLocal : {Boolean}
+ * @param {String} options.mergeStrategy 'merge', 'only-local', 'only-server'
  * @param {Function} callback
  */
 function upsert (store, value, options, callback) {
@@ -4507,7 +4543,7 @@ exports['setImportFunction'] = function setImportFunction (fn) {
 
         
         return exports;
-      })([_logger_js,_cache_js,_utils_js,_store_store_utils_js,_offline_js,_store_store_transaction_js,_store_store_hook_js,_store_crud_crudUtils_js,_http_js,_store_store_url_js,_store_store_template_js,_store_store_synchronisation_js,_store_crud__lazyLoad_js], {});
+      })([_logger_js,_cache_js,_utils_js,_store_store_utils_js,_offline_js,_store_store_hook_js,_store_crud_crudUtils_js,_http_js,_store_store_url_js,_store_store_template_js,_store_store_synchronisation_js,_store_crud__lazyLoad_js], {});
     
       var _md5_js = (function(imports, exports) {
         /*

@@ -3,7 +3,6 @@ var cache       = require('../../cache.js');
 var utils       = require('../../utils.js');
 var storeUtils  = require('../store.utils.js');
 var offline     = require('../../offline.js');
-var transaction = require('../store.transaction.js');
 var hook        = require('../store.hook.js');
 var crudUtils   = require('./crudUtils.js');
 var http        = require('../../http.js');
@@ -12,6 +11,12 @@ var template    = require('../store.template.js');
 var sync        = require('../store.synchronisation.js');
 var lazyLoad    = require('./_lazyLoad.js');
 var OPERATIONS  = utils.OPERATIONS;
+
+const MERGE_STRATEGIES = {
+  MERGE       : 'merge',
+  ONLY_LOCAL  : 'only-local',
+  ONLY_SERVER : 'only-server'
+};
 
 var imports = {};
 
@@ -163,6 +168,34 @@ function _upsertHTTPEvents (store, collection, value, isUpdate, method, callback
 }
 
 /**
+ * Merge value depending of strategiy value
+ *  - merge       : merge collection value with serveur value
+ *  - only-local  : keep only collection value
+ *  - only-server : keep only server value
+ * @param {Object} collectionValue
+ * @param {Object} serverValue
+ * @param {Function} cloneFn
+ * @param {String} strategy values among merge, only-local, only-server
+ * @returns
+ */
+function _mergeValue (collectionValue, serverValue, cloneFn, strategy = MERGE_STRATEGIES.MERGE) {
+  if (strategy === MERGE_STRATEGIES.MERGE) {
+    return utils.merge(
+      cloneFn ? cloneFn(collectionValue) : collectionValue,
+      serverValue
+    );
+  }
+  else if (strategy === MERGE_STRATEGIES.ONLY_SERVER) {
+    serverValue._id      = collectionValue._id;
+    serverValue._rowId   = collectionValue._rowId;
+    serverValue._version = collectionValue._version;
+    return serverValue;
+  }
+
+  return cloneFn ? (collectionValue) : collectionValue;
+}
+
+/**
  * Make HTTP request for upsert
  * @param {String} method  GET, POST, ...
  * @param {String} request url
@@ -173,9 +206,10 @@ function _upsertHTTPEvents (store, collection, value, isUpdate, method, callback
  * @param {*} value
  * @param {Boolean} isMultipleItems
  * @param {Int} version
+ * @param {Object} options
  * @param {Function} callback
  */
-function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version, callback) {
+function _upsertHTTP (method, request, isUpdate, store, collection, value, isMultipleItems, version, options, callback) {
   http.request(method, request, value, function (err, data) {
     if (err) {
       var _error = template.getError(err, store, method, false);
@@ -200,7 +234,8 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
         data = data[0];
       }
 
-      value        = utils.merge(value, data);
+      value = _mergeValue(value, data, null, options.mergeStrategy);
+
       var _version = collection.begin();
       collection.upsert(value, _version);
 
@@ -223,7 +258,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
         if (_isMultiple) {
           for (var j = 0; j < data.length; j++) {
             if (value[i]._id === data[j]._id) {
-              value[i] = utils.merge(store.clone(value[i]), data[j]);
+              value[i] = _mergeValue(value[i], data[j], store.clone, options.mergeStrategy);
 
               collection.upsert(value[i], _version);
 
@@ -235,7 +270,7 @@ function _upsertHTTP (method, request, isUpdate, store, collection, value, isMul
           }
         }
         else {
-          value[i] = utils.merge(value[i], data);
+          value[i] = _mergeValue(value[i], data, null, options.mergeStrategy);
           collection.upsert(value[i], _version);
 
           if (sync.isPushingOfflineTransaction && method === OPERATIONS.INSERT) {
@@ -336,7 +371,7 @@ function _upsert (store, collection, pathParts, value, isUpdate, options, callba
           return callback(null, value);
         }
 
-        _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, callback);
+        _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, options, callback);
       });
     });
   }
@@ -347,7 +382,7 @@ function _upsert (store, collection, pathParts, value, isUpdate, options, callba
     return callback(null, value);
   }
 
-  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, callback);
+  _upsertHTTP(_method, _request, isUpdate, store, collection, value, _isMultipleItems, _version, options, callback);
 }
 
 
@@ -362,6 +397,7 @@ function _upsert (store, collection, pathParts, value, isUpdate, options, callba
  *    version
  *  },
  *  isLocal : {Boolean}
+ * @param {String} options.mergeStrategy 'merge', 'only-local', 'only-server'
  * @param {Function} callback
  */
 function upsert (store, value, options, callback) {

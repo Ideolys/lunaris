@@ -756,6 +756,90 @@ describe('lunaris store', function () {
 
     });
 
+    describe('merge-strategies', () => {
+
+      it('should merge object by default', done => {
+        const _store = initStore('store1');
+        lunarisGlobal._stores['store1'] = _store;
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' }, (err, res) => {
+          should(res[0]).eql({
+            _rowId   : 2,
+            _id      : 1,
+            id       : 1,
+            label    : 'A',
+            _version : [2],
+            params   : {},
+            query    : {},
+            body     : { _id : 1, id : 1, _rowId : 1, label : 'A' }
+          });
+          done();
+        });
+      });
+
+      it('should not merge object : only-server', done => {
+        const _store = initStore('store1');
+        lunarisGlobal._stores['store1'] = _store;
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' }, { mergeStrategy : 'only-server' }, (err, res) => {
+          should(res[0]).eql({
+            _rowId   : 2,
+            _id      : 1,
+            _version : [2],
+            params   : {},
+            query    : {},
+            body     : { _id : 1, id : 1, _rowId : 1, label : 'A' }
+          });
+          done();
+        });
+      });
+
+      it('should not merge object : only-server & store object', done => {
+        const _store = initStore('store1', {});
+        lunarisGlobal._stores['store1'] = _store;
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' }, { mergeStrategy : 'only-server' }, (err, res) => {
+          should(res).eql({
+            _rowId   : 2,
+            _id      : 1,
+            _version : [2],
+            params   : {},
+            query    : {},
+            body     : { _id : 1, id : 1, _rowId : 1, label : 'A' }
+          });
+          done();
+        });
+      });
+
+      it('should not merge object : only-local', done => {
+        const _store = initStore('store1');
+        lunarisGlobal._stores['store1'] = _store;
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' }, { mergeStrategy : 'only-local' }, (err, res) => {
+          should(res[0]).eql({
+            _rowId   : 2,
+            _id      : 1,
+            id       : 1,
+            label    : 'A',
+            _version : [2]
+          });
+          done();
+        });
+      });
+
+      it('should not merge object : only-local & store object', done => {
+        const _store = initStore('store1', {});
+        lunarisGlobal._stores['store1'] = _store;
+        lunarisGlobal.insert('@store1', { id : 1, label : 'A' }, { mergeStrategy : 'only-local' }, (err, res) => {
+          should(res).eql({
+            _rowId   : 2,
+            _id      : 1,
+            id       : 1,
+            label    : 'A',
+            _version : [2]
+          });
+          done();
+        });
+      });
+
+    });
+
   });
 
   describe('multiple insert() / update()', () => {
@@ -1080,6 +1164,38 @@ describe('lunaris store', function () {
         should(res).eql([
           { _rowId : 3, _id : 1, id : 2, label : 'A', _version : [2], post : true },
           { _rowId : 4, _id : 2, id : 1, label : 'B', _version : [2], post : true }
+        ]);
+        done();
+      });
+    });
+
+    it('should merge only-server', done => {
+      const _store = initStore('multiple');
+      lunarisGlobal._stores['multiple'] = _store;
+      lunarisGlobal.insert('@multiple', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ], { mergeStrategy : 'only-server' }, (err, res) => {
+        should(err).not.ok();
+        should(res).eql([
+          { _rowId : 3, _id : 1, id : 2, label : 'A', _version : [2], post : true },
+          { _rowId : 4, _id : 2, id : 1, label : 'B', _version : [2], post : true }
+        ]);
+        done();
+      });
+    });
+
+    it('should merge only-server', done => {
+      const _store = initStore('multiple');
+      lunarisGlobal._stores['multiple'] = _store;
+      lunarisGlobal.insert('@multiple', [
+        { id : 1, label : 'A' },
+        { id : 2, label : 'B' }
+      ], { mergeStrategy : 'only-local' }, (err, res) => {
+        should(err).not.ok();
+        should(res).eql([
+          { _rowId : 3, _id : 1, id : 1, label : 'A', _version : [2] },
+          { _rowId : 4, _id : 2, id : 2, label : 'B', _version : [2] }
         ]);
         done();
       });
