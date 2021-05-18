@@ -645,20 +645,25 @@ describe('lunaris store', function () {
 
     describe('callback', () => {
 
-      it('should insert the value', () => {
+      it('should insert the value', done => {
         var _store = initStore('store1');
         lunarisGlobal._stores['store1'] = _store;
         lunarisGlobal.insert('@store1', { id : 1, label : 'A' }, (err, res) => {
-          should(res[0]).eql({ _rowId : 1, _id : 1, id : 1, label : 'A', _version : [1] });
+          delete res[0].body;
+          delete res[0].query;
+          delete res[0].params;
+          should(res[0]).eql({ _rowId : 2, _id : 1, id : 1, label : 'A', _version : [2] });
+          done();
         });
       });
 
-      it('should return the HTTP error', () => {
+      it('should return the HTTP error', done => {
         var _store = initStore('store2');
         lunarisGlobal._stores['store2'] = _store;
         lunarisGlobal.insert('@store2', { id : 1, label : 'A' }, (err, res) => {
           should(err).ok();
           should(res).not.ok();
+          done();
         });
       });
 
