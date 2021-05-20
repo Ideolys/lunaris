@@ -51,7 +51,7 @@ lunaris._vue = {
           // });
 
           lunaris._vue._vm.$emit('spawn-flag', {
-            type     : 'error',
+            type     : 'danger',
             title    : err.error,
             iconPack : 'fas',
             iconName : 'fa-times-circle'

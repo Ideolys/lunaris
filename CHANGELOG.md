@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.22.2
+*2021-05-19*
+  - Fix default class for error notification.
+
 ## 1.22.1
 *2021-05-19*
   - Replace toasts of Buefy by d-sytem's flags.
