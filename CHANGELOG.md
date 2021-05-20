@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.22.1
+*2021-05-19*
+  - Replace toasts of Buefy by d-sytem's flags.
+
 ## 1.22.0
 *2021-05-18*
   - In `getRoutes` method, allow single quote in route's description.

@@ -16,13 +16,12 @@ lunaris._vue = {
             return;
           }
 
-          if (_this.$buefy) {
-            _this.$buefy.toast.open({
-              message  : message,
-              type     : 'is-success',
-              position : 'is-top-right'
-            });
-          }
+          lunaris._vue._vm.$emit('spawn-flag', {
+            type     : 'success',
+            title    : message,
+            iconPack : 'fas',
+            iconName : 'fa-check-circle'
+          });
         };
       }
 
@@ -51,14 +50,12 @@ lunaris._vue = {
           //   onAction   : onAction
           // });
 
-          if (_this.$buefy) {
-            _this.$buefy.toast.open({
-              message  : err.error,
-              type     : 'is-danger',
-              position : 'is-top-right',
-              duration : 3000
-            });
-          }
+          lunaris._vue._vm.$emit('spawn-flag', {
+            type     : 'error',
+            title    : err.error,
+            iconPack : 'fas',
+            iconName : 'fa-times-circle'
+          });
         };
       }
 
