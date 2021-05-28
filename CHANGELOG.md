@@ -1,5 +1,10 @@
 # Lunaris
 
+## 1.22.3
+*2021-05-28*
+  - Fix duplciated callback when upsert failed (HTTP status <> 200 && json payload).
+
+
 ## 1.22.2
 *2021-05-19*
   - Fix default class for error notification.

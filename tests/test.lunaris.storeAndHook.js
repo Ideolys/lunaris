@@ -1177,7 +1177,6 @@ describe('lunaris store', function () {
         { id : 2, label : 'B' }
       ], { mergeStrategy : 'only-server' }, (err, res) => {
         should(err).not.ok();
-        console.log(res);
         should(res).eql([
           { _rowId : 3, _id : 1, id : 1, _version : [2] },
           { _rowId : 4, _id : 2, id : 2, _version : [2] }
@@ -5304,11 +5303,28 @@ describe('lunaris store', function () {
     });
   });
 
+  describe('HTTP', () => {
+
+    it('should return an error once', done => {
+      var _store                                           = initStore('error-status');
+      lunarisGlobal._stores['error-status']            = _store;
+      lunarisGlobal._stores['error-status'].primaryKey = 'id';
+
+      lunarisGlobal.insert('@error-status', { id : 1, label : 'a' }, (err, data) => {
+        should(data).be.not.ok();
+        should(err).be.ok();
+        done();
+      });
+    });
+
+  });
+
 });
 
 function _startServer (callback) {
   server.use(compression());
   server.use(bodyParser.json());
+
   server.get('/store1', (req, res) => {
     res.json({
       success : true,
@@ -5571,6 +5587,17 @@ function _startServer (callback) {
       data    : [
         { id : 1, label : 'a', url : req.url }
       ]
+    });
+  });
+
+  server.post('/error-status', (req, res) => {
+    res.header('content-type', 'application/json');
+    res.status(500);
+    res.json({
+      success : false,
+      error   : 'An error',
+      message : null,
+      data    : null
     });
   });
 

@@ -410,8 +410,6 @@ function upsert (store, value, options, callback) {
     options = {};
   }
 
-  callback = callback || function () {};
-
   var _isUpdate = false;
 
   var _storeParts = (store && typeof store === 'string') ? store.split(':') : [];
@@ -439,17 +437,24 @@ function upsert (store, value, options, callback) {
     if (_options.store.validateFn && !_storeParts.length && !options.retryOptions) {
       return imports.validate(store, _options.value, _isUpdate, function (res) {
         if (!res) {
-          return callback('Error when validating data');
+          let error = 'Error when validating data';
+          if (callback) {
+            return callback(error);
+          }
         }
 
         _upsert(_options.store, _options.collection, _storeParts, _options.value, _isUpdate, options, function (err, res) {
           // do something when action end
           if (err) {
-            callback(err);
+            if (callback) {
+              return callback(err);
+            }
             throw err;
           }
 
-          callback(null, res);
+          if (callback) {
+            callback(null, res);
+          }
         });
       }, _eventName);
     }
@@ -457,11 +462,15 @@ function upsert (store, value, options, callback) {
     _upsert(_options.store, _options.collection, _storeParts, _options.value, _isUpdate, options, function (err, res) {
       // do something when action end
       if (err) {
-        callback(err);
+        if (callback) {
+          return callback(err);
+        }
         throw err;
       }
 
-      callback(null, res);
+      if (callback) {
+        callback(null, res);
+      }
     });
   }
   catch (e) {
