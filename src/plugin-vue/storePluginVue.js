@@ -17,10 +17,11 @@ lunaris._vue = {
           }
 
           lunaris._vue._vm.$emit('spawn-flag', {
-            type     : 'success',
-            title    : message,
-            iconPack : 'fas',
-            iconName : 'fa-check-circle'
+            type          : 'success',
+            title         : message,
+            iconPack      : 'fas',
+            iconName      : 'fa-check-circle',
+            isDismissible : true,
           });
         };
       }
@@ -51,10 +52,11 @@ lunaris._vue = {
           // });
 
           lunaris._vue._vm.$emit('spawn-flag', {
-            type     : 'danger',
-            title    : err.error,
-            iconPack : 'fas',
-            iconName : 'fa-times-circle'
+            type          : 'danger',
+            title         : err.error,
+            iconPack      : 'fas',
+            iconName      : 'fa-times-circle',
+            isDismissible : true
           });
         };
       }
