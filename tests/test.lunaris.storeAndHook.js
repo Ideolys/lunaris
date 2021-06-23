@@ -1489,7 +1489,7 @@ describe('lunaris store', function () {
         should(data).eql({
           _rowId   : 1,
           _id      : 1,
-          id       : 2,
+          id       : '2',
           label    : 'A',
           _version : [1, 2]
         });
@@ -1580,7 +1580,7 @@ describe('lunaris store', function () {
         should(data).eql({
           _rowId   : 1,
           _id      : 1,
-          id       : 2,
+          id       : '1',
           label    : 'A',
           _version : [1, 2]
         });

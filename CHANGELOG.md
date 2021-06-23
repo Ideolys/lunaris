@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.22.5
+*2021-06-23*
+  - Fix: Add merge for delete in `deleted` hook.
+
 ## 1.22.4
 *2021-05-28*
   - Make flags dismissable.

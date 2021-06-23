@@ -5789,8 +5789,7 @@ function _deleteHttp (store, collection, value, version, options, callback) {
       if (dataCollection[1]) {
         value = dataCollection[1];
       }
-
-      crudUtils.afterAction(store, 'deleted', value, template.getSuccess(null, store, 'DELETE', false), function () {
+      crudUtils.afterAction(store, 'deleted', utils.merge(value, data), template.getSuccess(null, store, 'DELETE', false), function () {
         callback(null, utils.merge(value, data));
       });
     });
