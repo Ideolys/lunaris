@@ -453,7 +453,7 @@ describe('Test vue compilation', () => {
           </script>
         `;
 
-        var _template = '<ul class="bla bloop">More+</ul>';
+        var _template = '<ul class="bla bloop">                            More+            </ul>';
         compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.vue'), _file, {
           langPath : path.join(__dirname, 'datasets', 'lang'),
           lang     : 'en'
@@ -489,7 +489,7 @@ describe('Test vue compilation', () => {
           </script>
         `;
 
-        var _template = '<ul class="bla bloop">l\'autre</ul>';
+        var _template = '<ul class="bla bloop">                            l\'autre            </ul>';
         compiler.compileVuejsTemplates(path.join(__dirname, 'datasets', 'vue', 'module.vue'), _file, {
           langPath : path.join(__dirname, 'datasets', 'lang'),
           lang     : 'fr'

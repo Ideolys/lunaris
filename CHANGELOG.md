@@ -1,5 +1,9 @@
 # Lunaris
 
+## 1.xx.x
+*2021-XX-XX*
+ - [Builder|Vue template compiler] Do not remove spaces at start and end of a tag.
+
 ## 1.22.5
 *2021-06-23*
   - Fix: Add merge for delete in `deleted` hook.
