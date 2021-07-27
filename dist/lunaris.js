@@ -3301,6 +3301,32 @@ function _getFilterValuesHTTPRequest (store, method) {
   return _filterValues;
 }
 
+function _getFilterValuesForFilters (filterValues, filters) {
+  for (let filterKey in filters) {
+    let filter = filters[filterKey];
+
+    if (!filter.values) {
+      continue;
+    }
+
+    let filterValue = [
+      filter.attributeUrl,
+      null,
+      filter.values,
+      filter.operator
+    ];
+
+    if (filter.isSearchable === false) {
+      filterValues.optionalUnsearchableOptions[filterKey] = filterValue;
+    }
+    else {
+      filterValues.optionalOptions[filterKey] = filterValue;
+    }
+
+    filterValues.cache[filterKey] = filterValue.values;
+  }
+}
+
 /**
 * Construct search options
 * @param {Array} filterValues
@@ -3401,7 +3427,7 @@ function _getUrlOptionsForHTTPRequest (store, isPagination, filterValues) {
 *  cache                      : {Object}
 * }
 */
-function createUrl (store, method, primaryKeyValue, isPagination) {
+function createUrl (store, method, primaryKeyValue, isPagination, options) {
   var _request = { request : '/', cache : {} };
   var _isGet   = method === 'GET' && isPagination !== false;
   var _url     = store.url || store.name;
@@ -3421,6 +3447,10 @@ function createUrl (store, method, primaryKeyValue, isPagination) {
 
   if (!_filterValues.isRequiredOptionsFilled) {
     return null;
+  }
+
+  if (options && options.urlQueryFragments) {
+    _getFilterValuesForFilters(_filterValues, options.urlQueryFragments);
   }
 
   _request.request += _filterValues.constructedRequiredOptions;
@@ -5337,7 +5367,7 @@ function _get (store, primaryKeyValue, options, next) {
       isPaginated = options.isPaginated;
     }
 
-    _request = url.create(_options.store, 'GET', primaryKeyValue, isPaginated);
+    _request = url.create(_options.store, 'GET', primaryKeyValue, isPaginated, options);
 
     if (isPaginated) {
       _options.store.paginationOffset = _options.store.paginationLimit * _options.store.paginationCurrentPage;

@@ -224,7 +224,7 @@ function _get (store, primaryKeyValue, options, next) {
       isPaginated = options.isPaginated;
     }
 
-    _request = url.create(_options.store, 'GET', primaryKeyValue, isPaginated);
+    _request = url.create(_options.store, 'GET', primaryKeyValue, isPaginated, options);
 
     if (isPaginated) {
       _options.store.paginationOffset = _options.store.paginationLimit * _options.store.paginationCurrentPage;
