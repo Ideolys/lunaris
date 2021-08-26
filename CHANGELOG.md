@@ -2,8 +2,8 @@
 
 ## 1.23.0
 *2021-XX-XX*
- - [Builder|Vue template compiler] Do not remove spaces at start and end of a tag.
- - `lunaris.http.setup` can set default http headers, see below:
+  - [Builder|Vue template compiler] Do not remove spaces at start and end of a tag.
+  - `lunaris.http.setup` can set default http headers, see below:
     ```js
       lunaris.http.setup({
         headers : {
@@ -11,6 +11,8 @@
         }
       });
     ```
+  - [Builder] Add option to give a `.vue` file in `controllers` in `routes.json`.
+
 
 ## 1.22.5
 *2021-06-23*
