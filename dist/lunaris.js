@@ -3048,7 +3048,10 @@ exports = {
 var utils          = imports[1];
 
 var baseOptions = {
-  onComplete : null
+  onComplete : null,
+  headers    : {
+    'Client-Version' : 2
+  }
 };
 
 /**
@@ -3080,9 +3083,7 @@ function setup (options) {
 function request (method, request, body, callback, options) {
   var _body               = body;
   var _defaultContentType = 'application/json';
-  var _headers            = {
-    'Client-Version' : 2
-  };
+  var _headers            = utils.clone(baseOptions.headers);
 
   options = options || {};
   _headers['Content-Type'] = options['Content-Type'] || _defaultContentType;
