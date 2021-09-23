@@ -12,6 +12,7 @@
       });
     ```
   - [Builder] Add option to give a `.vue` file in `controllers` in `routes.json`.
+  - Log error in http.request's catch.
 
 
 ## 1.22.5

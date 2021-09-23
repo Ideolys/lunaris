@@ -3139,6 +3139,8 @@ function request (method, request, body, callback, options) {
       if (response.status !== 200) {
         return Promise.reject({ error : response.status, message : response.statusText, errors : [] });
       }
+
+      console.log(err);
     });
   }).catch(function (err) {
     callback(err);
