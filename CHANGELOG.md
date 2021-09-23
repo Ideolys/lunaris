@@ -1,7 +1,12 @@
 # Lunaris
 
+## 1.24.0
+*2021-xx-xx*
+  - [Builder] Add option to give a `.vue` file in `controllers` in `routes.json`.
+  - Log error in http.request's catch.
+
 ## 1.23.0
-*2021-XX-XX*
+*2021-26-08*
   - [Builder|Vue template compiler] Do not remove spaces at start and end of a tag.
   - `lunaris.http.setup` can set default http headers, see below:
     ```js
@@ -11,10 +16,6 @@
         }
       });
     ```
-  - [Builder] Add option to give a `.vue` file in `controllers` in `routes.json`.
-  - Log error in http.request's catch.
-
-
 ## 1.22.5
 *2021-06-23*
   - Fix: Add merge for delete in `deleted` hook.
