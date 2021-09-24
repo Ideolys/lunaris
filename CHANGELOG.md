@@ -1,8 +1,9 @@
 # Lunaris
 
 ## 1.24.0
-*2021-xx-xx*
+*2021-24-09*
   - [Builder] Add option to give a `.vue` file in `controllers` in `routes.json`.
+  - [Builder] Add minMax to dayjs
   - Log error in http.request's catch.
 
 ## 1.23.0
