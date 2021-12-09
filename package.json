@@ -43,10 +43,6 @@
     "test": "npm run build && ./node_modules/.bin/mocha ./tests/test*.js -w",
     "test-client": "npm run build && node tests/client/server.js"
   },
-  "repository": {
-    "type": "git",
-    "url": "git@git.ideolys.com:ideolys/projet-lunaris.git"
-  },
   "author": "",
   "license": "Apache-2.0"
 }

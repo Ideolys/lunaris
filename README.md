@@ -12,17 +12,17 @@ Fonctionnalités :
 
 ## Documentation
 
-[https://maya.dev.easilys.com/lunaris#/](https://maya.dev.easilys.com/lunaris#/)
+TODO (make it public)
 
 ## Extension navigateur
 
 Extension pour Firefox et Chrome pour débugger les applications utilisant Lunaris.
 
-[https://git.ideolys.com/ideolys/lunaris-devtools](https://git.ideolys.com/ideolys/lunaris-devtools)
+TODO (make lunaris-devtools public)
 
 ## Développer
 
-- Ajouter une issue [ici](https://git.ideolys.com/ideolys/projet-lunaris/issues)
+- Ajouter une issue
 - Créer une branche
 - Ouvrir une MR vers la branche `master`
 - Tester: lancer les tests généraux `npm test` et les tests clients `npm run test-client`
