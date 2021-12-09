@@ -1,13 +1,17 @@
 # Lunaris
 
+## 1.24.1
+*2021-12-09*
+  - [Builder] Vue was not minified if option `isProduction = true`.
+
 ## 1.24.0
-*2021-24-09*
+*2021-09-24*
   - [Builder] Add option to give a `.vue` file in `controllers` in `routes.json`.
   - [Builder] Add minMax to dayjs
   - Log error in http.request's catch.
 
 ## 1.23.0
-*2021-26-08*
+*2021-08-26*
   - [Builder|Vue template compiler] Do not remove spaces at start and end of a tag.
   - `lunaris.http.setup` can set default http headers, see below:
     ```js
